@@ -1,4 +1,5 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
+// diubah: Mengganti PelangganAktif menjadi PelangganAktifModel di seluruh file
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
@@ -15,7 +16,8 @@ class PelangganAktifOperasi {
   final NotifikasiServis _notifikasiServis = NotifikasiServis();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
-  Future<void> unggahKeFirebase(PelangganAktif pelanggan) async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<void> unggahKeFirebase(PelangganAktifModel pelanggan) async {
     // Hanya unggah jika statusnya adalah 'write'
     if (pelanggan.syncStatus != SyncStatus.write) {
       developer.log(
@@ -62,7 +64,8 @@ class PelangganAktifOperasi {
     );
   }
 
-  Future<int> unduhPelangganAktif(PelangganAktif pelangganAktif) async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<int> unduhPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
 
@@ -90,7 +93,8 @@ class PelangganAktifOperasi {
     return result;
   }
 
-  Future<int> createPelangganAktif(PelangganAktif pelangganAktif) async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<int> createPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
 
@@ -118,17 +122,23 @@ class PelangganAktifOperasi {
     return result;
   }
 
-  Future<List<PelangganAktif>> ambilSemuaPelangganAktif() async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'pelanggan_aktif',
       where: 'sync_status != ?',
       whereArgs: [SyncStatus.deleted.name],
     );
-    return List.generate(maps.length, (i) => PelangganAktif.fromMap(maps[i]));
+    // diubah: Menggunakan PelangganAktifModel.fromMap
+    return List.generate(
+      maps.length,
+      (i) => PelangganAktifModel.fromMap(maps[i]),
+    );
   }
 
-  Future<PelangganAktif?> ambilSatuPelangganAktif(String id) async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'pelanggan_aktif',
@@ -136,12 +146,14 @@ class PelangganAktifOperasi {
       whereArgs: [id],
     );
     if (maps.isNotEmpty) {
-      return PelangganAktif.fromMap(maps.first);
+      // diubah: Menggunakan PelangganAktifModel.fromMap
+      return PelangganAktifModel.fromMap(maps.first);
     }
     return null;
   }
 
-  Future<void> updatePelangganAktif(PelangganAktif pelangganAktif) async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
 
@@ -183,7 +195,9 @@ class PelangganAktifOperasi {
     await _notifikasiServis.batalNotifikasi(id.hashCode);
   }
 
-  Future<void> _jadwalkanNotifikasi(PelangganAktif pelangganAktif) async {
+  // diubah: Menggunakan PelangganAktifModel
+  Future<void> _jadwalkanNotifikasi(PelangganAktifModel pelangganAktif) async {
+    // diubah: perlu cek null safety
     final pelanggan = await _pelangganOperasi.getPelangganById(
       pelangganAktif.idPelanggan,
     );
@@ -233,5 +247,21 @@ class PelangganAktifOperasi {
       where: 'tanggalBerakhir < ?',
       whereArgs: [DateTime.now().toIso8601String()],
     );
+  }
+
+  Future<void> sisipkanAtauPerbaruiBatch(
+    List<PelangganAktifModel> items,
+  ) async {
+    final db = await dbHelper.database;
+    final batch = db.batch();
+    for (var item in items) {
+      batch.insert(
+        // diubah: tabel seharusnya 'pelanggan_aktif'
+        'pelanggan_aktif',
+        item.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
   }
 }

@@ -1,4 +1,5 @@
 // lib/data/operasi/pelanggan_operasi.dart
+// diubah: Mengganti Pelanggan menjadi PelangganModel di seluruh file
 import 'package:sqflite/sqflite.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
@@ -6,7 +7,8 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 class PelangganOperasi {
   final dbHelper = DatabaseHelper.instance;
 
-  Future<void> createPelanggan(Pelanggan pelanggan) async {
+  // diubah: Menggunakan PelangganModel
+  Future<void> createPelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
     final data = pelanggan.toMap()..['diperbarui'] = now.toIso8601String();
@@ -18,15 +20,18 @@ class PelangganOperasi {
     );
   }
 
-  Future<List<Pelanggan>> getPelanggan() async {
+  // diubah: Menggunakan PelangganModel
+  Future<List<PelangganModel>> getPelanggan() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('pelanggan');
+    // diubah: Menggunakan PelangganModel.fromMap
     return List.generate(maps.length, (i) {
-      return Pelanggan.fromMap(maps[i]);
+      return PelangganModel.fromMap(maps[i]);
     });
   }
 
-  Future<Pelanggan?> getPelangganById(String id) async {
+  // diubah: Menggunakan PelangganModel
+  Future<PelangganModel?> getPelangganById(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'pelanggan',
@@ -35,12 +40,14 @@ class PelangganOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return Pelanggan.fromMap(maps.first);
+      // diubah: Menggunakan PelangganModel.fromMap
+      return PelangganModel.fromMap(maps.first);
     }
     return null;
   }
 
-  Future<void> updatePelanggan(Pelanggan pelanggan) async {
+  // diubah: Menggunakan PelangganModel
+  Future<void> updatePelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
     final data = pelanggan.toMap()..['diperbarui'] = now.toIso8601String();
@@ -57,17 +64,20 @@ class PelangganOperasi {
     await db.delete('pelanggan', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<Pelanggan>> getPerubahan(DateTime since) async {
+  // diubah: Menggunakan PelangganModel
+  Future<List<PelangganModel>> getPerubahan(DateTime since) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'pelanggan',
       where: 'diperbarui > ?',
       whereArgs: [since.toIso8601String()],
     );
-    return List.generate(maps.length, (i) => Pelanggan.fromMap(maps[i]));
+    // diubah: Menggunakan PelangganModel.fromMap
+    return List.generate(maps.length, (i) => PelangganModel.fromMap(maps[i]));
   }
 
-  Future<void> sisipkanAtauPerbaruiBatch(List<Pelanggan> items) async {
+  // diubah: Menggunakan PelangganModel
+  Future<void> sisipkanAtauPerbaruiBatch(List<PelangganModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();
     for (var item in items) {

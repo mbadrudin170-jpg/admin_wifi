@@ -1,4 +1,4 @@
-// lib/halaman/lainnya/pelanggan.dart
+// path: lib/halaman/lainnya/pelanggan.dart
 // Halaman ini menampilkan daftar semua pelanggan yang terdaftar.
 
 import 'package:admin_wifi/halaman/form/form_pelanggan.dart';
@@ -16,7 +16,8 @@ class PelangganPage extends StatefulWidget {
 
 class _PelangganPageState extends State<PelangganPage> {
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-  late Future<List<Pelanggan>> _listaPelangganFuture;
+  // diubah: karena nama class yang benar adalah PelangganModel
+  late Future<List<PelangganModel>> _listaPelangganFuture;
 
   @override
   void initState() {
@@ -49,7 +50,8 @@ class _PelangganPageState extends State<PelangganPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pelanggan')),
-      body: FutureBuilder<List<Pelanggan>>(
+      // diubah: karena nama class yang benar adalah PelangganModel
+      body: FutureBuilder<List<PelangganModel>>(
         future: _listaPelangganFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

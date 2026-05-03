@@ -17,7 +17,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPelangganAktif extends StatefulWidget {
-  final PelangganAktif pelanggan;
+  final PelangganAktifModel pelanggan;
 
   const DetailPelangganAktif({super.key, required this.pelanggan});
 
@@ -26,9 +26,9 @@ class DetailPelangganAktif extends StatefulWidget {
 }
 
 class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
-  late PelangganAktif _pelangganAktif;
-  Pelanggan? _pelanggan;
-  Paket? _paket;
+  late PelangganAktifModel _pelangganAktif;
+  PelangganModel? _pelanggan;
+  PaketModel? _paket;
   bool _isLoading = true;
 
   @override
@@ -87,8 +87,8 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
 
       if (mounted) {
         setState(() {
-          _pelanggan = results[0] as Pelanggan?;
-          _paket = results[1] as Paket?;
+          _pelanggan = results[0] as PelangganModel?;
+          _paket = results[1] as PaketModel?;
           _isLoading = false;
         });
       }

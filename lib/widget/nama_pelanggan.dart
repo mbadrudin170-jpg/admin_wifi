@@ -1,4 +1,4 @@
-// lib/widget/nama_pelanggan.dart
+// path: lib/widget/nama_pelanggan.dart
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
@@ -13,7 +13,7 @@ class NamaPelangganWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final PelangganOperasi pelangganOperasi = PelangganOperasi();
 
-    return FutureBuilder<Pelanggan?>(
+    return FutureBuilder<PelangganModel?>(
       future: pelangganOperasi.getPelangganById(idPelanggan),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

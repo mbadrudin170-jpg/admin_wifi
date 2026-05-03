@@ -21,7 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 
 class FormPelangganAktif extends StatefulWidget {
-  final PelangganAktif? pelangganAktif;
+  final PelangganAktifModel? pelangganAktif;
   const FormPelangganAktif({super.key, this.pelangganAktif});
 
   @override
@@ -39,16 +39,16 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
 
   // State untuk data
-  List<Pelanggan> _pelangganList = [];
-  List<Paket> _paketList = [];
-  List<Dompet> _dompetList = [];
-  List<Kategori> _kategoriList = [];
+  List<PelangganModel> _pelangganList = [];
+  List<PaketModel> _paketList = [];
+  List<DompetModel> _dompetList = [];
+  List<KategoriModel> _kategoriList = [];
 
   // State untuk item yang dipilih
-  Pelanggan? _selectedPelanggan;
-  Paket? _selectedPaket;
-  Dompet? _selectedDompet;
-  Kategori? _selectedKategori;
+  PelangganModel? _selectedPelanggan;
+  PaketModel? _selectedPaket;
+  DompetModel? _selectedDompet;
+  KategoriModel? _selectedKategori;
 
   // State untuk loading
   bool _isLoading = true;
@@ -76,13 +76,13 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _kategoriOperasi.getKategori(),
       ]);
       setState(() {
-        _pelangganList = results[0] as List<Pelanggan>;
+        _pelangganList = results[0] as List<PelangganModel>;
         _pelangganList.sort(
           (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
         );
-        _paketList = results[1] as List<Paket>;
-        _dompetList = results[2] as List<Dompet>;
-        _kategoriList = results[3] as List<Kategori>;
+        _paketList = results[1] as List<PaketModel>;
+        _dompetList = results[2] as List<DompetModel>;
+        _kategoriList = results[3] as List<KategoriModel>;
 
         if (_isEditMode) {
           final pa = widget.pelangganAktif!;
@@ -123,8 +123,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           if (_kategoriList.isNotEmpty) {
             // Coba cari kategori 'Aktivasi Paket', jika tidak ada, gunakan yang pertama
             try {
-              _selectedKategori = _kategoriList
-                  .firstWhere((k) => k.nama.toLowerCase() == 'aktivasi paket');
+              _selectedKategori = _kategoriList.firstWhere(
+                (k) => k.nama.toLowerCase() == 'aktivasi paket',
+              );
             } catch (e) {
               _selectedKategori = _kategoriList.first;
             }
@@ -176,16 +177,16 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     }
   }
 
-  DateTime _hitungTanggalBerakhir(DateTime startDate, Paket paket) {
+  DateTime _hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
     switch (paket.tipe) {
       case TipeDurasi.jam:
         return startDate.add(Duration(hours: paket.durasi));
       case TipeDurasi.hari:
         return startDate.add(Duration(days: paket.durasi));
       case TipeDurasi.bulan:
-        return Jiffy.parseFromDateTime(startDate)
-            .add(months: paket.durasi)
-            .dateTime;
+        return Jiffy.parseFromDateTime(
+          startDate,
+        ).add(months: paket.durasi).dateTime;
       case TipeDurasi.menit:
         return startDate.add(Duration(minutes: paket.durasi));
     }
@@ -213,7 +214,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           selectedPaket,
         );
 
-        final pelangganAktifData = PelangganAktif(
+        final pelangganAktifData = PelangganAktifModel(
           id: _isEditMode ? widget.pelangganAktif!.id : null,
           idPelanggan: _selectedPelanggan!.id,
           idPaket: selectedPaket.id,
@@ -285,7 +286,8 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'Harap lengkapi semua data, termasuk Pelanggan, Paket, Dompet, dan Kategori.'),
+              'Harap lengkapi semua data, termasuk Pelanggan, Paket, Dompet, dan Kategori.',
+            ),
           ),
         );
       }
@@ -306,21 +308,23 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
               padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
-                child: ListView( // Menggunakan ListView untuk mencegah overflow
+                child: ListView(
+                  // Menggunakan ListView untuk mencegah overflow
                   children: [
-                    DropdownButtonFormField<Pelanggan>(
+                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                    DropdownButtonFormField<PelangganModel>(
                       decoration: const InputDecoration(
                         labelText: 'Pilih Pelanggan',
                         border: OutlineInputBorder(),
                       ),
                       initialValue: _selectedPelanggan,
-                      items: _pelangganList.map((Pelanggan pelanggan) {
-                        return DropdownMenuItem<Pelanggan>(
+                      items: _pelangganList.map((PelangganModel pelanggan) {
+                        return DropdownMenuItem<PelangganModel>(
                           value: pelanggan,
                           child: Text(pelanggan.nama),
                         );
                       }).toList(),
-                      onChanged: (Pelanggan? newValue) {
+                      onChanged: (PelangganModel? newValue) {
                         setState(() {
                           _selectedPelanggan = newValue;
                         });
@@ -329,19 +333,20 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           value == null ? 'Pelanggan tidak boleh kosong' : null,
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<Paket>(
+                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                    DropdownButtonFormField<PaketModel>(
                       decoration: const InputDecoration(
                         labelText: 'Pilih Paket',
                         border: OutlineInputBorder(),
                       ),
                       initialValue: _selectedPaket,
-                      items: _paketList.map((Paket paket) {
-                        return DropdownMenuItem<Paket>(
+                      items: _paketList.map((PaketModel paket) {
+                        return DropdownMenuItem<PaketModel>(
                           value: paket,
                           child: Text(paket.nama),
                         );
                       }).toList(),
-                      onChanged: (Paket? newValue) {
+                      onChanged: (PaketModel? newValue) {
                         setState(() {
                           _selectedPaket = newValue;
                         });
@@ -351,19 +356,20 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                     ),
                     const SizedBox(height: 16),
                     // Dropdown untuk Dompet
-                    DropdownButtonFormField<Dompet>(
+                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                    DropdownButtonFormField<DompetModel>(
                       decoration: const InputDecoration(
                         labelText: 'Pilih Dompet',
                         border: OutlineInputBorder(),
                       ),
                       initialValue: _selectedDompet,
-                      items: _dompetList.map((Dompet dompet) {
-                        return DropdownMenuItem<Dompet>(
+                      items: _dompetList.map((DompetModel dompet) {
+                        return DropdownMenuItem<DompetModel>(
                           value: dompet,
                           child: Text(dompet.namaDompet),
                         );
                       }).toList(),
-                      onChanged: (Dompet? newValue) {
+                      onChanged: (DompetModel? newValue) {
                         setState(() {
                           _selectedDompet = newValue;
                         });
@@ -373,19 +379,20 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                     ),
                     const SizedBox(height: 16),
                     // Dropdown untuk Kategori
-                    DropdownButtonFormField<Kategori>(
+                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                    DropdownButtonFormField<KategoriModel>(
                       decoration: const InputDecoration(
                         labelText: 'Pilih Kategori Transaksi',
                         border: OutlineInputBorder(),
                       ),
                       initialValue: _selectedKategori,
-                      items: _kategoriList.map((Kategori kategori) {
-                        return DropdownMenuItem<Kategori>(
+                      items: _kategoriList.map((KategoriModel kategori) {
+                        return DropdownMenuItem<KategoriModel>(
                           value: kategori,
                           child: Text(kategori.nama),
                         );
                       }).toList(),
-                      onChanged: (Kategori? newValue) {
+                      onChanged: (KategoriModel? newValue) {
                         setState(() {
                           _selectedKategori = newValue;
                         });
@@ -432,12 +439,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   _statusPembayaran == StatusPembayaran.lunas
-                                      ? Theme.of(context).primaryColor
-                                      : Colors.grey[200],
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.grey[200],
                               foregroundColor:
                                   _statusPembayaran == StatusPembayaran.lunas
-                                      ? Colors.white
-                                      : Colors.black,
+                                  ? Colors.white
+                                  : Colors.black,
                             ),
                             onPressed: () {
                               setState(() {
@@ -453,14 +460,14 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   _statusPembayaran ==
-                                          StatusPembayaran.belumLunas
-                                      ? Theme.of(context).primaryColor
-                                      : Colors.grey[200],
+                                      StatusPembayaran.belumLunas
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.grey[200],
                               foregroundColor:
                                   _statusPembayaran ==
-                                          StatusPembayaran.belumLunas
-                                      ? Colors.white
-                                      : Colors.black,
+                                      StatusPembayaran.belumLunas
+                                  ? Colors.white
+                                  : Colors.black,
                             ),
                             onPressed: () {
                               setState(() {

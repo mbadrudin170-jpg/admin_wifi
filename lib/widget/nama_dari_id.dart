@@ -1,4 +1,4 @@
-// lib/widget/nama_dari_id.dart
+// path: lib/widget/nama_dari_id.dart
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
@@ -13,7 +13,8 @@ class NamaDariIdWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final PelangganOperasi pelangganOperasi = PelangganOperasi();
 
-    return FutureBuilder<Pelanggan?>(
+    // diubah: karena nama class yang benar adalah PelangganModel
+    return FutureBuilder<PelangganModel?>(
       // PERBAIKAN: Menggunakan nama metode yang benar
       future: pelangganOperasi.getPelangganById(userId),
       builder: (context, snapshot) {

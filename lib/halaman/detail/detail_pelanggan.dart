@@ -7,7 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPelangganPage extends StatefulWidget {
-  final Pelanggan pelanggan;
+  final PelangganModel pelanggan;
   const DetailPelangganPage({super.key, required this.pelanggan});
 
   @override

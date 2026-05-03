@@ -4,7 +4,7 @@ import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class KategoriOperasi {
-  Future<void> createKategori(Kategori kategori) async {
+  Future<void> createKategori(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
     await db.insert(
       'kategori',
@@ -13,15 +13,15 @@ class KategoriOperasi {
     );
   }
 
-  Future<List<Kategori>> getKategori() async {
+  Future<List<KategoriModel>> getKategori() async {
     final db = await DatabaseHelper.instance.database;
     final List<Map<String, dynamic>> maps = await db.query('kategori');
     return List.generate(maps.length, (i) {
-      return Kategori.fromMap(maps[i]);
+      return KategoriModel.fromMap(maps[i]);
     });
   }
 
-  Future<List<Kategori>> getKategoriByTipe(TipeKategori tipe) async {
+  Future<List<KategoriModel>> getKategoriByTipe(TipeKategori tipe) async {
     final db = await DatabaseHelper.instance.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'kategori',
@@ -29,11 +29,11 @@ class KategoriOperasi {
       whereArgs: [tipe.name],
     );
     return List.generate(maps.length, (i) {
-      return Kategori.fromMap(maps[i]);
+      return KategoriModel.fromMap(maps[i]);
     });
   }
 
-  Future<void> update(Kategori kategori) async {
+  Future<void> update(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
     await db.update(
       'kategori',
@@ -48,7 +48,7 @@ class KategoriOperasi {
     await db.delete('kategori', where: 'nama = ?', whereArgs: [nama]);
   }
 
-  Future<void> bersihkanDanSisipkanSemua(List<Kategori> items) async {
+  Future<void> bersihkanDanSisipkanSemua(List<KategoriModel> items) async {
     final db = await DatabaseHelper.instance.database;
     await db.transaction((txn) async {
       await txn.delete('kategori'); // Hapus semua data lama
@@ -61,7 +61,7 @@ class KategoriOperasi {
   // == METODE BARU UNTUK SINKRONISASI INKREMENTAL ==
 
   /// Mengambil record yang berubah (dibuat atau diperbarui) setelah waktu [since].
-  Future<List<Kategori>> getPerubahan(DateTime since) async {
+  Future<List<KategoriModel>> getPerubahan(DateTime since) async {
     final db = await DatabaseHelper.instance.database;
     // Pastikan Anda memiliki kolom 'diperbaruiPada' di tabel Anda
     final List<Map<String, dynamic>> maps = await db.query(
@@ -69,12 +69,12 @@ class KategoriOperasi {
       where: 'diperbarui > ?',
       whereArgs: [since.toIso8601String()],
     );
-    return List.generate(maps.length, (i) => Kategori.fromMap(maps[i]));
+    return List.generate(maps.length, (i) => KategoriModel.fromMap(maps[i]));
   }
 
   /// Menyisipkan atau memperbarui batch data dari Firebase.
   /// Menggunakan `ConflictAlgorithm.replace` untuk melakukan "UPSERT".
-  Future<void> sisipkanAtauPerbaruiBatch(List<Kategori> items) async {
+  Future<void> sisipkanAtauPerbaruiBatch(List<KategoriModel> items) async {
     final db = await DatabaseHelper.instance.database;
     final batch = db.batch();
     for (var item in items) {

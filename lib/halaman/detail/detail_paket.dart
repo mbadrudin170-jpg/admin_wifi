@@ -7,7 +7,7 @@ import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
 
 class DetailPaketPage extends StatefulWidget {
-  final Paket paket;
+  final PaketModel paket;
 
   const DetailPaketPage({super.key, required this.paket});
 
@@ -18,7 +18,7 @@ class DetailPaketPage extends StatefulWidget {
 // diubah: Dijadikan StatefulWidget untuk me-refresh data setelah edit.
 class _DetailPaketPageState extends State<DetailPaketPage> {
   // diubah: Objek paket sekarang dapat diperbarui.
-  late Paket _paket;
+  late PaketModel _paket;
 
   @override
   void initState() {

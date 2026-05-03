@@ -58,10 +58,6 @@ class DompetOperasi {
     );
   }
 
-  Future<void> deleteDompet(String id) async {
-    final db = await dbHelper.database;
-    await db.delete('dompet', where: 'id = ?', whereArgs: [id]);
-  }
 
   // == FUNGSI PENGHITUNGAN SALDO ==
 

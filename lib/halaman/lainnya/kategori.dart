@@ -1,4 +1,4 @@
-// lib/halaman/lainnya/kategori.dart
+// path: lib/halaman/lainnya/kategori.dart
 // File ini menampilkan halaman untuk mengelola kategori pemasukan dan pengeluaran.
 // Pengguna dapat melihat, menambah, dan (nantinya) mengedit atau menghapus kategori.
 // Terdapat tombol untuk beralih antara tipe kategori (Pemasukan/Pengeluaran).
@@ -17,7 +17,7 @@ class KategoriPage extends StatefulWidget {
 
 class _KategoriPageState extends State<KategoriPage> {
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
-  late Future<List<Kategori>> _listaKategoriFuture;
+  late Future<List<KategoriModel>> _listaKategoriFuture;
   TipeKategori _selectedTipe = TipeKategori.pemasukan;
 
   @override
@@ -80,7 +80,7 @@ class _KategoriPageState extends State<KategoriPage> {
             ],
           ),
           Expanded(
-            child: FutureBuilder<List<Kategori>>(
+            child: FutureBuilder<List<KategoriModel>>(
               future: _listaKategoriFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -92,6 +92,7 @@ class _KategoriPageState extends State<KategoriPage> {
                     child: Text('Tidak ada kategori ditemukan.'),
                   );
                 } else {
+                  // diubah: Menghapus pengecekan null yang tidak perlu
                   final filteredKategori = snapshot.data!
                       .where((k) => k.tipe == _selectedTipe)
                       .toList();

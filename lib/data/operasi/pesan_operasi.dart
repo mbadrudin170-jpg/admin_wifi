@@ -1,11 +1,11 @@
 // lib/data/operasi/pesan_operasi.dart
+// diubah: Mengganti path import pesan_model.dart menjadi pesanan_model.dart dan memperbaiki nama tabel
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/pesan_model.dart';
+import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:sqflite/sqflite.dart';
 
-class PesanOperasi {
+class PesananOperasi {
   final dbHelper = DatabaseHelper.instance;
-
 
   // Simpan pesanan baru
   Future<int> simpanPesanan(PesananModel pesanan) async {
@@ -68,5 +68,19 @@ class PesanOperasi {
       "SELECT SUM(harga) as total FROM pesanan WHERE date(tanggal) = date('now')",
     );
     return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  // diubah: Menggunakan tabel 'pesanan' bukan 'pelanggan'
+  Future<void> sisipkanAtauPerbaruiBatch(List<PesananModel> items) async {
+    final db = await dbHelper.database;
+    final batch = db.batch();
+    for (var item in items) {
+      batch.insert(
+        'pesanan',
+        item.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
   }
 }

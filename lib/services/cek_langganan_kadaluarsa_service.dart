@@ -1,3 +1,4 @@
+// path: lib/services/cek_langganan_kadaluarsa_service.dart
 import 'dart:developer';
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
@@ -21,13 +22,13 @@ class CekLanggananKadaluarsaService {
     try {
       log('Memulai pengecekan langganan kedaluwarsa...', name: 'CekLangganan');
 
-      final List<PelangganAktif> pelangganAktif = await _pelangganAktifOperasi
+      final List<PelangganAktifModel> pelangganAktif = await _pelangganAktifOperasi
           .ambilSemuaPelangganAktif();
 
       final DateTime now = DateTime.now();
 
-      // Filter hanya pelanggan yang sudah kedaluwarsa dan belum ditandai deleted
-      final List<PelangganAktif> pelangganKadaluarsa = pelangganAktif
+      // diubah: Menghapus pengecekan null yang tidak perlu
+      final List<PelangganAktifModel> pelangganKadaluarsa = pelangganAktif
           .where(
             (p) =>
                 p.tanggalBerakhir.isBefore(now) &&
@@ -49,7 +50,6 @@ class CekLanggananKadaluarsaService {
       );
 
       for (final pelanggan in pelangganKadaluarsa) {
-        // 1. Ambil detail paket untuk data snapshot di riwayat
         final paket = await _paketOperasi.getPaketById(pelanggan.idPaket);
         if (paket == null) {
           log(
@@ -60,18 +60,18 @@ class CekLanggananKadaluarsaService {
           continue;
         }
 
-        // 2. Buat entri riwayat baru
         final riwayat = RiwayatLanggananModel(
           idPelanggan: pelanggan.idPelanggan,
           idPaket: pelanggan.idPaket,
-          namaPaket: paket.nama, // Snapshot nama paket
-          hargaPaket: paket.harga, // Snapshot harga
-          durasiPaket: paket.durasi, // Snapshot durasi
-          tipeDurasiPaket: paket.tipe.name, // Snapshot tipe durasi
+          namaPaket: paket.nama,
+          hargaPaket: paket.harga,
+          durasiPaket: paket.durasi,
+          tipeDurasiPaket: paket.tipe.name,
           tanggalMulai: pelanggan.tanggalMulai,
+          // diubah: Menghapus non-null assertion yang tidak perlu
           tanggalBerakhir: pelanggan.tanggalBerakhir,
           status: pelanggan.status,
-          diarsipkan: now, // Tandai waktu pengarsipan
+          diarsipkan: now,
         );
 
         await _riwayatLanggananOperasi.tambahRiwayatLangganan(riwayat);
@@ -80,7 +80,7 @@ class CekLanggananKadaluarsaService {
           name: 'CekLangganan',
         );
 
-        // 3. Tandai pelanggan aktif sebagai 'deleted' dan batalkan notifikasinya
+        // diubah: Menghapus pengecekan null dan non-null assertion yang tidak perlu
         await _pelangganAktifOperasi.hapusPelangganAktif(pelanggan.id);
         log(
           'Status PelangganAktif ID ${pelanggan.id} diubah menjadi "deleted".',
@@ -100,7 +100,6 @@ class CekLanggananKadaluarsaService {
         stackTrace: s,
         level: 1000,
       );
-      // Lanjutkan eksekusi meskipun ada error
     }
   }
 }

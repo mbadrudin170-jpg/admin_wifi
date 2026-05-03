@@ -882,3 +882,56 @@ Saat diminta untuk Firebase, tambahkan konfigurasi server berikut ke .idx/mcp.js
         }
     }
 }
+
+---
+## Dokumentasi File Model
+
+Berikut adalah dokumentasi untuk setiap file model yang telah diubah:
+
+File: lib/model/catatan_model.dart
+Fitur: Catatan
+Daftar Fungsi:
+- CatatanModel.fromMap(): Membuat instance CatatanModel dari sebuah map.
+- toMap(): Mengonversi instance CatatanModel menjadi sebuah map.
+- copyWith(): Menyalin instance CatatanModel dengan beberapa perubahan.
+Catatan: Model ini merepresentasikan sebuah catatan sederhana.
+
+File: lib/model/dompet_model.dart
+Fitur: Dompet
+Daftar Fungsi:
+- DompetModel.fromMap(): Membuat instance DompetModel dari sebuah map.
+- toMap(): Mengonversi instance DompetModel menjadi sebuah map.
+- copyWith(): Menyalin instance DompetModel dengan beberapa perubahan.
+Catatan: Model ini merepresentasikan sebuah dompet untuk menyimpan uang.
+
+File: lib/model/kategori_model.dart
+Fitur: Kategori Transaksi
+Daftar Fungsi:
+- KategoriModel.fromMap(): Membuat instance KategoriModel dari sebuah map.
+- toMap(): Mengonversi instance KategoriModel menjadi sebuah map.
+- SubKategoriModel.fromMap(): Membuat instance SubKategoriModel dari sebuah map.
+- toMap(): Mengonversi instance SubKategoriModel menjadi sebuah map.
+Catatan: Model ini mengelola kategori dan sub-kategori untuk transaksi.
+
+File: lib/model/paket_model.dart
+Fitur: Paket Layanan
+Daftar Fungsi:
+- PaketModel.fromMap(): Membuat instance PaketModel dari sebuah map.
+- toMap(): Mengonversi instance PaketModel menjadi sebuah map.
+Catatan: Model ini merepresentasikan paket layanan yang ditawarkan.
+
+File: lib/model/pelanggan_aktif_model.dart
+Fitur: Pelanggan Aktif
+Daftar Fungsi:
+- PelangganAktifModel.fromMap(): Membuat instance PelangganAktifModel dari sebuah map.
+- toMap(): Mengonversi instance PelangganAktifModel menjadi sebuah map.
+- copyWith(): Menyalin instance PelangganAktifModel dengan beberapa perubahan.
+Catatan: Model ini merepresentasikan pelanggan yang sedang memiliki paket aktif.
+
+File: lib/model/pelanggan_model.dart
+Fitur: Pelanggan
+Daftar Fungsi:
+- PelangganModel.fromMap(): Membuat instance PelangganModel dari sebuah map.
+- toMap(): Mengonversi instance PelangganModel menjadi sebuah map.
+Catatan: Model ini merepresentasikan data master pelanggan.
+

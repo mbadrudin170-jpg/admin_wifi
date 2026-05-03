@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 
 // 1. Ubah menjadi StatefulWidget
 class DetailDompet extends StatefulWidget {
-  final Dompet dompet;
+  final DompetModel dompet;
 
   const DetailDompet({super.key, required this.dompet});
 
@@ -17,7 +17,7 @@ class DetailDompet extends StatefulWidget {
 
 class _DetailDompetState extends State<DetailDompet> {
   // 2. Buat state untuk menampung data dompet yang bisa berubah
-  late Dompet _dompetSaatIni;
+  late DompetModel _dompetSaatIni;
   final DompetOperasi _dompetOperasi = DompetOperasi();
 
   @override

@@ -16,7 +16,8 @@ class PaketPage extends StatefulWidget {
 
 class _PaketPageState extends State<PaketPage> {
   final PaketOperasi _paketOperasi = PaketOperasi();
-  late Future<List<Paket>> _paketFuture;
+  // diubah: karena nama class yang benar adalah PaketModel
+  late Future<List<PaketModel>> _paketFuture;
 
   @override
   void initState() {
@@ -32,7 +33,8 @@ class _PaketPageState extends State<PaketPage> {
   }
 
   // untuk menampilkan dialog yang memberikan opsi edit atau hapus pada paket yang dipilih.
-  void _showEditDeleteDialog(Paket paket) {
+  // diubah: karena nama class yang benar adalah PaketModel
+  void _showEditDeleteDialog(PaketModel paket) {
     showDialog(
       context: context,
       builder: (context) {
@@ -66,7 +68,8 @@ class _PaketPageState extends State<PaketPage> {
   }
 
   // untuk menampilkan dialog konfirmasi sebelum menghapus paket secara permanen.
-  void _showDeleteConfirmationDialog(Paket paket) {
+  // diubah: karena nama class yang benar adalah PaketModel
+  void _showDeleteConfirmationDialog(PaketModel paket) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -180,7 +183,8 @@ class _PaketPageState extends State<PaketPage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Paket>>(
+      // diubah: karena nama class yang benar adalah PaketModel
+      body: FutureBuilder<List<PaketModel>>(
         future: _paketFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

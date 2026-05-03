@@ -1,4 +1,4 @@
-// lib/halaman/tab/dompet.dart
+// path: lib/halaman/tab/dompet.dart
 // File ini menampilkan halaman dompet yang berisi ringkasan keuangan (pemasukan, pengeluaran, total)
 // dan daftar semua dompet yang tersedia. Pengguna dapat menambahkan dompet baru melalui
 // tombol floating action.
@@ -22,7 +22,8 @@ class _DompetPageState extends State<DompetPage> {
   final DompetOperasi _dompetOperasi = DompetOperasi();
   // Mengubah menjadi kunci untuk refresh FutureBuilder di RingkasanKeuangan
   final GlobalKey<_RingkasanKeuanganState> _ringkasanKey = GlobalKey();
-  late Future<List<Dompet>> _listaDompetFuture;
+  // diubah: karena nama class yang benar adalah DompetModel
+  late Future<List<DompetModel>> _listaDompetFuture;
   // ditambahkan: untuk mengelola status loading saat sinkronisasi
   bool _sedangMengunggah = false;
 
@@ -120,7 +121,8 @@ class _DompetPageState extends State<DompetPage> {
           // Berikan kunci ke RingkasanKeuangan
           RingkasanKeuangan(key: _ringkasanKey),
           Expanded(
-            child: FutureBuilder<List<Dompet>>(
+            // diubah: karena nama class yang benar adalah DompetModel
+            child: FutureBuilder<List<DompetModel>>(
               future: _listaDompetFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -266,7 +268,8 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
 }
 
 class DompetCard extends StatelessWidget {
-  final Dompet dompet;
+  // diubah: karena nama class yang benar adalah DompetModel
+  final DompetModel dompet;
   final VoidCallback onTap;
 
   const DompetCard({super.key, required this.dompet, required this.onTap});

@@ -1,12 +1,15 @@
+// path: lib/halaman/form/form_pelanggan.dart
 // Halaman ini menyediakan formulir untuk menambah atau mengedit data pelanggan.
 
 import 'package:flutter/material.dart';
+// diubah: karena nama class yang benar adalah PelangganModel
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:uuid/uuid.dart'; // Import Uuid
 
 class FormPelanggan extends StatefulWidget {
-  final Pelanggan? pelanggan;
+  // diubah: karena nama class yang benar adalah PelangganModel
+  final PelangganModel? pelanggan;
   const FormPelanggan({super.key, this.pelanggan});
 
   @override
@@ -58,8 +61,8 @@ class _FormPelangganState extends State<FormPelanggan> {
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      // Perbaikan: Gunakan Uuid untuk ID baru dan DateTime untuk 'diperbarui'
-      final newPelanggan = Pelanggan(
+      // diubah: karena nama class yang benar adalah PelangganModel
+      final newPelanggan = PelangganModel(
         id: widget.pelanggan?.id ?? const Uuid().v4(),
         nama: _namaController.text,
         telepon: _teleponController.text,

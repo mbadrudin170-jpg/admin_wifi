@@ -15,7 +15,8 @@ class NamaPaketWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final PaketOperasi paketOperasi = PaketOperasi();
 
-    return FutureBuilder<Paket?>(
+    // diubah: karena nama class yang benar adalah PaketModel
+    return FutureBuilder<PaketModel?>(
       // diubah: Menggunakan fungsi baru getPaketById untuk efisiensi
       future: paketOperasi.getPaketById(idPaket),
       builder: (context, snapshot) {

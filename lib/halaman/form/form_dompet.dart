@@ -12,7 +12,7 @@ import 'dart:developer' as developer;
 import 'package:intl/intl.dart';
 
 class FormDompet extends StatefulWidget {
-  final Dompet? dompet;
+  final DompetModel? dompet;
 
   const FormDompet({super.key, this.dompet});
 
@@ -66,7 +66,7 @@ class _FormDompetState extends State<FormDompet> {
         );
 
         if (_isEditMode) {
-          final updatedDompet = Dompet(
+          final updatedDompet = DompetModel(
             id: widget.dompet!.id,
             namaDompet: _namaController.text,
             saldo: saldo,
@@ -84,7 +84,7 @@ class _FormDompetState extends State<FormDompet> {
             ),
           );
         } else {
-          final nuevoDompet = Dompet(
+          final nuevoDompet = DompetModel(
             id: const Uuid().v4(),
             namaDompet: _namaController.text,
             saldo: saldo,

@@ -23,18 +23,18 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
   final _keteranganController = TextEditingController();
   DateTime _tanggal = DateTime.now();
 
-  Kategori? _selectedKategori;
-  SubKategori? _selectedSubKategori;
+  KategoriModel? _selectedKategori;
+  SubKategoriModel? _selectedSubKategori;
   TipeTransaksi _tipe = TipeTransaksi.pemasukan;
-  Dompet? _selectedDompet;
+  DompetModel? _selectedDompet;
 
   final DompetOperasi _dompetOperasi = DompetOperasi();
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
 
-  List<Kategori> _kategoriList = [];
-  List<Dompet> _dompetList = [];
-  List<Kategori> _kategoriFiltered = [];
+  List<KategoriModel> _kategoriList = [];
+  List<DompetModel> _dompetList = [];
+  List<KategoriModel> _kategoriFiltered = [];
 
   bool _isLoading = true;
 
@@ -79,7 +79,6 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
     });
   }
 
-  // ditambah: Fungsi untuk menampilkan pemilih tanggal
   Future<void> _pilihTanggal(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -100,7 +99,6 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
     }
   }
 
-  // ditambah: Fungsi untuk menampilkan pemilih waktu
   Future<void> _pilihWaktu(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -127,7 +125,6 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         jumlah: double.parse(_jumlahController.text),
         tanggal: _tanggal,
         tipe: _tipe,
-        // Perbaikan: Menangani potensi null pada ID dengan memberikan nilai default
         idDompet: _selectedDompet?.id ?? '',
         namaDompet: _selectedDompet?.namaDompet ?? '',
         idKategori: _selectedKategori?.id ?? '',
@@ -162,6 +159,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                 key: _formKey,
                 child: ListView(
                   children: [
+                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
                     DropdownButtonFormField<TipeTransaksi>(
                       initialValue: _tipe,
                       decoration: const InputDecoration(labelText: 'Tipe'),
@@ -200,7 +198,6 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                         return null;
                       },
                     ),
-                    // diubah: Mengubah ListTile untuk menyertakan pemilihan tanggal dan jam
                     ListTile(
                       title: Text(
                           'Tanggal & Jam: ${_tanggal.toLocal().toString().split('.')[0]}'),
@@ -212,7 +209,6 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                             onPressed: () => _pilihTanggal(context),
                             tooltip: 'Pilih Tanggal',
                           ),
-                          // ditambah: Tombol untuk memilih jam
                           IconButton(
                             icon: const Icon(Icons.access_time),
                             onPressed: () => _pilihWaktu(context),
@@ -221,16 +217,17 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                         ],
                       ),
                     ),
-                    DropdownButtonFormField<Dompet>(
+                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                    DropdownButtonFormField<DompetModel>(
                       initialValue: _selectedDompet,
                       decoration: const InputDecoration(labelText: 'Dompet'),
-                      items: _dompetList.map((Dompet dompet) {
-                        return DropdownMenuItem<Dompet>(
+                      items: _dompetList.map((DompetModel dompet) {
+                        return DropdownMenuItem<DompetModel>(
                           value: dompet,
                           child: Text(dompet.namaDompet),
                         );
                       }).toList(),
-                      onChanged: (Dompet? newValue) {
+                      onChanged: (DompetModel? newValue) {
                         setState(() {
                           _selectedDompet = newValue;
                         });
@@ -238,16 +235,17 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                       validator: (value) => value == null ? 'Dompet harus dipilih' : null,
                     ),
                     if (_kategoriFiltered.isNotEmpty)
-                      DropdownButtonFormField<Kategori>(
+                      // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                      DropdownButtonFormField<KategoriModel>(
                         initialValue: _selectedKategori,
                         decoration: const InputDecoration(labelText: 'Kategori'),
-                        items: _kategoriFiltered.map((Kategori kategori) {
-                          return DropdownMenuItem<Kategori>(
+                        items: _kategoriFiltered.map((KategoriModel kategori) {
+                          return DropdownMenuItem<KategoriModel>(
                             value: kategori,
                             child: Text(kategori.nama),
                           );
                         }).toList(),
-                        onChanged: (Kategori? newValue) {
+                        onChanged: (KategoriModel? newValue) {
                           setState(() {
                             _selectedKategori = newValue;
                             _selectedSubKategori = null;
@@ -256,16 +254,17 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                         validator: (value) => value == null ? 'Kategori harus dipilih' : null,
                       ),
                     if (_selectedKategori != null && _selectedKategori!.subKategori.isNotEmpty)
-                      DropdownButtonFormField<SubKategori>(
+                      // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                      DropdownButtonFormField<SubKategoriModel>(
                         initialValue: _selectedSubKategori,
                         decoration: const InputDecoration(labelText: 'Sub Kategori'),
-                        items: _selectedKategori!.subKategori.map((SubKategori sub) {
-                          return DropdownMenuItem<SubKategori>(
+                        items: _selectedKategori!.subKategori.map((SubKategoriModel sub) {
+                          return DropdownMenuItem<SubKategoriModel>(
                             value: sub,
                             child: Text(sub.nama),
                           );
                         }).toList(),
-                        onChanged: (SubKategori? newValue) {
+                        onChanged: (SubKategoriModel? newValue) {
                           setState(() {
                             _selectedSubKategori = newValue;
                           });

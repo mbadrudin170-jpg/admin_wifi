@@ -10,7 +10,7 @@ class PaketOperasi {
   final dbHelper = DatabaseHelper.instance;
 
   // Fungsi untuk membuat atau memperbarui paket di database (Upsert)
-  Future<int> createPaket(Paket paket) async {
+  Future<int> createPaket(PaketModel paket) async {
     try {
       developer.log("Mencoba mendapatkan database...");
       final db = await dbHelper.database;
@@ -45,7 +45,7 @@ class PaketOperasi {
     }
   }
 
-  Future<List<Paket>> getPaket() async {
+  Future<List<PaketModel>> getPaket() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT *,
@@ -59,11 +59,11 @@ class PaketOperasi {
       ORDER BY urutan ASC
     ''');
     return List.generate(maps.length, (i) {
-      return Paket.fromMap(maps[i]);
+      return PaketModel.fromMap(maps[i]);
     });
   }
 
-  Future<Paket?> getPaketById(String id) async {
+  Future<PaketModel?> getPaketById(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'paket',
@@ -72,12 +72,12 @@ class PaketOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return Paket.fromMap(maps.first);
+      return PaketModel.fromMap(maps.first);
     }
     return null;
   }
 
-  Future<void> updatePaket(Paket paket) async {
+  Future<void> updatePaket(PaketModel paket) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
     final data = paket.toMap()..['diperbarui'] = now.toIso8601String();
@@ -94,17 +94,17 @@ class PaketOperasi {
     await db.delete('paket');
   }
 
-  Future<List<Paket>> getPerubahan(DateTime since) async {
+  Future<List<PaketModel>> getPerubahan(DateTime since) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'paket',
       where: 'diperbarui > ?',
       whereArgs: [since.toIso8601String()],
     );
-    return List.generate(maps.length, (i) => Paket.fromMap(maps[i]));
+    return List.generate(maps.length, (i) => PaketModel.fromMap(maps[i]));
   }
 
-  Future<void> sisipkanAtauPerbaruiBatch(List<Paket> items) async {
+  Future<void> sisipkanAtauPerbaruiBatch(List<PaketModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();
     for (var item in items) {

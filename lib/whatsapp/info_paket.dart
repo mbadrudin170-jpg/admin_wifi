@@ -13,17 +13,17 @@ class PesanInfoPaket {
   /// Mengambil detail pelanggan dan paket, membuat pesan,
   /// lalu secara otomatis mengirimkannya melalui WhatsApp.
   ///
-  /// [pelangganAktif]: Objek PelangganAktif yang baru saja dibuat atau diperbarui.
-  static Future<void> kirimRincianPaket(PelangganAktif pelangganAktif) async {
+  /// [pelangganAktif]: Objek PelangganAktifModel yang baru saja dibuat atau diperbarui.
+  static Future<void> kirimRincianPaket(PelangganAktifModel pelangganAktif) async {
     final pelangganOperasi = PelangganOperasi();
     final paketOperasi = PaketOperasi();
 
     try {
       // 1. Ambil data lengkap pelanggan dan paket dari database lokal.
-      final Pelanggan? pelanggan = await pelangganOperasi.getPelangganById(
+      final PelangganModel? pelanggan = await pelangganOperasi.getPelangganById(
         pelangganAktif.idPelanggan,
       );
-      final Paket? paket = await paketOperasi.getPaketById(
+      final PaketModel? paket = await paketOperasi.getPaketById(
         pelangganAktif.idPaket,
       );
 
@@ -58,11 +58,10 @@ class PesanInfoPaket {
     }
   }
 
-  // diubah: Format pesan diperbaiki agar lebih rapi dan profesional.
   static String _buatPesan(
-    Pelanggan pelanggan,
-    Paket paket,
-    PelangganAktif pelangganAktif,
+    PelangganModel pelanggan,
+    PaketModel paket,
+    PelangganAktifModel pelangganAktif,
     String statusPembayaran,
   ) {
     final namaPelanggan = pelanggan.nama;
@@ -71,9 +70,8 @@ class PesanInfoPaket {
     final tanggalMulai = FormatTanggal.formatTanggalDanJam(
       pelangganAktif.tanggalMulai,
     );
-    final tanggalBerakhir = FormatTanggal.formatTanggalDanJam(
-      pelangganAktif.tanggalBerakhir,
-    );
+    // diubah: Menghapus pengecekan null yang tidak perlu karena tanggalBerakhir tidak bisa null.
+    final tanggalBerakhir = FormatTanggal.formatTanggalDanJam(pelangganAktif.tanggalBerakhir);
 
     return '''
 *-- Rincian Aktivasi Paket --*
@@ -103,7 +101,6 @@ Semoga harimu menyenangkan!
 ''';
   }
 
-  // diubah: Logika pemformatan nomor dan penanganan error diperbaiki.
   static Future<void> _kirimViaWhatsApp(
     String nomorTelepon,
     String pesan,

@@ -8,7 +8,7 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
 
 class FormPaket extends StatefulWidget {
-  final Paket? paket;
+  final PaketModel? paket;
   const FormPaket({super.key, this.paket});
 
   @override
@@ -39,7 +39,7 @@ class _FormPaketState extends State<FormPaket> {
 
   void _saveForm() async {
     if (_formKey.currentState!.validate()) {
-      final newPaket = Paket(
+      final newPaket = PaketModel(
         id: _isEditMode ? widget.paket!.id : null,
         nama: _namaController.text,
         harga: int.parse(_hargaController.text),

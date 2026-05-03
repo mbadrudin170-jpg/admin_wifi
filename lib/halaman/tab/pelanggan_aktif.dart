@@ -48,8 +48,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
       RiwayatLanggananOperasi();
 
   // State untuk data
-  List<PelangganAktif> _semuaPelanggan = [];
-  List<PelangganAktif> _hasilFilter = [];
+  List<PelangganAktifModel> _semuaPelanggan = [];
+  List<PelangganAktifModel> _hasilFilter = [];
   Map<String, String> _mapNamaPelanggan = {};
   bool _isLoading = true;
   bool _isSyncing = false;
@@ -185,13 +185,12 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
   }
 
   void _applyFilterAndSort() {
-    List<PelangganAktif> tempResult;
+    List<PelangganAktifModel> tempResult;
 
     final query = _searchController.text.toLowerCase();
     if (query.isNotEmpty) {
       tempResult = _semuaPelanggan.where((pelanggan) {
-        final nama =
-            _mapNamaPelanggan[pelanggan.idPelanggan]?.toLowerCase() ?? '';
+        final nama = _mapNamaPelanggan[pelanggan.idPelanggan]!.toLowerCase();
         return nama.contains(query);
       }).toList();
     } else {
@@ -204,7 +203,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
       }).toList();
     }
 
-    int Function(PelangganAktif, PelangganAktif) comparator;
+    int Function(PelangganAktifModel, PelangganAktifModel) comparator;
 
     switch (_urutanAktif) {
       case OpsiUrutkan.tanggalBerakhir:
@@ -263,7 +262,9 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
     }
   }
 
-  void _periksaDanJadwalkanNotifikasi(List<PelangganAktif> pelanggan) async {
+  void _periksaDanJadwalkanNotifikasi(
+    List<PelangganAktifModel> pelanggan,
+  ) async {
     final sekarang = DateTime.now();
 
     for (var p in pelanggan) {
@@ -296,7 +297,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
     }
   }
 
-  Future<void> _hapusPelangganAktif(PelangganAktif pelangganAktif) async {
+  Future<void> _hapusPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final bool? konfirmasi = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {

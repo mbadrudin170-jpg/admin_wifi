@@ -1,9 +1,9 @@
 // Path: lib/halaman/tab/pesan.dart
+// diubah: Mengganti path import, memperbaiki instansiasi, dan memperbaiki logika status
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_wifi/data/operasi/pesan_operasi.dart';
-import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/pesan_model.dart';
+import 'package:admin_wifi/model/pesanan_model.dart';
 
 class HalamanPesan extends StatefulWidget {
   const HalamanPesan({super.key});
@@ -13,7 +13,7 @@ class HalamanPesan extends StatefulWidget {
 }
 
 class _HalamanPesanState extends State<HalamanPesan> {
-  final PesanOperasi _pesanOperasi = PesanOperasi(DatabaseHelper.instance);
+  final PesananOperasi _pesanOperasi = PesananOperasi();
 
   List<PesananModel> _daftarPesanan = [];
   bool _isLoading = true;
@@ -109,31 +109,26 @@ class _HalamanPesanState extends State<HalamanPesan> {
       ),
       body: Column(
         children: [
-          // Filter Chips
           _buildFilterChips(),
-
-          // Summary Cards
           _buildSummaryCards(),
-
-          // Daftar Pesanan
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _daftarPesanan.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inbox, size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'Belum ada pesanan',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inbox, size: 80, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text(
+                              'Belum ada pesanan',
+                              style: TextStyle(fontSize: 18, color: Colors.grey),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  )
-                : _buildPesananList(),
+                      )
+                    : _buildPesananList(),
           ),
         ],
       ),
@@ -251,7 +246,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
         side: BorderSide(
           color: statusColor.withAlpha((0.3 * 255).round()),
           width: 1,
-        ), // diubah: Menggunakan withAlpha dengan nilai integer
+        ),
       ),
       child: InkWell(
         onTap: () => _showPesananDetail(pesanan),
@@ -261,16 +256,13 @@ class _HalamanPesanState extends State<HalamanPesan> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: statusColor.withAlpha(
-                          25,
-                        ), // diubah: Menggunakan withAlpha dengan nilai integer
+                        backgroundColor: statusColor.withAlpha(25),
                         child: Icon(Icons.person, color: statusColor),
                       ),
                       const SizedBox(width: 12),
@@ -301,9 +293,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withAlpha(
-                        25,
-                      ), // diubah: Menggunakan withAlpha dengan nilai integer
+                      color: statusColor.withAlpha(25),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -317,10 +307,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
                   ),
                 ],
               ),
-
               const Divider(height: 24),
-
-              // Detail
               Row(
                 children: [
                   const Icon(Icons.wifi, size: 16, color: Colors.grey),
@@ -349,10 +336,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 12),
-
-              // Action Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -410,14 +394,23 @@ class _HalamanPesanState extends State<HalamanPesan> {
   }
 
   Color _getStatusColor(PesananModel pesanan) {
-    // Karena model tidak punya field status, kita kasih warna default
-    // Jika nanti ditambah field status, bisa disesuaikan
-    return Colors.blue;
+    switch (pesanan.status) {
+      case 'baru':
+        return Colors.blue;
+      case 'diproses':
+        return Colors.orange;
+      case 'selesai':
+        return Colors.green;
+      case 'ditolak':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
   String _getStatusText(PesananModel pesanan) {
-    // Default status "baru" karena model belum punya field status
-    return 'Baru';
+    return pesanan.status.substring(0, 1).toUpperCase() +
+        pesanan.status.substring(1);
   }
 
   void _showPesananDetail(PesananModel pesanan) {

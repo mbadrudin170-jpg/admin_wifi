@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 
 class FormKategoriPage extends StatefulWidget {
-  final Kategori? kategori; // Tambahkan ini untuk mode edit
+  final KategoriModel? kategori; // Tambahkan ini untuk mode edit
   const FormKategoriPage({super.key, this.kategori});
 
   @override
@@ -47,7 +47,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      final kategoriBaru = Kategori(
+      final kategoriBaru = KategoriModel(
         id: _isEditMode ? widget.kategori!.id : null, // Pertahankan ID jika edit
         nama: _namaController.text,
         tipe: _tipe,
