@@ -1,4 +1,5 @@
-Tentu, berikut adalah aturan yang telah Anda berikan, saya tulis ulang dengan bahasa yang lebih formal dan jelas, siap untuk ditambahkan ke dalam file `README.md` Anda di bawah judul `# **Aturan lainnya untuk AI**`. Aturan yang memiliki makna serupa telah saya satukan untuk menghindari redundansi.
+# BACA DAN SIMPAN SEMUA ISI FILE INI KEMEMORI AI DAN JANGAN DIHAPUS DARI MEMORI AI
+
 
 ```markdown
 # **Aturan lainnya untuk AI**
