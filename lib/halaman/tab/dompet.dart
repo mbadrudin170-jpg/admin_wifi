@@ -23,6 +23,8 @@ class _DompetPageState extends State<DompetPage> {
   // Mengubah menjadi kunci untuk refresh FutureBuilder di RingkasanKeuangan
   final GlobalKey<_RingkasanKeuanganState> _ringkasanKey = GlobalKey();
   late Future<List<Dompet>> _listaDompetFuture;
+  // ditambahkan: untuk mengelola status loading saat sinkronisasi
+  bool _sedangMengunggah = false;
 
   @override
   void initState() {
@@ -48,10 +50,71 @@ class _DompetPageState extends State<DompetPage> {
     }
   }
 
+  // ditambahkan: fungsi untuk menangani proses unggah ke firebase dan memberikan feedback UI
+  Future<void> _unggahKeFirebase() async {
+    if (_sedangMengunggah) return; // Mencegah klik ganda
+
+    setState(() {
+      _sedangMengunggah = true;
+    });
+
+    try {
+      await _dompetOperasi.unggahDompetKeFirebase();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sinkronisasi dompet ke Firebase berhasil!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Muat ulang data untuk memperbarui tampilan jika ada perubahan status
+      _loadDompet();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal melakukan sinkronisasi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _sedangMengunggah = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dompet')),
+      // diubah: Menambahkan tombol aksi untuk sinkronisasi Firebase.
+      appBar: AppBar(
+        title: const Text('Dompet'),
+        actions: [
+          // Menampilkan indikator loading atau tombol berdasarkan status _sedangMengunggah.
+          _sedangMengunggah
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 20.0),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.0,
+                      ),
+                    ),
+                  ),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  tooltip: 'Sinkronkan ke Firebase',
+                  onPressed: _unggahKeFirebase,
+                ),
+        ],
+      ),
       body: Column(
         children: [
           // Berikan kunci ke RingkasanKeuangan

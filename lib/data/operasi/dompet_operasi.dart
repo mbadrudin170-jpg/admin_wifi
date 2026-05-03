@@ -1,19 +1,26 @@
-// lib/data/operasi/dompet_operasi.dart
+// path : lib/data/operasi/dompet_operasi.dart
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:admin_wifi/model/enum/sync_status.dart';
 
 class DompetOperasi {
-  // Perbaikan: Gunakan instance singleton yang benar
   final dbHelper = DatabaseHelper.instance;
 
   /* OPERASI CRUD KE SQLITE */
 
+  // diubah: Menambahkan logika untuk mengatur status sinkronisasi secara eksplisit
   Future<void> createDompet(Dompet dompet) async {
     final db = await dbHelper.database;
+    // ditambahkan: Membuat salinan dengan status 'write' dan waktu 'diperbarui'
+    final dompetBaru = dompet.salinDengan(
+      syncStatus: SyncStatus.write,
+      diperbarui: DateTime.now(),
+    );
     await db.insert(
       'dompet',
-      dompet.toMap(),
+      dompetBaru.toMap(), // Menyimpan objek yang sudah di-override
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -26,7 +33,7 @@ class DompetOperasi {
       return Dompet.fromMap(maps[i]);
     });
   }
-   /// Mengambil satu dompet berdasarkan ID.
+
   Future<Dompet?> getDompetById(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -38,9 +45,8 @@ class DompetOperasi {
     if (maps.isNotEmpty) {
       return Dompet.fromMap(maps.first);
     }
-    return null; // Kembalikan null jika tidak ditemukan
+    return null;
   }
-
 
   Future<void> updateDompet(Dompet dompet) async {
     final db = await dbHelper.database;
@@ -59,20 +65,15 @@ class DompetOperasi {
 
   // == FUNGSI PENGHITUNGAN SALDO ==
 
-  /// Menghitung dan mengembalikan total saldo dari semua dompet.
-  /// Ini menjumlahkan saldo positif dan negatif.
   Future<double> getTotalSaldo() async {
     final db = await dbHelper.database;
-    // Menggunakan rawQuery untuk menjumlahkan kolom saldo. 'total' adalah alias untuk hasilnya.
     final result = await db.rawQuery('SELECT SUM(saldo) as total FROM dompet');
     if (result.isNotEmpty && result.first['total'] != null) {
-      // Hasilnya adalah num, jadi konversikan ke double.
       return (result.first['total'] as num).toDouble();
     }
     return 0.0;
   }
 
-  /// Menghitung dan mengembalikan total saldo dari dompet yang saldonya POSITIF (> 0).
   Future<double> getTotalSaldoPositif() async {
     final db = await dbHelper.database;
     final result = await db.rawQuery(
@@ -84,7 +85,6 @@ class DompetOperasi {
     return 0.0;
   }
 
-  /// Menghitung dan mengembalikan total saldo dari dompet yang saldonya NEGATIF (< 0).
   Future<double> getTotalSaldoNegatif() async {
     final db = await dbHelper.database;
     final result = await db.rawQuery(
@@ -98,10 +98,8 @@ class DompetOperasi {
 
   // == METODE BARU UNTUK SINKRONISASI INKREMENTAL ==
 
-  /// Mengambil record yang berubah (dibuat atau diperbarui) setelah waktu [since].
   Future<List<Dompet>> getPerubahan(DateTime since) async {
     final db = await dbHelper.database;
-    // Perbaikan: Gunakan kolom 'diperbarui' yang sudah ada
     final List<Map<String, dynamic>> maps = await db.query(
       'dompet',
       where: 'diperbarui > ?',
@@ -110,7 +108,6 @@ class DompetOperasi {
     return List.generate(maps.length, (i) => Dompet.fromMap(maps[i]));
   }
 
-  /// Menyisipkan atau memperbarui batch data dari Firebase.
   Future<void> sisipkanAtauPerbaruiBatch(List<Dompet> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();
@@ -122,5 +119,73 @@ class DompetOperasi {
       );
     }
     await batch.commit(noResult: true);
+  }
+
+  Future<void> unggahDompetKeFirebase() async {
+    final db = await dbHelper.database;
+    final firestore = FirebaseFirestore.instance;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'dompet',
+      where: 'sync_status != ?',
+      whereArgs: [SyncStatus.synced.name],
+    );
+
+    if (maps.isEmpty) {
+      return;
+    }
+
+    final List<Dompet> daftarDompet = List.generate(
+      maps.length,
+      (i) => Dompet.fromMap(maps[i]),
+    );
+
+    final batchFirestore = firestore.batch();
+    final batchLokal = db.batch();
+
+    for (final dompet in daftarDompet) {
+      final docRef = firestore.collection('dompet').doc(dompet.id);
+
+      switch (dompet.syncStatus) {
+        case SyncStatus.write:
+          final dataUnggah = dompet.toMap();
+          dataUnggah.remove('sync_status');
+          batchFirestore.set(docRef, dataUnggah);
+          batchLokal.update(
+            'dompet',
+            {'sync_status': SyncStatus.synced.name},
+            where: 'id = ?',
+            whereArgs: [dompet.id],
+          );
+          break;
+
+        case SyncStatus.update:
+          final dataUnggah = dompet.toMap();
+          dataUnggah.remove('sync_status');
+          batchFirestore.update(docRef, dataUnggah);
+          batchLokal.update(
+            'dompet',
+            {'sync_status': SyncStatus.synced.name},
+            where: 'id = ?',
+            whereArgs: [dompet.id],
+          );
+          break;
+
+        case SyncStatus.deleted:
+          batchFirestore.delete(docRef);
+          batchLokal.delete('dompet', where: 'id = ?', whereArgs: [dompet.id]);
+          break;
+
+        case SyncStatus.synced:
+          break;
+      }
+    }
+
+    try {
+      await batchFirestore.commit();
+      await batchLokal.commit(noResult: true);
+    } catch (e) {
+      //
+    }
   }
 }
