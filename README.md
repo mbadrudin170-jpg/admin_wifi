@@ -49,6 +49,7 @@ Aplikasi manajemen pelanggan WiFi untuk membantu admin mengelola data pelanggan,
 lib/
 ├── data/
 │   ├── operasi/      # Logika CRUD untuk interaksi database (SQLite & Firebase)
+│   ├── sync/         # Logika untuk sinkronisasi data (unggah & unduh)
 │   └── sqlite.dart   # Konfigurasi dan inisialisasi database SQLite
 ├── halaman/
 │   ├── detail/       # Halaman untuk menampilkan detail item
@@ -110,7 +111,33 @@ lib/
 
 ---
 
-##  документация кода
+## 📖 Dokumentasi Kode
+
+### /lib/model
+
+#### `lib/model/pelanggan_model.dart`
+- **Fitur**: Model Data Pelanggan
+- **Daftar Fungsi**:
+  - `copyWith()`: Membuat salinan objek `PelangganModel` dengan beberapa nilai yang diperbarui. Penting untuk pembaruan data yang *immutable*.
+- **Catatan**: Memiliki properti `diperbarui` untuk melacak kapan data terakhir diubah, krusial untuk sinkronisasi.
+
+#### `lib/model/dompet_model.dart`
+- **Fitur**: Model Data Dompet
+- **Daftar Fungsi**:
+  - `copyWith()`: Membuat salinan objek `DompetModel` dengan beberapa nilai yang diperbarui.
+- **Catatan**: Memiliki properti `diperbarui` untuk sinkronisasi data.
+
+#### `lib/model/transaksi_model.dart`
+- **Fitur**: Model Data Transaksi
+- **Daftar Fungsi**:
+  - `salinDengan()`: Fungsi yang setara dengan `copyWith`, untuk membuat salinan objek `TransaksiModel`.
+- **Catatan**: Memiliki properti `diperbarui` untuk sinkronisasi data.
+
+#### `lib/model/kategori_model.dart`
+- **Fitur**: Model Data Kategori & Sub-Kategori
+- **Daftar Fungsi**:
+  - `copyWith()`: Metode untuk membuat salinan objek `KategoriModel` dan `SubKategoriModel`.
+- **Catatan**: Keduanya memiliki properti `diperbarui` untuk sinkronisasi.
 
 ### /lib/data
 
@@ -119,16 +146,29 @@ lib/
 - **Daftar Fungsi**:
   - `_initDatabase()`: Menginisialisasi dan membuat tabel-tabel yang diperlukan jika belum ada.
   - `_onUpgrade()`: Menangani migrasi skema database ketika versi berubah.
-- **Catatan**: Pusat konfigurasi untuk database SQLite lokal.
+- **Catatan**: Semua tabel utama (`pelanggan`, `dompet`, `transaksi`, `kategori`, `sub_kategori`) telah divalidasi memiliki kolom `diperbarui`.
+
+### /lib/data/operasi
 
 #### `lib/data/operasi/pelanggan_operasi.dart`
 - **Fitur**: CRUD Pelanggan
 - **Daftar Fungsi**:
-  - `createPelanggan()`: Menambah pelanggan baru ke database lokal.
-  - `getPelanggan()`: Mengambil semua data pelanggan.
-  - `getPelangganById()`: Mengambil pelanggan berdasarkan ID.
-  - `updatePelanggan()`: Memperbarui data pelanggan.
-  - `deletePelanggan()`: Menghapus data pelanggan.
+  - `createPelanggan()`, `updatePelanggan()`: Kedua fungsi ini sudah diperbarui untuk secara otomatis mengisi *timestamp* `diperbarui` saat data dibuat atau diubah.
+
+#### `lib/data/operasi/dompet_operasi.dart`
+- **Fitur**: CRUD Dompet
+- **Daftar Fungsi**:
+  - `createDompet()`, `updateDompet()`: Sudah diperbarui untuk mengisi *timestamp* `diperbarui`.
+
+#### `lib/data/operasi/transaksi_operasi.dart`
+- **Fitur**: CRUD Transaksi
+- **Daftar Fungsi**:
+  - `tambahTransaksi()`, `updateTransaksi()`: Sudah diperbarui untuk mengisi *timestamp* `diperbarui`.
+
+#### `lib/data/operasi/kategori_operasi.dart`
+- **Fitur**: CRUD Kategori
+- **Daftar Fungsi**:
+  - `createKategori()`, `update()`: Sudah diperbarui untuk mengisi *timestamp* `diperbarui`.
 
 #### `lib/data/operasi/paket_operasi.dart`
 - **Fitur**: CRUD Paket
@@ -155,6 +195,30 @@ lib/
 - **Daftar Fungsi**:
   - `tambahRiwayatLangganan()`: Menambahkan catatan baru ke riwayat setelah langganan selesai atau diarsipkan.
   - `getRiwayatLangganan()`: Mengambil semua data riwayat.
+
+### /lib/data/sync
+
+#### `lib/data/sync/unduh_data.dart`
+- **Fitur**: Sinkronisasi Data dari Firebase
+- **Daftar Fungsi**:
+  - `sinkronisasiAwal()`: Mengunduh semua data dari setiap koleksi di Firebase dan menyimpannya ke database SQLite lokal. Ini dijalankan hanya pada saat pertama kali aplikasi dijalankan setelah instalasi.
+- **Catatan**: Bertanggung jawab untuk proses unduh data massal.
+
+#### `lib/data/sync/unggah_data.dart`
+- **Fitur**: Sinkronisasi Data ke Firebase
+- **Daftar Fungsi**:
+  - `unggahSemuaData()`: Mengunggah semua data yang berubah dari semua tabel secara paralel. Timestamp sinkronisasi hanya diperbarui setelah semua proses berhasil.
+  - `unggahData<NamaTabel>()`: Mengunggah data dari satu tabel spesifik (misal: `unggahDataDompet`). Timestamp akan langsung diperbarui setelah proses ini berhasil.
+  - `unggahDataGenerik()`: Fungsi inti yang fleksibel dengan parameter `perbaruiTimestamp` untuk mengontrol pembaruan timestamp, memastikan keamanan pada unggahan massal dan efisiensi pada unggahan tunggal.
+- **Catatan**: Arsitektur ini dirancang untuk mencegah kehilangan data (*data loss*) jika terjadi kegagalan saat sinkronisasi. Jika satu tabel gagal diunggah, timestamp tidak akan diperbarui, dan data tersebut akan dicoba lagi pada siklus berikutnya.
+
+### /lib/services
+
+#### `lib/services/sinkronisasi_database.dart`
+- **Fitur**: Koordinator Sinkronisasi
+- **Daftar Fungsi**:
+  - `sinkronisasiData()`: Memeriksa apakah sinkronisasi awal perlu dijalankan, lalu mendelegasikannya ke `LayananUnduhData`.
+- **Catatan**: Titik masuk utama untuk memulai proses sinkronisasi data.
 
 ---
 

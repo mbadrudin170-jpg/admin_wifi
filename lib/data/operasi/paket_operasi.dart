@@ -1,7 +1,6 @@
 // path: lib/data/operasi/paket_operasi.dart
-// Mengelola operasi CRUD untuk data paket di database lokal.
+// diubah: Logika create dan update disederhanakan dan distandarkan menggunakan copyWith.
 
-import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -9,40 +8,17 @@ import 'package:sqflite/sqflite.dart';
 class PaketOperasi {
   final dbHelper = DatabaseHelper.instance;
 
-  // Fungsi untuk membuat atau memperbarui paket di database (Upsert)
-  Future<int> createPaket(PaketModel paket) async {
-    try {
-      developer.log("Mencoba mendapatkan database...");
-      final db = await dbHelper.database;
-      developer.log("Database didapatkan. Menyiapkan data...");
-
-      final data = paket.toMap();
-
-      // PERBAIKAN: Hanya set 'diperbarui' jika belum ada (data baru lokal).
-      // Jika data dari sinkronisasi, timestamp asli akan dipertahankan.
-      if (paket.diperbarui == null) {
-        data['diperbarui'] = DateTime.now().toIso8601String();
-      }
-
-      developer.log("Data yang akan di-insert/update: $data");
-
-      developer.log("Melakukan insert/update ke tabel 'paket'...");
-      final result = await db.insert(
-        'paket',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-      developer.log("Insert/update berhasil dengan ID: $result");
-
-      return result;
-    } catch (e, stacktrace) {
-      developer.log(
-        "TERJADI ERROR di createPaket",
-        error: e,
-        stackTrace: stacktrace,
-      );
-      return -1;
-    }
+  // diubah: Menggunakan copyWith untuk mengisi 'diperbarui' dan menghapus log.
+  Future<void> createPaket(PaketModel paket) async {
+    final db = await dbHelper.database;
+    final now = DateTime.now();
+    // ditambah: Menggunakan copyWith untuk konsistensi.
+    final data = paket.copyWith(diperbarui: now).toMap();
+    await db.insert(
+      'paket',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<PaketModel>> getPaket() async {
@@ -77,10 +53,12 @@ class PaketOperasi {
     return null;
   }
 
+  // diubah: Menggunakan copyWith untuk mengisi 'diperbarui'.
   Future<void> updatePaket(PaketModel paket) async {
     final db = await dbHelper.database;
     final now = DateTime.now();
-    final data = paket.toMap()..['diperbarui'] = now.toIso8601String();
+    // ditambah: Menggunakan copyWith untuk konsistensi.
+    final data = paket.copyWith(diperbarui: now).toMap();
     await db.update('paket', data, where: 'id = ?', whereArgs: [paket.id]);
   }
 

@@ -1,7 +1,5 @@
 // path: lib/model/paket_model.dart
-// Model ini merepresentasikan paket layanan yang ditawarkan.
-// Ini mencakup detail seperti nama, harga, durasi, dan tipe durasi (jam, hari, bulan).
-// Digunakan untuk mengelola data paket dari dan ke database lokal dan Firestore.
+// diubah: Menambahkan metode copyWith untuk konsistensi.
 
 import 'package:uuid/uuid.dart';
 
@@ -52,6 +50,29 @@ class PaketModel {
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
+
+  // ditambah: Metode copyWith untuk membuat salinan objek dengan nilai yang diperbarui.
+  PaketModel copyWith({
+    String? id,
+    String? nama,
+    int? harga,
+    int? durasi,
+    TipeDurasi? tipe,
+    DateTime? diperbarui,
+    bool? isDeleted,
+    DateTime? diarsipkan,
+  }) {
+    return PaketModel(
+      id: id ?? this.id,
+      nama: nama ?? this.nama,
+      harga: harga ?? this.harga,
+      durasi: durasi ?? this.durasi,
+      tipe: tipe ?? this.tipe,
+      diperbarui: diperbarui ?? this.diperbarui,
+      isDeleted: isDeleted ?? this.isDeleted,
+      diarsipkan: diarsipkan ?? this.diarsipkan,
+    );
+  }
 
   // helper parsing datetime aman (Firestore / String / null)
   static DateTime? _parseDateTime(dynamic value) {

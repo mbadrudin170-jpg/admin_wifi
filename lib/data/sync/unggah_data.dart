@@ -1,5 +1,5 @@
 // path: lib/data/sync/unggah_data.dart
-// diubah: file dirombak untuk menjadi lebih efisien dengan pengecekan timestamp dan hanya melakukan unggah data.
+// diubah: Menambahkan parameter boolean untuk kontrol timestamp di fungsi generik.
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -14,8 +14,7 @@ import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// untuk mengelola proses pengunggahan data dari database lokal ke Firebase.
-class UnggahDataService {
+class LayananUnggahData {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final SyncManager _syncManager = SyncManager();
@@ -24,68 +23,68 @@ class UnggahDataService {
   Future<void> unggahSemuaData() async {
     final waktuSinkronisasiTerakhir = await _syncManager.getLastSyncTimestamp();
     developer.log(
-      'Memulai unggah dengan waktu sinkronisasi terakhir: $waktuSinkronisasiTerakhir',
+      'Memulai unggah massal dengan waktu sinkronisasi terakhir: $waktuSinkronisasiTerakhir',
       name: 'UnggahDataService',
     );
 
     final List<Future<void>> daftarUnggah = [
-      _unggahDataGenerik<DompetModel>(
+      unggahDataGenerik<DompetModel>(
         'dompet',
         'dompet',
         DompetModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<KategoriModel>(
+      unggahDataGenerik<KategoriModel>(
         'kategori',
         'kategori',
         KategoriModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<KritikSaranModel>(
+      unggahDataGenerik<KritikSaranModel>(
         'kritik_saran',
         'kritik_saran',
         KritikSaranModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<PaketModel>(
+      unggahDataGenerik<PaketModel>(
         'paket',
         'paket',
         PaketModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<PelangganAktifModel>(
+      unggahDataGenerik<PelangganAktifModel>(
         'pelanggan_aktif',
         'pelanggan_aktif',
         PelangganAktifModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<PelangganModel>(
+      unggahDataGenerik<PelangganModel>(
         'pelanggan',
         'pelanggan',
         PelangganModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<PesananModel>(
+      unggahDataGenerik<PesananModel>(
         'pesanan',
         'pesan',
         PesananModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<RiwayatLanggananModel>(
+      unggahDataGenerik<RiwayatLanggananModel>(
         'riwayat_langganan',
         'riwayat_langganan',
         RiwayatLanggananModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      _unggahDataGenerik<TransaksiModel>(
+      unggahDataGenerik<TransaksiModel>(
         'transaksi',
         'transaksi',
         TransaksiModel.fromMap,
@@ -94,23 +93,155 @@ class UnggahDataService {
       ),
     ];
 
-    await Future.wait(daftarUnggah);
-    developer.log('Semua proses unggah selesai.', name: 'UnggahDataService');
+    try {
+      await Future.wait(daftarUnggah);
+      final waktuSelesai = DateTime.now();
+      await _syncManager.setLastSyncTimestamp(waktuSelesai);
+      developer.log(
+        'Unggah massal selesai. Timestamp diperbarui ke: $waktuSelesai',
+        name: 'UnggahDataService',
+      );
+    } catch (e, s) {
+      developer.log(
+        'Gagal selama unggah massal. Timestamp tidak diperbarui.',
+        name: 'UnggahDataService.Error',
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
-  // diubah: logika disederhanakan untuk HANYA mengunggah SEMUA field data berdasarkan timestamp.
-  // fungsi generik untuk mengunggah data dari satu tabel.
-  Future<void> _unggahDataGenerik<T>(
+  // --- FUNGSI UNGGAH SPESIFIK ---
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataDompet() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<DompetModel>(
+      'dompet',
+      'dompet',
+      DompetModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataKategori() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<KategoriModel>(
+      'kategori',
+      'kategori',
+      KategoriModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataKritikSaran() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<KritikSaranModel>(
+      'kritik_saran',
+      'kritik_saran',
+      KritikSaranModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataPaket() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<PaketModel>(
+      'paket',
+      'paket',
+      PaketModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataPelangganAktif() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<PelangganAktifModel>(
+      'pelanggan_aktif',
+      'pelanggan_aktif',
+      PelangganAktifModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataPelanggan() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<PelangganModel>(
+      'pelanggan',
+      'pelanggan',
+      PelangganModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataPesanan() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<PesananModel>(
+      'pesanan',
+      'pesan',
+      PesananModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataRiwayatLangganan() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<RiwayatLanggananModel>(
+      'riwayat_langganan',
+      'riwayat_langganan',
+      RiwayatLanggananModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan perbaruiTimestamp: true
+  Future<void> unggahDataTransaksi() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<TransaksiModel>(
+      'transaksi',
+      'transaksi',
+      TransaksiModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+      perbaruiTimestamp: true,
+    );
+  }
+
+  // diubah: Menambahkan parameter {bool perbaruiTimestamp = false}
+  Future<void> unggahDataGenerik<T>(
     String namaTabel,
     String namaKoleksi,
     T Function(Map<String, dynamic>) fromMap,
     Map<String, dynamic> Function(T) toMap,
-    DateTime waktuSinkronisasiTerakhir,
-  ) async {
+    DateTime waktuSinkronisasiTerakhir, {
+    bool perbaruiTimestamp = false,
+  }) async {
     try {
       final db = await _dbHelper.database;
 
-      // 1. Ambil semua data yang diperbarui (dibuat atau diubah) setelah sinkronisasi terakhir.
       final List<Map<String, dynamic>> dataUntukDiunggah = await db.query(
         namaTabel,
         where: 'diperbarui > ?',
@@ -118,25 +249,18 @@ class UnggahDataService {
       );
 
       if (dataUntukDiunggah.isEmpty) {
-        // Tidak ada data baru atau yang diperbarui untuk diunggah.
         return;
       }
 
       final batchFirestore = _firestore.batch();
       int itemsToCommit = 0;
 
-      // 2. Proses semua data sebagai operasi 'set' (upsert) dan unggah semua field.
       for (final map in dataUntukDiunggah) {
         final T data = fromMap(map);
-        final model = data as dynamic; // Untuk akses 'id'
-        final dataUnggah = toMap(
-          data,
-        ); // Konversi ke map, SEMUA field akan masuk.
+        final model = data as dynamic;
+        final dataUnggah = toMap(data);
 
         final docRef = _firestore.collection(namaKoleksi).doc(model.id);
-
-        // Gunakan set dengan merge:true untuk create/update (upsert).
-        // Ini akan membuat dokumen jika belum ada, atau memperbaruinya jika sudah ada.
         batchFirestore.set(docRef, dataUnggah, SetOptions(merge: true));
         itemsToCommit++;
       }
@@ -147,6 +271,16 @@ class UnggahDataService {
           'Batch unggah berhasil untuk tabel: $namaTabel ($itemsToCommit item)',
           name: 'UnggahDataService',
         );
+
+        // ditambah: Logika untuk memperbarui timestamp jika diminta.
+        if (perbaruiTimestamp) {
+          final waktuSelesai = DateTime.now();
+          await _syncManager.setLastSyncTimestamp(waktuSelesai);
+          developer.log(
+            'Timestamp diperbarui setelah unggah $namaTabel ke: $waktuSelesai',
+            name: 'UnggahDataService',
+          );
+        }
       }
     } catch (e, s) {
       developer.log(
@@ -155,6 +289,8 @@ class UnggahDataService {
         error: e,
         stackTrace: s,
       );
+      // diubah: Menggunakan rethrow untuk mempertahankan stack trace asli.
+      rethrow;
     }
   }
 }

@@ -1,14 +1,19 @@
 // lib/data/operasi/kategori_operasi.dart
+// diubah: Menambahkan pengisian timestamp 'diperbarui', memperbaiki logika update dan delete.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class KategoriOperasi {
+  // diubah: Menambahkan pengisian timestamp 'diperbarui'
   Future<void> createKategori(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
+    final now = DateTime.now();
+    // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini.
+    final data = kategori.copyWith(diperbarui: now).toMap();
     await db.insert(
       'kategori',
-      kategori.toMap(),
+      data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -33,19 +38,25 @@ class KategoriOperasi {
     });
   }
 
+  // diubah: Menambahkan 'diperbarui' dan menggunakan 'id'
   Future<void> update(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
+    final now = DateTime.now();
+    // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini.
+    final data = kategori.copyWith(diperbarui: now).toMap();
     await db.update(
       'kategori',
-      kategori.toMap(),
-      where: 'nama = ?',
-      whereArgs: [kategori.nama],
+      data,
+      // diubah: Menggunakan 'id' untuk pencarian.
+      where: 'id = ?',
+      whereArgs: [kategori.id],
     );
   }
 
-  Future<void> delete(String nama) async {
+  // diubah: Menggunakan 'id' untuk menghapus.
+  Future<void> delete(String id) async {
     final db = await DatabaseHelper.instance.database;
-    await db.delete('kategori', where: 'nama = ?', whereArgs: [nama]);
+    await db.delete('kategori', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> bersihkanDanSisipkanSemua(List<KategoriModel> items) async {

@@ -1,5 +1,5 @@
 // path : lib/data/operasi/dompet_operasi.dart
-// diubah: Menghapus semua logika SyncStatus dan menyederhanakan operasi.
+// diubah: Menambahkan pengisian timestamp 'diperbarui' pada operasi create dan update.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -7,13 +7,15 @@ import 'package:sqflite/sqflite.dart';
 class DompetOperasi {
   final dbHelper = DatabaseHelper.instance;
 
-  // diubah: Menyederhanakan pembuatan dompet tanpa SyncStatus
+  // diubah: Menambahkan pengisian timestamp 'diperbarui' saat membuat dompet
   Future<void> createDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
-    // diubah: Langsung menyimpan data tanpa modifikasi status
+    final now = DateTime.now();
+    // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
+    final data = dompet.copyWith(diperbarui: now).toMap();
     await db.insert(
       'dompet',
-      dompet.toMap(),
+      data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -39,12 +41,15 @@ class DompetOperasi {
     return null;
   }
 
-  // diubah: Menyederhanakan pembaruan dompet tanpa SyncStatus
+  // diubah: Menambahkan pengisian timestamp 'diperbarui' saat memperbarui dompet
   Future<void> updateDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
+    final now = DateTime.now();
+    // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
+    final data = dompet.copyWith(diperbarui: now).toMap();
     await db.update(
       'dompet',
-      dompet.toMap(),
+      data,
       where: 'id = ?',
       whereArgs: [dompet.id],
     );
