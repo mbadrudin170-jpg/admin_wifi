@@ -11,7 +11,7 @@ class DompetOperasi {
   /* OPERASI CRUD KE SQLITE */
 
   // diubah: Menambahkan logika untuk mengatur status sinkronisasi secara eksplisit
-  Future<void> createDompet(Dompet dompet) async {
+  Future<void> createDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
     // diubah: Menggunakan 'copyWith' yang merupakan nama metode standar.
     final dompetBaru = dompet.copyWith(
@@ -25,16 +25,16 @@ class DompetOperasi {
     );
   }
 
-  Future<List<Dompet>> getDompet() async {
+  Future<List<DompetModel>> getDompet() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('dompet');
 
     return List.generate(maps.length, (i) {
-      return Dompet.fromMap(maps[i]);
+      return DompetModel.fromMap(maps[i]);
     });
   }
 
-  Future<Dompet?> getDompetById(String id) async {
+  Future<DompetModel?> getDompetById(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'dompet',
@@ -43,12 +43,12 @@ class DompetOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return Dompet.fromMap(maps.first);
+      return DompetModel.fromMap(maps.first);
     }
     return null;
   }
 
-  Future<void> updateDompet(Dompet dompet) async {
+  Future<void> updateDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
     await db.update(
       'dompet',
@@ -98,17 +98,17 @@ class DompetOperasi {
 
   // == METODE BARU UNTUK SINKRONISASI INKREMENTAL ==
 
-  Future<List<Dompet>> getPerubahan(DateTime since) async {
+  Future<List<DompetModel>> getPerubahan(DateTime since) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'dompet',
       where: 'diperbarui > ?',
       whereArgs: [since.toIso8601String()],
     );
-    return List.generate(maps.length, (i) => Dompet.fromMap(maps[i]));
+    return List.generate(maps.length, (i) => DompetModel.fromMap(maps[i]));
   }
 
-  Future<void> sisipkanAtauPerbaruiBatch(List<Dompet> items) async {
+  Future<void> sisipkanAtauPerbaruiBatch(List<DompetModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();
     for (var item in items) {
@@ -135,9 +135,9 @@ class DompetOperasi {
       return;
     }
 
-    final List<Dompet> daftarDompet = List.generate(
+    final List<DompetModel> daftarDompet = List.generate(
       maps.length,
-      (i) => Dompet.fromMap(maps[i]),
+      (i) => DompetModel.fromMap(maps[i]),
     );
 
     final batchFirestore = firestore.batch();

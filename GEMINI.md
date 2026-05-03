@@ -1,265 +1,36 @@
+
 # **Aturan lainnya untuk AI**
 
-## 1. Standarisasi Penamaan
-
-* Seluruh penamaan wajib menggunakan **Bahasa Indonesia**, mencakup:
-
-  * Nama fungsi
-  * Nama variabel
-  * Parameter
-  * Nama file
-* Komunikasi antara AI dan pengguna juga wajib menggunakan Bahasa Indonesia yang jelas, formal, dan mudah dipahami.
-
----
-
-## 2. Standar Struktur File
-
-* Setiap file wajib mencantumkan komentar path di baris paling atas:
-
-```
-// path: lib/path/nama_file.dart
-```
-
----
-
-## 3. Kewajiban Membaca Dokumentasi
-
-* Sebelum memulai pekerjaan, AI wajib membaca file `README.md` untuk memahami:
-
-  * Alur sistem
-  * Struktur proyek
-  * Aturan teknis yang berlaku
-
----
-
-## 4. Instruksi Internal (ask)
-
-* Setiap komentar dengan format:
-
-```
-// ask: ...
-```
-
-merupakan instruksi langsung yang **wajib diproses tanpa interpretasi bebas**.
-
----
-
-## 5. Proses Konfirmasi Sebelum Eksekusi
-
-Sebelum melakukan perubahan kode, AI wajib:
-
-* Menjelaskan secara rinci:
-
-  * apa yang akan diubah
-  * file yang terdampak
-  * alasan perubahan
-  * risiko perubahan (jika ada)
-
-Setelah itu, AI hanya boleh melanjutkan jika pengguna memberikan persetujuan:
-
-* “setuju / oke / yes” → lanjut
-* “tidak / jangan / nggak” → hentikan
-
----
-
-## 6. Standar Perubahan Kode
-
-Setiap perubahan wajib disertai anotasi jelas pada kode:
-
-```
-// dihapus: alasan penghapusan
-// diubah: alasan perubahan
-// ditambah: alasan penambahan
-```
-
-Setiap fungsi wajib memiliki dokumentasi singkat:
-
-```
-// untuk apa fungsi ini dibuat
-```
-
----
-
-## 7. Pembaruan Dokumentasi README.md
-
-Setelah menyelesaikan pekerjaan, AI wajib memperbarui README.md **hanya berdasarkan file yang dikerjakan**, dengan format berikut:
-
-```
+selalu gunakan bahasa indonesia untuk penamaan baik itu nama fungsi, variabel, parameter, nama file dan saat berbincang dengan saya.
+selalu tambahkan path file nya dengan berupa komentar di bagian paling atas pada isi sebuah file.
+sebelum mengerjakan proyek AI di harapkan selalu baca file README.md untuk mengetahui alur kerja proyek saya.
+ketika AI selesai mengerjakan tugas pada file yang di kerjakan tolong tambah atau edit keterangan fungsi dan fitur apa yang ada di file yang AI kerjakan tadi dan tulis keterangan itu per file agar mudah saya ketahui.
+sebelum build tolong baca dahulu file README.md apakah ada fitur yang baru atau hanya perbaikan bug maka jika hanya perbaikan bug saja yang dinaikan hanya nomor build nya saja jangan naikan versi nya di pubspec.yaml dan jalankan flutter clean && flutter pub get && flutter build apk –release --split-per-abi. Jangan build sebelum saya perintahkan untuk build.
+selalu jaga konsistensi dan kejelasan dalam proyek saya.
+setelah selesai melakukan pekerjaan tolong edit isi file README.md berdasarkan pada file yang kamu kerjakan saja  ada di README.md karena file README.md ini akan berisi sebuah keterangan tujuan file, fitur, fungsi, dan hindari contoh file lib/home.dart fitur: tombol tambah, fungsi : untuk menghapus, hindari : menambahkan kode value pada kode anu karena akan menyebabkan error atau warning.
+harus menambahkan komentar di paling atas pada sebuah isi file dengan berikut // path : lib/main.dart.
+setelah melakukan pekerjaan tolong kode yang kamu kerjakan pada sebuah file beri keterangan komentar di samping atau di atasnya dengan struktur begini dihapus: karena apa diubah/ditambah : karena apa juga.
+setelah melakukan pekerjaan tolong jalankan flutter analyze di terminal agar kode sudah benar jangan takutnya ada yang masih error atau warning.
+sebelum melakukan pekerjaan tolong berikan saya penjelasan kenapa AI akan melakukan pekerjaan ini agar saya bisa konfirmasi agar sesuai dengan saya inginkan contoh setelah kamu menjelaskan apa yang akan AI kerjakan saya akan konfirmasi misal setuju,oke,ok,ya,yes itu tandanya AI boleh mengerjakannya dan jika saya tulis jangan, tidak, nggk,nggak berarti AI jangan mengerjakan nya.
+dan tambahkan keterangan di setiap fungsi agar saya tahu kenapa kode itu dibuat dan taruh di atas sebuah fungsi contoh // untuk menavigasi ke halaman A.
+kalau bisa sedikit tambahkan komentar pada isi file di  beberapa kode di dalamnya agar saya tidak terlalu bingung kenapa kode itu dibuat
+jika pengguna perintahkan clean maka AI harus jalankan flutter clean && flutter pub get diterminal.
+diharapkan AI jangan berasumsi liar agar semua file saling sinkron.
+"Setiap kali membuat fungsi yang melibatkan I/O, network request, atau database, selalu gunakan pola Asynchronous (async/await) dan bungkus hasilnya dalam objek Future. Hindari penggunaan .then() berantai."
+Format Pembaruan README.md: Setelah pengerjaan file selesai, edit bagian dokumentasi file di README.md dan kelompokkan berdasarkan foldernya dengan format berikut: untuk rules harus lebih rinci agar rekan kerja paham dengan rules ini dan tidak kebingungan. 
 File: lib/path/nama_file.dart
-Fitur: [Nama fitur]
-
+Fitur: [Nama Fitur]
 Daftar Fungsi:
-- namaFungsiA(): Penjelasan singkat
-- namaFungsiB(): Penjelasan singkat
-
-Catatan: Informasi tambahan jika ada
-
-Rules: Aturan spesifik terkait file tersebut (misalnya format tanggal, jam, angka, validasi, dll)
-```
-
-⚠️ Dilarang:
-
-* Menambahkan contoh kode tidak relevan
-* Mengubah struktur dokumentasi global tanpa alasan
-* Menambahkan informasi di luar file yang dikerjakan
-
----
-
-## 8. Proses Build Flutter
-
-* Dilarang melakukan build tanpa instruksi eksplisit dari pengguna.
-* Jika hanya perbaikan bug:
-
-  * hanya naikkan **build number**
-  * jangan menaikkan version di `pubspec.yaml`
-
-Perintah build wajib:
-
-```
-flutter clean && flutter pub get && flutter build apk --release --split-per-abi
-```
-
----
-
-## 9. Konsistensi & Sinkronisasi Sistem
-
-* Semua file wajib sinkron satu sama lain
-* Dilarang membuat asumsi tanpa dasar kode nyata
-* Dilarang membuat logika yang tidak ada referensi di project
-
----
-
-## 10. Standar Asynchronous Programming
-
-* Semua proses:
-
-  * I/O
-  * database
-  * network request
-* wajib menggunakan:
-
-  * `async / await`
-  * `Future`
-
-❌ Dilarang menggunakan `.then()` berantai
-
----
-
-## 11. Keamanan UI State (Flutter)
-
-* Wajib menggunakan:
-
-```
-if (!mounted) return;
-```
-
-setelah proses asynchronous sebelum update UI
-
----
-
-## 12. Efisiensi Sistem
-
-* Kode wajib dioptimalkan agar:
-
-  * hemat RAM
-  * ringan di perangkat low-end
-  * tidak menyebabkan rebuild berlebihan
-
----
-
-## 13. Validasi Kode Setelah Perubahan
-
-Setelah pekerjaan selesai, wajib menjalankan:
-
-```
-flutter analyze
-```
-
-Semua error dan warning harus diminimalkan atau diperbaiki.
-
----
-
-## 14. Kontrol Perubahan Kode
-
-Sebelum melakukan perubahan, AI wajib:
-
-* Menampilkan kode lama yang bermasalah
-* Menampilkan kode baru yang diperbaiki
-* Menjelaskan alasan perubahan
-
----
-
-## 15. Batasan Perilaku AI
-
-AI tidak diperbolehkan:
-
-* Menambah fitur tanpa instruksi
-* Mengubah UI tanpa izin eksplisit
-* Mengubah struktur proyek secara bebas
-* Berasumsi tanpa dasar kode
-
----
-
-## 16. Optimasi Dokumentasi
-
-Setelah setiap perubahan:
-
-* README.md wajib diperbarui secara spesifik sesuai file yang diubah
-* Tidak boleh menulis ulang seluruh README tanpa kebutuhan
-
----
-
-## 17. Evaluasi & Rekomendasi Profesional
-
-Setelah setiap pekerjaan, AI wajib memberikan:
-
-* kritik terhadap struktur kode (jika ada kelemahan)
-* saran peningkatan:
-
-  * arsitektur
-  * performa
-  * efisiensi
-  * skalabilitas sistem
-
----
-
-## 18. Instruksi Clean Project
-
-Jika pengguna meminta “clean”:
-
-```
-flutter clean && flutter pub get
-```
-
----
-
-## 19. Validasi Instruksi ask
-
-* AI wajib memeriksa semua komentar:
-
-```
-// ask: ...
-```
-
-* Instruksi tersebut memiliki prioritas eksekusi tinggi
-
----
-
-## 20. Aturan Khusus Update README.md
-
-* Jika tugas hanya memperbarui README.md:
-
-  * langsung lakukan tanpa konfirmasi ulang
-  * tetap harus mengikuti format dokumentasi file
-
----
-
-Kalau kamu mau upgrade berikutnya, aku bisa bantu:
-
-* bikin **versi “AI Operating System Spec” (lebih ketat seperti standar perusahaan)**
-* atau bikin **README generator otomatis dari kode kamu**
-* atau bikin **rule validator (biar AI lain yang kerja di project kamu tidak bisa melanggar aturan ini)**
-
+namaFungsiA(): Penjelasan singkat kegunaan fungsi.
+namaFungsiB(): Penjelasan singkat kegunaan fungsi.
+Catatan: [Informasi tambahan jika ada]
+Rules : misalnya untuk tanggal, jam, dan angka wajib menggunakan format yang ada di file lib/path/nama_file.dart
+sebelum mengerjakan tugas AI harus tunjukan kode apa yang akan di AI perbarui kode mana yang salah dan kode yang benar. biar saya konfirmasi.
+gunakan `if (!mounted) return;` agar jika gagal nggak error.
+jaga agar apliaksi saya hemat ram atau setidaknya kita usahakan agar tidak terlalu memakan ram perangkat user.
+selalu cek di file nya takutnya ada komentar yang diawali dengan kata // ask : ... itu adalah intruksi untuk AI agar mengerjakan sesuai isntruksi tersebut.
+simpan semua isi file ini ke memori AI.
+jangan ubah file GEMINI.md tanpa ada perintah langsung dari saya.
 
 __________________________________________
 

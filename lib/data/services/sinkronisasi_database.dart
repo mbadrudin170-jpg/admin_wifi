@@ -1,118 +1,147 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
-import 'package:admin_wifi/data/operasi/paket_operasi.dart'; // Impor operasi paket
-import 'package:admin_wifi/model/pelanggan_model.dart';
+// path: lib/data/services/sinkronisasi_database.dart
+import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
-import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/model/kritik_saran_model.dart';
+import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
-import 'package:admin_wifi/model/paket_model.dart'; // Impor model paket
-import 'dart:developer' as developer;
+import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/model/pesan_model.dart';
+import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
+import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
+import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
+import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
+import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/data/operasi/pesan_operasi.dart';
+import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 
-class SinkronisasiDatabase {
+// diubah: nama kelas menjadi lebih deskriptif dan konsisten dengan penamaan layanan lain.
+class LayananSinkronisasi {
+  final SyncManager _syncManager = SyncManager();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
-  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
-  final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
-  final PaketOperasi _paketOperasi = PaketOperasi(); // Tambahkan operasi paket
 
+  // ditambahkan: Instance dari semua kelas operasi untuk mengakses metode database.
+  final DompetOperasi _dompetOperasi = DompetOperasi();
+  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
+  final PaketOperasi _paketOperasi = PaketOperasi();
+  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
+  final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
+  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  final RiwayatLanggananOperasi _riwayatLanggananOperasi =
+      RiwayatLanggananOperasi();
+  final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
+  final PesanOperasi _pesanOperasi = PesanOperasi();
+
+  // Fungsi utama untuk mengorkestrasi proses sinkronisasi.
   Future<void> sinkronisasiData() async {
-    developer.log(
-      'Memulai sinkronisasi data dari Firebase.',
-      name: 'SinkronisasiDatabase',
-    );
+    final waktuSinkronisasiTerakhir = await dapatkanWaktuSinkronisasiTerakhir();
+
+    // ditambahkan: Logika untuk memeriksa apakah ini sinkronisasi pertama kali.
+    // Jika timestamp adalah epoch (0), berarti ini sinkronisasi awal.
+    if (waktuSinkronisasiTerakhir.millisecondsSinceEpoch == 0) {
+      await _sinkronisasiAwal();
+    } else {
+      // TODO: Implementasikan logika sinkronisasi inkremental di sini
+      // untuk data yang berubah setelah `waktuSinkronisasiTerakhir`.
+    }
+  }
+
+  // ditambahkan: Fungsi privat untuk menangani sinkronisasi penuh pertama kali.
+  Future<void> _sinkronisasiAwal() async {
     try {
-      await _sinkronisasiPelanggan();
-      await _sinkronisasiKategori();
-      await _sinkronisasiTransaksi();
-      await _sinkronisasiPelangganAktif();
-      await _sinkronisasiPaket(); // Panggil sinkronisasi paket
-      developer.log(
-        'Sinkronisasi data berhasil.',
-        name: 'SinkronisasiDatabase',
-      );
-    } catch (e, s) {
-      developer.log(
-        'Gagal melakukan sinkronisasi data.',
-        name: 'SinkronisasiDatabase.Error',
-        error: e,
-        stackTrace: s,
-      );
-      // Rethrow the exception to be handled by the caller if needed
+      // Menjalankan semua sinkronisasi koleksi secara paralel.
+      await Future.wait([
+        _sinkronisasiKoleksi<DompetModel>(
+          namaKoleksi: 'dompet',
+          fromMap: (map) => DompetModel.fromMap(map),
+          operasiBatch: (data) =>
+              _dompetOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<KategoriModel>(
+          namaKoleksi: 'kategori',
+          fromMap: (map) => KategoriModel.fromMap(map),
+          operasiBatch: (data) =>
+              _kategoriOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<PaketModel>(
+          namaKoleksi: 'paket',
+          fromMap: (map) => PaketModel.fromMap(map),
+          operasiBatch: (data) => _paketOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<PelangganModel>(
+          namaKoleksi: 'pelanggan',
+          fromMap: (map) => PelangganModel.fromMap(map),
+          operasiBatch: (data) =>
+              _pelangganOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<PelangganAktifModel>(
+          namaKoleksi: 'pelanggan_aktif',
+          fromMap: (map) => PelangganAktifModel.fromMap(map),
+          operasiBatch: (data) =>
+              _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<TransaksiModel>(
+          namaKoleksi: 'transaksi',
+          fromMap: (map) => TransaksiModel.fromMap(map),
+          operasiBatch: (data) =>
+              _transaksiOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<RiwayatLanggananModel>(
+          namaKoleksi: 'riwayat_langganan',
+          fromMap: (map) => RiwayatLanggananModel.fromMap(map),
+          operasiBatch: (data) =>
+              _riwayatLanggananOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<KritikSaranModel>(
+          namaKoleksi: 'kritik_saran',
+          fromMap: (map) => KritikSaranModel.fromMap(map),
+          operasiBatch: (data) =>
+              _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+        _sinkronisasiKoleksi<PesanModel>(
+          namaKoleksi: 'pesan',
+          fromMap: (map) => PesanModel.fromMap(map),
+          operasiBatch: (data) => _pesanOperasi.sisipkanAtauPerbaruiBatch(data),
+        ),
+      ]);
+
+      // Jika semua berhasil, perbarui timestamp.
+      await tetapkanWaktuSinkronisasiTerakhir(DateTime.now());
+    } catch (e) {
+      // Error handling jika terjadi kegagalan saat sinkronisasi.
+      // Timestamp tidak akan diperbarui agar proses bisa diulang.
+      print('Gagal melakukan sinkronisasi awal: $e');
+      // Opsional: Lemparkan kembali error untuk ditangani oleh pemanggil.
       rethrow;
     }
   }
 
-  Future<void> _sinkronisasiPaket() async {
-    final snapshot = await _firestore.collection('paket').get();
-    final List<Paket> pakets = snapshot.docs
-        .map((doc) => Paket.fromMap(doc.data()))
-        .toList();
-    for (final paket in pakets) {
-      await _paketOperasi.createPaket(paket);
+  // ditambahkan: Fungsi generik untuk menghindari duplikasi kode sinkronisasi.
+  // Ini adalah implementasi dari saran refaktorisasi di README.
+  Future<void> _sinkronisasiKoleksi<T>({
+    required String namaKoleksi,
+    required T Function(Map<String, dynamic>) fromMap,
+    required Future<void> Function(List<T>) operasiBatch,
+  }) async {
+    final snapshot = await _firestore.collection(namaKoleksi).get();
+    if (snapshot.docs.isNotEmpty) {
+      final dataList = snapshot.docs.map((doc) => fromMap(doc.data())).toList();
+      await operasiBatch(dataList);
     }
-    developer.log(
-      '${pakets.length} paket disinkronkan.',
-      name: 'SinkronisasiDatabase',
-    );
   }
 
-  Future<void> _sinkronisasiPelanggan() async {
-    final snapshot = await _firestore.collection('pelanggan').get();
-    final List<Pelanggan> pelanggans = snapshot.docs
-        .map((doc) => Pelanggan.fromMap(doc.data()))
-        .toList();
-    for (final pelanggan in pelanggans) {
-      await _pelangganOperasi.createPelanggan(pelanggan);
-    }
-    developer.log(
-      '${pelanggans.length} pelanggan disinkronkan.',
-      name: 'SinkronisasiDatabase',
-    );
+  // Fungsi untuk mendapatkan waktu sinkronisasi terakhir dari local storage.
+  Future<DateTime> dapatkanWaktuSinkronisasiTerakhir() async {
+    return await _syncManager.getLastSyncTimestamp();
   }
 
-  Future<void> _sinkronisasiKategori() async {
-    final snapshot = await _firestore.collection('kategori').get();
-    final List<Kategori> kategoris = snapshot.docs
-        .map((doc) => Kategori.fromMap(doc.data()))
-        .toList();
-    for (final kategori in kategoris) {
-      await _kategoriOperasi.createKategori(kategori);
-    }
-    developer.log(
-      '${kategoris.length} kategori disinkronkan.',
-      name: 'SinkronisasiDatabase',
-    );
-  }
-
-  Future<void> _sinkronisasiTransaksi() async {
-    final snapshot = await _firestore.collection('transaksi').get();
-    final List<TransaksiModel> transaksis = snapshot.docs
-        .map((doc) => TransaksiModel.fromMap(doc.data()))
-        .toList();
-    for (final transaksi in transaksis) {
-      await _transaksiOperasi.tambahTransaksi(transaksi);
-    }
-    developer.log(
-      '${transaksis.length} transaksi disinkronkan.',
-      name: 'SinkronisasiDatabase',
-    );
-  }
-
-  Future<void> _sinkronisasiPelangganAktif() async {
-    final snapshot = await _firestore.collection('pelanggan_aktif').get();
-    final List<PelangganAktif> pelangganAktifs = snapshot.docs
-        .map((doc) => PelangganAktif.fromMap(doc.data()))
-        .toList();
-    for (final pelangganAktif in pelangganAktifs) {
-      await _pelangganAktifOperasi.unduhPelangganAktif(pelangganAktif);
-    }
-    developer.log(
-      '${pelangganAktifs.length} pelanggan aktif disinkronkan.',
-      name: 'SinkronisasiDatabase',
-    );
+  // Fungsi untuk memperbarui waktu sinkronisasi terakhir di local storage.
+  Future<void> tetapkanWaktuSinkronisasiTerakhir(DateTime waktu) async {
+    await _syncManager.setLastSyncTimestamp(waktu);
   }
 }

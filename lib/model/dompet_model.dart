@@ -6,7 +6,7 @@ import 'package:admin_wifi/model/enum/sync_status.dart';
 // Ini mencakup properti seperti ID, nama dompet, saldo, tanggal diperbarui, dan status sinkronisasi.
 // Digunakan untuk mengelola data dompet dari dan ke Firestore serta database lokal.
 
-class Dompet {
+class DompetModel {
   final String? id;
   final String namaDompet;
   final double saldo;
@@ -14,7 +14,7 @@ class Dompet {
   // diubah/ditambah: Menambahkan properti untuk status sinkronisasi.
   final SyncStatus syncStatus;
 
-  Dompet({
+  DompetModel({
     this.id,
     required this.namaDompet,
     required this.saldo,
@@ -25,14 +25,14 @@ class Dompet {
 
   // diubah: Mengganti nama 'salinDengan' menjadi 'copyWith' agar sesuai konvensi.
   /// Membuat salinan objek Dompet dengan nilai yang diperbarui.
-  Dompet copyWith({
+  DompetModel copyWith({
     String? id,
     String? namaDompet,
     double? saldo,
     DateTime? diperbarui,
     SyncStatus? syncStatus,
   }) {
-    return Dompet(
+    return DompetModel(
       id: id ?? this.id,
       namaDompet: namaDompet ?? this.namaDompet,
       saldo: saldo ?? this.saldo,
@@ -43,12 +43,14 @@ class Dompet {
 
   // diubah/ditambah: Diperbarui untuk menangani 'syncStatus'.
   // Mengonversi Map dari database menjadi objek Dompet.
-  factory Dompet.fromMap(Map<String, dynamic> map) {
-    return Dompet(
+  factory DompetModel.fromMap(Map<String, dynamic> map) {
+    return DompetModel(
       id: map['id'],
       namaDompet: map['namaDompet'],
       saldo: (map['saldo'] as num).toDouble(),
-      diperbarui: map['diperbarui'] != null ? DateTime.parse(map['diperbarui']) : null,
+      diperbarui: map['diperbarui'] != null
+          ? DateTime.parse(map['diperbarui'])
+          : null,
       // Mengurai status sinkronisasi dari string, default ke 'synced' jika tidak ada.
       syncStatus: SyncStatus.values.firstWhere(
         (e) => e.name == map['sync_status'],

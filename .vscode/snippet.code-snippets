@@ -3,7 +3,7 @@
     "prefix": "fpath",
     "scope": "dart",
     "body": [
-      " // Path: ${RELATIVE_FILEPATH}",
+      " // path: ${RELATIVE_FILEPATH}",
       ""
     ],
     "description": "Menambahkan path file relatif di bagian atas sebagai komentar"
@@ -11,7 +11,7 @@
   "Flutter Component with Path": {
     "prefix": "fpage",
     "body": [
-      "// Path: ${RELATIVE_FILEPATH}",
+      "// path: ${RELATIVE_FILEPATH}",
       "import 'package:flutter/material.dart';",
       "",
       "class ${1:MyWidget} extends StatelessWidget {",
