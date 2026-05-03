@@ -45,7 +45,7 @@ kategori_model.dart      pelanggan_model.dart
 kritik_saran_model.dart  pesan_model.dart
 
 lib/model/enum:
-status_pembayaran.dart  sync_status.dart
+status_pembayaran.dart
 
 lib/server:
 server_lokal.dart
@@ -76,7 +76,7 @@ Berikut adalah dokumentasi untuk setiap file model yang telah diubah:
     *   `copyWith()`: Menyalin instance dengan nilai properti yang diperbarui.
     *   `fromMap()`: Membuat instance DompetModel dari sebuah map (dari database).
     *   `toMap()`: Mengonversi instance DompetModel menjadi sebuah map (untuk database).
-*   **Catatan**: Model ini merepresentasikan sebuah dompet untuk menyimpan uang. Kini mendukung fitur soft delete (`isDeleted`) dan pengarsipan (`diarsipkan`).
+*   **Catatan**: Model ini merepresentasikan sebuah dompet untuk menyimpan uang. Properti `syncStatus` telah dihapus karena tidak lagi digunakan.
 
 **File: lib/model/kategori_model.dart**
 *   **Fitur**: Kategori & Sub-Kategori
@@ -108,3 +108,21 @@ Berikut adalah dokumentasi untuk setiap file model yang telah diubah:
     *   `fromMap()`: Membuat instance PesananModel dari map (diadaptasi untuk SQLite dan Firestore).
     *   `toMap()`: Mengonversi PesananModel ke map.
 *   **Catatan**: Model ini merepresentasikan pesanan paket oleh pelanggan. Telah diselaraskan dengan model lain dengan penambahan `diperbarui`, `isDeleted`, dan `diarsipkan` untuk mendukung pelacakan perubahan, soft delete, dan pengarsipan.
+
+**File: lib/model/pelanggan_aktif_model.dart**
+*   **Fitur**: Pelanggan Aktif
+*   **Daftar Fungsi**:
+    *   `PelangganAktifModel()`: Konstruktor untuk membuat instance Pelanggan Aktif.
+    *   `copyWith()`: Menyalin instance dengan nilai properti yang diperbarui.
+    *   `fromMap()`: Membuat instance PelangganAktifModel dari sebuah map (dari database).
+    *   `toMap()`: Mengonversi instance PelangganAktifModel menjadi sebuah map (untuk database).
+*   **Catatan**: Model ini merepresentasikan langganan aktif seorang pelanggan. Properti `syncStatus` telah dihapus.
+
+**File: lib/model/transaksi_model.dart**
+*   **Fitur**: Transaksi
+*   **Daftar Fungsi**:
+    *   `TransaksiModel()`: Konstruktor untuk membuat instance Transaksi.
+    *   `salinDengan()`: Menyalin instance dengan nilai properti yang diperbarui.
+    *   `fromMap()`: Membuat instance TransaksiModel dari sebuah map (dari database).
+    *   `toMap()`: Mengonversi instance TransaksiModel menjadi sebuah map (untuk database).
+*   **Catatan**: Model ini merepresentasikan transaksi keuangan. Properti `syncStatus` telah dihapus.

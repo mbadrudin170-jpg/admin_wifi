@@ -1,5 +1,5 @@
 // path: lib/model/pelanggan_aktif_model.dart
-import 'package:admin_wifi/model/enum/sync_status.dart';
+// diubah: Hapus impor sync_status dan semua properti terkait.
 import 'package:uuid/uuid.dart';
 import 'enum/status_pembayaran.dart';
 
@@ -11,7 +11,8 @@ class PelangganAktifModel {
   final DateTime tanggalMulai;
   final DateTime tanggalBerakhir;
   final StatusPembayaran status;
-  final SyncStatus syncStatus;
+  // dihapus: karena tidak digunakan lagi
+  // final SyncStatus syncStatus;
   final DateTime? diperbarui;
   final String statusSinkronisasi;
 
@@ -27,7 +28,8 @@ class PelangganAktifModel {
     required this.tanggalMulai,
     required this.tanggalBerakhir,
     required this.status,
-    this.syncStatus = SyncStatus.synced,
+    // dihapus: karena tidak digunakan lagi
+    // this.syncStatus = SyncStatus.synced,
     this.diperbarui,
     this.statusSinkronisasi = 'SINKRON',
     this.isDeleted = false,
@@ -61,7 +63,8 @@ class PelangganAktifModel {
     DateTime? tanggalMulai,
     DateTime? tanggalBerakhir,
     StatusPembayaran? status,
-    SyncStatus? syncStatus,
+    // dihapus: karena tidak digunakan lagi
+    // SyncStatus? syncStatus,
     DateTime? diperbarui,
     String? statusSinkronisasi,
     bool? isDeleted,
@@ -74,7 +77,8 @@ class PelangganAktifModel {
       tanggalMulai: tanggalMulai ?? this.tanggalMulai,
       tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
       status: status ?? this.status,
-      syncStatus: syncStatus ?? this.syncStatus,
+      // dihapus: karena tidak digunakan lagi
+      // syncStatus: syncStatus ?? this.syncStatus,
       diperbarui: diperbarui ?? this.diperbarui,
       statusSinkronisasi: statusSinkronisasi ?? this.statusSinkronisasi,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -93,10 +97,7 @@ class PelangganAktifModel {
         (e) => e.name == map['status'],
         orElse: () => StatusPembayaran.lunas,
       ),
-      syncStatus: SyncStatus.values.firstWhere(
-        (e) => e.name == (map['sync_status'] ?? 'synced'),
-        orElse: () => SyncStatus.synced,
-      ),
+      // dihapus: karena tidak digunakan lagi
       diperbarui: map['diperbarui'] != null
           ? DateTime.parse(map['diperbarui'])
           : null,
@@ -116,7 +117,8 @@ class PelangganAktifModel {
       'tanggalMulai': tanggalMulai.toIso8601String(),
       'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
       'status': status.name,
-      'sync_status': syncStatus.name,
+      // dihapus: karena tidak digunakan lagi
+      // 'sync_status': syncStatus.name,
       'diperbarui': diperbarui?.toIso8601String(),
       'status_sinkronisasi': statusSinkronisasi,
 

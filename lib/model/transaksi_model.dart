@@ -1,5 +1,5 @@
 // path: lib/model/transaksi_model.dart
-import 'package:admin_wifi/model/enum/sync_status.dart';
+// diubah: Hapus impor sync_status dan semua properti terkait.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -25,7 +25,8 @@ class TransaksiModel {
 
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
-  final SyncStatus syncStatus;
+  // dihapus: karena tidak digunakan lagi
+  // final SyncStatus syncStatus;
 
   // tambahan lifecycle
   final bool isDeleted;
@@ -48,7 +49,8 @@ class TransaksiModel {
     this.namaSubKategori,
     this.diperbarui,
     this.diarsipkan,
-    this.syncStatus = SyncStatus.write,
+    // dihapus: karena tidak digunakan lagi
+    // this.syncStatus = SyncStatus.write,
     this.isDeleted = false,
   }) : id = id ?? const Uuid().v4();
 
@@ -88,10 +90,7 @@ class TransaksiModel {
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
 
-      syncStatus: SyncStatus.values.firstWhere(
-        (e) => e.name == map['sync_status'],
-        orElse: () => SyncStatus.synced,
-      ),
+      // dihapus: karena tidak digunakan lagi
 
       // tambahan soft delete
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
@@ -121,7 +120,7 @@ class TransaksiModel {
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
 
-      'sync_status': syncStatus.name,
+      // dihapus: karena tidak digunakan lagi
 
       // tambahan lifecycle
       'isDeleted': isDeleted,
@@ -146,7 +145,8 @@ class TransaksiModel {
     String? namaSubKategori,
     DateTime? diperbarui,
     DateTime? diarsipkan,
-    SyncStatus? syncStatus,
+    // dihapus: karena tidak digunakan lagi
+    // SyncStatus? syncStatus,
     bool? isDeleted,
   }) {
     return TransaksiModel(
@@ -171,7 +171,8 @@ class TransaksiModel {
       diperbarui: diperbarui ?? this.diperbarui,
       diarsipkan: diarsipkan ?? this.diarsipkan,
 
-      syncStatus: syncStatus ?? this.syncStatus,
+      // dihapus: karena tidak digunakan lagi
+      // syncStatus: syncStatus ?? this.syncStatus,
       isDeleted: isDeleted ?? this.isDeleted,
     );
   }
