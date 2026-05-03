@@ -23,9 +23,9 @@ class Dompet {
     this.syncStatus = SyncStatus.synced,
   });
 
-  // diubah/ditambah: Menambahkan metode 'salinDengan' untuk imutabilitas.
+  // diubah: Mengganti nama 'salinDengan' menjadi 'copyWith' agar sesuai konvensi.
   /// Membuat salinan objek Dompet dengan nilai yang diperbarui.
-  Dompet salinDengan({
+  Dompet copyWith({
     String? id,
     String? namaDompet,
     double? saldo,

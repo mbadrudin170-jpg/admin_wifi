@@ -13,8 +13,8 @@ class DompetOperasi {
   // diubah: Menambahkan logika untuk mengatur status sinkronisasi secara eksplisit
   Future<void> createDompet(Dompet dompet) async {
     final db = await dbHelper.database;
-    // ditambahkan: Membuat salinan dengan status 'write' dan waktu 'diperbarui'
-    final dompetBaru = dompet.salinDengan(
+    // diubah: Menggunakan 'copyWith' yang merupakan nama metode standar.
+    final dompetBaru = dompet.copyWith(
       syncStatus: SyncStatus.write,
       diperbarui: DateTime.now(),
     );
