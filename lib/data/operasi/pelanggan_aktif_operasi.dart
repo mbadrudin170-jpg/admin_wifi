@@ -1,10 +1,9 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
-// diubah: Memperbaiki nama fungsi notifikasi dan menghapus variabel tak terpakai.
+// diubah: Menambahkan fungsi untuk mengarsipkan semua pelanggan aktif.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
 
@@ -18,49 +17,6 @@ class PelangganAktifOperasi {
   final dbHelper = DatabaseHelper.instance;
   final NotifikasiServis _notifikasiServis = NotifikasiServis();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-
-  // untuk mengunggah data ke firebase
-  Future<void> unggahKeFirebase(PelangganAktifModel pelanggan) async {
-    final firestore = FirebaseFirestore.instance;
-    final docRef = firestore.collection('pelanggan_aktif').doc(pelanggan.id);
-
-    final dataToUpload = pelanggan.toMap();
-
-    try {
-      await docRef.set(dataToUpload);
-      developer.log(
-        '🚀 [FIREBASE] Berhasil mengunggah pelanggan aktif (ID: ${pelanggan.id}).',
-        name: 'PelangganAktifOperasi',
-      );
-    } catch (e) {
-      developer.log(
-        '🔥 [FIREBASE] Gagal mengunggah pelanggan aktif (ID: ${pelanggan.id}): $e',
-        name: 'PelangganAktifOperasi',
-        error: e,
-      );
-      rethrow;
-    }
-  }
-
-  // untuk mengunduh data dari firebase
-  Future<int> unduhPelangganAktif(PelangganAktifModel pelangganAktif) async {
-    final db = await dbHelper.database;
-
-    final data = pelangganAktif.toMap();
-
-    final result = await db.insert(
-      'pelanggan_aktif',
-      data,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-
-    await _jadwalkanNotifikasi(pelangganAktif);
-
-    developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diunduh dan disimpan.',
-    );
-    return result;
-  }
 
   // untuk membuat pelanggan aktif baru
   Future<int> createPelangganAktif(PelangganAktifModel pelangganAktif) async {
@@ -86,13 +42,17 @@ class PelangganAktifOperasi {
   // untuk mengambil semua data pelanggan aktif yang belum diarsipkan
   Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
     final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('pelanggan_aktif', where: 'isDeleted = ?', whereArgs: [0]);
+    final List<Map<String, dynamic>> maps = await db.query(
+      'pelanggan_aktif',
+      where: 'isDeleted = ?',
+      whereArgs: [0],
+    );
     return List.generate(
       maps.length,
       (i) => PelangganAktifModel.fromMap(maps[i]),
     );
   }
-    
+
   // untuk mengambil satu data pelanggan aktif
   Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
     final db = await dbHelper.database;
@@ -217,11 +177,8 @@ class PelangganAktifOperasi {
       '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
       name: 'PelangganAktifOperasi',
     );
-
-    // unggah perubahan ke firebase
-    await unggahKeFirebase(pelangganDearsipkan);
   }
-  
+
   // ditambah: untuk menghapus semua pelanggan aktif secara permanen
   Future<void> hapusSemuaPelangganAktif() async {
     final db = await dbHelper.database;
@@ -269,7 +226,7 @@ class PelangganAktifOperasi {
         );
         await riwayatOperasi.tambahRiwayatLangganan(riwayat);
       }
-      
+
       // Lakukan soft delete dengan memanggil fungsi arsipkan
       await arsipkanPelangganAktif(pelanggan.id);
     }
@@ -280,5 +237,30 @@ class PelangganAktifOperasi {
     );
 
     return pelangganKadaluarsa.length;
+  }
+
+  // ditambah: untuk mengarsipkan semua pelanggan aktif
+  Future<int> arsipkanSemuaPelangganAktif() async {
+    final semuaPelanggan = await ambilSemuaPelangganAktif();
+
+    if (semuaPelanggan.isEmpty) {
+      developer.log(
+        'ℹ️ [LOKAL] Tidak ada pelanggan aktif untuk diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
+      return 0; // Tidak ada yang diarsipkan
+    }
+
+    for (final pelanggan in semuaPelanggan) {
+      // Lakukan soft delete dengan memanggil fungsi arsipkan yang sudah ada
+      await arsipkanPelangganAktif(pelanggan.id);
+    }
+
+    developer.log(
+      '🗂️ [LOKAL] ${semuaPelanggan.length} pelanggan aktif telah diarsipkan.',
+      name: 'PelangganAktifOperasi',
+    );
+
+    return semuaPelanggan.length;
   }
 }

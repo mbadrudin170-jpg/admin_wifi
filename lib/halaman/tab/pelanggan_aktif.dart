@@ -81,8 +81,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
       final pelangganList = await _pelangganOperasi.getPelanggan();
       _mapNamaPelanggan = {for (var p in pelangganList) p.id: p.nama};
 
-      final pelangganAktifList =
-          await _pelangganAktifOperasi.ambilSemuaPelangganAktif();
+      final pelangganAktifList = await _pelangganAktifOperasi
+          .ambilSemuaPelangganAktif();
       _semuaPelanggan = pelangganAktifList;
 
       _applyFilterAndSort();
@@ -358,7 +358,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
         );
 
         if (konfirmasi == true) {
-          await _pelangganAktifOperasi.hapusSemuaPelangganAktif();
+          await _pelangganAktifOperasi.arsipkanSemuaPelangganAktif();
           _loadData(forceRefresh: true);
         }
         break;
@@ -470,84 +470,81 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
                       child: Text('Tidak ada pelanggan aktif ditemukan.'),
                     )
                   : _hasilFilter.isEmpty && _searchController.text.isNotEmpty
-                      ? const Center(
-                          child: Text('Pelanggan tidak ditemukan.'),
-                        )
-                      : ListView.builder(
-                          itemCount: _hasilFilter.length,
-                          itemBuilder: (context, index) {
-                            final pelanggan = _hasilFilter[index];
-                            final statusPembayaranText =
-                                pelanggan.status.displayName;
-                            final statusPembayaranColor =
-                                pelanggan.status == StatusPembayaran.lunas
-                                    ? Colors.green
-                                    : Colors.red;
+                  ? const Center(child: Text('Pelanggan tidak ditemukan.'))
+                  : ListView.builder(
+                      itemCount: _hasilFilter.length,
+                      itemBuilder: (context, index) {
+                        final pelanggan = _hasilFilter[index];
+                        final statusPembayaranText =
+                            pelanggan.status.displayName;
+                        final statusPembayaranColor =
+                            pelanggan.status == StatusPembayaran.lunas
+                            ? Colors.green
+                            : Colors.red;
 
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 7,
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onLongPress: () {
+                              _arsipkanPelanggan(pelanggan);
+                            },
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetailPelangganAktif(
+                                    pelanggan: pelanggan,
+                                  ),
+                                ),
+                              );
+                              _loadData(forceRefresh: true);
+                            },
+                            child: ListTile(
+                              title: NamaPelangganWidget(
+                                idPelanggan: pelanggan.idPelanggan,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                onLongPress: () {
-                                  _arsipkanPelanggan(pelanggan);
-                                },
-                                onTap: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          DetailPelangganAktif(
-                                        pelanggan: pelanggan,
-                                      ),
-                                    ),
-                                  );
-                                  _loadData(forceRefresh: true);
-                                },
-                                child: ListTile(
-                                  title: NamaPelangganWidget(
-                                    idPelanggan: pelanggan.idPelanggan,
-                                    style: const TextStyle(
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  NamaPaketWidget(idPaket: pelanggan.idPaket),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Pembayaran: $statusPembayaranText',
+                                    style: TextStyle(
+                                      color: statusPembayaranColor,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      NamaPaketWidget(idPaket: pelanggan.idPaket),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Pembayaran: $statusPembayaranText',
-                                        style: TextStyle(
-                                          color: statusPembayaranColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelanggan.tanggalBerakhir)}',
-                                        style: TextStyle(
-                                          color: PerhitunganUtil
-                                              .getWarnaSisaMasaAktif(
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelanggan.tanggalBerakhir)}',
+                                    style: TextStyle(
+                                      color:
+                                          PerhitunganUtil.getWarnaSisaMasaAktif(
                                             pelanggan.tanggalBerakhir,
                                           ),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Berakhir: ${FormatTanggal.formatTanggalBasic(pelanggan.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelanggan.tanggalBerakhir)}',
-                                      ),
-                                    ],
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                  trailing: const Icon(Icons.chevron_right),
-                                ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Berakhir: ${FormatTanggal.formatTanggalBasic(pelanggan.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelanggan.tanggalBerakhir)}',
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                              trailing: const Icon(Icons.chevron_right),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahPelangganAktif,
