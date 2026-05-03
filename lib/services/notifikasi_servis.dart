@@ -1,3 +1,5 @@
+// path: lib/services/notifikasi_servis.dart
+// diubah: Memperbaiki pemanggilan fungsi batalNotifikasi.
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -38,7 +40,6 @@ class NotifikasiServis {
         macOS: iosSettings,
       );
 
-      // 🔥 1. INIT DULU
       await _flutterLocalNotificationsPlugin.initialize(
         settings: initSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
@@ -46,7 +47,6 @@ class NotifikasiServis {
             onDidReceiveNotificationResponse,
       );
 
-      // 🔥 2. BARU BUAT CHANNEL
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
         channelId,
         channelName,
@@ -66,7 +66,6 @@ class NotifikasiServis {
 
       await androidPlugin?.createNotificationChannel(channel);
 
-      // 🔥 3. TIMEZONE
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
 
@@ -181,7 +180,6 @@ class NotifikasiServis {
         iOS: iosDetails,
       );
 
-      // 🔥 PERBAIKAN: Hapus parameter yang tidak valid
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         id: id,
         title: title,
@@ -202,8 +200,6 @@ class NotifikasiServis {
     await _flutterLocalNotificationsPlugin.cancel(id: id);
   }
 
-  /// Memperbarui jadwal notifikasi yang sudah ada.
-  /// Jika notifikasi dengan ID yang sama sudah dijadwalkan, jadwalnya akan ditimpa dengan yang baru.
   Future<void> perbaruiJadwalNotifikasi({
     required int id,
     required String title,
@@ -211,7 +207,6 @@ class NotifikasiServis {
     required DateTime jadwal,
   }) async {
     try {
-      // Memanggil fungsi jadwalNotifikasi karena ia akan menimpa jadwal lama jika ID sama.
       await jadwalNotifikasi(id: id, title: title, body: body, jadwal: jadwal);
       debugPrint('✅ JADWAL DIPERBARUI: $id pada $jadwal');
     } catch (e) {

@@ -1,5 +1,9 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
-// diubah: Menghapus logika SyncStatus dan menyederhanakan operasi CRUD.
+// diubah: Memperbaiki nama fungsi notifikasi dan menghapus variabel tak terpakai.
+
+import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
+import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
@@ -15,12 +19,11 @@ class PelangganAktifOperasi {
   final NotifikasiServis _notifikasiServis = NotifikasiServis();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
-  // diubah: Menghapus pemeriksaan status untuk unggah
+  // untuk mengunggah data ke firebase
   Future<void> unggahKeFirebase(PelangganAktifModel pelanggan) async {
     final firestore = FirebaseFirestore.instance;
     final docRef = firestore.collection('pelanggan_aktif').doc(pelanggan.id);
 
-    // diubah: Menggunakan toMap() dari model, yang seharusnya tidak lagi mengandung sync_status
     final dataToUpload = pelanggan.toMap();
 
     try {
@@ -39,9 +42,7 @@ class PelangganAktifOperasi {
     }
   }
 
-  // dihapus: Fungsi tandaiSudahSinkron tidak diperlukan lagi.
-
-  // diubah: Menyederhanakan proses unduh tanpa SyncStatus
+  // untuk mengunduh data dari firebase
   Future<int> unduhPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
 
@@ -54,8 +55,6 @@ class PelangganAktifOperasi {
     );
 
     await _jadwalkanNotifikasi(pelangganAktif);
-    // Note: Consider if sending WhatsApp message is appropriate for a download action.
-    // await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
 
     developer.log(
       '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diunduh dan disimpan.',
@@ -63,11 +62,10 @@ class PelangganAktifOperasi {
     return result;
   }
 
-  // diubah: Menyederhanakan pembuatan tanpa SyncStatus
+  // untuk membuat pelanggan aktif baru
   Future<int> createPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
 
-    // diubah: Langsung gunakan data dari model tanpa mengubah status
     final data = pelangganAktif.toMap();
 
     final result = await db.insert(
@@ -85,17 +83,17 @@ class PelangganAktifOperasi {
     return result;
   }
 
-  // diubah: Mengambil semua pelanggan aktif tanpa filter status
+  // untuk mengambil semua data pelanggan aktif yang belum diarsipkan
   Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
     final db = await dbHelper.database;
-    // dihapus: Where clause untuk sync_status tidak lagi diperlukan
-    final List<Map<String, dynamic>> maps = await db.query('pelanggan_aktif');
+    final List<Map<String, dynamic>> maps = await db.query('pelanggan_aktif', where: 'isDeleted = ?', whereArgs: [0]);
     return List.generate(
       maps.length,
       (i) => PelangganAktifModel.fromMap(maps[i]),
     );
   }
-
+    
+  // untuk mengambil satu data pelanggan aktif
   Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -109,7 +107,7 @@ class PelangganAktifOperasi {
     return null;
   }
 
-  // diubah: Menyederhanakan pembaruan tanpa SyncStatus
+  // untuk memperbarui data pelanggan aktif
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
 
@@ -129,20 +127,7 @@ class PelangganAktifOperasi {
     await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
   }
 
-  // diubah: Menggunakan hard delete (hapus permanen)
-  Future<void> hapusPelangganAktif(String id) async {
-    final db = await dbHelper.database;
-    // diubah: dari update (soft delete) menjadi delete (hard delete)
-    await db.delete('pelanggan_aktif', where: 'id = ?', whereArgs: [id]);
-
-    developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil dihapus permanen.',
-    );
-    // Batalkan notifikasi terkait
-    await _notifikasiServis.batalNotifikasi(id.hashCode);
-    await _notifikasiServis.batalNotifikasi((id.hashCode + 1));
-  }
-
+  // untuk menjadwalkan notifikasi
   Future<void> _jadwalkanNotifikasi(PelangganAktifModel pelangganAktif) async {
     final pelanggan = await _pelangganOperasi.getPelangganById(
       pelangganAktif.idPelanggan,
@@ -181,20 +166,7 @@ class PelangganAktifOperasi {
     }
   }
 
-  Future<void> hapusSemuaPelangganAktif() async {
-    final db = await dbHelper.database;
-    await db.delete('pelanggan_aktif');
-  }
-
-  Future<int> hapusPelangganKadaluarsa() async {
-    final db = await dbHelper.database;
-    return await db.delete(
-      'pelanggan_aktif',
-      where: 'tanggalBerakhir < ?',
-      whereArgs: [DateTime.now().toIso8601String()],
-    );
-  }
-
+  // untuk menyisipkan atau memperbarui data secara batch
   Future<void> sisipkanAtauPerbaruiBatch(
     List<PelangganAktifModel> items,
   ) async {
@@ -208,5 +180,105 @@ class PelangganAktifOperasi {
       );
     }
     await batch.commit(noResult: true);
+  }
+
+  // ditambah: untuk mengarsipkan pelanggan aktif (soft delete)
+  Future<void> arsipkanPelangganAktif(String id) async {
+    final db = await dbHelper.database;
+
+    final pelangganAktif = await ambilSatuPelangganAktif(id);
+    if (pelangganAktif == null) {
+      developer.log(
+        '⚠️ [LOKAL] Pelanggan aktif dengan ID: $id tidak ditemukan untuk diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
+      return;
+    }
+
+    // ubah status menjadi diarsipkan
+    final pelangganDearsipkan = pelangganAktif.copyWith(
+      isDeleted: true,
+      diarsipkan: DateTime.now(),
+    );
+
+    // perbarui di database lokal
+    await db.update(
+      'pelanggan_aktif',
+      pelangganDearsipkan.toMap(),
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    // batalkan notifikasi
+    await _notifikasiServis.batalNotifikasi(id.hashCode);
+    await _notifikasiServis.batalNotifikasi((id.hashCode + 1));
+
+    developer.log(
+      '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
+      name: 'PelangganAktifOperasi',
+    );
+
+    // unggah perubahan ke firebase
+    await unggahKeFirebase(pelangganDearsipkan);
+  }
+  
+  // ditambah: untuk menghapus semua pelanggan aktif secara permanen
+  Future<void> hapusSemuaPelangganAktif() async {
+    final db = await dbHelper.database;
+    await db.delete('pelanggan_aktif');
+    developer.log(
+      '🗑️ [LOKAL] Semua pelanggan aktif telah dihapus permanen.',
+      name: 'PelangganAktifOperasi',
+    );
+  }
+
+  // ditambah: untuk mengarsipkan pelanggan yang sudah kadaluarsa
+  Future<int> arsipkanPelangganKadaluarsa() async {
+    final riwayatOperasi = RiwayatLanggananOperasi();
+    final paketOperasi = PaketOperasi();
+
+    // 1. Ambil semua pelanggan aktif yang belum diarsipkan
+    final semuaPelanggan = await ambilSemuaPelangganAktif();
+    final sekarang = DateTime.now();
+    final pelangganKadaluarsa = semuaPelanggan
+        .where((p) => p.tanggalBerakhir.isBefore(sekarang) && !p.isDeleted)
+        .toList();
+
+    if (pelangganKadaluarsa.isEmpty) {
+      return 0; // Tidak ada yang diarsipkan
+    }
+
+    // 2. Proses setiap pelanggan kadaluarsa
+    for (final pelanggan in pelangganKadaluarsa) {
+      // Buat entri untuk riwayat
+      final paket = await paketOperasi.getPaketById(pelanggan.idPaket);
+      if (paket != null) {
+        final riwayat = RiwayatLanggananModel(
+          id: pelanggan.id,
+          idPelanggan: pelanggan.idPelanggan,
+          idPaket: pelanggan.idPaket,
+          namaPaket: paket.nama,
+          hargaPaket: paket.harga,
+          durasiPaket: paket.durasi,
+          tipeDurasiPaket: paket.tipe.name,
+          tanggalMulai: pelanggan.tanggalMulai,
+          tanggalBerakhir: pelanggan.tanggalBerakhir,
+          status: pelanggan.status,
+          diarsipkan: DateTime.now(),
+          diperbarui: DateTime.now(),
+        );
+        await riwayatOperasi.tambahRiwayatLangganan(riwayat);
+      }
+      
+      // Lakukan soft delete dengan memanggil fungsi arsipkan
+      await arsipkanPelangganAktif(pelanggan.id);
+    }
+
+    developer.log(
+      '🗂️ [LOKAL] ${pelangganKadaluarsa.length} pelanggan kadaluarsa telah diarsipkan.',
+      name: 'PelangganAktifOperasi',
+    );
+
+    return pelangganKadaluarsa.length;
   }
 }

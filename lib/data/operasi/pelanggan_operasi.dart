@@ -59,10 +59,6 @@ class PelangganOperasi {
     );
   }
 
-  Future<void> deletePelanggan(String id) async {
-    final db = await dbHelper.database;
-    await db.delete('pelanggan', where: 'id = ?', whereArgs: [id]);
-  }
 
   // diubah: Menggunakan PelangganModel
   Future<List<PelangganModel>> getPerubahan(DateTime since) async {

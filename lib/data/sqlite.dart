@@ -17,23 +17,25 @@ class DatabaseHelper {
     return _database!;
   }
 
+  // untuk menginisialisasi database dengan path dan versi
   Future<Database> _initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      // diubah: Versi dinaikkan untuk sinkronisasi skema dengan semua model.
-      version: 20, // dinaikkan dari 19
+      // diubah: Versi dinaikkan untuk menghapus kolom status_sinkronisasi dari tabel pelanggan_aktif.
+      version: 21, // dinaikkan dari 20
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
   }
 
+  // untuk membuat tabel saat database pertama kali dibuat
   Future<void> _onCreate(Database db, int version) async {
     await _createTables(db);
   }
 
-  // diubah: Logika migrasi diperbarui untuk menghapus sync_status.
+  // diubah: Logika migrasi diperbarui untuk menghapus status_sinkronisasi.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // ... (migrasi sebelumnya tetap ada)
 
@@ -45,9 +47,15 @@ class DatabaseHelper {
       await _createTransaksiTableV20(db);
 
       // Salin data dari tabel lama ke tabel baru
-      await db.execute('INSERT INTO dompet_v20 SELECT id, namaDompet, saldo, diperbarui, isDeleted, diarsipkan FROM dompet');
-      await db.execute('INSERT INTO pelanggan_aktif_v20 SELECT id, id_pelanggan, id_paket, tanggalMulai, tanggalBerakhir, status, diperbarui, status_sinkronisasi, isDeleted, diarsipkan FROM pelanggan_aktif');
-      await db.execute('INSERT INTO transaksi_v20 SELECT id, keterangan, jumlah, tanggal, tipe, id_dompet, nama_dompet, id_kategori, nama_kategori, id_sub_kategori, nama_sub_kategori, id_pelanggan, nama_pelanggan, id_paket, nama_paket, diperbarui, diarsipkan, isDeleted FROM transaksi');
+      await db.execute(
+        'INSERT INTO dompet_v20 SELECT id, namaDompet, saldo, diperbarui, isDeleted, diarsipkan FROM dompet',
+      );
+      await db.execute(
+        'INSERT INTO pelanggan_aktif_v20 SELECT id, id_pelanggan, id_paket, tanggalMulai, tanggalBerakhir, status, diperbarui, status_sinkronisasi, isDeleted, diarsipkan FROM pelanggan_aktif',
+      );
+      await db.execute(
+        'INSERT INTO transaksi_v20 SELECT id, keterangan, jumlah, tanggal, tipe, id_dompet, nama_dompet, id_kategori, nama_kategori, id_sub_kategori, nama_sub_kategori, id_pelanggan, nama_pelanggan, id_paket, nama_paket, diperbarui, diarsipkan, isDeleted FROM transaksi',
+      );
 
       // Hapus tabel lama
       await db.execute('DROP TABLE dompet');
@@ -56,11 +64,33 @@ class DatabaseHelper {
 
       // Ganti nama tabel baru menjadi nama tabel asli
       await db.execute('ALTER TABLE dompet_v20 RENAME TO dompet');
-      await db.execute('ALTER TABLE pelanggan_aktif_v20 RENAME TO pelanggan_aktif');
+      await db.execute(
+        'ALTER TABLE pelanggan_aktif_v20 RENAME TO pelanggan_aktif',
+      );
       await db.execute('ALTER TABLE transaksi_v20 RENAME TO transaksi');
+    }
+
+    // ditambah: Migrasi untuk v21, menghapus kolom status_sinkronisasi dari tabel pelanggan_aktif.
+    if (oldVersion < 21) {
+      // Buat tabel temporer tanpa kolom status_sinkronisasi
+      await _createPelangganAktifTableV21(db);
+
+      // Salin data dari tabel lama ke tabel baru tanpa kolom status_sinkronisasi
+      await db.execute(
+        'INSERT INTO pelanggan_aktif_v21 SELECT id, id_pelanggan, id_paket, tanggalMulai, tanggalBerakhir, status, diperbarui, isDeleted, diarsipkan FROM pelanggan_aktif',
+      );
+
+      // Hapus tabel lama
+      await db.execute('DROP TABLE pelanggan_aktif');
+
+      // Ganti nama tabel baru menjadi nama tabel asli
+      await db.execute(
+        'ALTER TABLE pelanggan_aktif_v21 RENAME TO pelanggan_aktif',
+      );
     }
   }
 
+  // untuk membuat semua tabel
   Future<void> _createTables(Database db) async {
     await _createKategoriTable(db);
     await _createSubKategoriTable(db);
@@ -74,9 +104,8 @@ class DatabaseHelper {
     await _createPesananTable(db);
   }
 
-  // ... (tabel lain tidak berubah)
-
-  // diubah: Skema tabel disesuaikan dengan model terbaru (tanpa sync_status).
+  // diubah: Kolom status_sinkronisasi dihapus sesuai dengan model terbaru.
+  // untuk membuat tabel pelanggan_aktif
   Future<void> _createPelangganAktifTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS pelanggan_aktif(
@@ -87,7 +116,6 @@ class DatabaseHelper {
         tanggalBerakhir TEXT NOT NULL,
         status TEXT NOT NULL,
         diperbarui TEXT,
-        status_sinkronisasi TEXT NOT NULL DEFAULT 'SINKRON',
         isDeleted INTEGER NOT NULL DEFAULT 0,
         diarsipkan TEXT,
         FOREIGN KEY (id_pelanggan) REFERENCES pelanggan (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -95,8 +123,9 @@ class DatabaseHelper {
       )
     ''');
   }
-  
+
   // diubah: Skema tabel disesuaikan dengan model terbaru (tanpa sync_status).
+  // untuk membuat tabel transaksi
   Future<void> _createTransaksiTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS transaksi(
@@ -123,6 +152,7 @@ class DatabaseHelper {
   }
 
   // diubah: Skema tabel disesuaikan dengan model terbaru (tanpa sync_status).
+  // untuk membuat tabel dompet
   Future<void> _createDompetTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS dompet(
@@ -137,6 +167,7 @@ class DatabaseHelper {
   }
 
   // Fungsi helper untuk migrasi v20
+  // untuk membuat tabel temporer dompet_v20
   Future<void> _createDompetTableV20(Database db) async {
     await db.execute('''
       CREATE TABLE dompet_v20(
@@ -150,8 +181,9 @@ class DatabaseHelper {
     ''');
   }
 
+  // untuk membuat tabel temporer pelanggan_aktif_v20
   Future<void> _createPelangganAktifTableV20(Database db) async {
-     await db.execute('''
+    await db.execute('''
       CREATE TABLE pelanggan_aktif_v20(
         id TEXT PRIMARY KEY,
         id_pelanggan TEXT NOT NULL,
@@ -169,6 +201,7 @@ class DatabaseHelper {
     ''');
   }
 
+  // untuk membuat tabel temporer transaksi_v20
   Future<void> _createTransaksiTableV20(Database db) async {
     await db.execute('''
       CREATE TABLE transaksi_v20(
@@ -193,8 +226,28 @@ class DatabaseHelper {
       )
     ''');
   }
-  
-  // ... (sisa tabel tidak berubah)
+
+  // ditambah: Fungsi helper untuk migrasi v21
+  // untuk membuat tabel temporer pelanggan_aktif_v21 tanpa kolom status_sinkronisasi
+  Future<void> _createPelangganAktifTableV21(Database db) async {
+    await db.execute('''
+      CREATE TABLE pelanggan_aktif_v21(
+        id TEXT PRIMARY KEY,
+        id_pelanggan TEXT NOT NULL,
+        id_paket TEXT NOT NULL,
+        tanggalMulai TEXT NOT NULL,
+        tanggalBerakhir TEXT NOT NULL,
+        status TEXT NOT NULL,
+        diperbarui TEXT,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        diarsipkan TEXT,
+        FOREIGN KEY (id_pelanggan) REFERENCES pelanggan (id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (id_paket) REFERENCES paket (id) ON DELETE CASCADE ON UPDATE CASCADE
+      )
+    ''');
+  }
+
+  // untuk membuat tabel kategori
   Future<void> _createKategoriTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS kategori(
@@ -208,6 +261,7 @@ class DatabaseHelper {
     ''');
   }
 
+  // untuk membuat tabel sub_kategori
   Future<void> _createSubKategoriTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS sub_kategori(
@@ -222,6 +276,7 @@ class DatabaseHelper {
     ''');
   }
 
+  // untuk membuat tabel paket
   Future<void> _createPaketTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS paket(
@@ -237,6 +292,7 @@ class DatabaseHelper {
     ''');
   }
 
+  // untuk membuat tabel pelanggan
   Future<void> _createPelangganTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS pelanggan(
@@ -253,6 +309,7 @@ class DatabaseHelper {
     ''');
   }
 
+  // untuk membuat tabel kritik_saran
   Future<void> _createKritikSaranTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS kritik_saran(
@@ -265,7 +322,8 @@ class DatabaseHelper {
       )
     ''');
   }
-  
+
+  // untuk membuat tabel riwayat_langganan
   Future<void> _createRiwayatLanggananTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS riwayat_langganan(
@@ -286,7 +344,8 @@ class DatabaseHelper {
         )
     ''');
   }
-  
+
+  // untuk membuat tabel pesanan
   Future<void> _createPesananTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS pesanan(

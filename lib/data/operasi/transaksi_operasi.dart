@@ -1,6 +1,5 @@
 // path: lib/data/operasi/transaksi_operasi.dart
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/enum/sync_status.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -14,10 +13,7 @@ class TransaksiOperasi {
   /// (Create) Menambahkan satu transaksi baru ke dalam database.
   Future<int> tambahTransaksi(TransaksiModel transaksi) async {
     final db = await dbHelper.database;
-    final dataBaru = transaksi.salinDengan(
-      syncStatus: SyncStatus.write,
-      diperbarui: DateTime.now(),
-    );
+    final dataBaru = transaksi.salinDengan(diperbarui: DateTime.now());
     return await db.insert(
       'transaksi',
       dataBaru.toMap(),
@@ -40,10 +36,7 @@ class TransaksiOperasi {
   /// (Update) Memperbarui data satu transaksi yang ada di database.
   Future<void> updateTransaksi(TransaksiModel transaksi) async {
     final db = await dbHelper.database;
-    final dataUpdate = transaksi.salinDengan(
-      syncStatus: SyncStatus.update,
-      diperbarui: DateTime.now(),
-    );
+    final dataUpdate = transaksi.salinDengan(diperbarui: DateTime.now());
     await db.update(
       'transaksi',
       dataUpdate.toMap(),
@@ -52,18 +45,10 @@ class TransaksiOperasi {
     );
   }
 
-  /// (Delete) Menandai satu transaksi untuk dihapus saat sinkronisasi berikutnya.
+  /// (Delete) Menghapus satu transaksi dari database.
   Future<void> deleteTransaksi(String id) async {
     final db = await dbHelper.database;
-    // diubah: Menggunakan .name untuk mencocokkan tipe TEXT
-    await db.rawUpdate(
-      '''
-      UPDATE transaksi 
-      SET sync_status = ?, diperbarui = ? 
-      WHERE id = ?
-      ''',
-      [SyncStatus.deleted.name, DateTime.now().toIso8601String(), id],
-    );
+    await db.delete('transaksi', where: 'id = ?', whereArgs: [id]);
   }
 
   // ===================================================================
@@ -73,10 +58,8 @@ class TransaksiOperasi {
   /// Menghitung total dari semua transaksi bertipe 'Pemasukan'.
   Future<double> getTotalPemasukan() async {
     final db = await dbHelper.database;
-    // diubah: Menggunakan .name untuk query
     final result = await db.rawQuery(
-      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND sync_status != ?",
-      [SyncStatus.deleted.name],
+      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan'",
     );
     if (result.isNotEmpty && result.first['jumlah'] != null) {
       return (result.first['jumlah'] as num).toDouble();
@@ -87,10 +70,8 @@ class TransaksiOperasi {
   /// Menghitung total dari semua transaksi bertipe 'Pengeluaran'.
   Future<double> getTotalPengeluaran() async {
     final db = await dbHelper.database;
-    // diubah: Menggunakan .name untuk query
     final result = await db.rawQuery(
-      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND sync_status != ?",
-      [SyncStatus.deleted.name],
+      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran'",
     );
     if (result.isNotEmpty && result.first['jumlah'] != null) {
       return (result.first['jumlah'] as num).toDouble();
@@ -106,30 +87,17 @@ class TransaksiOperasi {
   }
 
   // ===================================================================
-  // -- FUNGSI SINKRONISASI (Untuk Firebase, dll) --
+  // -- FUNGSI BATCH INSERT (Untuk sinkronisasi data) --
   // ===================================================================
-
-  /// Mengambil semua record yang berubah (dibuat/diperbarui/dihapus).
-  Future<List<TransaksiModel>> getPerubahan() async {
-    final db = await dbHelper.database;
-    // diubah: Menggunakan .name untuk query
-    final List<Map<String, dynamic>> maps = await db.query(
-      'transaksi',
-      where: 'sync_status != ?',
-      whereArgs: [SyncStatus.synced.name],
-    );
-    return List.generate(maps.length, (i) => TransaksiModel.fromMap(maps[i]));
-  }
 
   /// Menyisipkan atau memperbarui beberapa item sekaligus secara efisien (batch).
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();
     for (var item in items) {
-      final dataSynced = item.salinDengan(syncStatus: SyncStatus.synced);
       batch.insert(
         'transaksi',
-        dataSynced.toMap(),
+        item.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

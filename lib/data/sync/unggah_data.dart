@@ -1,5 +1,5 @@
 // path: lib/data/sync/unggah_data.dart
-// diubah: file dirombak untuk menjadi lebih efisien dengan pengecekan timestamp
+// diubah: file dirombak untuk menjadi lebih efisien dengan pengecekan timestamp dan hanya melakukan unggah data.
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -11,20 +11,17 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
-import 'package:admin_wifi/model/enum/sync_status.dart';
-import 'package:admin_wifi/utils/sync_manager.dart'; // ditambah: untuk mengakses timestamp
+import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // untuk mengelola proses pengunggahan data dari database lokal ke Firebase.
 class UnggahDataService {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SyncManager _syncManager =
-      SyncManager(); // ditambah: instance sync manager
+  final SyncManager _syncManager = SyncManager();
 
   // untuk mengunggah semua data yang belum sinkron ke Firebase secara paralel.
   Future<void> unggahSemuaData() async {
-    // ditambah: ambil waktu sinkronisasi terakhir dari SyncManager
     final waktuSinkronisasiTerakhir = await _syncManager.getLastSyncTimestamp();
     developer.log(
       'Memulai unggah dengan waktu sinkronisasi terakhir: $waktuSinkronisasiTerakhir',
@@ -101,7 +98,7 @@ class UnggahDataService {
     developer.log('Semua proses unggah selesai.', name: 'UnggahDataService');
   }
 
-  // diubah: tambah parameter waktuSinkronisasiTerakhir
+  // diubah: logika disederhanakan untuk HANYA mengunggah SEMUA field data berdasarkan timestamp.
   // fungsi generik untuk mengunggah data dari satu tabel.
   Future<void> _unggahDataGenerik<T>(
     String namaTabel,
@@ -112,91 +109,42 @@ class UnggahDataService {
   ) async {
     try {
       final db = await _dbHelper.database;
-      final List<Map<String, dynamic>> maps = await db.query(
+
+      // 1. Ambil semua data yang diperbarui (dibuat atau diubah) setelah sinkronisasi terakhir.
+      final List<Map<String, dynamic>> dataUntukDiunggah = await db.query(
         namaTabel,
-        where: 'sync_status != ?',
-        whereArgs: [SyncStatus.synced.name],
+        where: 'diperbarui > ?',
+        whereArgs: [waktuSinkronisasiTerakhir.toIso8601String()],
       );
 
-      if (maps.isEmpty) {
+      if (dataUntukDiunggah.isEmpty) {
+        // Tidak ada data baru atau yang diperbarui untuk diunggah.
         return;
       }
 
-      final List<T> daftarData = List.generate(
-        maps.length,
-        (i) => fromMap(maps[i]),
-      );
       final batchFirestore = _firestore.batch();
-      final batchLokal = db.batch();
       int itemsToCommit = 0;
 
-      for (final data in daftarData) {
-        final model = data as dynamic;
+      // 2. Proses semua data sebagai operasi 'set' (upsert) dan unggah semua field.
+      for (final map in dataUntukDiunggah) {
+        final T data = fromMap(map);
+        final model = data as dynamic; // Untuk akses 'id'
+        final dataUnggah = toMap(
+          data,
+        ); // Konversi ke map, SEMUA field akan masuk.
+
         final docRef = _firestore.collection(namaKoleksi).doc(model.id);
 
-        switch (model.syncStatus) {
-          case SyncStatus.write:
-            final dataUnggah = toMap(data);
-            dataUnggah.remove('sync_status');
-            batchFirestore.set(docRef, dataUnggah);
-            batchLokal.update(
-              namaTabel,
-              {'sync_status': SyncStatus.synced.name},
-              where: 'id = ?',
-              whereArgs: [model.id],
-            );
-            itemsToCommit++;
-            break;
-
-          case SyncStatus.update:
-            bool harusDiunggah = false;
-            try {
-              final waktuDiperbarui = model.diperbarui as DateTime?;
-              if (waktuDiperbarui != null &&
-                  waktuDiperbarui.isAfter(waktuSinkronisasiTerakhir)) {
-                harusDiunggah = true;
-              }
-            } catch (e) {
-              harusDiunggah = true;
-            }
-
-            if (harusDiunggah) {
-              final dataUnggah = toMap(data);
-              dataUnggah.remove('sync_status');
-              batchFirestore.update(docRef, dataUnggah);
-            }
-
-            // diubah: status lokal selalu diubah ke synced untuk efisiensi
-            // agar tidak diperiksa berulang kali pada sinkronisasi berikutnya.
-            batchLokal.update(
-              namaTabel,
-              {'sync_status': SyncStatus.synced.name},
-              where: 'id = ?',
-              whereArgs: [model.id],
-            );
-            itemsToCommit++;
-            break;
-
-          case SyncStatus.deleted:
-            batchFirestore.delete(docRef);
-            batchLokal.delete(
-              namaTabel,
-              where: 'id = ?',
-              whereArgs: [model.id],
-            );
-            itemsToCommit++;
-            break;
-
-          case SyncStatus.synced:
-            break;
-        }
+        // Gunakan set dengan merge:true untuk create/update (upsert).
+        // Ini akan membuat dokumen jika belum ada, atau memperbaruinya jika sudah ada.
+        batchFirestore.set(docRef, dataUnggah, SetOptions(merge: true));
+        itemsToCommit++;
       }
 
       if (itemsToCommit > 0) {
         await batchFirestore.commit();
-        await batchLokal.commit(noResult: true);
         developer.log(
-          'Batch commit berhasil untuk tabel: $namaTabel',
+          'Batch unggah berhasil untuk tabel: $namaTabel ($itemsToCommit item)',
           name: 'UnggahDataService',
         );
       }

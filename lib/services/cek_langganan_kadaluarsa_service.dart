@@ -1,89 +1,32 @@
 // path: lib/services/cek_langganan_kadaluarsa_service.dart
+// diubah: Menyederhanakan logika dengan memanggil fungsi arsipkan yang sudah ada.
 import 'dart:developer';
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
-import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
-import 'package:admin_wifi/model/enum/sync_status.dart';
-import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
-import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 
 /// Service ini bertanggung jawab untuk memeriksa dan mengarsipkan
-/// langganan pelanggan aktif yang telah kedaluwarsa.
+/// langganan pelanggan aktif yang telah kedaluwarsa secara berkala.
 class CekLanggananKadaluarsaService {
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
-  final RiwayatLanggananOperasi _riwayatLanggananOperasi =
-      RiwayatLanggananOperasi();
-  final PaketOperasi _paketOperasi = PaketOperasi();
 
   /// Memproses semua pelanggan aktif, menemukan yang kedaluwarsa,
-  /// memindahkannya ke riwayat, dan menandainya sebagai 'deleted'.
+  /// dan memanggil operasi untuk mengarsipkan mereka.
   Future<void> prosesLanggananKadaluarsa() async {
     try {
-      log('Memulai pengecekan langganan kedaluwarsa...', name: 'CekLangganan');
+      log('Memulai pengecekan dan pengarsipan langganan kedaluwarsa...',
+          name: 'CekLangganan');
 
-      final List<PelangganAktifModel> pelangganAktif = await _pelangganAktifOperasi
-          .ambilSemuaPelangganAktif();
+      // Memanggil satu fungsi yang sudah menangani seluruh logika
+      final jumlahDiarsipkan = await _pelangganAktifOperasi.arsipkanPelangganKadaluarsa();
 
-      final DateTime now = DateTime.now();
-
-      // diubah: Menghapus pengecekan null yang tidak perlu
-      final List<PelangganAktifModel> pelangganKadaluarsa = pelangganAktif
-          .where(
-            (p) =>
-                p.tanggalBerakhir.isBefore(now) &&
-                p.syncStatus != SyncStatus.deleted,
-          )
-          .toList();
-
-      if (pelangganKadaluarsa.isEmpty) {
+      if (jumlahDiarsipkan > 0) {
         log(
-          'Tidak ada langganan kedaluwarsa yang ditemukan.',
+          'Berhasil mengarsipkan $jumlahDiarsipkan langganan kedaluwarsa.',
           name: 'CekLangganan',
         );
-        return;
-      }
-
-      log(
-        'Ditemukan ${pelangganKadaluarsa.length} langganan kedaluwarsa untuk diproses.',
-        name: 'CekLangganan',
-      );
-
-      for (final pelanggan in pelangganKadaluarsa) {
-        final paket = await _paketOperasi.getPaketById(pelanggan.idPaket);
-        if (paket == null) {
-          log(
-            'Paket dengan ID ${pelanggan.idPaket} tidak ditemukan. Melanjutkan...',
-            name: 'CekLangganan',
-            level: 900,
-          );
-          continue;
-        }
-
-        final riwayat = RiwayatLanggananModel(
-          idPelanggan: pelanggan.idPelanggan,
-          idPaket: pelanggan.idPaket,
-          namaPaket: paket.nama,
-          hargaPaket: paket.harga,
-          durasiPaket: paket.durasi,
-          tipeDurasiPaket: paket.tipe.name,
-          tanggalMulai: pelanggan.tanggalMulai,
-          // diubah: Menghapus non-null assertion yang tidak perlu
-          tanggalBerakhir: pelanggan.tanggalBerakhir,
-          status: pelanggan.status,
-          diarsipkan: now,
-        );
-
-        await _riwayatLanggananOperasi.tambahRiwayatLangganan(riwayat);
+      } else {
         log(
-          'Langganan untuk pelanggan ID ${pelanggan.idPelanggan} telah diarsipkan.',
-          name: 'CekLangganan',
-        );
-
-        // diubah: Menghapus pengecekan null dan non-null assertion yang tidak perlu
-        await _pelangganAktifOperasi.hapusPelangganAktif(pelanggan.id);
-        log(
-          'Status PelangganAktif ID ${pelanggan.id} diubah menjadi "deleted".',
+          'Tidak ada langganan kedaluwarsa yang ditemukan untuk diarsipkan.',
           name: 'CekLangganan',
         );
       }

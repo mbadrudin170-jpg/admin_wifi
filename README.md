@@ -19,7 +19,7 @@ lib/data/services:
 navigasi_servis.dart  sinkronisasi_database.dart
 
 lib/data/sync:
-unggah_data.dart
+unduh_data.dart   unggah_data.dart
 
 lib/halaman:
 detail  form  lainnya  tab
@@ -66,64 +66,63 @@ nama_dari_id.dart  nama_paket.dart  nama_pelanggan.dart  thousands_input_formatt
 admin-flutter-61275337:~/myapp{main}$ 
 
 ---
-## Dokumentasi File Model
+## Dokumentasi File
 
-Berikut adalah dokumentasi untuk setiap file model yang telah diubah:
-
-**File: lib/model/dompet_model.dart**
-*   **Fitur**: Dompet
+### File: lib/data/sync/unduh_data.dart
+*   **Fitur**: Menyediakan layanan terpusat untuk mengunduh (sinkronisasi) semua data dari Firestore ke database SQLite lokal.
 *   **Daftar Fungsi**:
-    *   `DompetModel()`: Konstruktor untuk membuat instance Dompet.
-    *   `copyWith()`: Menyalin instance dengan nilai properti yang diperbarui.
-    *   `fromMap()`: Membuat instance DompetModel dari sebuah map (dari database).
-    *   `toMap()`: Mengonversi instance DompetModel menjadi sebuah map (untuk database).
-*   **Catatan**: Model ini merepresentasikan sebuah dompet untuk menyimpan uang. Properti `syncStatus` telah dihapus karena tidak lagi digunakan.
+    *   `unduhSemuaData()`: Fungsi utama yang memanggil unduhan untuk setiap koleksi data secara paralel.
+    *   `_unduhKoleksi<T>()`: Fungsi generik privat yang menangani logika untuk mengambil data dari satu koleksi Firestore, mengubah setiap dokumen menjadi objek model Dart, dan menyimpannya ke tabel SQLite yang sesuai secara massal (batch).
+*   **Catatan**: File ini adalah bagian dari refaktorisasi arsitektur sinkronisasi. Tujuannya adalah untuk memisahkan logika unduh dari Firebase, membuatnya menjadi satu proses yang terkoordinasi.
 
-**File: lib/model/kategori_model.dart**
-*   **Fitur**: Kategori & Sub-Kategori
+### File: lib/data/sync/unggah_data.dart
+*   **Fitur**: Menyediakan layanan terpusat untuk mengunggah semua data dari database SQLite lokal ke Firestore.
 *   **Daftar Fungsi**:
-    *   `KategoriModel()`: Konstruktor untuk membuat instance Kategori.
-    *   `copyWith()`: Menyalin instance KategoriModel.
-    *   `fromMap()`: Membuat instance KategoriModel dari map.
-    *   `toMap()`: Mengonversi KategoriModel ke map.
-    *   `SubKategoriModel()`: Konstruktor untuk membuat instance SubKategori.
-    *   `copyWith()`: Menyalin instance SubKategoriModel.
-    *   `fromMap()`: Membuat instance SubKategoriModel dari map.
-    *   `toMap()`: Mengonversi SubKategoriModel ke map.
-*   **Catatan**: Mengelola data kategori dan sub-kategori untuk transaksi. Kedua model kini mendukung soft delete (`isDeleted`) dan pengarsipan (`diarsipkan`).
+    *   `unggahSemuaPerubahan()`: Fungsi utama yang memulai proses unggah untuk semua jenis data (dompet, kategori, paket, dll.) secara paralel.
+    *   `_unggahPerubahan<T>()`: Fungsi generik privat yang mengambil semua data dari satu tabel SQLite, mengubahnya menjadi format `Map`, dan mengunggahnya ke koleksi Firestore. Proses ini menggunakan ID dokumen untuk menimpa data yang ada, memastikan konsistensi.
+*   **Catatan**: File ini menangani alur sinkronisasi dari lokal ke remote (Firebase). Ini menyederhanakan logika di seluruh aplikasi, karena komponen UI tidak perlu lagi tahu cara mengunggah data.
 
-**File: lib/model/pelanggan_model.dart**
-*   **Fitur**: Pelanggan
+### File: lib/data/services/sinkronisasi_database.dart
+*   **Fitur**: Mengorkestrasi proses sinkronisasi data antara aplikasi dan Firebase.
 *   **Daftar Fungsi**:
-    *   `PelangganModel()`: Konstruktor untuk membuat instance Pelanggan.
-    *   `copyWith()`: Menyalin instance dengan nilai properti yang diperbarui.
-    *   `fromMap()`: Membuat instance PelangganModel dari map.
-    *   `toMap()`: Mengonversi PelangganModel ke map.
-*   **Catatan**: Model ini merepresentasikan data master pelanggan. Telah dilengkapi metode `copyWith` untuk konsistensi dan sudah mendukung status `aktif` dan `diarsip`.
+    *   `sinkronisasiData()`: Memeriksa apakah ini adalah sinkronisasi pertama kali. Jika ya, akan memulai `_sinkronisasiAwal`.
+    *   `_sinkronisasiAwal()`: Menjalankan proses unduh data dari semua koleksi di Firebase ke database lokal.
+*   **Catatan**: Logika sinkronisasi inkremental telah dihapus untuk simplifikasi. File ini sekarang hanya bertanggung jawab untuk memastikan data awal dari Firebase tersedia di perangkat lokal saat aplikasi pertama kali dijalankan.
 
-**File: lib/model/pesanan_model.dart**
-*   **Fitur**: Pesanan
+### File: lib/data/operasi/pelanggan_aktif_operasi.dart
+*   **Fitur**: Operasi data untuk pelanggan yang sedang memiliki paket aktif.
 *   **Daftar Fungsi**:
-    *   `PesananModel()`: Konstruktor untuk membuat instance Pesanan.
-    *   `copyWith()`: Menyalin instance dengan nilai properti yang diperbarui.
-    *   `fromMap()`: Membuat instance PesananModel dari map (diadaptasi untuk SQLite dan Firestore).
-    *   `toMap()`: Mengonversi PesananModel ke map.
-*   **Catatan**: Model ini merepresentasikan pesanan paket oleh pelanggan. Telah diselaraskan dengan model lain dengan penambahan `diperbarui`, `isDeleted`, dan `diarsipkan` untuk mendukung pelacakan perubahan, soft delete, dan pengarsipan.
+    *   `createPelangganAktif()`: Membuat data pelanggan aktif baru.
+    *   `ambilSemuaPelangganAktif()`: Mengambil semua data pelanggan aktif.
+    *   `updatePelangganAktif()`: Memperbarui data pelanggan aktif.
+    *   `hapusPelangganAktif()`: Menghapus data pelanggan aktif secara permanen (*hard delete*).
+    *   `sisipkanAtauPerbaruiBatch()`: Memasukkan/memperbarui data secara massal.
+*   **Catatan**: Semua logika `SyncStatus` dan fungsi terkait sinkronisasi (`unggahKeFirebase`, `unduhPelangganAktif`) telah dihapus. Operasi sekarang langsung ke database lokal.
 
-**File: lib/model/pelanggan_aktif_model.dart**
-*   **Fitur**: Pelanggan Aktif
-*   **Daftar Fungsi**:
-    *   `PelangganAktifModel()`: Konstruktor untuk membuat instance Pelanggan Aktif.
-    *   `copyWith()`: Menyalin instance dengan nilai properti yang diperbarui.
-    *   `fromMap()`: Membuat instance PelangganAktifModel dari sebuah map (dari database).
-    *   `toMap()`: Mengonversi instance PelangganAktifModel menjadi sebuah map (untuk database).
-*   **Catatan**: Model ini merepresentasikan langganan aktif seorang pelanggan. Properti `syncStatus` telah dihapus.
+### File: lib/model/pelanggan_aktif_model.dart
+*   **Fitur**: Model data untuk entitas Pelanggan Aktif.
+*   **Catatan**: Properti `syncStatus` yang sebelumnya melacak status sinkronisasi data telah dihapus sepenuhnya untuk menyederhanakan model.
 
-**File: lib/model/transaksi_model.dart**
-*   **Fitur**: Transaksi
+### File: lib/data/operasi/transaksi_operasi.dart
+*   **Fitur**: Operasi CRUD (Create, Read, Update, Delete) untuk data transaksi keuangan.
 *   **Daftar Fungsi**:
-    *   `TransaksiModel()`: Konstruktor untuk membuat instance Transaksi.
-    *   `salinDengan()`: Menyalin instance dengan nilai properti yang diperbarui.
-    *   `fromMap()`: Membuat instance TransaksiModel dari sebuah map (dari database).
-    *   `toMap()`: Mengonversi instance TransaksiModel menjadi sebuah map (untuk database).
-*   **Catatan**: Model ini merepresentasikan transaksi keuangan. Properti `syncStatus` telah dihapus.
+    *   `tambahTransaksi()`, `ambilSemuaTransaksi()`, `updateTransaksi()`, `deleteTransaksi()`: Fungsi dasar CRUD.
+    *   `getTotalPemasukan()`, `getTotalPengeluaran()`, `getNetTotal()`: Fungsi agregasi untuk perhitungan saldo.
+    *   `sisipkanAtauPerbaruiBatch()`: Menyisipkan atau memperbarui beberapa data transaksi sekaligus.
+*   **Catatan**: Nama fungsi `sisipkanBatch` diubah menjadi `sisipkanAtauPerbaruiBatch` untuk konsistensi dan memperbaiki error analisis.
+
+### File: lib/halaman/form/form_pelanggan_aktif.dart
+*   **Fitur**: Menyediakan formulir untuk menambah atau mengedit data pelanggan aktif.
+*   **Catatan**: Referensi ke `SyncStatus` telah dihapus sepenuhnya dari file ini. Saat menyimpan data, objek `PelangganAktifModel` dibuat tanpa properti `syncStatus`, menyederhanakan proses penyimpanan.
+
+### File: lib/halaman/tab/dompet.dart
+*   **Fitur**: Menampilkan daftar dompet dan ringkasan keuangan.
+*   **Catatan**: Fungsi untuk memicu unggah data ke Firebase (`_unggahKeFirebase`) beserta tombol dan indikator loading di `AppBar` telah dihapus. Sinkronisasi tidak lagi dikontrol dari halaman ini.
+
+### File: lib/halaman/tab/pelanggan_aktif.dart
+*   **Fitur**: Menampilkan daftar semua pelanggan yang paketnya sedang aktif.
+*   **Catatan**: Semua fungsionalitas yang terkait dengan sinkronisasi manual (`_sinkronkanDataKeFirebase`), filter untuk data yang belum sinkron, dan ikon status sinkronisasi pada item daftar telah dihapus. `RefreshIndicator` sekarang hanya berfungsi untuk memuat ulang data dari database lokal.
+
+### File: lib/services/cek_langganan_kadaluarsa_service.dart
+*   **Fitur**: Layanan untuk memeriksa dan mengarsipkan langganan yang telah habis masa berlakunya secara otomatis.
+*   **Catatan**: Logika pengecekan `syncStatus` telah dihapus. Proses pengarsipan sekarang hanya didasarkan pada `tanggalBerakhir` tanpa mempedulikan status sinkronisasi data.

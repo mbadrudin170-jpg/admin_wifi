@@ -3,7 +3,6 @@
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DompetOperasi {
   final dbHelper = DatabaseHelper.instance;
@@ -50,15 +49,11 @@ class DompetOperasi {
       whereArgs: [dompet.id],
     );
   }
-  
+
   // ditambahkan: Metode untuk menghapus dompet secara permanen
   Future<void> deleteDompet(String id) async {
     final db = await dbHelper.database;
-    await db.delete(
-      'dompet',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete('dompet', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<double> getTotalSaldo() async {
@@ -91,8 +86,18 @@ class DompetOperasi {
     }
     return 0.0;
   }
-  
-  // dihapus: getPerubahan, sisipkanAtauPerbaruiBatch, dan unggahDompetKeFirebase
-  // tidak lagi relevan setelah penghapusan SyncStatus. Logika sinkronisasi
-  // akan ditangani secara berbeda jika diperlukan nanti.
+
+  Future<void> sisipkanAtauPerbaruiBatch(List<DompetModel> items) async {
+    final db = await DatabaseHelper.instance.database;
+    final batch = db.batch();
+    for (var item in items) {
+      // Pastikan model Anda memiliki ID yang unik untuk proses ini
+      batch.insert(
+        'dompet',
+        item.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
 }

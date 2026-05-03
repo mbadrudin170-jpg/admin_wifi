@@ -2,179 +2,113 @@
 
 
 
----
 
 ---
 
-# **Aturan lainnya untuk AI**
+**ATURAN KERJA UNTUK AI (ARTIFICIAL INTELLIGENCE ASSISTANT)**
 
-* Seluruh penamaan dalam proyek wajib menggunakan **Bahasa Indonesia**, termasuk:
+**1. Penggunaan Bahasa**
+- Seluruh penamaan dalam kode wajib menggunakan Bahasa Indonesia, termasuk:
+  - Nama fungsi
+  - Nama variabel
+  - Nama parameter
+  - Nama file
+- Percakapan dengan pengguna juga wajib menggunakan Bahasa Indonesia.
 
-  * Nama fungsi
-  * Nama variabel
-  * Nama parameter
-  * Nama file
-  * Komunikasi atau diskusi dengan pengguna
+**2. Penanda Path File**
+- Pada bagian paling atas setiap file, tambahkan komentar yang menunjukkan path file tersebut.
+- Format: `// path : lib/[nama_folder]/[nama_file].dart`
 
-* Setiap file yang dibuat atau diubah wajib mencantumkan **path file di bagian paling atas dalam bentuk komentar**, contoh:
+**3. Prosedur Sebelum Memulai Pekerjaan**
+- AI wajib membaca file `README.md` terlebih dahulu untuk memahami alur kerja proyek secara keseluruhan.
+- AI wajib memberikan penjelasan mengenai pekerjaan yang akan dilakukan sebelum mengeksekusinya.
+- Pengguna akan memberikan konfirmasi dengan kata kunci berikut:
+  - **Setuju / Oke / Ok / Ya / Yes**: AI boleh melanjutkan pekerjaan.
+  - **Jangan / Tidak / Nggak / Nggk**: AI tidak boleh melanjutkan pekerjaan.
+- AI wajib menunjukkan baris kode yang akan diperbarui, meliputi:
+  - Baris yang salah (jika ada).
+  - Baris yang benar sebagai usulan perubahan.
+- Pengguna wajib memberikan konfirmasi sebelum perubahan diterapkan.
 
-  ```dart
-  // path: lib/main.dart
-  ```
-
-* Sebelum mengerjakan proyek atau perubahan apa pun, AI wajib membaca file `README.md` terlebih dahulu untuk memahami alur kerja, struktur proyek, dan aturan yang berlaku.
-
-* Setelah AI menyelesaikan pekerjaan pada suatu file:
-
-  * Wajib menambahkan atau memperbarui dokumentasi di `README.md`
-  * Dokumentasi harus mencakup:
-
-    * Tujuan file
-    * Fitur
-    * Daftar fungsi
-    * Penjelasan per file
-  * Setiap file harus didokumentasikan secara terpisah agar mudah dipahami
-
-* Sebelum proses build:
-
-  * AI wajib membaca `README.md` terlebih dahulu untuk mengecek apakah perubahan adalah:
-
-    * Penambahan fitur → naikkan versi
-    * Perbaikan bug → hanya naikkan nomor build
-  * Tidak boleh melakukan build tanpa instruksi langsung dari pengguna
-  * Jika diperintahkan build, jalankan perintah:
-
-    ```bash
-    flutter clean && flutter pub get && flutter build apk --release --split-per-abi
-    ```
-
-* AI wajib menjaga:
-
-  * Konsistensi kode
-  * Keteraturan struktur proyek
-  * Kejelasan implementasi
-
-* Setelah menyelesaikan pekerjaan:
-
-  * AI wajib memperbarui isi `README.md` berdasarkan file yang dikerjakan saja
-  * Dilarang menambahkan contoh kode tidak relevan yang dapat menyebabkan error atau warning
-  * Fokus hanya pada:
-
-    * Tujuan file
-    * Fungsi file
-    * Fitur file
-
-* Setiap perubahan pada file wajib disertai komentar, contoh:
-
-  ```dart
-  // dihapus: karena tidak digunakan
-  // diubah: karena optimasi performa
-  // ditambah: karena kebutuhan fitur baru
-  ```
-
-* Setelah selesai pekerjaan:
-
-  * Jalankan analisis kode:
-
-    ```bash
-    flutter analyze
-    ```
-
-* Setiap fungsi wajib memiliki komentar penjelasan di atasnya, contoh:
-
-  ```dart
-  // untuk menavigasi ke halaman A
-  ```
-
-* Tambahkan komentar tambahan di dalam kode jika diperlukan agar alur mudah dipahami.
-
-* Sebelum memulai pekerjaan:
-
-  * AI wajib menjelaskan rencana tindakan terlebih dahulu
-  * Pengguna akan memberikan konfirmasi:
-
-    * "setuju / oke / ya / yes" → lanjut eksekusi
-    * "tidak / jangan / nggak" → hentikan pekerjaan
-
-* AI dilarang berasumsi di luar instruksi pengguna agar semua file tetap sinkron dan terkontrol.
-
-* Semua operasi yang melibatkan:
-
-  * I/O
-  * Network request
-  * Database
-    wajib menggunakan:
-  * `async/await`
-  * `Future`
-  * Hindari `.then()` chaining
-
-* Setiap fungsi I/O wajib dibungkus dalam `Future`.
-
-* Format pembaruan `README.md` wajib mengikuti struktur:
-
-  ```
-  File: lib/path/nama_file.dart  
-  Fitur: [Nama Fitur]  
-
-  Daftar Fungsi:  
-  namaFungsiA(): Penjelasan fungsi  
-  namaFungsiB(): Penjelasan fungsi  
-
-  Catatan: [Informasi tambahan jika ada]  
-
-  Rules: [Aturan khusus file seperti format tanggal, jam, angka, dll]
-  ```
-
-* Sebelum melakukan perubahan pada file:
-
-  * AI wajib menunjukkan bagian yang akan diubah:
-
-    * baris yang salah
-    * baris yang benar
-  * Baru kemudian meminta konfirmasi
-
-* Gunakan:
-
-  ```dart
-  if (!mounted) return;
-  ```
-
-  untuk mencegah error pada async UI flow.
-
-* Fokus utama:
-
-  * Menghemat penggunaan RAM
-  * Menjaga performa aplikasi tetap ringan
-
-* AI wajib memperhatikan komentar khusus:
-
-  ```
-  ```
-
-// ask:
+**4. Prosedur Setelah Menyelesaikan Pekerjaan**
+- Menambahkan atau memperbarui komentar keterangan pada file yang dikerjakan dengan struktur:
+  - `// dihapus: [alasan penghapusan]`
+  - `// diubah/ditambah: [alasan perubahan atau penambahan]`
+- Menambahkan komentar penjelasan di atas setiap fungsi dengan format:
+  - `// [Penjelasan singkat fungsi, contoh: untuk menavigasi ke halaman A]`
+- Menambahkan komentar secukupnya pada bagian dalam kode untuk memperjelas tujuan pembuatan kode tersebut.
+- Menjalankan perintah `flutter analyze` di terminal untuk memastikan kode bebas dari error atau warning.
+- Membuat dokumen yang menjelaskan secara sangat detail seluruh isi file yang telah dikerjakan. Seluruh kode wajib diterangkan tanpa ada yang terlewat.
+- Memperbarui file `README.md` pada bagian dokumentasi file dengan format pengelompokan berdasarkan folder:
 
 ```
-yang berarti instruksi wajib diikuti sesuai permintaan di dalamnya.
+File: lib/path/nama_file.dart
+Fitur: [Nama Fitur]
+Daftar Fungsi:
+  - namaFungsiA(): [Penjelasan singkat kegunaan fungsi]
+  - namaFungsiB(): [Penjelasan singkat kegunaan fungsi]
+Catatan: [Informasi tambahan jika diperlukan]
+Rules: [Aturan khusus jika ada, contoh: Format tanggal, jam, dan angka wajib menggunakan format yang ada di file lib/path/nama_file.dart]
+```
 
-- Semua aturan dalam dokumen ini harus dipatuhi dan disimpan sebagai referensi kerja AI.
+**5. Aturan Build Aplikasi**
+- Sebelum melakukan build, AI wajib membaca file `README.md` untuk menentukan apakah perubahan bersifat:
+  - Penambahan fitur baru.
+  - Perbaikan bug saja.
+- Jika hanya perbaikan bug:
+  - Hanya nomor build yang dinaikkan pada file `pubspec.yaml`.
+  - Versi aplikasi tidak dinaikkan.
+- Perintah build hanya dijalankan setelah mendapatkan instruksi langsung dari pengguna.
+- Proses build menggunakan perintah:
+  ```
+  flutter clean && flutter pub get && flutter build apk --release --split-per-abi
+  ```
 
-- Dilarang mengubah file `GEMINI.md` tanpa instruksi langsung dari pengguna.
+**6. Aturan Kebersihan Proyek**
+- Jika pengguna memberikan perintah "clean", AI wajib menjalankan:
+  ```
+  flutter clean && flutter pub get
+  ```
 
-- Untuk `DropdownButtonFormField`:
-- Jangan gunakan `value`
-- Gunakan `initialvalue`
+**7. Konsistensi dan Sinkronisasi**
+- AI wajib menjaga konsistensi dan kejelasan di seluruh bagian proyek.
+- AI tidak diperkenankan membuat asumsi liar yang dapat menyebabkan ketidaksinkronan antar file.
 
-- Untuk logging:
-- Gunakan `developer.log` bukan `print`
+**8. Aturan Pemrograman Asynchronous**
+- Setiap fungsi yang melibatkan:
+  - Operasi I/O (Input/Output)
+  - Network request
+  - Database
+- Wajib menggunakan pola Asynchronous (`async/await`).
+- Hasil fungsi wajib dibungkus dalam objek `Future`.
+- Hindari penggunaan metode `.then()` berantai.
+
+**9. Pengelolaan Memori Aplikasi**
+- Aplikasi harus dijaga agar penggunaan RAM tetap efisien dan seminimal mungkin.
+- Usahakan agar konsumsi memori perangkat pengguna tidak berlebihan.
+
+**10. Keamanan Mounted State**
+- Gunakan pengecekan `if (!mounted) return;` untuk mencegah error saat operasi gagal atau widget sudah tidak terpasang.
+
+**11. Aturan Khusus DropdownButtonFormField**
+- Pada widget `DropdownButtonFormField`, jangan menggunakan properti `value`.
+- Gunakan properti `initialValue` sebagai pengganti.
+
+**12. Aturan Logging**
+- Untuk menampilkan informasi pada console, gunakan `developer.log`.
+
+**13. Penanganan Instruksi Khusus**
+- Selalu periksa setiap file untuk menemukan komentar yang diawali dengan `// ask : ...`.
+- Komentar tersebut merupakan instruksi langsung dari pengguna yang wajib dikerjakan oleh AI.
+
+**14. File GEMINI.md**
+- AI dilarang mengubah file `GEMINI.md` tanpa instruksi langsung dari pengguna.
+
+**15. Penyimpanan Memori AI**
+- Seluruh isi aturan ini wajib disimpan ke dalam memori AI untuk digunakan selama sesi kerja berlangsung.
 
 ---
 
-Kalau kamu mau, saya bisa:
-- :contentReference[oaicite:0]{index=0}
-- atau :contentReference[oaicite:1]{index=1}
-- atau bahkan saya :contentReference[oaicite:2]{index=2}
-
-Tinggal bilang saja.
 ```
 
 
