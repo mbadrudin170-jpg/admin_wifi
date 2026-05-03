@@ -1,4 +1,4 @@
-// lib/model/paket_model.dart
+// path: lib/model/paket_model.dart
 // Model ini merepresentasikan paket layanan yang ditawarkan.
 // Ini mencakup detail seperti nama, harga, durasi, dan tipe durasi (jam, hari, bulan).
 // Digunakan untuk mengelola data paket dari dan ke database lokal dan Firestore.
@@ -27,7 +27,8 @@ enum TipeDurasi {
   }
 }
 
-class Paket {
+// diubah: nama kelas untuk konsistensi penamaan
+class PaketModel {
   final String id; // PERBAIKAN: ID tidak boleh nullable
   final String nama;
   final int harga;
@@ -35,7 +36,8 @@ class Paket {
   final TipeDurasi tipe;
   final DateTime? diperbarui;
 
-  Paket({
+  // diubah: nama konstruktor
+  PaketModel({
     String? id,
     required this.nama,
     required this.harga,
@@ -45,8 +47,10 @@ class Paket {
   }) : id = id ?? const Uuid().v4();
 
   // Konversi dari Map (dari database) ke objek Paket
-  factory Paket.fromMap(Map<String, dynamic> map) {
-    return Paket(
+  // diubah: nama factory dan tipe kembalian
+  factory PaketModel.fromMap(Map<String, dynamic> map) {
+    // diubah: pembuatan instance kelas
+    return PaketModel(
       id: map['id'],
       nama: map['nama'],
       harga: map['harga'],

@@ -1,9 +1,10 @@
-// lib/model/pelanggan_aktif_model.dart
+// path: lib/model/pelanggan_aktif_model.dart
 import 'package:admin_wifi/model/enum/sync_status.dart';
 import 'package:uuid/uuid.dart';
 import 'enum/status_pembayaran.dart';
 
-class PelangganAktif {
+// diubah: nama kelas untuk konsistensi penamaan
+class PelangganAktifModel {
   final String id;
   final String idPelanggan;
   final String idPaket;
@@ -14,7 +15,8 @@ class PelangganAktif {
   final DateTime? diperbarui;
   final String statusSinkronisasi;
 
-  PelangganAktif({
+  // diubah: nama konstruktor
+  PelangganAktifModel({
     String? id,
     required this.idPelanggan,
     required this.idPaket,
@@ -27,7 +29,8 @@ class PelangganAktif {
   }) : id = id ?? const Uuid().v4();
 
   // [FIXED] Menambahkan metode copyWith
-  PelangganAktif copyWith({
+  // diubah: nama metode dan tipe kembalian
+  PelangganAktifModel copyWith({
     String? id,
     String? idPelanggan,
     String? idPaket,
@@ -38,7 +41,8 @@ class PelangganAktif {
     DateTime? diperbarui,
     String? statusSinkronisasi,
   }) {
-    return PelangganAktif(
+    // diubah: pembuatan instance kelas
+    return PelangganAktifModel(
       id: id ?? this.id,
       idPelanggan: idPelanggan ?? this.idPelanggan,
       idPaket: idPaket ?? this.idPaket,
@@ -51,8 +55,10 @@ class PelangganAktif {
     );
   }
 
-  factory PelangganAktif.fromMap(Map<String, dynamic> map) {
-    return PelangganAktif(
+  // diubah: nama factory dan tipe kembalian
+  factory PelangganAktifModel.fromMap(Map<String, dynamic> map) {
+    // diubah: pembuatan instance kelas
+    return PelangganAktifModel(
       id: map['id'],
       idPelanggan: map['id_pelanggan'],
       idPaket: map['id_paket'],

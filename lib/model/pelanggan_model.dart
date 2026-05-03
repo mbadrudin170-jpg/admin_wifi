@@ -1,4 +1,4 @@
-// lib/model/pelanggan_model.dart
+// path: lib/model/pelanggan_model.dart
 // Model ini merepresentasikan data pelanggan dengan soft delete.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
@@ -6,7 +6,8 @@ import 'package:uuid/uuid.dart';
 // Enum untuk status pelanggan, mendukung soft delete.
 enum StatusPelanggan { aktif, diarsip }
 
-class Pelanggan {
+// diubah: nama kelas untuk konsistensi penamaan
+class PelangganModel {
   final String id;
   final String nama;
   final String telepon;
@@ -17,7 +18,8 @@ class Pelanggan {
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
 
-  Pelanggan({
+  // diubah: nama konstruktor
+  PelangganModel({
     String? id,
     required this.nama,
     required this.telepon,
@@ -37,8 +39,10 @@ class Pelanggan {
     return null;
   }
 
-  factory Pelanggan.fromMap(Map<String, dynamic> map) {
-    return Pelanggan(
+  // diubah: nama factory dan tipe kembalian
+  factory PelangganModel.fromMap(Map<String, dynamic> map) {
+    // diubah: pembuatan instance kelas
+    return PelangganModel(
       id: map['id'],
       nama: map['nama'] ?? '',
       telepon: map['telepon'] ?? '',
