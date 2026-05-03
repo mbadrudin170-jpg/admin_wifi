@@ -15,6 +15,10 @@ class PelangganAktifModel {
   final DateTime? diperbarui;
   final String statusSinkronisasi;
 
+  // tambahan: soft delete & arsip
+  final bool isDeleted;
+  final DateTime? diarsipkan;
+
   // diubah: nama konstruktor
   PelangganAktifModel({
     String? id,
@@ -23,13 +27,33 @@ class PelangganAktifModel {
     required this.tanggalMulai,
     required this.tanggalBerakhir,
     required this.status,
-    this.syncStatus = SyncStatus.synced, // Default ke synced
+    this.syncStatus = SyncStatus.synced,
     this.diperbarui,
     this.statusSinkronisasi = 'SINKRON',
+    this.isDeleted = false,
+    this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
+  // helper parsing aman datetime
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+
+    try {
+      if (value.runtimeType.toString().contains('Timestamp')) {
+        return value.toDate();
+      }
+    } catch (_) {}
+
+    if (value is DateTime) return value;
+
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
+    return null;
+  }
+
   // [FIXED] Menambahkan metode copyWith
-  // diubah: nama metode dan tipe kembalian
   PelangganAktifModel copyWith({
     String? id,
     String? idPelanggan,
@@ -40,8 +64,9 @@ class PelangganAktifModel {
     SyncStatus? syncStatus,
     DateTime? diperbarui,
     String? statusSinkronisasi,
+    bool? isDeleted,
+    DateTime? diarsipkan,
   }) {
-    // diubah: pembuatan instance kelas
     return PelangganAktifModel(
       id: id ?? this.id,
       idPelanggan: idPelanggan ?? this.idPelanggan,
@@ -52,12 +77,12 @@ class PelangganAktifModel {
       syncStatus: syncStatus ?? this.syncStatus,
       diperbarui: diperbarui ?? this.diperbarui,
       statusSinkronisasi: statusSinkronisasi ?? this.statusSinkronisasi,
+      isDeleted: isDeleted ?? this.isDeleted,
+      diarsipkan: diarsipkan ?? this.diarsipkan,
     );
   }
 
-  // diubah: nama factory dan tipe kembalian
   factory PelangganAktifModel.fromMap(Map<String, dynamic> map) {
-    // diubah: pembuatan instance kelas
     return PelangganAktifModel(
       id: map['id'],
       idPelanggan: map['id_pelanggan'],
@@ -76,6 +101,10 @@ class PelangganAktifModel {
           ? DateTime.parse(map['diperbarui'])
           : null,
       statusSinkronisasi: map['status_sinkronisasi'] ?? 'SINKRON',
+
+      // tambahan field baru
+      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+      diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
@@ -90,6 +119,10 @@ class PelangganAktifModel {
       'sync_status': syncStatus.name,
       'diperbarui': diperbarui?.toIso8601String(),
       'status_sinkronisasi': statusSinkronisasi,
+
+      // tambahan field baru
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 }

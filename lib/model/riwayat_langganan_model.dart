@@ -1,4 +1,7 @@
 // Path: lib/model/riwayat_langganan_model.dart
+// Model ini menyimpan riwayat langganan pelanggan beserta snapshot data paket.
+// Snapshot digunakan agar data historis tetap konsisten meskipun paket berubah di masa depan.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'enum/status_pembayaran.dart';
 import 'package:uuid/uuid.dart';
@@ -20,6 +23,9 @@ class RiwayatLanggananModel {
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
 
+  // tambahan lifecycle
+  final bool isDeleted;
+
   RiwayatLanggananModel({
     String? id,
     required this.idPelanggan,
@@ -33,16 +39,18 @@ class RiwayatLanggananModel {
     required this.status,
     this.diperbarui,
     this.diarsipkan,
+    this.isDeleted = false,
   }) : id = id ?? const Uuid().v4();
 
-  factory RiwayatLanggananModel.fromMap(Map<String, dynamic> map) {
-    DateTime? parseDateTime(dynamic dateValue) {
-      if (dateValue == null) return null;
-      if (dateValue is Timestamp) return dateValue.toDate();
-      if (dateValue is String) return DateTime.tryParse(dateValue);
-      return null;
-    }
+  static DateTime? _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return null;
+    if (dateValue is Timestamp) return dateValue.toDate();
+    if (dateValue is DateTime) return dateValue;
+    if (dateValue is String) return DateTime.tryParse(dateValue);
+    return null;
+  }
 
+  factory RiwayatLanggananModel.fromMap(Map<String, dynamic> map) {
     return RiwayatLanggananModel(
       id: map['id'] ?? const Uuid().v4(),
       idPelanggan: map['id_pelanggan'] ?? '',
@@ -51,19 +59,24 @@ class RiwayatLanggananModel {
       hargaPaket: (map['harga_paket'] as num? ?? 0).toInt(),
       durasiPaket: (map['durasi_paket'] as num? ?? 0).toInt(),
       tipeDurasiPaket: map['tipe_durasi_paket'] ?? 'hari',
-      tanggalMulai: parseDateTime(map['tanggal_mulai']) ?? DateTime.now(),
+      tanggalMulai: _parseDateTime(map['tanggal_mulai']) ?? DateTime.now(),
       tanggalBerakhir:
-          parseDateTime(map['tanggal_berakhir']) ?? DateTime.now(),
+          _parseDateTime(map['tanggal_berakhir']) ?? DateTime.now(),
       status: StatusPembayaran.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => StatusPembayaran.lunas,
       ),
-      diperbarui: parseDateTime(map['diperbarui']),
-      diarsipkan: parseDateTime(map['diarsipkan']),
+      diperbarui: _parseDateTime(map['diperbarui']),
+      diarsipkan: _parseDateTime(map['diarsipkan']),
+
+      // tambahan lifecycle
+      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
     );
   }
 
-  // Peta untuk unggah ke Firebase (menggunakan Timestamp)
+  // =========================
+  // FIREBASE FORMAT
+  // =========================
   Map<String, dynamic> toMapForFirebase() {
     return {
       'id': id,
@@ -78,10 +91,15 @@ class RiwayatLanggananModel {
       'status': status.name,
       'diperbarui': diperbarui != null ? Timestamp.fromDate(diperbarui!) : null,
       'diarsipkan': diarsipkan != null ? Timestamp.fromDate(diarsipkan!) : null,
+
+      // lifecycle
+      'isDeleted': isDeleted,
     };
   }
 
-  // Peta untuk simpan ke database lokal Sqflite (menggunakan String ISO 8601)
+  // =========================
+  // SQLITE FORMAT
+  // =========================
   Map<String, dynamic> toMapForSqflite() {
     return {
       'id': id,
@@ -96,6 +114,16 @@ class RiwayatLanggananModel {
       'status': status.name,
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
+
+      // lifecycle
+      'isDeleted': isDeleted,
     };
+  }
+
+  // =========================
+  // DEFAULT SYNC MAP (USED BY SERVICE)
+  // =========================
+  Map<String, dynamic> toMap() {
+    return toMapForFirebase();
   }
 }

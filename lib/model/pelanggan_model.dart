@@ -31,6 +31,31 @@ class PelangganModel {
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
+  // ditambah: Metode copyWith untuk membuat salinan objek dengan nilai yang diperbarui.
+  PelangganModel copyWith({
+    String? id,
+    String? nama,
+    String? telepon,
+    String? alamat,
+    String? password,
+    String? macAddress,
+    StatusPelanggan? status,
+    DateTime? diperbarui,
+    DateTime? diarsipkan,
+  }) {
+    return PelangganModel(
+      id: id ?? this.id,
+      nama: nama ?? this.nama,
+      telepon: telepon ?? this.telepon,
+      alamat: alamat ?? this.alamat,
+      password: password ?? this.password,
+      macAddress: macAddress ?? this.macAddress,
+      status: status ?? this.status,
+      diperbarui: diperbarui ?? this.diperbarui,
+      diarsipkan: diarsipkan ?? this.diarsipkan,
+    );
+  }
+
   // Helper untuk parsing tanggal dari berbagai format (Timestamp, String)
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;

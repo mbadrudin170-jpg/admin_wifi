@@ -1,4 +1,4 @@
-// lib/splash_screen.dart
+// path : lib/splash_screen.dart
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +11,7 @@ import 'package:admin_wifi/halaman_utama.dart';
 import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/data/services/sinkronisasi_database.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -62,7 +63,17 @@ class _SplashScreenState extends State<SplashScreen> {
       isOnline = await KoneksiInternetService.cekKoneksi();
 
       if (isOnline) {
+        // diubah: menjalankan proses sinkronisasi jika online
         setState(() => _loadingMessage = "Memeriksa & sinkronisasi data...");
+        try {
+          await LayananSinkronisasi().sinkronisasiData();
+          setState(() => _loadingMessage = "Sinkronisasi data selesai.");
+        } catch (e) {
+          debugPrint("Error saat sinkronisasi: $e");
+          setState(
+            () => _loadingMessage = "Gagal sinkronisasi, melanjutkan...",
+          );
+        }
       } else {
         setState(
           () => _loadingMessage = "Mode offline, melewati sinkronisasi...",
@@ -79,22 +90,13 @@ class _SplashScreenState extends State<SplashScreen> {
     // 5. Navigasi
     if (!mounted) return;
 
+    // diubah: Mengirim status koneksi ke HalamanUtama dan menghapus blok .then()
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HalamanUtama()),
-    ).then((_) {
-      if (!mounted) return;
-      if (!isOnline) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Anda dalam mode offline. Data mungkin tidak terbaru.',
-            ),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    });
+      MaterialPageRoute(
+        builder: (context) => HalamanUtama(isOffline: !isOnline),
+      ),
+    );
   }
 
   @override

@@ -1,5 +1,4 @@
-
-// lib/halaman_utama.dart
+// path: lib/halaman_utama.dart
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
@@ -8,7 +7,13 @@ import 'package:admin_wifi/halaman/tab/dompet.dart';
 import 'package:admin_wifi/halaman/tab/transaksi.dart';
 
 class HalamanUtama extends StatefulWidget {
-  const HalamanUtama({super.key});
+  // ditambah: untuk menerima status koneksi dari splash screen
+  final bool isOffline;
+
+  const HalamanUtama({
+    super.key,
+    this.isOffline = false, // Default value jika tidak dikirim
+  });
 
   @override
   State<HalamanUtama> createState() => _HalamanUtamaState();
@@ -33,11 +38,26 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   @override
   void initState() {
     super.initState();
-    // [OPTIMASI] Jalankan tugas pemeliharaan di latar belakang setelah UI utama ditampilkan.
-    // Ini tidak memblokir UI dan berjalan diam-diam.
+    // diubah: Menjalankan pengecekan status offline setelah frame pertama selesai dibangun
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cekDanTampilkanPesanOffline();
       CekLanggananKadaluarsaService().prosesLanggananKadaluarsa();
     });
+  }
+
+  // ditambah: fungsi untuk menampilkan snackbar jika offline
+  void _cekDanTampilkanPesanOffline() {
+    if (widget.isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Anda dalam mode offline. Data mungkin tidak terbaru.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 5), // Tampilkan lebih lama
+        ),
+      );
+    }
   }
 
   @override

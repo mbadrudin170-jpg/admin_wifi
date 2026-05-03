@@ -27,6 +27,9 @@ class TransaksiModel {
   final DateTime? diarsipkan;
   final SyncStatus syncStatus;
 
+  // tambahan lifecycle
+  final bool isDeleted;
+
   TransaksiModel({
     String? id,
     required this.tanggal,
@@ -46,12 +49,16 @@ class TransaksiModel {
     this.diperbarui,
     this.diarsipkan,
     this.syncStatus = SyncStatus.write,
+    this.isDeleted = false,
   }) : id = id ?? const Uuid().v4();
 
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
+
     if (dateValue is Timestamp) return dateValue.toDate();
+    if (dateValue is DateTime) return dateValue;
     if (dateValue is String) return DateTime.tryParse(dateValue);
+
     return null;
   }
 
@@ -65,23 +72,29 @@ class TransaksiModel {
         (e) => e.name == map['tipe'],
         orElse: () => TipeTransaksi.pengeluaran,
       ),
+
       idDompet: map['id_dompet'] ?? '',
       namaDompet: map['nama_dompet'] ?? '',
       idKategori: map['id_kategori'] ?? '',
       namaKategori: map['nama_kategori'] ?? '',
+
       idPelanggan: map['id_pelanggan'],
       namaPelanggan: map['nama_pelanggan'],
       idPaket: map['id_paket'],
       namaPaket: map['nama_paket'],
       idSubKategori: map['id_sub_kategori'],
       namaSubKategori: map['nama_sub_kategori'],
+
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
-      // diubah: Mencari enum berdasarkan nama string-nya.
+
       syncStatus: SyncStatus.values.firstWhere(
         (e) => e.name == map['sync_status'],
         orElse: () => SyncStatus.synced,
       ),
+
+      // tambahan soft delete
+      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
     );
   }
 
@@ -92,20 +105,26 @@ class TransaksiModel {
       'keterangan': keterangan,
       'jumlah': jumlah,
       'tipe': tipe.name,
+
       'id_dompet': idDompet,
       'nama_dompet': namaDompet,
       'id_kategori': idKategori,
       'nama_kategori': namaKategori,
+
       'id_pelanggan': idPelanggan,
       'nama_pelanggan': namaPelanggan,
       'id_paket': idPaket,
       'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
       'nama_sub_kategori': namaSubKategori,
-      'diperbarui': diperbarui?.toIso8601String() ?? DateTime.now().toIso8601String(),
+
+      'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
-      // diubah: Menyimpan nama enum sebagai string.
+
       'sync_status': syncStatus.name,
+
+      // tambahan lifecycle
+      'isDeleted': isDeleted,
     };
   }
 
@@ -128,6 +147,7 @@ class TransaksiModel {
     DateTime? diperbarui,
     DateTime? diarsipkan,
     SyncStatus? syncStatus,
+    bool? isDeleted,
   }) {
     return TransaksiModel(
       id: id ?? this.id,
@@ -135,19 +155,24 @@ class TransaksiModel {
       keterangan: keterangan ?? this.keterangan,
       jumlah: jumlah ?? this.jumlah,
       tipe: tipe ?? this.tipe,
+
       idDompet: idDompet ?? this.idDompet,
       namaDompet: namaDompet ?? this.namaDompet,
       idKategori: idKategori ?? this.idKategori,
       namaKategori: namaKategori ?? this.namaKategori,
+
       idPelanggan: idPelanggan ?? this.idPelanggan,
       namaPelanggan: namaPelanggan ?? this.namaPelanggan,
       idPaket: idPaket ?? this.idPaket,
       namaPaket: namaPaket ?? this.namaPaket,
       idSubKategori: idSubKategori ?? this.idSubKategori,
       namaSubKategori: namaSubKategori ?? this.namaSubKategori,
+
       diperbarui: diperbarui ?? this.diperbarui,
       diarsipkan: diarsipkan ?? this.diarsipkan,
+
       syncStatus: syncStatus ?? this.syncStatus,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 }

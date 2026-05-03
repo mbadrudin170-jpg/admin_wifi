@@ -34,7 +34,12 @@ class PaketModel {
   final int harga;
   final int durasi;
   final TipeDurasi tipe;
+
   final DateTime? diperbarui;
+
+  // tambahan: soft delete & arsip
+  final bool isDeleted;
+  final DateTime? diarsipkan;
 
   // diubah: nama konstruktor
   PaketModel({
@@ -44,24 +49,48 @@ class PaketModel {
     required this.durasi,
     required this.tipe,
     this.diperbarui,
+    this.isDeleted = false,
+    this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
+  // helper parsing datetime aman (Firestore / String / null)
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+
+    // Firestore Timestamp handling (dynamic-safe)
+    try {
+      if (value.runtimeType.toString().contains('Timestamp')) {
+        return value.toDate();
+      }
+    } catch (_) {}
+
+    if (value is DateTime) return value;
+
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
+    return null;
+  }
+
   // Konversi dari Map (dari database) ke objek Paket
-  // diubah: nama factory dan tipe kembalian
   factory PaketModel.fromMap(Map<String, dynamic> map) {
-    // diubah: pembuatan instance kelas
     return PaketModel(
       id: map['id'],
       nama: map['nama'],
       harga: map['harga'],
       durasi: map['durasi'],
       tipe: TipeDurasi.values.firstWhere(
-        (e) => e.name == map['tipe'], // Mencocokkan berdasarkan nama enum
-        orElse: () => TipeDurasi.hari, // Default jika ada data korup
+        (e) => e.name == map['tipe'],
+        orElse: () => TipeDurasi.hari,
       ),
       diperbarui: map['diperbarui'] != null
           ? DateTime.parse(map['diperbarui'])
           : null,
+
+      // tambahan field baru
+      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+      diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
@@ -72,8 +101,12 @@ class PaketModel {
       'nama': nama,
       'harga': harga,
       'durasi': durasi,
-      'tipe': tipe.name, // Menyimpan nama enum sebagai string
+      'tipe': tipe.name,
       'diperbarui': diperbarui?.toIso8601String(),
+
+      // tambahan field baru
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 }
