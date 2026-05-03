@@ -1,4 +1,3 @@
-
 # **Dokumentasi Proyek Aplikasi Admin WiFi**
 
 Selamat datang di dokumentasi resmi untuk proyek Aplikasi Admin WiFi. Dokumen ini berfungsi sebagai panduan utama untuk memahami arsitektur, fungsionalitas, dan alur kerja pengembangan aplikasi.
@@ -8,8 +7,13 @@ Selamat datang di dokumentasi resmi untuk proyek Aplikasi Admin WiFi. Dokumen in
 ## **Folder: lib/data**
 
 **File:** `lib/data/sqlite.dart`
-**Fitur:** Pengelola Database SQLite
-**(Dokumentasi sebelumnya tidak diubah)**
+**Fitur:** Pengelola Database dan Migrasi Skema
+**Daftar Fungsi:**
+- `_initDB()`: **(Diubah)** Versi database dinaikkan menjadi `18` untuk memicu migrasi skema baru.
+- `_onUpgrade(db, oldVersion, newVersion)`: **(Ditambah)** Menambahkan logika migrasi untuk `oldVersion < 18`. Logika ini menambahkan kolom `sync_status` ke tabel `dompet` untuk mendukung sinkronisasi data dengan Firestore. Dilengkapi juga dengan blok `try-catch` untuk menangani kasus di mana tabel `dompet` mungkin belum ada, dengan membuat ulang tabel jika diperlukan.
+- `_createDompetTable(db)`: **(Diubah)** Skema tabel `dompet` diperbarui dengan menambahkan kolom `sync_status` dengan nilai default `'synced'`.
+**Catatan:** Perubahan ini sangat penting untuk menyelaraskan skema database lokal dengan `DompetModel` yang telah diperbarui. Tanpa migrasi ini, aplikasi akan mengalami error saat mencoba mengakses tabel `dompet` setelah pembaruan model.
+**Rules:** Versi database harus dinaikkan setiap kali ada perubahan skema untuk memastikan migrasi berjalan dengan benar.
 
 ---
 

@@ -22,7 +22,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      version: 17, // diubah: Versi dinaikkan untuk migrasi skema TEXT
+      version: 18, // diubah: Versi dinaikkan untuk sinkronisasi model Dompet
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -52,6 +52,16 @@ class DatabaseHelper {
     if (oldVersion < 17) {
       await db.execute("DROP TABLE IF EXISTS transaksi");
       await _createTransaksiTable(db);
+    }
+    
+    // ditambah: Migrasi untuk menambahkan kolom sync_status ke tabel dompet
+    if (oldVersion < 18) {
+      try {
+        await db.execute("ALTER TABLE dompet ADD COLUMN sync_status TEXT NOT NULL DEFAULT 'synced'");
+      } catch (e) {
+        // Jika gagal (misalnya, tabel belum ada), buat ulang tabel
+        await _createDompetTable(db);
+      }
     }
   }
 
@@ -172,7 +182,8 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         namaDompet TEXT NOT NULL,
         saldo REAL NOT NULL,
-        diperbarui TEXT NOT NULL
+        diperbarui TEXT NOT NULL,
+        sync_status TEXT NOT NULL DEFAULT 'synced'
       )
     ''');
   }
