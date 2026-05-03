@@ -1,12 +1,15 @@
-// Path: lib/model/enum/sync_status.dart
+// path: lib/model/enum/sync_status.dart
 
 /// Enum untuk merepresentasikan status sinkronisasi data.
 enum SyncStatus {
   /// Data sudah sinkron dengan Firebase.
   synced,
 
-  // Data untuk di tulis ulang di firebase
+  /// Data baru yang perlu dibuat di Firebase.
   write,
+
+  /// Data diubah secara lokal dan perlu diperbarui di Firebase.
+  update,
 
   /// Data dihapus secara lokal dan perlu dihapus di Firebase.
   deleted,

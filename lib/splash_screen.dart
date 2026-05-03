@@ -9,7 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:admin_wifi/firebase_options.dart';
 import 'package:admin_wifi/halaman_utama.dart';
 import 'package:admin_wifi/data/services/inisialisasi_data_service.dart';
-import 'package:admin_wifi/data/services/notifikasi_servis.dart';
+import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 

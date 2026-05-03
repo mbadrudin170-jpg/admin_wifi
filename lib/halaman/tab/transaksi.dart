@@ -48,7 +48,11 @@ class RingkasanTransaksi extends StatelessWidget {
 
   // untuk membangun tampilan info ringkasan
   Widget _buildInfo(
-      BuildContext context, String label, double jumlah, Color warna) {
+    BuildContext context,
+    String label,
+    double jumlah,
+    Color warna,
+  ) {
     return Column(
       children: [
         Text(label, style: Theme.of(context).textTheme.bodySmall),

@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
-import 'package:admin_wifi/data/services/notifikasi_servis.dart';
+import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/model/enum/sync_status.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:admin_wifi/model/enum/status_pembayaran.dart';

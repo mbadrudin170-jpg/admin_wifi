@@ -22,7 +22,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      version: 16, // diubah: Versi dinaikkan untuk memicu migrasi
+      version: 17, // diubah: Versi dinaikkan untuk migrasi skema TEXT
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -33,25 +33,23 @@ class DatabaseHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Blok migrasi yang sudah ada
-    if (oldVersion < 14) {
-      // ... logika migrasi sebelumnya tetap ada ...
+    if (oldVersion < 15) {
       await db.execute(
         'UPDATE pelanggan_aktif SET sync_status = \'synced\' WHERE sync_status IS NULL',
       );
-    }
-
-    // MIGRASI BARU UNTUK VERSI 15
-    if (oldVersion < 15) {
-      // 1. Tambah kolom 'status' dan 'diarsipkan' ke tabel pelanggan
       await db.execute(
         "ALTER TABLE pelanggan ADD COLUMN status TEXT NOT NULL DEFAULT 'aktif'",
       );
       await db.execute("ALTER TABLE pelanggan ADD COLUMN diarsipkan TEXT");
     }
 
-    // diubah/ditambah: Migrasi untuk memastikan skema tabel transaksi benar (snake_case)
     if (oldVersion < 16) {
+      await db.execute("DROP TABLE IF EXISTS transaksi");
+      await _createTransaksiTable(db);
+    }
+
+    // ditambah: Migrasi untuk mengubah sync_status menjadi TEXT
+    if (oldVersion < 17) {
       await db.execute("DROP TABLE IF EXISTS transaksi");
       await _createTransaksiTable(db);
     }
@@ -61,16 +59,16 @@ class DatabaseHelper {
     await _createKategoriTable(db);
     await _createSubKategoriTable(db);
     await _createPaketTable(db);
-    await _createPelangganTable(db); // Diperbarui
+    await _createPelangganTable(db);
     await _createPelangganAktifTable(db);
-    await _createTransaksiTable(db); // Diperbarui
+    await _createTransaksiTable(db);
     await _createDompetTable(db);
     await _createKritikSaranTable(db);
     await _createRiwayatLanggananTable(db);
     await _createPesananTable(db);
   }
 
-  // Metode pembuatan tabel dipisahkan agar lebih rapi
+  // ... (metode pembuatan tabel lainnya tidak berubah)
 
   Future<void> _createKategoriTable(Database db) async {
     await db.execute('''
@@ -117,9 +115,9 @@ class DatabaseHelper {
         alamat TEXT NOT NULL,
         password TEXT NOT NULL,
         mac_address TEXT NOT NULL,
-        status TEXT NOT NULL,          -- DITAMBAHKAN
-        diperbarui TEXT,               -- DIBUAT NULLABLE
-        diarsipkan TEXT                -- DITAMBAHKAN
+        status TEXT NOT NULL, 
+        diperbarui TEXT,      
+        diarsipkan TEXT       
       )
     ''');
   }
@@ -142,7 +140,7 @@ class DatabaseHelper {
     ''');
   }
 
-  // diubah/ditambah: Menyesuaikan nama kolom dengan TransaksiModel (snake_case)
+  // diubah: Menggunakan TEXT untuk sync_status
   Future<void> _createTransaksiTable(Database db) async {
     await db.execute('''
       CREATE TABLE transaksi(
@@ -151,22 +149,19 @@ class DatabaseHelper {
         jumlah REAL NOT NULL,
         tanggal TEXT NOT NULL,
         tipe TEXT NOT NULL,
-
         id_dompet TEXT,
         nama_dompet TEXT,
-
         id_kategori TEXT,
         nama_kategori TEXT,
         id_sub_kategori TEXT,
         nama_sub_kategori TEXT,
-
         id_pelanggan TEXT,
         nama_pelanggan TEXT,
         id_paket TEXT,
         nama_paket TEXT,
-
         diperbarui TEXT,
-        diarsipkan TEXT
+        diarsipkan TEXT,
+        sync_status TEXT NOT NULL DEFAULT 'write'
       )
     ''');
   }

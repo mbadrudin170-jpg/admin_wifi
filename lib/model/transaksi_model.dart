@@ -1,8 +1,8 @@
-// lib/model/transaksi_model.dart
+// path: lib/model/transaksi_model.dart
+import 'package:admin_wifi/model/enum/sync_status.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
-// Asumsi TipeTransaksi sudah ada di file lain atau didefinisikan di sini
 enum TipeTransaksi { pemasukan, pengeluaran, transfer }
 
 class TransaksiModel {
@@ -12,30 +12,20 @@ class TransaksiModel {
   final double jumlah;
   final TipeTransaksi tipe;
 
-  // === RELASI & DATA SALINAN (DENORMALISASI) ===
-
-  // Dompet (Wajib ada)
   final String idDompet;
   final String namaDompet;
-
-  // Kategori (Wajib ada)
   final String idKategori;
   final String namaKategori;
-
-  // Pelanggan (Opsional, tidak semua transaksi terkait pelanggan)
   final String? idPelanggan;
   final String? namaPelanggan;
-
-  // Paket (Opsional, hanya untuk transaksi pembelian paket)
   final String? idPaket;
   final String? namaPaket;
-
-  // Sub-Kategori (Opsional)
   final String? idSubKategori;
   final String? namaSubKategori;
 
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
+  final SyncStatus syncStatus;
 
   TransaksiModel({
     String? id,
@@ -55,9 +45,9 @@ class TransaksiModel {
     this.namaSubKategori,
     this.diperbarui,
     this.diarsipkan,
+    this.syncStatus = SyncStatus.write,
   }) : id = id ?? const Uuid().v4();
 
-  // Helper untuk parsing tanggal
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
     if (dateValue is Timestamp) return dateValue.toDate();
@@ -87,6 +77,11 @@ class TransaksiModel {
       namaSubKategori: map['nama_sub_kategori'],
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
+      // diubah: Mencari enum berdasarkan nama string-nya.
+      syncStatus: SyncStatus.values.firstWhere(
+        (e) => e.name == map['sync_status'],
+        orElse: () => SyncStatus.synced,
+      ),
     );
   }
 
@@ -107,8 +102,52 @@ class TransaksiModel {
       'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
       'nama_sub_kategori': namaSubKategori,
-      'diperbarui': diperbarui?.toIso8601String(),
+      'diperbarui': diperbarui?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
+      // diubah: Menyimpan nama enum sebagai string.
+      'sync_status': syncStatus.name,
     };
+  }
+
+  TransaksiModel salinDengan({
+    String? id,
+    DateTime? tanggal,
+    String? keterangan,
+    double? jumlah,
+    TipeTransaksi? tipe,
+    String? idDompet,
+    String? namaDompet,
+    String? idKategori,
+    String? namaKategori,
+    String? idPelanggan,
+    String? namaPelanggan,
+    String? idPaket,
+    String? namaPaket,
+    String? idSubKategori,
+    String? namaSubKategori,
+    DateTime? diperbarui,
+    DateTime? diarsipkan,
+    SyncStatus? syncStatus,
+  }) {
+    return TransaksiModel(
+      id: id ?? this.id,
+      tanggal: tanggal ?? this.tanggal,
+      keterangan: keterangan ?? this.keterangan,
+      jumlah: jumlah ?? this.jumlah,
+      tipe: tipe ?? this.tipe,
+      idDompet: idDompet ?? this.idDompet,
+      namaDompet: namaDompet ?? this.namaDompet,
+      idKategori: idKategori ?? this.idKategori,
+      namaKategori: namaKategori ?? this.namaKategori,
+      idPelanggan: idPelanggan ?? this.idPelanggan,
+      namaPelanggan: namaPelanggan ?? this.namaPelanggan,
+      idPaket: idPaket ?? this.idPaket,
+      namaPaket: namaPaket ?? this.namaPaket,
+      idSubKategori: idSubKategori ?? this.idSubKategori,
+      namaSubKategori: namaSubKategori ?? this.namaSubKategori,
+      diperbarui: diperbarui ?? this.diperbarui,
+      diarsipkan: diarsipkan ?? this.diarsipkan,
+      syncStatus: syncStatus ?? this.syncStatus,
+    );
   }
 }
