@@ -1,26 +1,20 @@
 // path : lib/data/operasi/dompet_operasi.dart
+// diubah: Menghapus semua logika SyncStatus dan menyederhanakan operasi.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:admin_wifi/model/enum/sync_status.dart';
 
 class DompetOperasi {
   final dbHelper = DatabaseHelper.instance;
 
-  /* OPERASI CRUD KE SQLITE */
-
-  // diubah: Menambahkan logika untuk mengatur status sinkronisasi secara eksplisit
+  // diubah: Menyederhanakan pembuatan dompet tanpa SyncStatus
   Future<void> createDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
-    // diubah: Menggunakan 'copyWith' yang merupakan nama metode standar.
-    final dompetBaru = dompet.copyWith(
-      syncStatus: SyncStatus.write,
-      diperbarui: DateTime.now(),
-    );
+    // diubah: Langsung menyimpan data tanpa modifikasi status
     await db.insert(
       'dompet',
-      dompetBaru.toMap(), // Menyimpan objek yang sudah di-override
+      dompet.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -28,7 +22,6 @@ class DompetOperasi {
   Future<List<DompetModel>> getDompet() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('dompet');
-
     return List.generate(maps.length, (i) {
       return DompetModel.fromMap(maps[i]);
     });
@@ -41,13 +34,13 @@ class DompetOperasi {
       where: 'id = ?',
       whereArgs: [id],
     );
-
     if (maps.isNotEmpty) {
       return DompetModel.fromMap(maps.first);
     }
     return null;
   }
 
+  // diubah: Menyederhanakan pembaruan dompet tanpa SyncStatus
   Future<void> updateDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
     await db.update(
@@ -57,9 +50,16 @@ class DompetOperasi {
       whereArgs: [dompet.id],
     );
   }
-
-
-  // == FUNGSI PENGHITUNGAN SALDO ==
+  
+  // ditambahkan: Metode untuk menghapus dompet secara permanen
+  Future<void> deleteDompet(String id) async {
+    final db = await dbHelper.database;
+    await db.delete(
+      'dompet',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 
   Future<double> getTotalSaldo() async {
     final db = await dbHelper.database;
@@ -91,97 +91,8 @@ class DompetOperasi {
     }
     return 0.0;
   }
-
-  // == METODE BARU UNTUK SINKRONISASI INKREMENTAL ==
-
-  Future<List<DompetModel>> getPerubahan(DateTime since) async {
-    final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'dompet',
-      where: 'diperbarui > ?',
-      whereArgs: [since.toIso8601String()],
-    );
-    return List.generate(maps.length, (i) => DompetModel.fromMap(maps[i]));
-  }
-
-  Future<void> sisipkanAtauPerbaruiBatch(List<DompetModel> items) async {
-    final db = await dbHelper.database;
-    final batch = db.batch();
-    for (var item in items) {
-      batch.insert(
-        'dompet',
-        item.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
-  }
-
-  Future<void> unggahDompetKeFirebase() async {
-    final db = await dbHelper.database;
-    final firestore = FirebaseFirestore.instance;
-
-    final List<Map<String, dynamic>> maps = await db.query(
-      'dompet',
-      where: 'sync_status != ?',
-      whereArgs: [SyncStatus.synced.name],
-    );
-
-    if (maps.isEmpty) {
-      return;
-    }
-
-    final List<DompetModel> daftarDompet = List.generate(
-      maps.length,
-      (i) => DompetModel.fromMap(maps[i]),
-    );
-
-    final batchFirestore = firestore.batch();
-    final batchLokal = db.batch();
-
-    for (final dompet in daftarDompet) {
-      final docRef = firestore.collection('dompet').doc(dompet.id);
-
-      switch (dompet.syncStatus) {
-        case SyncStatus.write:
-          final dataUnggah = dompet.toMap();
-          dataUnggah.remove('sync_status');
-          batchFirestore.set(docRef, dataUnggah);
-          batchLokal.update(
-            'dompet',
-            {'sync_status': SyncStatus.synced.name},
-            where: 'id = ?',
-            whereArgs: [dompet.id],
-          );
-          break;
-
-        case SyncStatus.update:
-          final dataUnggah = dompet.toMap();
-          dataUnggah.remove('sync_status');
-          batchFirestore.update(docRef, dataUnggah);
-          batchLokal.update(
-            'dompet',
-            {'sync_status': SyncStatus.synced.name},
-            where: 'id = ?',
-            whereArgs: [dompet.id],
-          );
-          break;
-
-        case SyncStatus.deleted:
-          batchFirestore.delete(docRef);
-          batchLokal.delete('dompet', where: 'id = ?', whereArgs: [dompet.id]);
-          break;
-
-        case SyncStatus.synced:
-          break;
-      }
-    }
-
-    try {
-      await batchFirestore.commit();
-      await batchLokal.commit(noResult: true);
-    } catch (e) {
-      //
-    }
-  }
+  
+  // dihapus: getPerubahan, sisipkanAtauPerbaruiBatch, dan unggahDompetKeFirebase
+  // tidak lagi relevan setelah penghapusan SyncStatus. Logika sinkronisasi
+  // akan ditangani secara berbeda jika diperlukan nanti.
 }

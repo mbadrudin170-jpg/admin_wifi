@@ -1,5 +1,5 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
-// diubah: Mengganti PelangganAktif menjadi PelangganAktifModel di seluruh file
+// diubah: Menghapus logika SyncStatus dan menyederhanakan operasi CRUD.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
@@ -15,23 +15,13 @@ class PelangganAktifOperasi {
   final NotifikasiServis _notifikasiServis = NotifikasiServis();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
-  // diubah: Menggunakan PelangganAktifModel
+  // diubah: Menghapus pemeriksaan status untuk unggah
   Future<void> unggahKeFirebase(PelangganAktifModel pelanggan) async {
-    // Hanya unggah jika statusnya adalah 'write'
-    if (pelanggan.syncStatus != SyncStatus.write) {
-      developer.log(
-        "[FIREBASE] Unggahan dilewati untuk pelanggan (ID: ${pelanggan.id}) karena status bukan 'write'.",
-        name: 'PelangganAktifOperasi',
-      );
-      return; // Berhenti jika status bukan write
-    }
-
     final firestore = FirebaseFirestore.instance;
     final docRef = firestore.collection('pelanggan_aktif').doc(pelanggan.id);
 
-    // Buat salinan data dan ubah status sinkronisasi untuk dikirim ke Firebase
+    // diubah: Menggunakan toMap() dari model, yang seharusnya tidak lagi mengandung sync_status
     final dataToUpload = pelanggan.toMap();
-    dataToUpload['sync_status'] = SyncStatus.synced.name;
 
     try {
       await docRef.set(dataToUpload);
@@ -49,33 +39,13 @@ class PelangganAktifOperasi {
     }
   }
 
-  Future<void> tandaiSudahSinkron(String pelangganId) async {
-    final db = await dbHelper.database;
-    await db.update(
-      'pelanggan_aktif',
-      {'sync_status': SyncStatus.synced.name},
-      where: 'id = ?',
-      whereArgs: [pelangganId],
-    );
-    developer.log(
-      '🔄 [LOKAL] Pelanggan (ID: $pelangganId) ditandai sudah sinkron.',
-      name: 'PelangganAktifOperasi',
-    );
-  }
+  // dihapus: Fungsi tandaiSudahSinkron tidak diperlukan lagi.
 
-  // diubah: Menggunakan PelangganAktifModel
+  // diubah: Menyederhanakan proses unduh tanpa SyncStatus
   Future<int> unduhPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
-    final now = DateTime.now();
 
-    final pelangganAktifWithStatus = pelangganAktif.copyWith(
-      syncStatus: SyncStatus.synced,
-      diperbarui: now,
-    );
-
-    final data = pelangganAktifWithStatus.toMap();
-    // SOLUSI: Pastikan sync_status selalu disimpan sebagai string
-    data['sync_status'] = SyncStatus.synced.name;
+    final data = pelangganAktif.toMap();
 
     final result = await db.insert(
       'pelanggan_aktif',
@@ -83,28 +53,22 @@ class PelangganAktifOperasi {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    await _jadwalkanNotifikasi(pelangganAktifWithStatus);
-    await PesanInfoPaket.kirimRincianPaket(pelangganAktifWithStatus);
+    await _jadwalkanNotifikasi(pelangganAktif);
+    // Note: Consider if sending WhatsApp message is appropriate for a download action.
+    // await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
 
     developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) dibuat dan ditandai untuk diunggah.',
+      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diunduh dan disimpan.',
     );
     return result;
   }
 
-  // diubah: Menggunakan PelangganAktifModel
+  // diubah: Menyederhanakan pembuatan tanpa SyncStatus
   Future<int> createPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
-    final now = DateTime.now();
 
-    final pelangganAktifWithStatus = pelangganAktif.copyWith(
-      syncStatus: SyncStatus.write,
-      diperbarui: now,
-    );
-
-    final data = pelangganAktifWithStatus.toMap();
-    // SOLUSI: Pastikan sync_status selalu disimpan sebagai string
-    data['sync_status'] = SyncStatus.write.name;
+    // diubah: Langsung gunakan data dari model tanpa mengubah status
+    final data = pelangganAktif.toMap();
 
     final result = await db.insert(
       'pelanggan_aktif',
@@ -112,31 +76,26 @@ class PelangganAktifOperasi {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    await _jadwalkanNotifikasi(pelangganAktifWithStatus);
-    await PesanInfoPaket.kirimRincianPaket(pelangganAktifWithStatus);
+    await _jadwalkanNotifikasi(pelangganAktif);
+    await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
 
     developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) dibuat dan ditandai untuk diunggah.',
+      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil dibuat.',
     );
     return result;
   }
 
-  // diubah: Menggunakan PelangganAktifModel
+  // diubah: Mengambil semua pelanggan aktif tanpa filter status
   Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
     final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'pelanggan_aktif',
-      where: 'sync_status != ?',
-      whereArgs: [SyncStatus.deleted.name],
-    );
-    // diubah: Menggunakan PelangganAktifModel.fromMap
+    // dihapus: Where clause untuk sync_status tidak lagi diperlukan
+    final List<Map<String, dynamic>> maps = await db.query('pelanggan_aktif');
     return List.generate(
       maps.length,
       (i) => PelangganAktifModel.fromMap(maps[i]),
     );
   }
 
-  // diubah: Menggunakan PelangganAktifModel
   Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -145,58 +104,46 @@ class PelangganAktifOperasi {
       whereArgs: [id],
     );
     if (maps.isNotEmpty) {
-      // diubah: Menggunakan PelangganAktifModel.fromMap
       return PelangganAktifModel.fromMap(maps.first);
     }
     return null;
   }
 
-  // diubah: Menggunakan PelangganAktifModel
+  // diubah: Menyederhanakan pembaruan tanpa SyncStatus
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
-    final now = DateTime.now();
 
-    final pelangganAktifWithStatus = pelangganAktif.copyWith(
-      syncStatus: SyncStatus.write,
-      diperbarui: now,
-    );
-
-    final data = pelangganAktifWithStatus.toMap();
-    // SOLUSI: Pastikan sync_status selalu disimpan sebagai string
-    data['sync_status'] = SyncStatus.write.name;
+    final data = pelangganAktif.toMap();
 
     await db.update(
       'pelanggan_aktif',
       data,
       where: 'id = ?',
-      whereArgs: [pelangganAktifWithStatus.id],
+      whereArgs: [pelangganAktif.id],
     );
 
     developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) diperbarui dan ditandai untuk diunggah.',
+      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diperbarui.',
     );
-    await _jadwalkanNotifikasi(pelangganAktifWithStatus);
-    await PesanInfoPaket.kirimRincianPaket(pelangganAktifWithStatus);
+    await _jadwalkanNotifikasi(pelangganAktif);
+    await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
   }
 
+  // diubah: Menggunakan hard delete (hapus permanen)
   Future<void> hapusPelangganAktif(String id) async {
     final db = await dbHelper.database;
-    await db.update(
-      'pelanggan_aktif',
-      {'sync_status': SyncStatus.deleted.name},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    // diubah: dari update (soft delete) menjadi delete (hard delete)
+    await db.delete('pelanggan_aktif', where: 'id = ?', whereArgs: [id]);
 
     developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: $id) ditandai untuk dihapus.',
+      '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil dihapus permanen.',
     );
+    // Batalkan notifikasi terkait
     await _notifikasiServis.batalNotifikasi(id.hashCode);
+    await _notifikasiServis.batalNotifikasi((id.hashCode + 1));
   }
 
-  // diubah: Menggunakan PelangganAktifModel
   Future<void> _jadwalkanNotifikasi(PelangganAktifModel pelangganAktif) async {
-    // diubah: perlu cek null safety
     final pelanggan = await _pelangganOperasi.getPelangganById(
       pelangganAktif.idPelanggan,
     );
@@ -255,7 +202,6 @@ class PelangganAktifOperasi {
     final batch = db.batch();
     for (var item in items) {
       batch.insert(
-        // diubah: tabel seharusnya 'pelanggan_aktif'
         'pelanggan_aktif',
         item.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
