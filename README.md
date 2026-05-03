@@ -1,21 +1,25 @@
 # Struktur proyek
+
+
+admin-flutter-61275337:~/myapp{main}$ ls -R lib/
 lib/:
 data                   halaman_utama.dart       model     splash_screen.dart  widget
 firebase_options.dart  main.dart                server    utils
 halaman                migrasi_diarsipkan.dart  services  whatsapp
 
 lib/data:
-operasi  services  sqlite.dart
+operasi  services  sqlite.dart  sync
 
 lib/data/operasi:
-dompet_operasi.dart           pelanggan_operasi.dart
-kategori_operasi.dart         pesan_operasi.dart
-kritik_saran_operasi.dart     riwayat_langganan_operasi.dart
-paket_operasi.dart            transaksi_operasi.dart
-pelanggan_aktif_operasi.dart
+dompet_operasi.dart        paket_operasi.dart            pesan_operasi.dart
+kategori_operasi.dart      pelanggan_aktif_operasi.dart  riwayat_langganan_operasi.dart
+kritik_saran_operasi.dart  pelanggan_operasi.dart        transaksi_operasi.dart
 
 lib/data/services:
 navigasi_servis.dart  sinkronisasi_database.dart
+
+lib/data/sync:
+unggah_data.dart
 
 lib/halaman:
 detail  form  lainnya  tab
@@ -26,9 +30,8 @@ detail_kritik_saran.dart  detail_pelanggan.dart
 detail_paket.dart         detail_riwayat_langganan.dart
 
 lib/halaman/form:
-form_dompet.dart                  form_paket.dart            form_transaksi.dart
-form_edit_riwayat_langganan.dart  form_pelanggan_aktif.dart
-form_kategori.dart                form_pelanggan.dart
+form_dompet.dart                  form_kategori.dart  form_pelanggan_aktif.dart  form_transaksi.dart
+form_edit_riwayat_langganan.dart  form_paket.dart     form_pelanggan.dart
 
 lib/halaman/lainnya:
 kategori.dart      paket.dart      riwayat_aktivasi_paket.dart
@@ -39,10 +42,9 @@ dompet.dart                         home.dart     pelanggan_aktif.dart  transaks
 fungsi_menampilkan_notifikasi.dart  lainnya.dart  pesan.dart
 
 lib/model:
-dompet_model.dart        paket_model.dart            riwayat_langganan_model.dart
-enum                     pelanggan_aktif_model.dart  transaksi_model.dart
-kategori_model.dart      pelanggan_model.dart
-kritik_saran_model.dart  pesan_model.dart
+dompet_model.dart    kritik_saran_model.dart     pelanggan_model.dart          transaksi_model.dart
+enum                 paket_model.dart            pesanan_model.dart
+kategori_model.dart  pelanggan_aktif_model.dart  riwayat_langganan_model.dart
 
 lib/model/enum:
 status_pembayaran.dart
@@ -51,8 +53,7 @@ lib/server:
 server_lokal.dart
 
 lib/services:
-cek_koneksi_internet.dart              notifikasi_servis.dart
-cek_langganan_kadaluarsa_service.dart
+cek_koneksi_internet.dart  cek_langganan_kadaluarsa_service.dart  notifikasi_servis.dart
 
 lib/utils:
 colors.dart  format_util.dart  perhitungan_util.dart  sync_manager.dart
@@ -61,8 +62,8 @@ lib/whatsapp:
 info_paket.dart
 
 lib/widget:
-nama_dari_id.dart  nama_pelanggan.dart
-nama_paket.dart    thousands_input_formatter.dart
+nama_dari_id.dart  nama_paket.dart  nama_pelanggan.dart  thousands_input_formatter.dart
+admin-flutter-61275337:~/myapp{main}$ 
 
 ---
 ## Dokumentasi File Model

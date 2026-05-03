@@ -7,7 +7,6 @@ import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/enum/sync_status.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 
