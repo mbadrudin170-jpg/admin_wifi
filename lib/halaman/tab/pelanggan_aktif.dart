@@ -228,7 +228,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
             backgroundColor: Colors.green,
           ),
         );
-        _loadData(forceRefresh: true);
+        setState(() {
+          _semuaPelanggan.removeWhere((p) => p.id == pelangganAktif.id);
+          _hasilFilter.removeWhere((p) => p.id == pelangganAktif.id);
+        });
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

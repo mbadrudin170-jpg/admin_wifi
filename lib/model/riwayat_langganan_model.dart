@@ -116,7 +116,9 @@ class RiwayatLanggananModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
 
       // lifecycle
-      'isDeleted': isDeleted,
+      'isDeleted': isDeleted
+          ? 1
+          : 0, // diubah: [mengubah boolean ke integer untuk sqlite]
     };
   }
 
