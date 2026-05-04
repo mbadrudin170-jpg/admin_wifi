@@ -9,7 +9,7 @@ class DompetModel {
   final double saldo;
   final DateTime? diperbarui;
   // dihapus: karena tidak digunakan lagi
-  // final SyncStatus syncStatus; 
+  // final SyncStatus syncStatus;
   final bool isDeleted;
   final DateTime? diarsipkan;
 

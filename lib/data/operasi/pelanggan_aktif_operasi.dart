@@ -1,5 +1,5 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
-// diubah: Menambahkan fungsi untuk mengarsipkan semua pelanggan aktif.
+// diubah: Memperbaiki createPelangganAktif untuk memastikan ID unik dan mengembalikan objek lengkap.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
@@ -21,17 +21,21 @@ class PelangganAktifOperasi {
   final NotifikasiServis _notifikasiServis = NotifikasiServis();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
-  // untuk membuat pelanggan aktif baru
-  Future<int> createPelangganAktif(PelangganAktifModel pelangganAktif) async {
+  // diubah: Mengembalikan PelangganAktifModel agar ID yang dibuat bisa didapatkan.
+  Future<PelangganAktifModel> createPelangganAktif(
+    PelangganAktifModel pelangganAktif,
+  ) async {
     final db = await dbHelper.database;
 
+    // ditambah: Membuat ID unik jika belum ada dan menambahkan timestamp 'diperbarui'.
     final pelangganUntukDisimpan = pelangganAktif.copyWith(
-      id: pelangganAktif.id ?? uuid.v4(),
+      id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
+      diperbarui: DateTime.now(),
     );
 
     final data = pelangganUntukDisimpan.toMap();
 
-    final result = await db.insert(
+    await db.insert(
       'pelanggan_aktif',
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -41,9 +45,11 @@ class PelangganAktifOperasi {
     await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
 
     developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil dibuat.',
+      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat.',
     );
-    return result;
+
+    // ditambah: Mengembalikan objek lengkap yang sudah divalidasi dan memiliki ID.
+    return pelangganUntukDisimpan;
   }
 
   // untuk mengambil semua data pelanggan aktif yang belum diarsipkan
@@ -235,7 +241,7 @@ class PelangganAktifOperasi {
       }
 
       // Lakukan soft delete dengan memanggil fungsi arsipkan
-      await arsipkanPelangganAktif(pelanggan.id!);
+      await arsipkanPelangganAktif(pelanggan.id);
     }
 
     developer.log(
@@ -260,7 +266,7 @@ class PelangganAktifOperasi {
 
     for (final pelanggan in semuaPelanggan) {
       // Lakukan soft delete dengan memanggil fungsi arsipkan yang sudah ada
-      await arsipkanPelangganAktif(pelanggan.id!);
+      await arsipkanPelangganAktif(pelanggan.id);
     }
 
     developer.log(

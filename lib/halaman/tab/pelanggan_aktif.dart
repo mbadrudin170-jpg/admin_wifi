@@ -219,7 +219,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     if (konfirmasi == true) {
       try {
-        await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id!);
+        await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

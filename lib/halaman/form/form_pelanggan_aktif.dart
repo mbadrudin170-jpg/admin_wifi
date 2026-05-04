@@ -18,6 +18,7 @@ import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:uuid/uuid.dart';
 
 class FormPelangganAktif extends StatefulWidget {
   final PelangganAktifModel? pelangganAktif;
@@ -214,7 +215,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         );
 
         final pelangganAktifData = PelangganAktifModel(
-          id: _isEditMode ? widget.pelangganAktif!.id : null,
+          id: _isEditMode ? widget.pelangganAktif!.id : '',
           idPelanggan: _selectedPelanggan!.id,
           idPaket: selectedPaket.id,
           tanggalMulai: tanggalMulai,
@@ -236,6 +237,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
           if (_statusPembayaran == StatusPembayaran.lunas) {
             final transaksi = TransaksiModel(
+              id: const Uuid().v4(),
               tanggal: tanggalMulai,
               keterangan:
                   'Aktivasi paket: ${selectedPaket.nama} - ${_selectedPelanggan!.nama}',

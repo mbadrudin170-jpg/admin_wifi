@@ -1,9 +1,9 @@
 // path: lib/model/pelanggan_aktif_model.dart
-// diubah: Menghapus properti sinkronisasi yang tidak digunakan.
+// diubah: Menambahkan validasi pada factory fromMap untuk memastikan ID tidak null.
 import 'enum/status_pembayaran.dart';
 
 class PelangganAktifModel {
-  final String? id;
+  final String id;
   final String idPelanggan;
   final String idPaket;
   final DateTime tanggalMulai;
@@ -16,7 +16,7 @@ class PelangganAktifModel {
   final DateTime? diarsipkan;
 
   PelangganAktifModel({
-    this.id,
+    required this.id,
     required this.idPelanggan,
     required this.idPaket,
     required this.tanggalMulai,
@@ -66,10 +66,32 @@ class PelangganAktifModel {
   }
 
   factory PelangganAktifModel.fromMap(Map<String, dynamic> map) {
+    // ditambah: Menambahkan validasi untuk memastikan 'id' dan foreign keys tidak null atau kosong.
+    final id = map['id'] as String?;
+    if (id == null || id.isEmpty) {
+      throw ArgumentError(
+        'Gagal membuat PelangganAktifModel: ID tidak boleh null atau kosong. Data: $map',
+      );
+    }
+
+    final idPelanggan = map['id_pelanggan'] as String?;
+    if (idPelanggan == null || idPelanggan.isEmpty) {
+      throw ArgumentError(
+        'Gagal membuat PelangganAktifModel: id_pelanggan tidak boleh null atau kosong. Data: $map',
+      );
+    }
+
+    final idPaket = map['id_paket'] as String?;
+    if (idPaket == null || idPaket.isEmpty) {
+      throw ArgumentError(
+        'Gagal membuat PelangganAktifModel: id_paket tidak boleh null atau kosong. Data: $map',
+      );
+    }
+
     return PelangganAktifModel(
-      id: map['id'],
-      idPelanggan: map['id_pelanggan'],
-      idPaket: map['id_paket'],
+      id: id,
+      idPelanggan: idPelanggan,
+      idPaket: idPaket,
       tanggalMulai: DateTime.parse(map['tanggalMulai']),
       tanggalBerakhir: DateTime.parse(map['tanggalBerakhir']),
       status: StatusPembayaran.values.firstWhere(

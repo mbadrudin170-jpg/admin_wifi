@@ -10,9 +10,9 @@ class DompetOperasi {
   // diubah: Menambahkan pengisian timestamp 'diperbarui' saat membuat dompet
   Future<void> createDompet(DompetModel dompet) async {
     final db = await dbHelper.database;
-    final now = DateTime.now();
+
     // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
-    final data = dompet.copyWith(diperbarui: now).toMap();
+    final data = dompet.copyWith(diperbarui: DateTime.now()).toMap();
     await db.insert(
       'dompet',
       data,
@@ -47,12 +47,7 @@ class DompetOperasi {
     final now = DateTime.now();
     // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
     final data = dompet.copyWith(diperbarui: now).toMap();
-    await db.update(
-      'dompet',
-      data,
-      where: 'id = ?',
-      whereArgs: [dompet.id],
-    );
+    await db.update('dompet', data, where: 'id = ?', whereArgs: [dompet.id]);
   }
 
   // ditambahkan: Metode untuk menghapus dompet secara permanen

@@ -8,17 +8,23 @@ import 'package:uuid/uuid.dart';
 const uuid = Uuid();
 
 class KategoriOperasi {
+  final now = DateTime.now();
+
   // diubah: Menambahkan pengisian timestamp 'diperbarui'
-  Future<void> createKategori(KategoriModel kategori) async {
+  Future<KategoriModel> createKategori(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
-    final now = DateTime.now();
-    // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini.
-    final data = kategori.copyWith(diperbarui: now).toMap();
+    final kategoriBaru = kategori.copyWith(
+      id: kategori.id ?? uuid.v4(),
+      diperbarui: now,
+    );
+    final data = kategoriBaru.toMap();
+
     await db.insert(
       'kategori',
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    return kategoriBaru;
   }
 
   Future<List<KategoriModel>> getKategori() async {
