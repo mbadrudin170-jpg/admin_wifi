@@ -1,5 +1,21 @@
 ## Dokumen Lengkap Proyek Saya per File
 
+### **File: perintah_terminal.md**
+**Fitur:** Dokumentasi Perintah Terminal
+**Tujuan file ini dibuat:** Untuk menyediakan daftar perintah terminal yang sering digunakan dalam pengembangan aplikasi Flutter, mencakup manajemen proyek, dependensi, proses build, analisis kode, dan diagnostik. Ini berfungsi sebagai panduan cepat (quick reference) bagi developer.
+**Isi File:**
+- **Manajemen Proyek & Dependensi**: Perintah seperti `flutter clean`, `flutter pub get`, `flutter pub add`, dll.
+- **Proses Build & Menjalankan Aplikasi**: Perintah seperti `flutter build apk`, `flutter run`, dll.
+- **Analisis & Kualitas Kode**: Perintah seperti `flutter analyze`, `flutter test`, `dart format .`.
+- **Pembuatan Kode**: Perintah untuk `build_runner`.
+- **Diagnostik & Pemecahan Masalah**: Perintah seperti `flutter doctor` dan beberapa tips untuk pemecahan masalah.
+
+### **File: rencana.md**
+**Fitur:** Rencana Kerja Jangka Pendek
+**Tujuan file ini dibuat:** Untuk mencatat tugas-tugas spesifik yang harus segera dikerjakan oleh AI. File ini bersifat sementara dan akan dihapus setelah tugas-tugas di dalamnya selesai dilaksanakan.
+**Isi File Saat Ini:**
+- Tugas utama yang tercatat adalah "mengosongkan isi dalam kolom `diarsipkan` di Firebase pada koleksi `riwayat_langganan`". Ini adalah tugas pemeliharaan data.
+
 ### **File: lib/main.dart**
 **Fitur:** Inisialisasi Aplikasi & Konfigurasi Tema
 
