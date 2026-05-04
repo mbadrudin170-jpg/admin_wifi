@@ -1,10 +1,10 @@
 // path: lib/model/pesanan_model.dart
-// diubah: Menambahkan field status, diperbarui, isDeleted, dan diarsipkan
-
+// diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class PesananModel {
-  final int? id;
+  final String id; // diubah: dari int? menjadi String
   final String idPelanggan;
   final String idPaket;
   final DateTime tanggal;
@@ -14,7 +14,7 @@ class PesananModel {
   final DateTime? diarsipkan;
 
   PesananModel({
-    this.id,
+    String? id, // diubah: id bisa null saat pembuatan
     required this.idPelanggan,
     required this.idPaket,
     required this.tanggal,
@@ -22,11 +22,10 @@ class PesananModel {
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
-  });
+  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
 
-  // ditambah: Metode copyWith untuk membuat salinan objek dengan nilai yang diperbarui.
   PesananModel copyWith({
-    int? id,
+    String? id,
     String? idPelanggan,
     String? idPaket,
     DateTime? tanggal,
@@ -47,7 +46,6 @@ class PesananModel {
     );
   }
 
-  // ditambah: Helper untuk parsing tanggal dari berbagai format (Timestamp, String)
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
     if (dateValue is Timestamp) return dateValue.toDate();
@@ -55,7 +53,6 @@ class PesananModel {
     return null;
   }
 
-  // Untuk simpan ke SQLite
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -69,12 +66,11 @@ class PesananModel {
     };
   }
 
-  // Untuk ambil dari SQLite
   factory PesananModel.fromMap(Map<String, dynamic> map) {
     return PesananModel(
       id: map['id'],
-      idPelanggan: map['id_pelanggan'],
-      idPaket: map['id_paket'],
+      idPelanggan: map['id_pelanggan'] ?? '',
+      idPaket: map['id_paket'] ?? '',
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
       status: map['status'] ?? 'baru',
       diperbarui: _parseDateTime(map['diperbarui']),

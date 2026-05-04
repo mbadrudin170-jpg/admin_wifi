@@ -1,36 +1,29 @@
 // path: lib/model/kategori_model.dart
-// Model ini mendefinisikan struktur data untuk kategori dan sub-kategori transaksi.
-// Ini termasuk tipe kategori (pemasukan atau pengeluaran) dan daftar sub-kategori.
-// Digunakan untuk mengelola data kategori dari dan ke Firestore.
+// diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 enum TipeKategori { pemasukan, pengeluaran, transfer }
 
-// diubah: nama kelas untuk konsistensi penamaan
 class KategoriModel {
-  String? id;
+  final String id; // diubah: menjadi non-nullable
   final String nama;
   final TipeKategori tipe;
-  // diubah: tipe data list
   final List<SubKategoriModel> subKategori;
   DateTime? diperbarui;
   bool isDeleted;
-  // ditambah: Menambahkan properti untuk timestamp pengarsipan.
   DateTime? diarsipkan;
 
-  // diubah: nama konstruktor
   KategoriModel({
-    this.id,
+    String? id, // diubah: id bisa null saat pembuatan
     required this.nama,
     required this.tipe,
     this.subKategori = const [],
     this.diperbarui,
     this.isDeleted = false,
-    // ditambah: Menambahkan diarsipkan ke konstruktor.
     this.diarsipkan,
-  });
+  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
 
-  // ditambah: copyWith method
   KategoriModel copyWith({
     String? id,
     String? nama,
@@ -51,7 +44,6 @@ class KategoriModel {
     );
   }
 
-  // ditambah: Helper untuk parsing tanggal dari berbagai format (Timestamp, String).
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
     if (dateValue is Timestamp) return dateValue.toDate();
@@ -59,9 +51,7 @@ class KategoriModel {
     return null;
   }
 
-  // diubah: nama factory dan tipe kembalian
   factory KategoriModel.fromMap(Map<String, dynamic> map) {
-    // diubah: pembuatan instance kelas
     return KategoriModel(
       id: map['id'],
       nama: map['nama'] ?? '',
@@ -69,12 +59,8 @@ class KategoriModel {
         (e) => e.name == map['tipe'],
         orElse: () => TipeKategori.pemasukan,
       ),
-      // diubah: menggunakan SubKategoriModel.fromMap
       subKategori: (map['subKategori'] as List<dynamic>? ?? [])
-          .map(
-            (subMap) =>
-                SubKategoriModel.fromMap(subMap as Map<String, dynamic>),
-          )
+          .map((subMap) => SubKategoriModel.fromMap(subMap as Map<String, dynamic>))
           .toList(),
       diperbarui: _parseDateTime(map['diperbarui']),
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
@@ -82,41 +68,33 @@ class KategoriModel {
     );
   }
 
-  /// Mengonversi objek Kategori menjadi Map untuk **database SQLite**.
-  /// Properti subKategori dihilangkan karena disimpan di tabel terpisah.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'nama': nama,
       'tipe': tipe.name,
       'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0, // diubah: konsistensi dengan model lain
-      'diarsipkan': diarsipkan?.toIso8601String(), // ditambah
-      // Kolom 'subKategori' dihapus dari sini untuk menghindari error SQLite
+      'isDeleted': isDeleted ? 1 : 0,
+      'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 }
 
-// diubah: nama kelas untuk konsistensi penamaan
 class SubKategoriModel {
-  String? id;
+  final String id; // diubah: menjadi non-nullable
   final String nama;
   DateTime? diperbarui;
   bool isDeleted;
-  // ditambah: Menambahkan properti untuk timestamp pengarsipan.
   DateTime? diarsipkan;
 
-  // diubah: nama konstruktor
   SubKategoriModel({
-    this.id,
+    String? id, // diubah: id bisa null saat pembuatan
     required this.nama,
     this.diperbarui,
     this.isDeleted = false,
-    // ditambah: Menambahkan diarsipkan ke konstruktor.
     this.diarsipkan,
-  });
+  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
 
-  // ditambah: copyWith method
   SubKategoriModel copyWith({
     String? id,
     String? nama,
@@ -133,7 +111,6 @@ class SubKategoriModel {
     );
   }
 
-  // ditambah: Helper untuk parsing tanggal dari berbagai format (Timestamp, String).
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
     if (dateValue is Timestamp) return dateValue.toDate();
@@ -141,9 +118,7 @@ class SubKategoriModel {
     return null;
   }
 
-  // diubah: nama factory dan tipe kembalian
   factory SubKategoriModel.fromMap(Map<String, dynamic> map) {
-    // diubah: pembuatan instance kelas
     return SubKategoriModel(
       id: map['id'],
       nama: map['nama'] ?? '',
@@ -158,8 +133,8 @@ class SubKategoriModel {
       'id': id,
       'nama': nama,
       'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0, // diubah: konsistensi dengan model lain
-      'diarsipkan': diarsipkan?.toIso8601String(), // ditambah
+      'isDeleted': isDeleted ? 1 : 0,
+      'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 }

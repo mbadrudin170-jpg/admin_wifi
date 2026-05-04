@@ -1,5 +1,6 @@
 // path: lib/model/pelanggan_aktif_model.dart
-// diubah: Menambahkan validasi pada factory fromMap untuk memastikan ID tidak null.
+// diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
+import 'package:uuid/uuid.dart';
 import 'enum/status_pembayaran.dart';
 
 class PelangganAktifModel {
@@ -10,13 +11,11 @@ class PelangganAktifModel {
   final DateTime tanggalBerakhir;
   final StatusPembayaran status;
   final DateTime? diperbarui;
-
-  // tambahan: soft delete & arsip
   final bool isDeleted;
   final DateTime? diarsipkan;
 
   PelangganAktifModel({
-    required this.id,
+    String? id, // diubah: id bisa null saat pembuatan
     required this.idPelanggan,
     required this.idPaket,
     required this.tanggalMulai,
@@ -25,7 +24,7 @@ class PelangganAktifModel {
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
-  });
+  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
@@ -66,7 +65,6 @@ class PelangganAktifModel {
   }
 
   factory PelangganAktifModel.fromMap(Map<String, dynamic> map) {
-    // ditambah: Menambahkan validasi untuk memastikan 'id' dan foreign keys tidak null atau kosong.
     final id = map['id'] as String?;
     if (id == null || id.isEmpty) {
       throw ArgumentError(
@@ -115,7 +113,7 @@ class PelangganAktifModel {
       'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
       'status': status.name,
       'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted,
+      'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }

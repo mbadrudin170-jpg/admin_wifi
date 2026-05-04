@@ -47,7 +47,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
   }
 
   Future<void> _updateStatus(PesananModel pesanan, String statusBaru) async {
-    await _pesanOperasi.updateStatusPesanan(pesanan.id!, statusBaru);
+    await _pesanOperasi.updateStatusPesanan(pesanan.id, statusBaru);
     await _muatPesanan();
 
     if (mounted) {

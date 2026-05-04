@@ -36,7 +36,7 @@ class PesananOperasi {
   }
 
   // Update status pesanan
-  Future<int> updateStatusPesanan(int id, String status) async {
+  Future<int> updateStatusPesanan(String id, String status) async {
     final db = await dbHelper.database;
     return await db.update(
       'pesanan',

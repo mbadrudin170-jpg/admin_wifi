@@ -41,7 +41,7 @@ class _DetailDompetState extends State<DetailDompet> {
     if (result == true) {
       // Ambil data dompet yang terbaru dari database
       final updatedDompet = await _dompetOperasi.getDompetById(
-        _dompetSaatIni.id!,
+        _dompetSaatIni.id,
       );
       if (updatedDompet != null) {
         // Perbarui state dengan data baru, yang akan memicu UI untuk rebuild
