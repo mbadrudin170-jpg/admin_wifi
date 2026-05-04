@@ -1,3 +1,5 @@
+// test/widget_test.dart
+// diubah: Mengganti tes default dengan tes yang relevan untuk aplikasi ini.
 // This is a basic Flutter widget test.
 //
 // To perform an interaction with a widget in your test, use the WidgetTester
@@ -11,20 +13,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:admin_wifi/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App starts with SplashScreen and navigates to HalamanUtama', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that SplashScreen is shown with its content.
+    expect(find.text('Admin WiFi'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Wait for all animations and async tasks to complete,
+    // which includes the navigation from SplashScreen to HalamanUtama.
+    // The duration is added to handle longer async operations during initialization.
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that HalamanUtama is now visible by checking for BottomNavigationBar items.
+    expect(find.text('Aktif'), findsOneWidget);
+    expect(find.text('Dompet'), findsOneWidget);
+    expect(find.text('Transaksi'), findsOneWidget);
+    expect(find.text('Lainnya'), findsOneWidget);
   });
 }
