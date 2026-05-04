@@ -8,9 +8,9 @@ class RiwayatLanggananOperasi {
   final dbHelper = DatabaseHelper.instance;
 
   // Tambah riwayat
-  Future<int> tambahRiwayatLangganan(RiwayatLanggananModel riwayat) async {
+  Future<void> tambahRiwayatLangganan(RiwayatLanggananModel riwayat) async {
     Database db = await dbHelper.database;
-    return await db.insert(
+    await db.insert(
       'riwayat_langganan',
       riwayat.toMapForSqflite(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -18,9 +18,9 @@ class RiwayatLanggananOperasi {
   }
 
   // diubah: Tambahkan fungsi update
-  Future<int> updateRiwayat(RiwayatLanggananModel riwayat) async {
+  Future<void> updateRiwayat(RiwayatLanggananModel riwayat) async {
     Database db = await dbHelper.database;
-    return await db.update(
+    await db.update(
       'riwayat_langganan',
       riwayat.toMapForSqflite(),
       where: 'id = ?',
@@ -38,9 +38,9 @@ class RiwayatLanggananOperasi {
   }
 
   // Hapus riwayat berdasarkan ID
-  Future<int> hapusRiwayat(String id) async {
+  Future<void> hapusRiwayat(String id) async {
     Database db = await dbHelper.database;
-    return await db.delete(
+    await db.delete(
       'riwayat_langganan',
       where: 'id = ?',
       whereArgs: [id],
@@ -48,9 +48,9 @@ class RiwayatLanggananOperasi {
   }
 
   // Hapus semua riwayat
-  Future<int> hapusSemuaRiwayat() async {
+  Future<void> hapusSemuaRiwayat() async {
     Database db = await dbHelper.database;
-    return await db.delete('riwayat_langganan');
+    await db.delete('riwayat_langganan');
   }
 
   // Ambil perubahan untuk sinkronisasi

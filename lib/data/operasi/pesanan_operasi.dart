@@ -1,4 +1,4 @@
-// lib/data/operasi/pesan_operasi.dart
+// lib/data/operasi/pesanan_operasi.dart
 // diubah: Mengganti path import pesan_model.dart menjadi pesanan_model.dart dan memperbaiki nama tabel
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
@@ -8,9 +8,9 @@ class PesananOperasi {
   final dbHelper = DatabaseHelper.instance;
 
   // Simpan pesanan baru
-  Future<int> simpanPesanan(PesananModel pesanan) async {
+  Future<void> simpanPesanan(PesananModel pesanan) async {
     final db = await dbHelper.database;
-    return await db.insert('pesanan', pesanan.toMap());
+    await db.insert('pesanan', pesanan.toMap());
   }
 
   // Ambil semua pesanan (terbaru di atas)
@@ -18,7 +18,7 @@ class PesananOperasi {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'pesanan',
-      orderBy: 'id DESC',
+      orderBy: 'tanggal DESC',
     );
     return maps.map((map) => PesananModel.fromMap(map)).toList();
   }
@@ -30,15 +30,15 @@ class PesananOperasi {
       'pesanan',
       where: 'status = ?',
       whereArgs: [status],
-      orderBy: 'id DESC',
+      orderBy: 'tanggal DESC',
     );
     return maps.map((map) => PesananModel.fromMap(map)).toList();
   }
 
   // Update status pesanan
-  Future<int> updateStatusPesanan(String id, String status) async {
+  Future<void> updateStatusPesanan(String id, String status) async {
     final db = await dbHelper.database;
-    return await db.update(
+    await db.update(
       'pesanan',
       {'status': status},
       where: 'id = ?',
@@ -47,9 +47,9 @@ class PesananOperasi {
   }
 
   // Hapus pesanan
-  Future<int> hapusPesanan(int id) async {
+  Future<void> hapusPesanan(String id) async {
     final db = await dbHelper.database;
-    return await db.delete('pesanan', where: 'id = ?', whereArgs: [id]);
+    await db.delete('pesanan', where: 'id = ?', whereArgs: [id]);
   }
 
   // Hitung total pesanan hari ini

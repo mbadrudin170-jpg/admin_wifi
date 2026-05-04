@@ -14,7 +14,7 @@ class KategoriOperasi {
   Future<KategoriModel> createKategori(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
     final kategoriBaru = kategori.copyWith(
-      id: kategori.id ?? uuid.v4(),
+      id: kategori.id,
       diperbarui: now,
     );
     final data = kategoriBaru.toMap();

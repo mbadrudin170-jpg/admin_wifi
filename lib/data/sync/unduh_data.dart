@@ -8,7 +8,7 @@ import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/pesan_operasi.dart';
+import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/model/dompet_model.dart';

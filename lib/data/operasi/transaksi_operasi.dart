@@ -11,10 +11,10 @@ class TransaksiOperasi {
   // ===================================================================
 
   /// (Create) Menambahkan satu transaksi baru ke dalam database.
-  Future<int> tambahTransaksi(TransaksiModel transaksi) async {
+  Future<void> tambahTransaksi(TransaksiModel transaksi) async {
     final db = await dbHelper.database;
     final dataBaru = transaksi.salinDengan(diperbarui: DateTime.now());
-    return await db.insert(
+    await db.insert(
       'transaksi',
       dataBaru.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,

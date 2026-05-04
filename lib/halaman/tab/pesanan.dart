@@ -1,8 +1,9 @@
-// Path: lib/halaman/tab/pesan.dart
+// path: lib/halaman/tab/pesanan.dart
+
 // diubah: Mengganti path import, memperbaiki instansiasi, dan memperbaiki logika status
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:admin_wifi/data/operasi/pesan_operasi.dart';
+import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 
 class HalamanPesan extends StatefulWidget {
@@ -84,7 +85,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
     );
 
     if (konfirmasi == true) {
-      await _pesanOperasi.hapusPesanan(pesanan.id!);
+      await _pesanOperasi.hapusPesanan(pesanan.id);
       await _muatPesanan();
 
       if (mounted) {
@@ -115,20 +116,20 @@ class _HalamanPesanState extends State<HalamanPesan> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _daftarPesanan.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inbox, size: 80, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text(
-                              'Belum ada pesanan',
-                              style: TextStyle(fontSize: 18, color: Colors.grey),
-                            ),
-                          ],
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox, size: 80, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'Belum ada pesanan',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
-                      )
-                    : _buildPesananList(),
+                      ],
+                    ),
+                  )
+                : _buildPesananList(),
           ),
         ],
       ),
