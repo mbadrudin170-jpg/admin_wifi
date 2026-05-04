@@ -84,10 +84,27 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     try {
       final koneksiTersedia = await KoneksiInternetService.cekKoneksi();
+      // diubah: Logika refresh dirombak untuk menangani timeout dan mode offline.
       if (koneksiTersedia && forceRefresh) {
-        await LayananUnggahData().unggahDataPelangganAktif();
+        // Menambahkan timeout untuk mencegah loading tanpa henti saat koneksi buruk.
+        await LayananUnggahData().unggahDataPelangganAktif().timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            // Memberikan pesan error yang jelas saat timeout terjadi.
+            throw 'Waktu sinkronisasi habis, periksa kembali koneksi internet Anda.';
+          },
+        );
         await SyncManager().setLastSyncTimestamp(now);
-        await Future.delayed(const Duration(milliseconds: 500));
+      } else if (!koneksiTersedia && forceRefresh) {
+        // ditambahkan: Menampilkan pesan jika pengguna mencoba refresh tanpa koneksi.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Jaringan tidak tersedia. Menampilkan data lokal.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
       }
       final pelangganList = await _pelangganOperasi.getPelanggan();
       _mapNamaPelanggan = {for (var p in pelangganList) p.id: p.nama};
