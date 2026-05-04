@@ -1,10 +1,9 @@
 // path: lib/model/pelanggan_aktif_model.dart
 // diubah: Menghapus properti sinkronisasi yang tidak digunakan.
-import 'package:uuid/uuid.dart';
 import 'enum/status_pembayaran.dart';
 
 class PelangganAktifModel {
-  final String id;
+  final String? id;
   final String idPelanggan;
   final String idPaket;
   final DateTime tanggalMulai;
@@ -17,7 +16,7 @@ class PelangganAktifModel {
   final DateTime? diarsipkan;
 
   PelangganAktifModel({
-    String? id,
+    this.id,
     required this.idPelanggan,
     required this.idPaket,
     required this.tanggalMulai,
@@ -26,7 +25,7 @@ class PelangganAktifModel {
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
-  }) : id = id ?? const Uuid().v4();
+  });
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;

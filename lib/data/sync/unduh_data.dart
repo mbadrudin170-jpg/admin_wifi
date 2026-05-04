@@ -20,12 +20,10 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
-import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LayananUnduhData {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SyncManager _syncManager = SyncManager();
 
   final DompetOperasi _dompetOperasi = DompetOperasi();
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
@@ -39,7 +37,7 @@ class LayananUnduhData {
   final PesananOperasi _pesanOperasi = PesananOperasi();
 
   // diubah: Fungsi ini sekarang memanggil fungsi unduh spesifik.
-  Future<void> sinkronisasiAwal() async {
+  Future<void> unduhSemuaData() async {
     try {
       await Future.wait([
         unduhDataDompet(),
@@ -52,8 +50,6 @@ class LayananUnduhData {
         unduhDataKritikSaran(),
         unduhDataPesanan(),
       ]);
-
-      await _syncManager.setLastSyncTimestamp(DateTime.now());
     } catch (e, s) {
       developer.log(
         'Gagal melakukan sinkronisasi awal',

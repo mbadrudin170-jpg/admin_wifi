@@ -6,12 +6,15 @@ import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
+import 'package:uuid/uuid.dart';
 
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
+
+const uuid = Uuid();
 
 class PelangganAktifOperasi {
   final dbHelper = DatabaseHelper.instance;
@@ -22,7 +25,11 @@ class PelangganAktifOperasi {
   Future<int> createPelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
 
-    final data = pelangganAktif.toMap();
+    final pelangganUntukDisimpan = pelangganAktif.copyWith(
+      id: pelangganAktif.id ?? uuid.v4(),
+    );
+
+    final data = pelangganUntukDisimpan.toMap();
 
     final result = await db.insert(
       'pelanggan_aktif',
@@ -30,8 +37,8 @@ class PelangganAktifOperasi {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    await _jadwalkanNotifikasi(pelangganAktif);
-    await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
+    await _jadwalkanNotifikasi(pelangganUntukDisimpan);
+    await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
 
     developer.log(
       '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil dibuat.',
@@ -228,7 +235,7 @@ class PelangganAktifOperasi {
       }
 
       // Lakukan soft delete dengan memanggil fungsi arsipkan
-      await arsipkanPelangganAktif(pelanggan.id);
+      await arsipkanPelangganAktif(pelanggan.id!);
     }
 
     developer.log(
@@ -253,7 +260,7 @@ class PelangganAktifOperasi {
 
     for (final pelanggan in semuaPelanggan) {
       // Lakukan soft delete dengan memanggil fungsi arsipkan yang sudah ada
-      await arsipkanPelangganAktif(pelanggan.id);
+      await arsipkanPelangganAktif(pelanggan.id!);
     }
 
     developer.log(

@@ -96,7 +96,6 @@ class LayananUnggahData {
     try {
       await Future.wait(daftarUnggah);
       final waktuSelesai = DateTime.now();
-      await _syncManager.setLastSyncTimestamp(waktuSelesai);
       developer.log(
         'Unggah massal selesai. Timestamp diperbarui ke: $waktuSelesai',
         name: 'UnggahDataService',
@@ -122,7 +121,6 @@ class LayananUnggahData {
       DompetModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -135,7 +133,6 @@ class LayananUnggahData {
       KategoriModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -148,7 +145,6 @@ class LayananUnggahData {
       KritikSaranModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -161,7 +157,6 @@ class LayananUnggahData {
       PaketModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -174,7 +169,6 @@ class LayananUnggahData {
       PelangganAktifModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -187,7 +181,6 @@ class LayananUnggahData {
       PelangganModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -200,7 +193,6 @@ class LayananUnggahData {
       PesananModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -213,7 +205,6 @@ class LayananUnggahData {
       RiwayatLanggananModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -226,7 +217,6 @@ class LayananUnggahData {
       TransaksiModel.fromMap,
       (m) => m.toMap(),
       waktu,
-      perbaruiTimestamp: true,
     );
   }
 
@@ -236,9 +226,8 @@ class LayananUnggahData {
     String namaKoleksi,
     T Function(Map<String, dynamic>) fromMap,
     Map<String, dynamic> Function(T) toMap,
-    DateTime waktuSinkronisasiTerakhir, {
-    bool perbaruiTimestamp = false,
-  }) async {
+    DateTime waktuSinkronisasiTerakhir,
+  ) async {
     try {
       final db = await _dbHelper.database;
 
@@ -271,16 +260,6 @@ class LayananUnggahData {
           'Batch unggah berhasil untuk tabel: $namaTabel ($itemsToCommit item)',
           name: 'UnggahDataService',
         );
-
-        // ditambah: Logika untuk memperbarui timestamp jika diminta.
-        if (perbaruiTimestamp) {
-          final waktuSelesai = DateTime.now();
-          await _syncManager.setLastSyncTimestamp(waktuSelesai);
-          developer.log(
-            'Timestamp diperbarui setelah unggah $namaTabel ke: $waktuSelesai',
-            name: 'UnggahDataService',
-          );
-        }
       }
     } catch (e, s) {
       developer.log(

@@ -3,6 +3,9 @@
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
+
+const uuid = Uuid();
 
 class KategoriOperasi {
   // diubah: Menambahkan pengisian timestamp 'diperbarui'

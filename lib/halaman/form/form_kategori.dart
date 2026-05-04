@@ -2,6 +2,8 @@
 // Halaman ini menyediakan formulir untuk menambah atau mengedit kategori.
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
+import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 
@@ -15,13 +17,14 @@ class FormKategoriPage extends StatefulWidget {
 
 class _FormKategoriPageState extends State<FormKategoriPage> {
   final _formKey = GlobalKey<FormState>();
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi(); // Instance operasi
+  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
+  final LayananUnggahData _layananUnggahData = LayananUnggahData();
 
   late TipeKategori _tipe;
   late TextEditingController _namaController;
   final _namaFocusNode = FocusNode();
-
   bool get _isEditMode => widget.kategori != null;
+  final _cekKoneksi = KoneksiInternetService.cekKoneksi();
 
   @override
   void initState() {
@@ -48,7 +51,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
       final kategoriBaru = KategoriModel(
-        id: _isEditMode ? widget.kategori!.id : null, // Pertahankan ID jika edit
+        id: _isEditMode ? widget.kategori?.id : null,
         nama: _namaController.text,
         tipe: _tipe,
         diperbarui: DateTime.now(),
@@ -60,11 +63,14 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
         } else {
           await _kategoriOperasi.createKategori(kategoriBaru);
         }
-
+        if (await _cekKoneksi) {
+          await _layananUnggahData.unggahDataKategori();
+        }
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar( // Tambahkan const
+          const SnackBar(
+            // Tambahkan const
             content: Text('Kategori berhasil disimpan!'),
             backgroundColor: Colors.green,
           ),
@@ -73,7 +79,8 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar( // Tidak bisa const karena ada variabel 'e'
+          SnackBar(
+            // Tidak bisa const karena ada variabel 'e'
             content: Text('Gagal menyimpan kategori: $e'),
             backgroundColor: Colors.red,
           ),
@@ -124,8 +131,8 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
                   return DropdownMenuItem<TipeKategori>(
                     value: tipe,
                     child: Text(
-                        tipe.name.substring(0, 1).toUpperCase() +
-                        tipe.name.substring(1),
+                      tipe.name.substring(0, 1).toUpperCase() +
+                          tipe.name.substring(1),
                     ),
                   );
                 }).toList(),

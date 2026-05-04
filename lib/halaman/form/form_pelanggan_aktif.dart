@@ -243,7 +243,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
               tipe: TipeTransaksi.pemasukan,
               idDompet: _selectedDompet!.id!,
               namaDompet: _selectedDompet!.namaDompet,
-              idKategori: _selectedKategori!.id ?? '',
+              idKategori: _selectedKategori!.id!,
               namaKategori: _selectedKategori!.nama,
               idPelanggan: _selectedPelanggan!.id,
               namaPelanggan: _selectedPelanggan!.nama,

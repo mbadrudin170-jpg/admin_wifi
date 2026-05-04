@@ -1,9 +1,11 @@
 // path: lib/halaman/tab/pelanggan_aktif.dart
 // diubah: Menghapus impor dan field yang tidak terpakai.
 
+import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/model/enum/status_pembayaran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
@@ -12,6 +14,7 @@ import 'package:admin_wifi/halaman/form/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 
 enum OpsiHapusPilihan { hapusSemua, arsipkanKadaluarsa, batal }
 
@@ -34,20 +37,22 @@ class PelangganAktifPage extends StatefulWidget {
   State<PelangganAktifPage> createState() => _PelangganAktifPageState();
 }
 
-class _PelangganAktifPageState extends State<PelangganAktifPage> {
+class _PelangganAktifPageState extends State<PelangganAktifPage>
+    with AutomaticKeepAliveClientMixin<PelangganAktifPage> {
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-
+  final now = DateTime.now();
   // State untuk data
   List<PelangganAktifModel> _semuaPelanggan = [];
   List<PelangganAktifModel> _hasilFilter = [];
   Map<String, String> _mapNamaPelanggan = {};
   bool _isLoading = true;
-
-  // State untuk UI
   OpsiUrutkan _urutanAktif = OpsiUrutkan.tanggalBerakhir;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -78,6 +83,12 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
     });
 
     try {
+      final koneksiTersedia = await KoneksiInternetService.cekKoneksi();
+      if (koneksiTersedia && forceRefresh) {
+        await LayananUnggahData().unggahDataPelangganAktif();
+        await SyncManager().setLastSyncTimestamp(now);
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
       final pelangganList = await _pelangganOperasi.getPelanggan();
       _mapNamaPelanggan = {for (var p in pelangganList) p.id: p.nama};
 
@@ -208,7 +219,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
 
     if (konfirmasi == true) {
       try {
-        await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id);
+        await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id!);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -459,6 +470,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: _buildAppBar(),
       body: _isLoading
