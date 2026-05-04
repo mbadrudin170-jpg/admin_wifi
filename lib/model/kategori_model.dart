@@ -10,9 +10,9 @@ class KategoriModel {
   final String nama;
   final TipeKategori tipe;
   final List<SubKategoriModel> subKategori;
-  DateTime? diperbarui;
-  bool isDeleted;
-  DateTime? diarsipkan;
+  final DateTime? diperbarui;
+  final bool isDeleted;
+ final DateTime? diarsipkan;
 
   KategoriModel({
     String? id, // diubah: id bisa null saat pembuatan
@@ -60,7 +60,10 @@ class KategoriModel {
         orElse: () => TipeKategori.pemasukan,
       ),
       subKategori: (map['subKategori'] as List<dynamic>? ?? [])
-          .map((subMap) => SubKategoriModel.fromMap(subMap as Map<String, dynamic>))
+          .map(
+            (subMap) =>
+                SubKategoriModel.fromMap(subMap as Map<String, dynamic>),
+          )
           .toList(),
       diperbarui: _parseDateTime(map['diperbarui']),
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,

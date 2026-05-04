@@ -15,6 +15,8 @@ class PelangganModel {
   final String password;
   final String macAddress;
   final StatusPelanggan status;
+  final bool isDeleted;
+
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
 
@@ -28,6 +30,7 @@ class PelangganModel {
     this.macAddress = '',
     this.status = StatusPelanggan.aktif,
     this.diperbarui,
+    this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
@@ -41,6 +44,7 @@ class PelangganModel {
     String? macAddress,
     StatusPelanggan? status,
     DateTime? diperbarui,
+    bool? isDeleted, // ditambah: isDeleted
     DateTime? diarsipkan,
   }) {
     return PelangganModel(
@@ -52,6 +56,7 @@ class PelangganModel {
       macAddress: macAddress ?? this.macAddress,
       status: status ?? this.status,
       diperbarui: diperbarui ?? this.diperbarui,
+      isDeleted: isDeleted ?? this.isDeleted, // ditambah: isDeleted
       diarsipkan: diarsipkan ?? this.diarsipkan,
     );
   }
@@ -79,6 +84,7 @@ class PelangganModel {
         orElse: () => StatusPelanggan.aktif, // Default ke aktif jika tidak ada
       ),
       diperbarui: _parseDateTime(map['diperbarui']),
+      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
@@ -93,6 +99,7 @@ class PelangganModel {
       'mac_address': macAddress,
       'status': status.name,
       'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted ? 1 : 0, // ditambah: isDeleted
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }

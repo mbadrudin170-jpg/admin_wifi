@@ -1,4 +1,4 @@
-// path : lib/data/operasi/dompet_operasi.dart
+// path: lib/data/operasi/dompet_operasi.dart
 // diubah: Menambahkan pengisian timestamp 'diperbarui' pada operasi create dan update.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -54,6 +54,12 @@ class DompetOperasi {
   Future<void> deleteDompet(String id) async {
     final db = await dbHelper.database;
     await db.delete('dompet', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ditambahkan: fungsi untuk menghapus semua dompet
+  Future<void> hapusSemuaDompet() async {
+    final db = await dbHelper.database;
+    await db.delete('dompet');
   }
 
   Future<double> getTotalSaldo() async {

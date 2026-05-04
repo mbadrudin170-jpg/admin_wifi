@@ -49,11 +49,72 @@ class _DompetPageState extends State<DompetPage> {
     }
   }
 
+  // ditambahkan: fungsi untuk menampilkan dialog hapus semua
+  void _tampilkanDialogHapusSemua() {
+    // ditambahkan: memeriksa apakah ada data sebelum menampilkan dialog
+    _dompetOperasi.getDompet().then((dompetList) {
+      if (dompetList.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak ada dompet untuk dihapus.')),
+        );
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Konfirmasi'),
+            content: const Text(
+                'Apakah Anda yakin ingin menghapus semua dompet? Tindakan ini tidak dapat diurungkan.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Batal'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('Hapus'),
+                onPressed: () {
+                  _hapusSemuaDompet();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    });
+  }
+
+  // ditambahkan: fungsi untuk menghapus semua dompet
+  void _hapusSemuaDompet() async {
+    try {
+      await _dompetOperasi.hapusSemuaDompet();
+      _loadDompet(); // Muat ulang data
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua dompet berhasil dihapus.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menghapus dompet: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dompet'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_sweep),
+            onPressed: () => _tampilkanDialogHapusSemua(),
+            tooltip: 'Hapus Semua Dompet',
+          ),
+        ],
       ),
       body: Column(
         children: [

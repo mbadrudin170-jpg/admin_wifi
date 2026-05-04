@@ -125,8 +125,7 @@ class PaketModel {
       'tipe': tipe.name,
       'diperbarui': diperbarui?.toIso8601String(),
 
-      // tambahan field baru
-      'isDeleted': isDeleted,
+      'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
