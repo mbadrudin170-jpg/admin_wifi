@@ -50,16 +50,25 @@ class DompetOperasi {
     await db.update('dompet', data, where: 'id = ?', whereArgs: [dompet.id]);
   }
 
-  // ditambahkan: Metode untuk menghapus dompet secara permanen
-  Future<void> deleteDompet(String id) async {
-    final db = await dbHelper.database;
-    await db.delete('dompet', where: 'id = ?', whereArgs: [id]);
-  }
-
   // ditambahkan: fungsi untuk menghapus semua dompet
   Future<void> hapusSemuaDompet() async {
     final db = await dbHelper.database;
     await db.delete('dompet');
+  }
+
+  Future<void> arsipkanSatuDompet(String id) async {
+    final db = await dbHelper.database;
+    final now = DateTime.now();
+    await db.update(
+      'dompet',
+      {
+        'diarsipkan': now.toIso8601String(),
+        'diperbarui': now.toIso8601String(),
+        'isDeleted': 1,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<double> getTotalSaldo() async {

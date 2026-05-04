@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'dart:developer' as developer;
 
 import 'package:admin_wifi/firebase_options.dart';
 import 'package:admin_wifi/halaman_utama.dart';
@@ -31,66 +32,68 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
+  // ditambahkan: Fungsi untuk update loading dengan aman
+  void _updateLoading(String message) {
+    // Pengecekan mounted dilakukan di dalam agar pemanggilan lebih bersih
+    if (!mounted) return;
+    setState(() {
+      _loadingMessage = message;
+    });
+  }
+
   Future<void> _initializeAndNavigate() async {
     bool isOnline = false;
 
     try {
-      // [OPTIMASI PERFORMA] Langkah 0: Inisialisasi Firebase
-      setState(() => _loadingMessage = "Menghubungkan ke layanan Google...");
+      _updateLoading("Menghubungkan ke layanan Google...");
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      if (!mounted) return;
 
-      // 1. Inisialisasi Lokal (Cepat)
-      setState(() => _loadingMessage = "Menginisialisasi zona waktu...");
+      _updateLoading("Mengonfigurasi pengaturan lokal...");
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-
-      setState(() => _loadingMessage = "Menginisialisasi format tanggal...");
       await initializeDateFormatting('id_ID', null);
+      if (!mounted) return;
 
-      // 2. Inisialisasi Servis Kritis
-      setState(() => _loadingMessage = "Mempersiapkan notifikasi...");
+      _updateLoading("Mempersiapkan layanan aplikasi...");
       final notifikasiServis = NotifikasiServis();
       await notifikasiServis.inisialisasi();
+      if (!mounted) return;
       await notifikasiServis.requestPermissions();
+      if (!mounted) return;
 
-      setState(() => _loadingMessage = "Membuka database lokal...");
       await DatabaseHelper.instance.database;
+      if (!mounted) return;
 
-      // 3. Pengecekan Koneksi & Sinkronisasi Data
-      setState(() => _loadingMessage = "Mengecek koneksi internet...");
+      _updateLoading("Mengecek koneksi internet...");
       isOnline = await KoneksiInternetService.cekKoneksi();
+      if (!mounted) return;
 
       if (isOnline) {
-        // diubah: menjalankan proses sinkronisasi jika online
-        setState(() => _loadingMessage = "Memeriksa & sinkronisasi data...");
+        _updateLoading("Memeriksa & sinkronisasi data...");
         try {
           await LayananSinkronisasi().sinkronisasiData();
-          setState(() => _loadingMessage = "Sinkronisasi data selesai.");
-        } catch (e) {
-          debugPrint("Error saat sinkronisasi: $e");
-          setState(
-            () => _loadingMessage = "Gagal sinkronisasi, melanjutkan...",
-          );
+          _updateLoading("Sinkronisasi data selesai.");
+        } catch (e, s) {
+          developer.log('Gagal sinkronisasi', error: e, stackTrace: s);
+          _updateLoading("Gagal sinkronisasi, melanjutkan offline...");
         }
       } else {
-        setState(
-          () => _loadingMessage = "Mode offline, melewati sinkronisasi...",
-        );
+        _updateLoading("Mode offline, melewati sinkronisasi...");
       }
 
-      setState(() => _loadingMessage = "Selesai, membuka aplikasi...");
-      await Future.delayed(const Duration(milliseconds: 250));
-    } catch (e) {
-      debugPrint("Error saat inisialisasi: $e");
-      setState(() => _loadingMessage = "Terjadi error, tetap mencoba...");
+      _updateLoading("Selesai, membuka aplikasi...");
+      await Future.delayed(const Duration(milliseconds: 300));
+    } catch (e, s) {
+      developer.log('Inisialisasi gagal total', error: e, stackTrace: s);
+      _updateLoading("Terjadi error, silakan mulai ulang aplikasi.");
+      // Beri waktu pengguna membaca error sebelum menutup atau melakukan aksi lain
+      await Future.delayed(const Duration(seconds: 3));
     }
 
-    // 5. Navigasi
     if (!mounted) return;
-
-    // diubah: Mengirim status koneksi ke HalamanUtama dan menghapus blok .then()
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

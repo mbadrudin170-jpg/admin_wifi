@@ -23,8 +23,8 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      // diubah: versi dinaikkan dari 22 ke 23 untuk menambahkan tabel versi_apk_user
-      version: 23,
+      // diubah: versi dinaikkan ke 24 untuk migrasi kolom isDeleted pada tabel pelanggan
+      version: 24,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -44,6 +44,10 @@ class DatabaseHelper {
     // ditambahkan: migrasi aman tanpa menghapus data
     if (oldVersion < 23) {
       await _createVersiApkUserTable(db);
+    }
+    // ditambahkan: migrasi untuk menambahkan kolom isDeleted pada tabel pelanggan
+    if (oldVersion < 24) {
+      await db.execute('ALTER TABLE pelanggan ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0');
     }
   }
 
@@ -139,7 +143,9 @@ class DatabaseHelper {
         mac_address TEXT NOT NULL,
         status TEXT NOT NULL, 
         diperbarui TEXT,      
-        diarsipkan TEXT       
+        diarsipkan TEXT,
+        -- ditambahkan: kolom untuk soft delete
+        isDeleted INTEGER NOT NULL DEFAULT 0       
       )
     ''');
   }

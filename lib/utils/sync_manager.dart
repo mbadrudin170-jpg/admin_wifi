@@ -1,5 +1,6 @@
 // lib/utils/sync_manager.dart
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:developer' as developer;
 
 class SyncManager {
   static const _kLastSyncTimestampKey = 'last_sync_timestamp';
@@ -14,9 +15,14 @@ class SyncManager {
         return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
       }
       return DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true);
-    } catch (e) {
+    } catch (e, s) {
       // Log error atau fallback
-      print('Error getting last sync timestamp: $e');
+      developer.log(
+        'Error getting last sync timestamp',
+        name: 'SyncManager.getLastSync',
+        error: e,
+        stackTrace: s,
+      );
       return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     }
   }

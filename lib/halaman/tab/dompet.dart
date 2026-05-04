@@ -20,9 +20,7 @@ class DompetPage extends StatefulWidget {
 
 class _DompetPageState extends State<DompetPage> {
   final DompetOperasi _dompetOperasi = DompetOperasi();
-  // Mengubah menjadi kunci untuk refresh FutureBuilder di RingkasanKeuangan
   final GlobalKey<_RingkasanKeuanganState> _ringkasanKey = GlobalKey();
-  // diubah: karena nama class yang benar adalah DompetModel
   late Future<List<DompetModel>> _listaDompetFuture;
 
   @override
@@ -31,75 +29,127 @@ class _DompetPageState extends State<DompetPage> {
     _loadDompet();
   }
 
+  // Fungsi untuk memuat ulang data dompet dan ringkasan keuangan
   void _loadDompet() {
     setState(() {
       _listaDompetFuture = _dompetOperasi.getDompet();
-      // Panggil metode refresh di RingkasanKeuangan jika sudah terbangun
       _ringkasanKey.currentState?.refresh();
     });
   }
 
+  // Fungsi untuk menavigasi ke halaman tambah dompet
   void _tambahDompet() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormDompet()),
     );
+    if (!mounted) return;
     if (result == true) {
-      _loadDompet(); // Muat ulang daftar dompet DAN ringkasan keuangan
+      _loadDompet();
     }
   }
 
-  // ditambahkan: fungsi untuk menampilkan dialog hapus semua
-  void _tampilkanDialogHapusSemua() {
-    // ditambahkan: memeriksa apakah ada data sebelum menampilkan dialog
-    _dompetOperasi.getDompet().then((dompetList) {
-      if (dompetList.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak ada dompet untuk dihapus.')),
-        );
-        return;
-      }
+  // Fungsi untuk menampilkan dialog konfirmasi sebelum menghapus semua dompet
+  void _tampilkanDialogHapusSemua() async {
+    final dompetList = await _dompetOperasi.getDompet();
+    if (!mounted) return;
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Konfirmasi'),
-            content: const Text(
-                'Apakah Anda yakin ingin menghapus semua dompet? Tindakan ini tidak dapat diurungkan.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Batal'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Hapus'),
-                onPressed: () {
-                  _hapusSemuaDompet();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
+    if (dompetList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak ada dompet untuk dihapus.')),
       );
-    });
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi'),
+          content: const Text(
+            'Apakah Anda yakin ingin menghapus semua dompet? Tindakan ini tidak dapat diurungkan.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Hapus'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog sebelum operasi
+                _hapusSemuaDompet();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  // ditambahkan: fungsi untuk menghapus semua dompet
+  // Fungsi untuk menampilkan dialog konfirmasi pengarsipan satu dompet
+  void _showDialogHapusSatu(DompetModel dompet) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Arsip'),
+          content: Text(
+            'Apakah Anda yakin ingin mengarsipkan dompet "${dompet.namaDompet}"?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Arsipkan'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog sebelum operasi
+                _hapusSatuDompet(dompet);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Fungsi untuk mengarsipkan satu dompet
+  void _hapusSatuDompet(DompetModel dompet) async {
+    try {
+      await _dompetOperasi.arsipkanSatuDompet(dompet.id);
+      _loadDompet(); // Muat ulang data
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dompet berhasil diarsipkan.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengarsipkan dompet: $e')));
+    }
+  }
+
+  // Fungsi untuk menghapus semua dompet secara permanen
   void _hapusSemuaDompet() async {
     try {
       await _dompetOperasi.hapusSemuaDompet();
       _loadDompet(); // Muat ulang data
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Semua dompet berhasil dihapus.')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menghapus dompet: $e')),
-      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus dompet: $e')));
     }
   }
 
@@ -111,17 +161,15 @@ class _DompetPageState extends State<DompetPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep),
-            onPressed: () => _tampilkanDialogHapusSemua(),
+            onPressed: _tampilkanDialogHapusSemua,
             tooltip: 'Hapus Semua Dompet',
           ),
         ],
       ),
       body: Column(
         children: [
-          // Berikan kunci ke RingkasanKeuangan
           RingkasanKeuangan(key: _ringkasanKey),
           Expanded(
-            // diubah: karena nama class yang benar adalah DompetModel
             child: FutureBuilder<List<DompetModel>>(
               future: _listaDompetFuture,
               builder: (context, snapshot) {
@@ -141,17 +189,18 @@ class _DompetPageState extends State<DompetPage> {
                       final dompet = snapshot.data![index];
                       return DompetCard(
                         dompet: dompet,
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   DetailDompet(dompet: dompet),
                             ),
-                          ).then(
-                            (_) => _loadDompet(),
-                          ); // Muat ulang setelah dari detail
+                          );
+                          if (!mounted) return;
+                          _loadDompet();
                         },
+                        onLongPress: () => _showDialogHapusSatu(dompet),
                       );
                     },
                   );
@@ -170,7 +219,6 @@ class _DompetPageState extends State<DompetPage> {
   }
 }
 
-// Mengubah menjadi StatefulWidget untuk mengelola state future-nya sendiri
 class RingkasanKeuangan extends StatefulWidget {
   const RingkasanKeuangan({super.key});
 
@@ -220,7 +268,6 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
           total = result[2];
         }
 
-        // Tampilkan card dengan data (atau 0 jika masih loading/error)
         return Card(
           margin: const EdgeInsets.all(12.0),
           elevation: 4,
@@ -268,11 +315,16 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
 }
 
 class DompetCard extends StatelessWidget {
-  // diubah: karena nama class yang benar adalah DompetModel
   final DompetModel dompet;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
-  const DompetCard({super.key, required this.dompet, required this.onTap});
+  const DompetCard({
+    super.key,
+    required this.dompet,
+    required this.onTap,
+    required this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -299,6 +351,7 @@ class DompetCard extends StatelessWidget {
           ),
         ),
         onTap: onTap,
+        onLongPress: onLongPress,
       ),
     );
   }

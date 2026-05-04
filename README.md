@@ -101,6 +101,42 @@
 **Rules:**
 - Setiap halaman utama yang ingin ditambahkan ke navigasi tab harus didaftarkan di dalam list `_widgetOptions`.
 - Warna item yang dipilih dan tidak dipilih pada `BottomNavigationBar` diatur oleh tema global yang didefinisikan di `main.dart`.
+
+### **File: lib/halaman/tab/dompet.dart**
+**Fitur:** Halaman Manajemen Dompet
+**Tujuan file ini dibuat:** Untuk menampilkan halaman dompet yang berisi ringkasan keuangan (pemasukan, pengeluaran, total), daftar semua dompet yang tersedia, dan menyediakan fungsionalitas untuk menambah, mengarsipkan (satu per satu), serta menghapus semua dompet.
+
+**Penjelasan Kode:**
+- `class DompetPage` & `_DompetPageState`: Mengelola state dan logika keseluruhan halaman, termasuk memuat data dompet dari database dan menangani interaksi pengguna.
+- `_loadDompet()`: Fungsi sentral untuk memuat ulang data dompet dari `DompetOperasi` dan memperbarui UI, termasuk `RingkasanKeuangan`.
+- `_tambahDompet()`: Menangani navigasi ke `FormDompet` untuk membuat dompet baru. Jika pembuatan berhasil, ia akan memanggil `_loadDompet()` untuk menyegarkan daftar.
+- `_tampilkanDialogHapusSemua()`: Menampilkan dialog konfirmasi kepada pengguna sebelum menjalankan operasi penghapusan semua dompet. Ini mencegah penghapusan data yang tidak disengaja.
+- `_hapusSemuaDompet()`: Memanggil metode `hapusSemuaDompet()` dari `DompetOperasi` dan memberikan umpan balik kepada pengguna melalui `SnackBar`.
+- `_showDialogHapusSatu(DompetModel dompet)`: Menampilkan dialog konfirmasi untuk mengarsipkan satu dompet spesifik. Fungsi ini dipicu oleh gestur *long press* pada `DompetCard`.
+- `_hapusSatuDompet(DompetModel dompet)`: **(Perbaikan)** Fungsi ini sekarang dengan benar memanggil `arsipkanSatuDompet(dompet.id)` dari `DompetOperasi`, mengirimkan ID sebagai `String`. Pesan umpan baliknya juga telah diperbaiki menjadi "Dompet berhasil diarsipkan" untuk mencerminkan tindakan yang sebenarnya.
+- `build()`: Merender UI lengkap halaman, yang terdiri dari `AppBar` dengan aksi hapus semua, `RingkasanKeuangan` di bagian atas, dan `ListView` yang di-build menggunakan `FutureBuilder` untuk menampilkan daftar `DompetCard`.
+- `class RingkasanKeuangan`: Widget terpisah (`StatefulWidget`) yang menampilkan total pemasukan, pengeluaran, dan saldo dari semua dompet. Widget ini memiliki metode `refresh()` yang dapat dipanggil oleh parent-nya untuk memuat ulang data.
+- `class DompetCard`: Widget UI (`StatelessWidget`) yang menampilkan informasi satu dompet. Widget ini menangani gestur `onTap` untuk navigasi ke detail dan `onLongPress` untuk memicu dialog pengarsipan.
+
+**Catatan:**
+- Logika pengarsipan satu dompet telah diperbaiki dari kesalahan sebelumnya dimana ia memberikan pesan umpan balik yang salah dan memiliki parameter yang tidak tepat.
+- Penggunaan `if (!mounted) return;` telah ditambahkan di beberapa lokasi setelah operasi `async` untuk mencegah error saat mencoba menggunakan `BuildContext` pada widget yang sudah tidak ada di pohon widget.
+
+
+### **File: lib/data/operasi/dompet_operasi.dart**
+**Fitur:** Operasi Database untuk Dompet
+**Tujuan file ini dibuat:** Untuk menyediakan sekumpulan fungsi yang melakukan operasi Create, Read, Update, Delete (CRUD) pada tabel `dompet` di database SQLite.
+**Daftar Fungsi/Class:**
+- `class DompetOperasi`: Kelas yang berisi semua metode untuk berinteraksi dengan tabel dompet.
+- `createDompet(DompetModel dompet)`: Menambahkan dompet baru ke database.
+- `getDompet()`: Mengambil semua data dompet dari database.
+- `getDompetById(String id)`: Mengambil dompet berdasarkan ID.
+- `updateDompet(DompetModel dompet)`: Memperbarui data dompet yang sudah ada.
+- `hapusSemuaDompet()`: Menghapus semua data dari tabel `dompet`.
+- `arsipkanSatuDompet(String id)`: **(Diperbarui)** Melakukan *soft delete* dengan mengisi kolom `diarsipkan` dan `isDeleted`.
+- `getTotalSaldo()`, `getTotalSaldoPositif()`, `getTotalSaldoNegatif()`: Fungsi agregasi untuk menghitung total saldo.
+- `sisipkanAtauPerbaruiBatch(List<DompetModel> items)`: Melakukan operasi insert atau update massal.
+
 ### **File: lib/model/dompet_model.dart**
 **Fitur:** Model Data untuk Dompet
 
@@ -159,6 +195,7 @@
 **Rules:**
 - Setiap kategori harus memiliki salah satu dari tiga `TipeKategori`.
 - Saat data dibaca dari database, jika tipe kategori tidak dikenali, maka akan secara default diatur sebagai `TipeKategori.pemasukan` untuk menghindari error.
+
 ### **File: lib/model/kritik_saran_model.dart**
 **Fitur:** Model Data untuk Kritik dan Saran
 
@@ -437,6 +474,7 @@
 **Rules:**
 - Setiap kali mendefinisikan warna baru yang akan digunakan di lebih dari satu tempat, warna tersebut harus ditambahkan ke dalam kelas `AppColors` ini.
 - Jangan melakukan *hard-coding* nilai warna (misalnya, `Color(0xFFFFFFFF)`) langsung di dalam widget. Selalu gunakan konstanta dari `AppColors`.
+
 ### **File: lib/utils/format_util.dart**
 **Fitur:** Utilitas Pemformatan Data (Tanggal, Jam, Uang)
 
@@ -462,6 +500,21 @@
 **Rules:**
 - Setiap logika pemformatan baru yang berkaitan dengan tanggal, jam, atau uang harus ditambahkan ke dalam kelas yang sesuai di file ini.
 - Jangan melakukan pemformatan manual di dalam kode widget. Selalu panggil metode dari kelas-kelas utilitas ini untuk menjaga konsistensi.
+
+### **File: lib/utils/sync_manager.dart**
+**Fitur:** Manajemen Timestamp Sinkronisasi
+**Tujuan file ini dibuat:** Untuk mengelola waktu sinkronisasi terakhir antara aplikasi dan server. File ini menggunakan `SharedPreferences` untuk menyimpan dan mengambil *timestamp* terakhir, yang krusial untuk proses sinkronisasi data delta (hanya data yang berubah).
+
+**Penjelasan Kode:**
+- `class SyncManager`: Kelas utilitas yang menyediakan metode untuk berinteraksi dengan `SharedPreferences`.
+- `getLastSyncTimestamp()`: Fungsi `async` yang mengambil `timestamp` terakhir kali sinkronisasi berhasil. 
+    - Jika tidak ada `timestamp` yang tersimpan (misalnya saat aplikasi dijalankan pertama kali), fungsi ini akan mengembalikan `DateTime` dari epoch (tahun 1970). Hal ini memastikan bahwa pada sinkronisasi pertama, semua data dari server akan diunduh.
+    - **(Perbaikan)** Blok `catch` sekarang menggunakan `developer.log` untuk mencatat error secara detail, lengkap dengan nama logger dan *stack trace*, yang jauh lebih baik untuk debugging daripada `print()`.
+- `setLastSyncTimestamp(DateTime time)`: Fungsi `async` yang menyimpan `timestamp` waktu saat ini ke `SharedPreferences` setelah proses sinkronisasi berhasil diselesaikan.
+
+**Rules:**
+- `getLastSyncTimestamp()` harus selalu dipanggil sebelum memulai proses sinkronisasi untuk mengetahui data mana yang perlu diambil.
+- `setLastSyncTimestamp()` harus dipanggil setelah proses sinkronisasi selesai dan berhasil.
 
 ### **File: lib/widget/nama_dari_id.dart**
 **Fitur:** Widget untuk Menampilkan Nama Pelanggan dari ID
@@ -547,8 +600,137 @@
 
 **Catatan:**
 - Ini adalah komponen yang sangat dapat digunakan kembali (`reusable`) untuk `TextField` mana pun yang ditujukan untuk input mata uang atau angka besar, sehingga meningkatkan pengalaman pengguna secara signifikan.
-- Logika di dalamnya cukup cerdas untuk menangani input parsial, seperti saat pengguna baru mengetik tanda `-` dan belum memasukkan angkanya.
+- Logika di dalamnya cukup cerdas untuk menangani input parsial, seperti saat pengguna baru saja mengetik tanda `-` dan belum memasukkan angkanya.
 
 **Rules:**
 - Untuk menggunakannya, tambahkan instance dari `ThousandsAndNegativeInputFormatter()` ke dalam properti `inputFormatters` pada sebuah `TextField` atau `TextFormField`.
 - Sebaiknya atur juga `keyboardType` pada `TextField` menjadi `TextInputType.numberWithOptions(signed: true)` untuk memunculkan keyboard numerik yang menyertakan tombol minus.
+
+---
+## Struktur Folder `lib/`
+
+```
+lib/:
+data
+firebase_options.dart
+halaman
+halaman_utama.dart
+main.dart
+migrasi_diarsipkan.dart
+model
+server
+services
+splash_screen.dart
+utils
+whatsapp
+widget
+
+lib/data:
+data_dummy.dart
+operasi
+services
+sqlite.dart
+sync
+
+lib/data/operasi:
+dompet_operasi.dart
+kategori_operasi.dart
+kritik_saran_operasi.dart
+paket_operasi.dart
+pelanggan_aktif_operasi.dart
+pelanggan_operasi.dart
+pesanan_operasi.dart
+riwayat_langganan_operasi.dart
+transaksi_operasi.dart
+versi_apk_user_operasi.dart
+
+lib/data/services:
+navigasi_servis.dart
+sinkronisasi_database.dart
+
+lib/data/sync:
+unduh_data.dart
+unggah_data.dart
+
+lib/halaman:
+detail
+form
+lainnya
+tab
+
+lib/halaman/detail:
+detail_dompet.dart
+detail_kritik_saran.dart
+detail_paket.dart
+detail_pelanggan_aktif.dart
+detail_pelanggan.dart
+detail_riwayat_langganan.dart
+detail_transaksi.dart
+
+lib/halaman/form:
+form_dompet.dart
+form_edit_riwayat_langganan.dart
+form_kategori.dart
+form_paket.dart
+form_pelanggan_aktif.dart
+form_pelanggan.dart
+form_transaksi.dart
+form_versi_apk_user.dart
+
+lib/halaman/lainnya:
+kategori.dart
+kritik_saran.dart
+paket.dart
+pelanggan.dart
+riwayat_aktivasi_paket.dart
+tentang_aplikasi.dart
+versi_apk_user.dart
+
+lib/halaman/tab:
+dompet.dart
+fungsi_menampilkan_notifikasi.dart
+home.dart
+lainnya.dart
+pelanggan_aktif.dart
+pesanan.dart
+transaksi.dart
+
+lib/model:
+dompet_model.dart
+enum
+kategori_model.dart
+kritik_saran_model.dart
+paket_model.dart
+pelanggan_aktif_model.dart
+pelanggan_model.dart
+pesanan_model.dart
+riwayat_langganan_model.dart
+transaksi_model.dart
+versi_apk_user_model.dart
+
+lib/model/enum:
+status_pembayaran.dart
+
+lib/server:
+server_lokal.dart
+
+lib/services:
+cek_koneksi_internet.dart
+cek_langganan_kadaluarsa_service.dart
+notifikasi_servis.dart
+
+lib/utils:
+colors.dart
+format_util.dart
+perhitungan_util.dart
+sync_manager.dart
+
+lib/whatsapp:
+info_paket.dart
+
+lib/widget:
+nama_dari_id.dart
+nama_paket.dart
+nama_pelanggan.dart
+thousands_input_formatter.dart
+```
