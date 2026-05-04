@@ -1,5 +1,27 @@
 ## Dokumen Lengkap Proyek Saya per File
 
+### **File: lib/halaman/tab/pelanggan_aktif.dart**
+**Fitur:** Halaman Manajemen Pelanggan Aktif
+**Tujuan file ini dibuat:** Untuk menampilkan daftar semua pelanggan yang memiliki langganan aktif, menyediakan fungsionalitas pencarian, pengurutan, penambahan, dan pengarsipan pelanggan.
+
+**Penjelasan Kode:**
+- `class PelangganAktifPage` & `_PelangganAktifPageState`: Mengelola keseluruhan state dan UI halaman, termasuk data pelanggan, status loading, dan logika interaksi pengguna.
+- `_loadData({bool forceRefresh = false})`: Fungsi inti untuk memuat data. Fungsi ini telah diperbarui dengan logika yang lebih tangguh:
+    - **Timeout Refresh**: Jika pengguna melakukan *pull-to-refresh* (`forceRefresh = true`) dan koneksi internet sangat lambat, proses sinkronisasi akan dibatalkan setelah 15 detik untuk mencegah *loading* tanpa henti. Pengguna akan menerima pesan error.
+    - **Penanganan Offline**: Jika pengguna mencoba melakukan *refresh* tanpa koneksi internet, aplikasi akan menampilkan pesan "Jaringan tidak tersedia" dan lanjut menampilkan data yang tersimpan di database lokal, sehingga aplikasi tetap responsif.
+- `_applyFilterAndSort()`: Menerapkan logika pencarian (berdasarkan nama) dan pengurutan pada daftar pelanggan. Mendukung berbagai kriteria urut seperti tanggal berakhir, nama, status pembayaran, dan status paket.
+- `_arsipkanPelanggan()`: Menangani proses pengarsipan satu pelanggan aktif setelah mendapatkan konfirmasi dari pengguna melalui dialog.
+- `_showUrutkanDialog()`: Menampilkan dialog yang memungkinkan pengguna memilih metode pengurutan data.
+- `_tambahPelangganAktif()`: Menavigasi ke halaman `FormPelangganAktif` untuk menambahkan langganan baru. Jika berhasil, data di halaman ini akan dimuat ulang.
+- `_opsiLanjutan()`: Menampilkan menu untuk tindakan massal, seperti mengarsipkan semua pelanggan yang sudah kedaluwarsa atau menghapus semua data pelanggan aktif.
+- `_buildAppBar()`, `_buildSearchField()`, `_buildSearchActions()`, `_buildDefaultActions()`: Kumpulan fungsi yang secara dinamis membangun `AppBar`, beralih antara mode tampilan normal dan mode pencarian.
+- `build()`: Merender keseluruhan UI, termasuk `RefreshIndicator` untuk `pull-to-refresh`, `ListView.builder` untuk menampilkan daftar pelanggan dalam bentuk `Card`, dan `FloatingActionButton` untuk menambah pelanggan baru.
+
+**Catatan:**
+- Halaman ini menggunakan `AutomaticKeepAliveClientMixin` untuk menjaga state-nya (seperti posisi scroll dan hasil filter) bahkan ketika pengguna berpindah ke tab lain, memberikan pengalaman navigasi yang mulus.
+- Logika pada fungsi `_loadData` telah ditingkatkan secara signifikan untuk memberikan umpan balik yang lebih baik kepada pengguna dalam berbagai kondisi jaringan (online, offline, atau koneksi lambat).
+
+
 ### **File: perintah_terminal.md**
 **Fitur:** Dokumentasi Perintah Terminal
 **Tujuan file ini dibuat:** Untuk menyediakan daftar perintah terminal yang sering digunakan dalam pengembangan aplikasi Flutter, mencakup manajemen proyek, dependensi, proses build, analisis kode, dan diagnostik. Ini berfungsi sebagai panduan cepat (quick reference) bagi developer.
