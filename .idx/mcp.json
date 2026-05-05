@@ -14,5 +14,37 @@
         "experimental:mcp"
       ]
     }
+  },
+  "enabledTools": {
+    "dart": [
+      "read_package_uris",
+      "launch_app",
+      "stop_app",
+      "list_devices",
+      "get_app_logs",
+      "list_running_apps",
+      "connect_dart_tooling_daemon",
+      "get_runtime_errors",
+      "get_active_location",
+      "hot_restart",
+      "hot_reload",
+      "get_widget_tree",
+      "get_selected_widget",
+      "set_widget_selection_mode",
+      "flutter_driver",
+      "pub_dev_search",
+      "remove_roots",
+      "add_roots",
+      "dart_fix",
+      "dart_format",
+      "run_tests",
+      "create_project",
+      "pub",
+      "resolve_workspace_symbol",
+      "signature_help",
+      "hover",
+      "analyze_files"
+    ],
+    "firebase": []
   }
 }

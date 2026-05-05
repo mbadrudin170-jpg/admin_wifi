@@ -1,91 +1,149 @@
 # BACA DAN SIMPAN SEMUA ATURAN DISINI KEMEMORI AI
 
 
+Saya mengerti Anda ingin saya merumuskan ulang aturan-aturan (rules) yang sudah ada menjadi lebih formal dan jelas, sehingga rekan kerja Anda bisa langsung memahami maksudnya. Anda ingin hasilnya siap salin-tempel.
+
+Karena ini permintaan perumusan teks (bukan eksekusi kode), saya akan langsung menuliskannya dalam format yang lebih terstruktur dan formal. Tidak ada perubahan kode, jadi tidak ada perbandingan baris yang perlu dikonfirmasi.
 
 ---
 
-# **PANDUAN ATURAN KERJA PENGEMBANGAN APLIKASI FLUTTER**
+# **PERATURAN KERJA DALAM PROYEK INI**
 
-## **A. Komunikasi dan Konfirmasi**
-
-1. **Bahasa**: Selalu gunakan Bahasa Indonesia untuk penamaan fungsi, variabel, parameter, nama file, dan komunikasi.
-2. **Konfirmasi Pekerjaan**: Sebelum mengerjakan tugas, AI wajib memberikan penjelasan tentang apa yang akan dikerjakan. Pengguna akan memberikan konfirmasi:
-   - **Setuju/Oke/Ok/Ya/Yes**: AI boleh mengerjakan.
-   - **Jangan/Tidak/Nggak/Nggk**: AI tidak boleh mengerjakan.
-3. **Perbandingan Kode**: Sebelum menulis kode, AI wajib menunjukkan baris kode yang akan diubah, mana yang salah, dan mana yang benar, untuk mendapat konfirmasi pengguna.
-
-## **B. Struktur dan Dokumentasi Kode**
-
-4. **Komentar Path File**: Setiap file wajib memiliki komentar di bagian paling atas dengan format:
-   ```dart
-   // path: lib/nama_folder/nama_file.dart
-   ```
-5. **Komentar Perubahan**: Setelah melakukan perubahan, berikan komentar di samping atau di atas kode dengan struktur:
-   - `// dihapus: [alasan]`
-   - `// diubah/ditambah: [alasan]`
-6. **Komentar Fungsi**: Di atas setiap fungsi, tambahkan komentar yang menjelaskan tujuan fungsi tersebut, contoh:
-   ```dart
-   // untuk menavigasi ke halaman A
-   void navigasiKeHalamanA() { ... }
-   ```
-7. **Komentar Tambahan**: Tambahkan komentar pada bagian-bagian kode yang penting untuk memperjelas tujuan pembuatannya.
-8. **Dokumentasi Detail**: Setelah menyelesaikan pekerjaan pada suatu file, buatkan dokumen detail yang menerangkan seluruh kode di file tersebut, tidak boleh ada yang terlewat.
-
-## **C. Pemeliharaan README.md**
-
-9. **Baca README.md**: Sebelum mengerjakan proyek, AI wajib membaca file README.md untuk memahami alur kerja.
-10. **Format Pembaruan README.md**: Setelah pengerjaan file selesai, perbarui dokumentasi file di README.md dengan format:
-    ```
-    File: lib/path/nama_file.dart
-    Fitur: [Nama Fitur]
-    Tujuan file ini dibuat: [tujuan]
-    Kode A: [penjelasan]
-    Kode B: [penjelasan]
-    ...
-    ```
-11. **Struktur Folder**: Sebelum memperbarui README.md, jalankan perintah `ls -R lib/` dan tulis strukturnya ke dalam README.md.
-12. **Catatan Pekerjaan**: Setiap pekerjaan ditambahkan catatannya ke README.md, dikelompokkan berdasarkan versi di `pubspec.yaml`, ditulis per file. **Jangan hapus catatan ini**.
-13. **Jangan Ubah GEMINI.md**: AI dilarang mengubah file `GEMINI.md` tanpa perintah langsung.
-
-## **D. Konvensi Kode Flutter**
-
-14. **Performasi UI**: Gunakan keyword `const` sebanyak mungkin untuk widget.
-15. **DropdownButtonFormField**: Jangan gunakan properti `value`, gunakan `initialValue`.
-16. **Logging**: Gunakan `developer.log()` untuk informasi konsol.
-17. **Null Safety**: Usahakan data tidak bernilai null. Berikan nilai default pada data, terutama di file model. Jangan gunakan tipe data nullable jika tidak diperlukan.
-18. **Hindari `late`**: Hindari penggunaan keyword `late` yang tidak perlu.
-19. **Pengecekan `mounted`**: Untuk operasi asynchronous pada StatefulWidget, gunakan `if (!mounted) return;` untuk mencegah error setelah widget di-dispose.
-
-## **E. Manajemen Data**
-
-20. **ID Wajib**: Setiap data wajib memiliki ID, gunakan UUID, tidak boleh null.
-21. **Asynchronous**: Untuk fungsi yang melibatkan I/O, network request, atau database, selalu gunakan pola async/await dan bungkus dalam `Future`. **Hindari penggunaan `.then()` berantai**.
-22. **Persistence Firebase**: Aktifkan `persistenceEnabled: true` untuk Firestore.
-23. **Get vs Snapshot**: Usahakan menggunakan `get()` daripada `snapshots()`.
-
-## **F. Testing**
-
-24. **File Test**: Buatkan file test untuk setiap file kode.
-25. **Skip Firebase Test**: Untuk sementara, lewati pembuatan test yang berhubungan dengan Firebase.
-26. **Mock Database**: Untuk test yang bergantung pada SQLite, gunakan kelas palsu (mock) yang menggunakan database di memori.
-27. **Cek File Test**: Jalankan `ls -R test/` dan `ls -R lib/` untuk mengetahui file mana yang belum memiliki file test.
-
-## **G. Build dan Versioning**
-
-28. **Prosedur Build**: Jangan melakukan build sebelum pengguna memerintahkan.
-29. **Versioning**: Jika hanya perbaikan bug, naikkan nomor build saja, jangan naikkan versi di `pubspec.yaml`.
-30. **Perintah Build**: Jalankan `flutter clean && flutter pub get && flutter build apk --release --split-per-abi`.
-31. **Perintah Clean**: Jika pengguna meminta clean, jalankan `flutter clean && flutter pub get`.
-
-## **H. Analisis Kode**
-
-32. **Flutter Analyze**: Setelah menyelesaikan pekerjaan, jalankan `flutter analyze` di terminal untuk memastikan tidak ada error atau warning.
-
-## **I. Penyimpanan Aturan**
-
-33. **Simpan ke Memori AI**: Simpan seluruh isi file aturan ini ke dalam memori AI agar selalu diingat.
+*Dokumen ini berisi ketentuan teknis dan prosedural yang wajib dipatuhi oleh seluruh kontributor, termasuk asisten AI, selama mengerjakan proyek ini.*
 
 ---
+
+## **A. Aturan Penamaan dan Bahasa**
+
+1.  **Gunakan Bahasa Indonesia untuk Semua Penamaan**
+    *   Nama fungsi, variabel, parameter, dan nama file **harus ditulis dalam Bahasa Indonesia**.
+    *   Seluruh percakapan dan komentar dalam kode juga **harus menggunakan Bahasa Indonesia**.
+
+2.  **Gunakan Konvensi Penamaan yang Konsisten**
+    *   Pastikan konsistensi penamaan di seluruh proyek untuk memudahkan pembacaan dan pemeliharaan kode bersama.
+
+## **B. Prosedur Sebelum Memulai Pekerjaan**
+
+1.  **Baca Dokumen README.md**
+    *   Sebelum memulai tugas apa pun, **wajib membaca dan memahami** file `README.md` untuk mengetahui alur kerja, arsitektur, dan komponen proyek.
+
+2.  **Minta Persetujuan Pengguna**
+    *   Jelaskan secara ringkas pekerjaan yang akan dilakukan, termasuk file dan baris kode yang akan diubah.
+    *   **Tunggu konfirmasi eksplisit**. Kata kunci persetujuan: `setuju`, `oke`, `ok`, `ya`, `yes`. Kata kunci penolakan: `jangan`, `tidak`, `nggk`, `nggak`.
+    *   **Dilarang keras menulis kode sebelum mendapat persetujuan.**
+
+## **C. Prosedur Saat Mengerjakan Kode**
+
+1.  **Patuhi Prinsip "Tunjukkan, Baru Eksekusi"**
+    *   **Jangan langsung menulis kode.** Tunjukkan dulu perbandingan antara **baris yang salah (saat ini)** dan **baris yang benar (usulan perubahan)**. Pekerjaan hanya dilanjutkan setelah mendapat persetujuan.
+
+2.  **Documentasikan Setiap Perubahan dalam Komentar**
+    *   Di bagian paling atas setiap file, tambahkan komentar path relatif file. Contoh: `// path : lib/main.dart`.
+    *   Di samping atau di atas kode yang diubah, berikan komentar dengan format standar:
+        *   `// dihapus: [alasan penghapusan]`
+        *   `// diubah/ditambah: [alasan perubahan/penambahan]`
+
+3.  **Dokumentasikan Setiap Fungsi**
+    *   Di atas setiap fungsi, tambahkan komentar yang menjelaskan tujuan utama fungsi tersebut. Contoh: `// untuk menavigasi ke halaman detail produk`.
+
+4.  **Gunakan Komentar untuk Kode yang Kompleks**
+    *   Tambahkan komentar pada bagian-bagian kode yang tidak intuitif untuk menghindari kebingungan di masa depan.
+
+## **D. Standar Penulisan Kode**
+
+1.  **Manajemen Status Memori Tampilan (UI)**
+    *   Setelah operasi *asynchronous*, **wajib** memeriksa apakah widget masih terpasang (*mounted*) sebelum memperbarui status UI.
+    *   Selalu gunakan `if (!mounted) return;`.
+
+2.  **Penanganan Data Null dan Default**
+    *   **Usahakan untuk menghindari tipe data yang *nullable***, terutama pada file Model.
+    *   Setiap data **harus memiliki nilai *default*** yang jelas dan valid.
+    *   Untuk atribut ID, **wajib** menggunakan UUID dan **tidak boleh kosong (*null*)**. Pastikan setiap objek yang dibuat langsung memiliki ID.
+
+3.  **Prioritaskan Performa**
+    *   **Gunakan `const` sebanyak mungkin** untuk widget statis guna mengurangi *rebuild* yang tidak perlu.
+    *   **Hindari penggunaan `late` yang tidak perlu** untuk mencegah kesalahan inisialisasi yang sulit dilacak.
+    *   **Utamakan performa, tetapi jangan mengorbankan fungsi.** Aplikasi harus diupayakan menggunakan memori perangkat (RAM) seefisien mungkin.
+    *   Untuk memeriksa objek yang sudah ada, **gunakan metode `get()` daripada `snapshots()`** demi efisiensi.
+
+4.  **Pola Penulisan Asynchronous**
+    *   Setiap fungsi yang melibatkan operasi I/O, permintaan jaringan (*network request*), atau basis data **wajib menggunakan pola *Asynchronous* (`async`/`await`)**.
+    *   Fungsi tersebut harus mengembalikan tipe `Future`.
+    *   **Hindari penggunaan `.then()` berantai.**
+
+5.  **Penanganan Formulir**
+    *   Pada widget `DropdownButtonFormField`, **jangan menggunakan properti `value`**. Gunakan `initialValue` untuk mengatur nilai awal.
+
+6.  **Pencatatan Log**
+    *   Untuk menampilkan informasi pengembangan di konsol, **gunakan `developer.log`**, bukan `print()`.
+
+7.  **Middleware Jaringan (misal: Dio)**
+    *   Pastikan konfigurasi `persistenceEnabled: true` diaktifkan.
+
+## **E. Prosedur Setelah Menyelesaikan Kode**
+
+1.  **Analisis Kode**
+    *   Segera setelah selesai mengerjakan sebuah file, jalankan perintah **analisis** (misal: `dart analyze` atau menggunakan MCP `analyze_files`) untuk memastikan tidak ada kesalahan (error) atau peringatan (warning).
+
+2.  **Perbarui Dokumentasi README.md**
+    *   Perbarui file `README.md` dengan menambahkan dokumentasi untuk **setiap file** yang baru atau diubah.
+    *   Gunakan format yang sangat rinci, dikelompokkan berdasarkan folder:
+        ```
+        File: lib/path/ke/nama_file.dart
+        Fitur: [Nama Fitur yang Dikerjakan]
+        Tujuan File Ini Dibuat: [Deskripsi tujuan utama file]
+        Kode A: [Deskripsi fungsi/metode A]
+        Kode B: [Deskripsi fungsi/metode B]
+        ... (dan seterusnya untuk seluruh kode penting di dalam file)
+        ```
+    *   Jalankan perintah `ls -R lib/` dan perbarui struktur direktori pada file `README.md` agar selalu *up-to-date*.
+    *   Tambahkan **catatan pekerjaan** yang sangat rinci di `README.md`, dikelompokkan berdasarkan versi yang tertera di `pubspec.yaml`. **Jangan hapus catatan lama**, karena akan digunakan untuk analisis oleh pengguna.
+
+3.  **Buat Dokumen Detail**
+    *   Buat dokumen terpisah yang menjelaskan **setiap baris kode** yang telah dikerjakan secara sangat detail. Tidak boleh ada satu pun kode yang terlewat dari penjelasan.
+
+## **F. Pembuatan dan Pembaruan Versi**
+
+1.  **Prosedur Sebelum Build**
+    *   **Baca `README.md`** untuk mengetahui apakah perubahan terbaru adalah fitur baru atau hanya perbaikan bug.
+    *   **Jika hanya perbaikan bug:** Jangan ubah versi di `pubspec.yaml`, hanya naikkan nomor build.
+    *   **Jangan melakukan build** tanpa perintah eksplisit. Perintah build hanya akan dijalankan jika diinstruksikan.
+
+2.  **Perintah Build**
+    *   Gunakan perintah: `flutter clean && flutter pub get && flutter build apk –release --split-per-abi`
+
+3.  **Perintah Clean (Non-Build)**
+    *   Jika hanya diminta untuk membersihkan proyek, jalankan: `flutter clean && flutter pub get`
+
+## **G. Pengujian (Testing)**
+
+1.  **Pembuatan File Test**
+    *   **Wajib** membuat file *unit test* untuk kode yang dihasilkan.
+    *   Gunakan perintah `ls -R test/ lib/` untuk mengidentifikasi file mana yang belum memiliki pasangan file pengujian.
+    *   **Pengecualian:** Untuk sementara, **lewati** pembuatan test yang bergantung langsung ke Firebase.
+    *   **Aturan Mocking Basis Data:** Saat menguji modul yang bergantung pada SQLite, **wajib** membuat kelas palsu (*mock*) untuk `DatabaseHelper` yang menggunakan basis data di memori sebagai pengganti penyimpanan fisik.
+
+## **H. Batasan dan Larangan**
+
+1.  **Larangan Mengubah File Tertentu**
+    *   **Dilarang mengubah file `GEMINI.md`** tanpa instruksi langsung dan eksplisit dari pengguna.
+
+2.  **Larangan Berasumsi**
+    *   Hindari asumsi liar. Sebelum mengubah apa pun, pastikan semua file yang terlibat saling sinkron dan perubahan tidak akan merusak fungsionalitas yang sudah ada.
+
+## **I. Utilitas MCP yang Tersedia**
+
+Manfaatkan alat-alat MCP berikut untuk mempercepat dan mempermudah pekerjaan:
+*   `analyze_files`, `dart_fix`, `dart_format`: Untuk analisis dan perapian kode.
+*   `run_tests`: Untuk menjalankan pengujian.
+*   `pub`, `pub_dev_search`: Untuk manajemen paket.
+*   `launch_app`, `stop_app`, `hot_restart`, `hot_reload`: Untuk mengelola sesi aplikasi yang berjalan.
+*   `get_app_logs`, `get_runtime_errors`: Untuk memantau log dan kesalahan saat *runtime*.
+*   `get_widget_tree`, `get_selected_widget`, `set_widget_selection_mode`: Untuk inspeksi UI.
+*   `resolve_workspace_symbol`, `signature_help`, `hover`: Untuk bantuan navigasi kode.
+*   `create_project`: Untuk membuat proyek Flutter baru.
+*   `flutter_driver`: Untuk menjalankan tes integrasi.
+*   `add_roots`, `remove_roots`: Untuk manajemen akar proyek.
 
 __________________________________________
 

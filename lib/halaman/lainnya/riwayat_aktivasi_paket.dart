@@ -82,7 +82,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
 
     if (konfirmasi == true) {
       try {
-        await _riwayatOperasi.hapusRiwayat(riwayat.id);
+        await _riwayatOperasi.arsipkanRiwayatLangganan(riwayat.id);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,7 +132,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
 
     if (konfirmasi == true) {
       try {
-        await _riwayatOperasi.hapusSemuaRiwayat();
+        await _riwayatOperasi.hapusPermanenSemuaRiwayat();
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -314,7 +314,6 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
       appBar: AppBar(
         title: const Text('Riwayat Langganan'),
         actions: [
-          
           IconButton(
             icon: const Icon(Icons.sort),
             onPressed: _showUrutkanDialog,

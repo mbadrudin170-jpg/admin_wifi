@@ -28,25 +28,44 @@ class RiwayatLanggananOperasi {
     );
   }
 
-  // Ambil semua riwayat langganan
+  // ditambah: Fungsi untuk melakukan soft delete pada riwayat langganan
+  Future<void> arsipkanRiwayatLangganan(String id) async {
+    final db = await dbHelper.database;
+    final now = DateTime.now().toIso8601String();
+    await db.update(
+      'riwayat_langganan',
+      {'isDeleted': 1, 'diperbarui': now, 'diarsipkan': now},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Ambil semua riwayat langganan (termasuk yang diarsipkan)
   Future<List<RiwayatLanggananModel>> ambilSemuaRiwayat() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('riwayat_langganan');
     return maps.map((map) => RiwayatLanggananModel.fromMap(map)).toList();
   }
 
-  // Hapus riwayat langganan berdasarkan ID
-  Future<void> hapusRiwayat(String id) async {
+  // ditambah: Fungsi baru untuk mengambil riwayat yang aktif (belum diarsipkan)
+  Future<List<RiwayatLanggananModel>> ambilSemuaRiwayatAktif() async {
     final db = await dbHelper.database;
-    await db.delete(
+    final List<Map<String, dynamic>> maps = await db.query(
       'riwayat_langganan',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'isDeleted = ? OR isDeleted IS NULL',
+      whereArgs: [0],
     );
+    return maps.map((map) => RiwayatLanggananModel.fromMap(map)).toList();
+  }
+
+  // Hapus riwayat langganan berdasarkan ID
+  Future<void> hapusPermanenRiwayat(String id) async {
+    final db = await dbHelper.database;
+    await db.delete('riwayat_langganan', where: 'id = ?', whereArgs: [id]);
   }
 
   // Hapus semua riwayat langganan
-  Future<void> hapusSemuaRiwayat() async {
+  Future<void> hapusPermanenSemuaRiwayat() async {
     final db = await dbHelper.database;
     await db.delete('riwayat_langganan');
   }
@@ -64,7 +83,8 @@ class RiwayatLanggananOperasi {
 
   // Menyisipkan atau memperbarui data secara batch
   Future<void> sisipkanAtauPerbaruiBatch(
-      List<RiwayatLanggananModel> items) async {
+    List<RiwayatLanggananModel> items,
+  ) async {
     final db = await dbHelper.database;
     final batch = db.batch();
     for (var item in items) {

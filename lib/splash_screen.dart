@@ -13,6 +13,7 @@ import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/data/services/sinkronisasi_database.dart';
+import 'package:admin_wifi/services/pembersihan_data_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -67,6 +68,8 @@ class _SplashScreenState extends State<SplashScreen> {
       await DatabaseHelper.instance.database;
       if (!mounted) return;
 
+      // 🔥 Jalankan pembersihan data (tidak blocking UI)
+      PembersihanDataService().jalankanJikaPerlu();
       _updateLoading("Mengecek koneksi internet...");
       isOnline = await KoneksiInternetService.cekKoneksi();
       if (!mounted) return;

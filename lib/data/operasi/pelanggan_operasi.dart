@@ -75,19 +75,12 @@ class PelangganOperasi {
     if (softDelete) {
       await db.update(
         'pelanggan',
-        {
-          'isDeleted': 1,
-          'diperbarui': DateTime.now().toIso8601String(),
-        },
+        {'isDeleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
         where: 'id = ?',
         whereArgs: [id],
       );
     } else {
-      await db.delete(
-        'pelanggan',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await db.delete('pelanggan', where: 'id = ?', whereArgs: [id]);
     }
   }
 
@@ -100,6 +93,22 @@ class PelangganOperasi {
       whereArgs: [since.toIso8601String()],
     );
     return List.generate(maps.length, (i) => PelangganModel.fromMap(maps[i]));
+  }
+
+  Future<void> arsipkanPelanggan(String id) async {
+    final db = await dbHelper.database;
+    final now = DateTime.now();
+    await db.update(
+      'pelanggan',
+      {
+        'isDeleted': 1, // diubah: Menandai sebagai terhapus (1 untuk true)
+        'diarsipkan': now.toIso8601String(), // ditambah: Mencatat waktu arsip
+        'diperbarui': now
+            .toIso8601String(), // ditambah: Memperbarui waktu update
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   // Menyisipkan atau memperbarui data secara batch

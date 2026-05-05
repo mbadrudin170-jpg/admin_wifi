@@ -1,5 +1,5 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
-// diubah: Memperbaiki createPelangganAktif untuk memastikan ID unik dan mengembalikan objek lengkap.
+// diubah: Direfactor untuk dependency injection NotifikasiServis agar mudah di-test.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
@@ -18,41 +18,36 @@ const uuid = Uuid();
 
 class PelangganAktifOperasi {
   final dbHelper = DatabaseHelper.instance;
-  final NotifikasiServis _notifikasiServis = NotifikasiServis();
+  late final NotifikasiServis notifikasiServis;
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
-  // diubah: Mengembalikan PelangganAktifModel agar ID yang dibuat bisa didapatkan.
+  // ditambah: Konstruktor untuk dependency injection.
+  PelangganAktifOperasi({NotifikasiServis? notifikasiServis}) {
+    this.notifikasiServis = notifikasiServis ?? NotifikasiServis();
+  }
+
   Future<PelangganAktifModel> createPelangganAktif(
     PelangganAktifModel pelangganAktif,
   ) async {
     final db = await dbHelper.database;
-
-    // ditambah: Membuat ID unik jika belum ada dan menambahkan timestamp 'diperbarui'.
     final pelangganUntukDisimpan = pelangganAktif.copyWith(
       id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
       diperbarui: DateTime.now(),
     );
-
     final data = pelangganUntukDisimpan.toMap();
-
     await db.insert(
       'pelanggan_aktif',
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-
     await _jadwalkanNotifikasi(pelangganUntukDisimpan);
     await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
-
     developer.log(
       '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat.',
     );
-
-    // ditambah: Mengembalikan objek lengkap yang sudah divalidasi dan memiliki ID.
     return pelangganUntukDisimpan;
   }
 
-  // untuk mengambil semua data pelanggan aktif yang belum diarsipkan
   Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -66,7 +61,6 @@ class PelangganAktifOperasi {
     );
   }
 
-  // untuk mengambil satu data pelanggan aktif
   Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -80,19 +74,15 @@ class PelangganAktifOperasi {
     return null;
   }
 
-  // untuk memperbarui data pelanggan aktif
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
-
     final data = pelangganAktif.toMap();
-
     await db.update(
       'pelanggan_aktif',
       data,
       where: 'id = ?',
       whereArgs: [pelangganAktif.id],
     );
-
     developer.log(
       '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diperbarui.',
     );
@@ -100,23 +90,20 @@ class PelangganAktifOperasi {
     await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
   }
 
-  // untuk menjadwalkan notifikasi
   Future<void> _jadwalkanNotifikasi(PelangganAktifModel pelangganAktif) async {
     final pelanggan = await _pelangganOperasi.getPelangganById(
       pelangganAktif.idPelanggan,
     );
     final namaPelanggan = pelanggan?.nama ?? 'Tanpa Nama';
 
-    // Batalkan notifikasi lama sebelum menjadwalkan yang baru
-    await _notifikasiServis.batalNotifikasi(pelangganAktif.id.hashCode);
-    await _notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 1));
+    await notifikasiServis.batalNotifikasi(pelangganAktif.id.hashCode);
+    await notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 1));
 
-    // Jadwalkan notifikasi H-1
     final jadwalNotifikasiH1 = pelangganAktif.tanggalBerakhir.subtract(
       const Duration(days: 1),
     );
     if (jadwalNotifikasiH1.isAfter(DateTime.now())) {
-      await _notifikasiServis.jadwalNotifikasi(
+      await notifikasiServis.jadwalNotifikasi(
         id: pelangganAktif.id.hashCode,
         title: 'Paket Akan Segera Berakhir',
         body: 'Paket untuk pelanggan $namaPelanggan akan berakhir besok.',
@@ -124,13 +111,12 @@ class PelangganAktifOperasi {
       );
     }
 
-    // Jadwalkan notifikasi H-3
     final jadwalNotifikasiH3 = pelangganAktif.tanggalBerakhir.subtract(
       const Duration(days: 3),
     );
     if (jadwalNotifikasiH3.isAfter(DateTime.now())) {
-      await _notifikasiServis.jadwalNotifikasi(
-        id: (pelangganAktif.id.hashCode + 1), // ID unik untuk notifikasi kedua
+      await notifikasiServis.jadwalNotifikasi(
+        id: (pelangganAktif.id.hashCode + 1),
         title: 'Pengingat Paket',
         body:
             'Paket untuk pelanggan $namaPelanggan akan berakhir dalam 3 hari.',
@@ -139,7 +125,6 @@ class PelangganAktifOperasi {
     }
   }
 
-  // untuk menyisipkan atau memperbarui data secara batch
   Future<void> sisipkanAtauPerbaruiBatch(
     List<PelangganAktifModel> items,
   ) async {
@@ -155,10 +140,8 @@ class PelangganAktifOperasi {
     await batch.commit(noResult: true);
   }
 
-  // ditambah: untuk mengarsipkan pelanggan aktif (soft delete)
   Future<void> arsipkanPelangganAktif(String id) async {
     final db = await dbHelper.database;
-
     final pelangganAktif = await ambilSatuPelangganAktif(id);
     if (pelangganAktif == null) {
       developer.log(
@@ -167,25 +150,18 @@ class PelangganAktifOperasi {
       );
       return;
     }
-
-    // ubah status menjadi diarsipkan
-    final pelangganDearsipkan = pelangganAktif.copyWith(
+    final pelangganDiarsipkan = pelangganAktif.copyWith(
       isDeleted: true,
       diarsipkan: DateTime.now(),
     );
-
-    // perbarui di database lokal
     await db.update(
       'pelanggan_aktif',
-      pelangganDearsipkan.toMap(),
+      pelangganDiarsipkan.toMap(),
       where: 'id = ?',
       whereArgs: [id],
     );
-
-    // batalkan notifikasi
-    await _notifikasiServis.batalNotifikasi(id.hashCode);
-    await _notifikasiServis.batalNotifikasi((id.hashCode + 1));
-
+    await notifikasiServis.batalNotifikasi(id.hashCode);
+    await notifikasiServis.batalNotifikasi((id.hashCode + 1));
     developer.log(
       '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
       name: 'PelangganAktifOperasi',
@@ -194,16 +170,12 @@ class PelangganAktifOperasi {
 
   Future<void> hapusPelangganYangDiArsipkan() async {
     final db = await dbHelper.database;
-    // ditambah: Menentukan batas waktu adalah 30 hari yang lalu.
     final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
-
-    // diubah: Query langsung ke database untuk efisiensi, tidak perlu menarik semua data.
     final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
       'pelanggan_aktif',
       where: 'diarsipkan IS NOT NULL AND diarsipkan < ?',
       whereArgs: [batasWaktu.toIso8601String()],
     );
-
     if (pelangganKadaluarsa.isEmpty) {
       developer.log(
         'ℹ️ [LOKAL] Tidak ada pelanggan aktif yang diarsipkan lebih dari 30 hari untuk dihapus.',
@@ -211,25 +183,20 @@ class PelangganAktifOperasi {
       );
       return;
     }
-
-    // ditambah: Mengumpulkan ID untuk dihapus dalam satu operasi.
     final idsUntukDihapus = pelangganKadaluarsa
         .map((map) => map['id'] as String)
         .toList();
-
     final count = await db.delete(
       'pelanggan_aktif',
       where: 'id IN (${List.filled(idsUntukDihapus.length, '?').join(',')})',
       whereArgs: idsUntukDihapus,
     );
-
     developer.log(
       '🧹 [LOKAL] $count pelanggan aktif yang diarsipkan lebih dari 30 hari telah dihapus permanen.',
       name: 'PelangganAktifOperasi',
     );
   }
 
-  // ditambah: untuk menghapus semua pelanggan aktif secara permanen
   Future<void> hapusSemuaPelangganAktif() async {
     final db = await dbHelper.database;
     await db.delete('pelanggan_aktif');
@@ -239,25 +206,18 @@ class PelangganAktifOperasi {
     );
   }
 
-  // ditambah: untuk mengarsipkan pelanggan yang sudah kadaluarsa
   Future<int> arsipkanPelangganKadaluarsa() async {
     final riwayatOperasi = RiwayatLanggananOperasi();
     final paketOperasi = PaketOperasi();
-
-    // 1. Ambil semua pelanggan aktif yang belum diarsipkan
     final semuaPelanggan = await ambilSemuaPelangganAktif();
     final sekarang = DateTime.now();
     final pelangganKadaluarsa = semuaPelanggan
         .where((p) => p.tanggalBerakhir.isBefore(sekarang) && !p.isDeleted)
         .toList();
-
     if (pelangganKadaluarsa.isEmpty) {
-      return 0; // Tidak ada yang diarsipkan
+      return 0;
     }
-
-    // 2. Proses setiap pelanggan kadaluarsa
     for (final pelanggan in pelangganKadaluarsa) {
-      // Buat entri untuk riwayat
       final paket = await paketOperasi.getPaketById(pelanggan.idPaket);
       if (paket != null) {
         final riwayat = RiwayatLanggananModel(
@@ -276,41 +236,31 @@ class PelangganAktifOperasi {
         );
         await riwayatOperasi.tambahRiwayatLangganan(riwayat);
       }
-
-      // Lakukan soft delete dengan memanggil fungsi arsipkan
       await arsipkanPelangganAktif(pelanggan.id);
     }
-
     developer.log(
       '🗂️ [LOKAL] ${pelangganKadaluarsa.length} pelanggan kadaluarsa telah diarsipkan.',
       name: 'PelangganAktifOperasi',
     );
-
     return pelangganKadaluarsa.length;
   }
 
-  // ditambah: untuk mengarsipkan semua pelanggan aktif
   Future<int> arsipkanSemuaPelangganAktif() async {
     final semuaPelanggan = await ambilSemuaPelangganAktif();
-
     if (semuaPelanggan.isEmpty) {
       developer.log(
         'ℹ️ [LOKAL] Tidak ada pelanggan aktif untuk diarsipkan.',
         name: 'PelangganAktifOperasi',
       );
-      return 0; // Tidak ada yang diarsipkan
+      return 0;
     }
-
     for (final pelanggan in semuaPelanggan) {
-      // Lakukan soft delete dengan memanggil fungsi arsipkan yang sudah ada
       await arsipkanPelangganAktif(pelanggan.id);
     }
-
     developer.log(
       '🗂️ [LOKAL] ${semuaPelanggan.length} pelanggan aktif telah diarsipkan.',
       name: 'PelangganAktifOperasi',
     );
-
     return semuaPelanggan.length;
   }
 }
