@@ -70,8 +70,6 @@ class _FormPelangganState extends State<FormPelanggan> {
         password: _passwordController.text,
         macAddress: _macAddressController.text,
         diperbarui: DateTime.now(), // Perbaikan di sini
-        // Tambahkan status dan diarsipkan jika perlu, tapi default sudah cukup
-        status: widget.pelanggan?.status ?? StatusPelanggan.aktif,
       );
       if (widget.pelanggan == null) {
         await PelangganOperasi().createPelanggan(newPelanggan);

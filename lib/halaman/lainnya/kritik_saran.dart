@@ -47,18 +47,6 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
   // Fungsi untuk menghapus kritik saran dari halaman daftar (via long press)
   Future<void> _hapusKritikSaran(KritikSaranModel item) async {
-    if (item.id == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tidak dapat menghapus: ID tidak ditemukan'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-      return;
-    }
-
     final konfirmasi = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -82,7 +70,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
     if (konfirmasi == true && mounted) {
       try {
-        await _kritikSaranOperasi.hapusKritikSaran(item.id!);
+        await _kritikSaranOperasi.hapusKritikSaran(item.id);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -133,21 +121,20 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                   ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () async { // Jadikan onTap async
-                      if (item.id != null) {
-                        // Tangkap hasil dari Navigator.push
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                DetailKritikSaranPage(id: item.id!),
-                          ),
-                        );
+                    onTap: () async {
+                      // Jadikan onTap async
+                      // Tangkap hasil dari Navigator.push
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              DetailKritikSaranPage(id: item.id),
+                        ),
+                      );
 
-                        // Jika hasilnya 'true', muat ulang data
-                        if (result == true) {
-                          _loadKritikSaran();
-                        }
+                      // Jika hasilnya 'true', muat ulang data
+                      if (result == true) {
+                        _loadKritikSaran();
                       }
                     },
                     onLongPress: () => _hapusKritikSaran(item),

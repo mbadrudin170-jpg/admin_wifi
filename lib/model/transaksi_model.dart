@@ -1,5 +1,4 @@
 // path: lib/model/transaksi_model.dart
-// diubah: Hapus impor sync_status dan semua properti terkait.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,6 +13,8 @@ class TransaksiModel {
 
   final String idDompet;
   final String namaDompet;
+  final String? idDompetTujuan;
+  final String? namaDompetTujuan;
   final String idKategori;
   final String namaKategori;
   final String? idPelanggan;
@@ -25,10 +26,6 @@ class TransaksiModel {
 
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
-  // dihapus: karena tidak digunakan lagi
-  // final SyncStatus syncStatus;
-
-  // tambahan lifecycle
   final bool isDeleted;
 
   TransaksiModel({
@@ -39,6 +36,8 @@ class TransaksiModel {
     required this.tipe,
     required this.idDompet,
     required this.namaDompet,
+    this.idDompetTujuan,
+    this.namaDompetTujuan,
     required this.idKategori,
     required this.namaKategori,
     this.idPelanggan,
@@ -49,18 +48,14 @@ class TransaksiModel {
     this.namaSubKategori,
     this.diperbarui,
     this.diarsipkan,
-    // dihapus: karena tidak digunakan lagi
-    // this.syncStatus = SyncStatus.write,
     this.isDeleted = false,
   }) : id = id ?? const Uuid().v4();
 
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
-
     if (dateValue is Timestamp) return dateValue.toDate();
     if (dateValue is DateTime) return dateValue;
     if (dateValue is String) return DateTime.tryParse(dateValue);
-
     return null;
   }
 
@@ -74,26 +69,22 @@ class TransaksiModel {
         (e) => e.name == map['tipe'],
         orElse: () => TipeTransaksi.pengeluaran,
       ),
-
       idDompet: map['id_dompet'] ?? '',
       namaDompet: map['nama_dompet'] ?? '',
+      idDompetTujuan: map['id_dompet_tujuan'],
+      namaDompetTujuan: map['nama_dompet_tujuan'],
       idKategori: map['id_kategori'] ?? '',
       namaKategori: map['nama_kategori'] ?? '',
-
       idPelanggan: map['id_pelanggan'],
       namaPelanggan: map['nama_pelanggan'],
       idPaket: map['id_paket'],
       namaPaket: map['nama_paket'],
       idSubKategori: map['id_sub_kategori'],
       namaSubKategori: map['nama_sub_kategori'],
-
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
-
-      // dihapus: karena tidak digunakan lagi
-
-      // tambahan soft delete
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+      // diubah: Konversi dari integer (SQLite) atau boolean (Firestore) ke boolean.
+      isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
     );
   }
 
@@ -104,26 +95,22 @@ class TransaksiModel {
       'keterangan': keterangan,
       'jumlah': jumlah,
       'tipe': tipe.name,
-
       'id_dompet': idDompet,
       'nama_dompet': namaDompet,
+      'id_dompet_tujuan': idDompetTujuan,
+      'nama_dompet_tujuan': namaDompetTujuan,
       'id_kategori': idKategori,
       'nama_kategori': namaKategori,
-
       'id_pelanggan': idPelanggan,
       'nama_pelanggan': namaPelanggan,
       'id_paket': idPaket,
       'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
       'nama_sub_kategori': namaSubKategori,
-
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
-
-      // dihapus: karena tidak digunakan lagi
-
-      // tambahan lifecycle
-      'isDeleted': isDeleted,
+      // diubah: Konversi boolean ke integer untuk kompatibilitas dengan SQLite.
+      'isDeleted': isDeleted ? 1 : 0,
     };
   }
 
@@ -135,6 +122,8 @@ class TransaksiModel {
     TipeTransaksi? tipe,
     String? idDompet,
     String? namaDompet,
+    String? idDompetTujuan,
+    String? namaDompetTujuan,
     String? idKategori,
     String? namaKategori,
     String? idPelanggan,
@@ -145,8 +134,6 @@ class TransaksiModel {
     String? namaSubKategori,
     DateTime? diperbarui,
     DateTime? diarsipkan,
-    // dihapus: karena tidak digunakan lagi
-    // SyncStatus? syncStatus,
     bool? isDeleted,
   }) {
     return TransaksiModel(
@@ -155,24 +142,20 @@ class TransaksiModel {
       keterangan: keterangan ?? this.keterangan,
       jumlah: jumlah ?? this.jumlah,
       tipe: tipe ?? this.tipe,
-
       idDompet: idDompet ?? this.idDompet,
       namaDompet: namaDompet ?? this.namaDompet,
+      idDompetTujuan: idDompetTujuan ?? this.idDompetTujuan,
+      namaDompetTujuan: namaDompetTujuan ?? this.namaDompetTujuan,
       idKategori: idKategori ?? this.idKategori,
       namaKategori: namaKategori ?? this.namaKategori,
-
       idPelanggan: idPelanggan ?? this.idPelanggan,
       namaPelanggan: namaPelanggan ?? this.namaPelanggan,
       idPaket: idPaket ?? this.idPaket,
       namaPaket: namaPaket ?? this.namaPaket,
       idSubKategori: idSubKategori ?? this.idSubKategori,
       namaSubKategori: namaSubKategori ?? this.namaSubKategori,
-
       diperbarui: diperbarui ?? this.diperbarui,
       diarsipkan: diarsipkan ?? this.diarsipkan,
-
-      // dihapus: karena tidak digunakan lagi
-      // syncStatus: syncStatus ?? this.syncStatus,
       isDeleted: isDeleted ?? this.isDeleted,
     );
   }

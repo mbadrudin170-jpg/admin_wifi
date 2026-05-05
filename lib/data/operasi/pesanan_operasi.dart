@@ -1,5 +1,5 @@
 // lib/data/operasi/pesanan_operasi.dart
-// diubah: Mengganti path import pesan_model.dart menjadi pesanan_model.dart dan memperbaiki nama tabel
+// diubah: Menghapus fungsi yang tidak valid (totalPendapatanHariIni, hitungPesananHariIni)
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,7 +10,7 @@ class PesananOperasi {
   // Simpan pesanan baru
   Future<void> simpanPesanan(PesananModel pesanan) async {
     final db = await dbHelper.database;
-    await db.insert('pesanan', pesanan.toMap());
+    await db.insert('pesanan', pesanan.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Ambil semua pesanan (terbaru di atas)
@@ -52,25 +52,7 @@ class PesananOperasi {
     await db.delete('pesanan', where: 'id = ?', whereArgs: [id]);
   }
 
-  // Hitung total pesanan hari ini
-  Future<int> hitungPesananHariIni() async {
-    final db = await dbHelper.database;
-    final result = await db.rawQuery(
-      "SELECT COUNT(*) as total FROM pesanan WHERE date(tanggal) = date('now')",
-    );
-    return Sqflite.firstIntValue(result) ?? 0;
-  }
-
-  // Hitung total pendapatan hari ini
-  Future<int> totalPendapatanHariIni() async {
-    final db = await dbHelper.database;
-    final result = await db.rawQuery(
-      "SELECT SUM(harga) as total FROM pesanan WHERE date(tanggal) = date('now')",
-    );
-    return Sqflite.firstIntValue(result) ?? 0;
-  }
-
-  // diubah: Menggunakan tabel 'pesanan' bukan 'pelanggan'
+  // Menyisipkan atau memperbarui data secara batch
   Future<void> sisipkanAtauPerbaruiBatch(List<PesananModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();

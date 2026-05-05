@@ -1,7 +1,5 @@
 // Path: lib/model/riwayat_langganan_model.dart
-// Model ini menyimpan riwayat langganan pelanggan beserta snapshot data paket.
-// Snapshot digunakan agar data historis tetap konsisten meskipun paket berubah di masa depan.
-
+// diubah: Menambahkan copyWith dan memperbaiki toMap
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'enum/status_pembayaran.dart';
 import 'package:uuid/uuid.dart';
@@ -42,6 +40,38 @@ class RiwayatLanggananModel {
     this.isDeleted = false,
   }) : id = id ?? const Uuid().v4();
 
+  RiwayatLanggananModel copyWith({
+    String? id,
+    String? idPelanggan,
+    String? idPaket,
+    String? namaPaket,
+    int? hargaPaket,
+    int? durasiPaket,
+    String? tipeDurasiPaket,
+    DateTime? tanggalMulai,
+    DateTime? tanggalBerakhir,
+    StatusPembayaran? status,
+    DateTime? diperbarui,
+    DateTime? diarsipkan,
+    bool? isDeleted,
+  }) {
+    return RiwayatLanggananModel(
+      id: id ?? this.id,
+      idPelanggan: idPelanggan ?? this.idPelanggan,
+      idPaket: idPaket ?? this.idPaket,
+      namaPaket: namaPaket ?? this.namaPaket,
+      hargaPaket: hargaPaket ?? this.hargaPaket,
+      durasiPaket: durasiPaket ?? this.durasiPaket,
+      tipeDurasiPaket: tipeDurasiPaket ?? this.tipeDurasiPaket,
+      tanggalMulai: tanggalMulai ?? this.tanggalMulai,
+      tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
+      status: status ?? this.status,
+      diperbarui: diperbarui ?? this.diperbarui,
+      diarsipkan: diarsipkan ?? this.diarsipkan,
+      isDeleted: isDeleted ?? this.isDeleted,
+    );
+  }
+
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
     if (dateValue is Timestamp) return dateValue.toDate();
@@ -74,33 +104,7 @@ class RiwayatLanggananModel {
     );
   }
 
-  // =========================
-  // FIREBASE FORMAT
-  // =========================
-  Map<String, dynamic> toMapForFirebase() {
-    return {
-      'id': id,
-      'id_pelanggan': idPelanggan,
-      'id_paket': idPaket,
-      'nama_paket': namaPaket,
-      'harga_paket': hargaPaket,
-      'durasi_paket': durasiPaket,
-      'tipe_durasi_paket': tipeDurasiPaket,
-      'tanggal_mulai': Timestamp.fromDate(tanggalMulai),
-      'tanggal_berakhir': Timestamp.fromDate(tanggalBerakhir),
-      'status': status.name,
-      'diperbarui': diperbarui != null ? Timestamp.fromDate(diperbarui!) : null,
-      'diarsipkan': diarsipkan != null ? Timestamp.fromDate(diarsipkan!) : null,
-
-      // lifecycle
-      'isDeleted': isDeleted,
-    };
-  }
-
-  // =========================
-  // SQLITE FORMAT
-  // =========================
-  Map<String, dynamic> toMapForSqflite() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -114,18 +118,7 @@ class RiwayatLanggananModel {
       'status': status.name,
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
-
-      // lifecycle
-      'isDeleted': isDeleted
-          ? 1
-          : 0, // diubah: [mengubah boolean ke integer untuk sqlite]
+      'isDeleted': isDeleted ? 1 : 0,
     };
-  }
-
-  // =========================
-  // DEFAULT SYNC MAP (USED BY SERVICE)
-  // =========================
-  Map<String, dynamic> toMap() {
-    return toMapForFirebase();
   }
 }

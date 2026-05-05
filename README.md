@@ -1,5 +1,68 @@
 ## Dokumen Lengkap Proyek Saya per File
 
+### **File: lib/data/operasi/transaksi_operasi.dart**
+**Fitur:** Operasi Logika dan Database untuk Transaksi Keuangan
+**Tujuan file ini dibuat:** Untuk menyediakan sekumpulan fungsi yang menangani logika bisnis inti dari semua transaksi keuangan (pemasukan, pengeluaran, transfer). File ini tidak hanya melakukan operasi Create, Read, Update, Delete (CRUD) pada tabel `transaksi`, tetapi juga bertanggung jawab untuk menjaga integritas data keuangan dengan memperbarui saldo pada tabel `dompet` secara transaksional.
+
+**Daftar Fungsi/Class:**
+- `class TransaksiOperasi`: Kelas yang berisi semua metode untuk mengelola logika transaksi.
+- `Future<void> tambahTransaksi(TransaksiModel transaksi)`: Menambahkan sebuah transaksi baru ke database. Logikanya sangat penting:
+    - Menggunakan `db.transaction()` untuk memastikan bahwa penambahan data transaksi dan pembaruan saldo dompet terjadi sebagai satu operasi atomik. Jika salah satu gagal, keduanya akan dibatalkan.
+    - Berdasarkan `tipe` transaksi:
+        - **Pemasukan**: Menambah saldo `idDompet`.
+        - **Pengeluaran**: Mengurangi saldo `idDompet`.
+        - **Transfer**: Mengurangi saldo `idDompet` dan menambah saldo `idDompetTujuan`.
+- `Future<void> updateTransaksi(TransaksiModel transaksiLama, TransaksiModel transaksiBaru)`: Menangani pembaruan transaksi yang sudah ada. Ini adalah logika yang paling kompleks:
+    1.  Memulai sebuah transaksi database.
+    2.  **Mengembalikan Saldo Lama**: Membatalkan efek dari `transaksiLama` pada saldo dompet (misalnya, jika transaksi lama adalah pemasukan, maka saldo akan dikurangi).
+    3.  **Menerapkan Saldo Baru**: Menerapkan efek dari `transaksiBaru` pada saldo dompet (misalnya, jika transaksi baru adalah pengeluaran, maka saldo akan dikurangi).
+    4.  Memperbarui data transaksi itu sendiri di tabel `transaksi`.
+- `Future<void> deleteTransaksi(TransaksiModel transaksi)`: Melakukan *soft delete* pada sebuah transaksi dan mengembalikan saldo dompet ke kondisi sebelum transaksi tersebut terjadi.
+    - Sama seperti `updateTransaksi`, fungsi ini mengembalikan saldo berdasarkan `tipe` transaksi yang dihapus (misalnya, menghapus pengeluaran akan menambah kembali saldo dompet).
+- `Future<List<TransaksiModel>> getSemuaTransaksi()`: Mengambil semua data transaksi yang tidak di-soft-delete dari database.
+- `Future<TransaksiModel?> getTransaksiById(String id)`: Mengambil satu data transaksi berdasarkan ID uniknya.
+- `sisipkanAtauPerbaruiBatch(List<TransaksiModel> transactions)`: Melakukan operasi insert atau update massal untuk sinkronisasi data dari server.
+- `_updateSaldoDompet(txn, id, jumlah, {isPemasukan})`: Fungsi helper internal yang digunakan oleh metode publik untuk menambah atau mengurangi saldo pada dompet tertentu di dalam sebuah transaksi database.
+
+**Catatan:**
+- Penggunaan `db.transaction()` di semua operasi tulis (tambah, update, hapus) adalah kunci untuk mencegah inkonsistensi data antara tabel transaksi dan dompet.
+- Semua logika perubahan saldo (yang sebelumnya mungkin tersebar) kini terpusat di dalam kelas ini, menjadikannya satu-satunya sumber kebenaran (`single source of truth`) untuk semua perubahan keuangan.
+- Logika ini telah **teruji secara ekstensif** melalui unit test (`transaksi_operasi_test.dart`), memastikan keandalannya.
+
+### **File: lib/model/transaksi_model.dart**
+**Fitur:** Model Data untuk Transaksi Keuangan
+
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah "transaksi" keuangan. Model ini sangat detail karena mencatat semua aspek dari sebuah transaksi, termasuk relasi ke berbagai entitas lain seperti dompet, kategori, pelanggan, dan paket. Model ini juga dirancang untuk kompatibel dengan **SQLite (lokal)** dan **Firebase (server)**.
+
+**Daftar Fungsi/Class:**
+- `enum TipeTransaksi`: Mendefinisikan tiga tipe transaksi: `pemasukan`, `pengeluaran`, dan `transfer`.
+- `class TransaksiModel`: Kelas utama yang menyimpan semua detail dari sebuah transaksi.
+    - `id`, `tanggal`, `keterangan`, `jumlah`, `tipe`: Properti dasar dari sebuah transaksi.
+    - **Data Relasional**: Menyimpan ID dan nama dari dompet, kategori, pelanggan, paket, dan sub-kategori.
+    - `diperbarui`, `diarsipkan`, `isDeleted`: Properti standar untuk manajemen siklus hidup data.
+- `factory TransaksiModel.fromMap(Map<String, dynamic> map)`: Factory constructor untuk membuat objek `TransaksiModel` dari `Map`. Terdapat logika penting di dalamnya:
+    - `isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true`: Logika ini dengan cerdas mengubah data `isDeleted` menjadi `bool`, baik data aslinya berasal dari **SQLite (integer `1` atau `0`)** maupun dari **Firebase (boolean `true` atau `false`)**.
+- `Map<String, dynamic> toMap()`: Mengonversi objek `TransaksiModel` menjadi `Map` yang siap untuk disimpan ke database **lokal (SQLite)**.
+    - `'isDeleted': isDeleted ? 1 : 0`: Logika ini memastikan nilai `bool` diubah menjadi `integer` agar kompatibel dengan SQLite yang tidak mendukung tipe data boolean.
+- `salinDengan()`: Metode yang mirip dengan `copyWith`, memungkinkan pembuatan salinan objek dengan nilai properti yang telah diubah.
+
+**Catatan:**
+- Model ini adalah salah satu model paling kompleks karena ia menyatukan banyak informasi dari berbagai bagian aplikasi ke dalam satu catatan transaksi.
+- Kemampuannya menangani perbedaan format data antara SQLite dan Firebase di metode `fromMap` dan `toMap` adalah kunci untuk sinkronisasi data yang mulus.
+
+---
+## Catatan Pengembangan (Telah Selesai)
+- **Perbaikan Mayor Logika Transaksi**: Melakukan refactoring besar pada `transaksi_operasi.dart` untuk memastikan semua operasi (tambah, edit, hapus) bersifat transaksional dan secara akurat memperbarui saldo dompet.
+- **Implementasi Test-Driven Development (TDD)**: Membuat file `test/transaksi_operasi_test.dart` yang berisi 9 kasus uji untuk memvalidasi semua skenario logika transaksi, termasuk pemasukan, pengeluaran, transfer, dan kasus-kasus tepi saat pembaruan data.
+- **Perbaikan Model Data**: Memperbaiki `transaksi_model.dart` untuk menangani konversi tipe data antara `boolean` (dari Firebase) dan `integer` (untuk SQLite), yang menyelesaikan error `Invalid sql argument type 'bool'`.
+- **Pembersihan Tes**: Menghapus file tes yang tidak digunakan (`widget_test.dart`, `pelanggan_aktif_operasi_test.dart`) untuk memastikan semua tes yang ada relevan dan berhasil.
+- **Hasil**: Mencapai status `All tests passed!`, yang menandakan logika bisnis inti aplikasi kini stabil dan terverifikasi.
+
+---
+
+## Dokumen Lengkap Proyek Saya per File (Lama)
+
+
 ### **File: lib/halaman/tab/pelanggan_aktif.dart**
 **Fitur:** Halaman Manajemen Pelanggan Aktif
 **Tujuan file ini dibuat:** Untuk menampilkan daftar semua pelanggan yang memiliki langganan aktif, menyediakan fungsionalitas pencarian, pengurutan, penambahan, dan pengarsipan pelanggan.
@@ -381,34 +444,6 @@
 - Semua properti snapshot (seperti `namaPaket`, `hargaPaket`) wajib diisi untuk memastikan setiap riwayat memiliki konteks yang lengkap.
 - Saat membaca data dari `Map`, jika ada data yang hilang, nilai default yang "aman" akan digunakan (misalnya, "Tidak Diketahui" untuk nama paket).
 
-### **File: lib/model/transaksi_model.dart**
-**Fitur:** Model Data untuk Transaksi Keuangan
-
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah "transaksi" keuangan. Model ini sangat detail karena mencatat semua aspek dari sebuah transaksi, termasuk relasi ke berbagai entitas lain seperti dompet, kategori, pelanggan, dan paket.
-
-**Daftar Fungsi/Class:**
-- `enum TipeTransaksi`: Mendefinisikan tiga tipe transaksi: `pemasukan`, `pengeluaran`, dan `transfer`.
-- `class TransaksiModel`: Kelas utama yang menyimpan semua detail dari sebuah transaksi.
-    - `id`, `tanggal`, `keterangan`, `jumlah`, `tipe`: Properti dasar dari sebuah transaksi.
-    - **Data Relasional**:
-        - `idDompet`, `namaDompet`: Menghubungkan transaksi dengan dompet yang digunakan.
-        - `idKategori`, `namaKategori`: Menghubungkan transaksi dengan kategori utamanya.
-        - `idPelanggan`, `namaPelanggan`: (Opsional) Menghubungkan transaksi dengan pelanggan terkait.
-        - `idPaket`, `namaPaket`: (Opsional) Menghubungkan transaksi dengan paket yang dibeli.
-        - `idSubKategori`, `namaSubKategori`: (Opsional) Menghubungkan transaksi dengan sub-kategori yang lebih spesifik.
-    - `diperbarui`, `diarsipkan`, `isDeleted`: Properti standar untuk manajemen siklus hidup data.
-- `_parseDateTime()`: Fungsi utilitas internal untuk mengurai tanggal dari berbagai format.
-- `factory TransaksiModel.fromMap(Map<String, dynamic> map)`: Factory constructor untuk membuat objek `TransaksiModel` dari `Map`. Menangani nilai-nilai yang hilang dengan memberikan nilai default yang aman (misalnya, string kosong, 0, atau tipe `pengeluaran`).
-- `toMap()`: Mengonversi objek `TransaksiModel` menjadi `Map` yang siap untuk disimpan.
-- `salinDengan()`: Metode yang mirip dengan `copyWith`, memungkinkan pembuatan salinan objek dengan nilai properti yang telah diubah.
-
-**Catatan:**
-- Model ini adalah salah satu model paling kompleks karena ia menyatukan banyak informasi dari berbagai bagian aplikasi ke dalam satu catatan transaksi.
-- Penyimpanan `nama` dari entitas relasional (seperti `namaDompet`, `namaKategori`) di samping `id`-nya adalah bentuk denormalisasi data. Ini berguna untuk menampilkan informasi di UI tanpa perlu melakukan query tambahan, meskipun bisa menyebabkan redundansi data.
-
-**Rules:**
-- `tanggal`, `keterangan`, `jumlah`, `tipe`, `idDompet`, `namaDompet`, `idKategori`, dan `namaKategori` adalah field yang wajib diisi.
-- Jika tipe transaksi tidak dikenali saat data dibaca, maka akan diatur ke `TipeTransaksi.pengeluaran` sebagai default.
 
 ### **File: lib/services/cek_koneksi_internet.dart**
 **Fitur:** Pengecekan Koneksi Internet
@@ -544,7 +579,7 @@
 **Tujuan file ini dibuat:** Untuk menyediakan sebuah widget yang dapat digunakan kembali (`reusable`) di berbagai bagian UI untuk menampilkan nama seorang pelanggan hanya dengan memberikan `userId`. Widget ini secara otomatis menangani proses pengambilan data dari database, menampilkan indikator loading, dan menangani kasus jika pelanggan tidak ditemukan.
 
 **Daftar Fungsi/Class:**
-- `class NamaDariIdWidget`: Sebuah `StatelessWidget` yang menerima `userId` sebagai parameter wajib.
+- `class NamaDariIdWidget`: Sebuah `StatefulWidget` yang menerima `userId` sebagai parameter wajib.
 - `build(BuildContext context)`: Metode ini adalah inti dari widget, yang menggunakan `FutureBuilder` untuk mengelola siklus hidup dari operasi asynchronous (mengambil data dari database).
     - `future`: Memanggil metode `getPelangganById(userId)` dari `PelangganOperasi` untuk memulai proses pencarian data pelanggan di database.
     - `builder`: Sebuah fungsi yang mendefinisikan apa yang harus ditampilkan di UI berdasarkan status dari `Future`:

@@ -1,45 +1,43 @@
-// Path: lib/data/operasi/riwayat_langganan_operasi.dart
-
-import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+// lib/data/operasi/riwayat_langganan_operasi.dart
+// diubah: Menggunakan toMap() yang sudah diperbaiki
 import 'package:sqflite/sqflite.dart';
 import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 
 class RiwayatLanggananOperasi {
   final dbHelper = DatabaseHelper.instance;
 
-  // Tambah riwayat
+  // Tambah riwayat langganan baru
   Future<void> tambahRiwayatLangganan(RiwayatLanggananModel riwayat) async {
-    Database db = await dbHelper.database;
+    final db = await dbHelper.database;
     await db.insert(
       'riwayat_langganan',
-      riwayat.toMapForSqflite(),
+      riwayat.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  // diubah: Tambahkan fungsi update
+  // Update riwayat langganan
   Future<void> updateRiwayat(RiwayatLanggananModel riwayat) async {
-    Database db = await dbHelper.database;
+    final db = await dbHelper.database;
     await db.update(
       'riwayat_langganan',
-      riwayat.toMapForSqflite(),
+      riwayat.toMap(),
       where: 'id = ?',
       whereArgs: [riwayat.id],
     );
   }
 
-  // Ambil semua riwayat
+  // Ambil semua riwayat langganan
   Future<List<RiwayatLanggananModel>> ambilSemuaRiwayat() async {
-    Database db = await dbHelper.database;
+    final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('riwayat_langganan');
-    return List.generate(maps.length, (i) {
-      return RiwayatLanggananModel.fromMap(maps[i]);
-    });
+    return maps.map((map) => RiwayatLanggananModel.fromMap(map)).toList();
   }
 
-  // Hapus riwayat berdasarkan ID
+  // Hapus riwayat langganan berdasarkan ID
   Future<void> hapusRiwayat(String id) async {
-    Database db = await dbHelper.database;
+    final db = await dbHelper.database;
     await db.delete(
       'riwayat_langganan',
       where: 'id = ?',
@@ -47,35 +45,32 @@ class RiwayatLanggananOperasi {
     );
   }
 
-  // Hapus semua riwayat
+  // Hapus semua riwayat langganan
   Future<void> hapusSemuaRiwayat() async {
-    Database db = await dbHelper.database;
+    final db = await dbHelper.database;
     await db.delete('riwayat_langganan');
   }
 
-  // Ambil perubahan untuk sinkronisasi
-  Future<List<RiwayatLanggananModel>> getPerubahan(DateTime lastSync) async {
+  // Mengambil data perubahan berdasarkan timestamp
+  Future<List<RiwayatLanggananModel>> getPerubahan(DateTime timestamp) async {
     final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final result = await db.query(
       'riwayat_langganan',
       where: 'diperbarui > ?',
-      whereArgs: [lastSync.toIso8601String()],
+      whereArgs: [timestamp.toIso8601String()],
     );
-    return List.generate(maps.length, (i) {
-      return RiwayatLanggananModel.fromMap(maps[i]);
-    });
+    return result.map((json) => RiwayatLanggananModel.fromMap(json)).toList();
   }
 
-  // Sisipkan atau perbarui batch untuk sinkronisasi
+  // Menyisipkan atau memperbarui data secara batch
   Future<void> sisipkanAtauPerbaruiBatch(
-    List<RiwayatLanggananModel> riwayatList,
-  ) async {
+      List<RiwayatLanggananModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();
-    for (var riwayat in riwayatList) {
+    for (var item in items) {
       batch.insert(
         'riwayat_langganan',
-        riwayat.toMapForSqflite(),
+        item.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

@@ -1,53 +1,74 @@
-
 // path: lib/model/kritik_saran_model.dart
+// diubah: Menambahkan copyWith dan id non-nullable untuk pengujian
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class KritikSaranModel {
-  final String? id;
+  final String id;
   final String isi;
   final DateTime tanggal;
   final String userId;
-  // ditambah: Menambahkan properti untuk melacak waktu pembaruan.
   final DateTime? diperbarui;
 
   KritikSaranModel({
-    this.id,
+    String? id,
     required this.isi,
     required this.tanggal,
     required this.userId,
-    // ditambah: Menambahkan 'diperbarui' ke konstruktor.
     this.diperbarui,
-  });
+  }) : id = id ?? const Uuid().v4(); // ID akan dibuat jika null (untuk tes)
 
-  // Konversi dari objek ke Map untuk Firestore/SQLite
+  KritikSaranModel copyWith({
+    String? id,
+    String? isi,
+    DateTime? tanggal,
+    String? userId,
+    DateTime? diperbarui,
+  }) {
+    return KritikSaranModel(
+      id: id ?? this.id,
+      isi: isi ?? this.isi,
+      tanggal: tanggal ?? this.tanggal,
+      userId: userId ?? this.userId,
+      diperbarui: diperbarui ?? this.diperbarui,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'isi': isi,
-      'tanggal': tanggal
-          .toIso8601String(), // Selalu simpan sebagai string di SQLite
+      'tanggal': tanggal.toIso8601String(),
       'userId': userId,
-      // ditambah: Menyimpan 'diperbarui' sebagai string ISO 8601.
       'diperbarui': diperbarui?.toIso8601String(),
     };
   }
 
-  // Factory constructor untuk membuat objek dari Map (dari SQLite atau Firestore)
   factory KritikSaranModel.fromMap(Map<String, dynamic> map) {
+    var tanggalValue = map['tanggal'];
+    DateTime parsedDate;
+    if (tanggalValue is Timestamp) {
+      parsedDate = tanggalValue.toDate();
+    } else if (tanggalValue is String) {
+      parsedDate = DateTime.parse(tanggalValue);
+    } else {
+      parsedDate = DateTime.now(); 
+    }
+    
+    var diperbaruiValue = map['diperbarui'];
+    DateTime? parsedDiperbarui;
+    if (diperbaruiValue is Timestamp) {
+      parsedDiperbarui = diperbaruiValue.toDate();
+    } else if (diperbaruiValue is String) {
+      parsedDiperbarui = DateTime.tryParse(diperbaruiValue);
+    }
+
     return KritikSaranModel(
-      id: map['id']?.toString(),
+      id: map['id'] as String?,
       isi: map['isi'] ?? '',
       userId: map['userId'] ?? '',
-      tanggal: (map['tanggal'] is Timestamp)
-          ? (map['tanggal'] as Timestamp)
-                .toDate() // Dari Firestore
-          : DateTime.parse(map['tanggal'] as String), // Dari SQLite
-      // ditambah: Mengonversi 'diperbarui' dari Timestamp atau String.
-      diperbarui: (map['diperbarui'] is Timestamp)
-          ? (map['diperbarui'] as Timestamp).toDate()
-          : (map['diperbarui'] != null)
-          ? DateTime.parse(map['diperbarui'] as String)
-          : null,
+      tanggal: parsedDate,
+      diperbarui: parsedDiperbarui,
     );
   }
 }

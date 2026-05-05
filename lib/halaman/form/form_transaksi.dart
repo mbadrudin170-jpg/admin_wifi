@@ -1,6 +1,4 @@
 // path: lib/halaman/form/form_transaksi.dart
-// Halaman ini menyediakan formulir untuk menambah atau mengedit transaksi.
-
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
@@ -11,7 +9,8 @@ import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:uuid/uuid.dart';
 
 class FormTransaksiPage extends StatefulWidget {
-  const FormTransaksiPage({super.key});
+  final TransaksiModel? transaksi;
+  const FormTransaksiPage({super.key, this.transaksi});
 
   @override
   State<FormTransaksiPage> createState() => _FormTransaksiPageState();
@@ -27,6 +26,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
   SubKategoriModel? _selectedSubKategori;
   TipeTransaksi _tipe = TipeTransaksi.pemasukan;
   DompetModel? _selectedDompet;
+  DompetModel? _selectedDompetTujuan;
 
   final DompetOperasi _dompetOperasi = DompetOperasi();
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
@@ -37,14 +37,15 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
   List<KategoriModel> _kategoriFiltered = [];
 
   bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
+    _loadAndPopulateInitialData();
   }
 
-  Future<void> _loadInitialData() async {
+  Future<void> _loadAndPopulateInitialData() async {
     try {
       final dompetList = await _dompetOperasi.getDompet();
       final kategoriList = await _kategoriOperasi.getKategori();
@@ -52,17 +53,51 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       setState(() {
         _dompetList = dompetList;
         _kategoriList = kategoriList;
+      });
+
+      if (widget.transaksi != null) {
+        final trx = widget.transaksi!;
+        _tipe = trx.tipe;
+        _keteranganController.text = trx.keterangan;
+        _jumlahController.text = trx.jumlah.toString();
+        _tanggal = trx.tanggal;
+
+        _selectedDompet = _dompetList.firstWhere(
+          (d) => d.id == trx.idDompet,
+          orElse: () => _dompetList.first,
+        );
+        if (trx.tipe == TipeTransaksi.transfer && trx.idDompetTujuan != null) {
+          _selectedDompetTujuan = _dompetList.firstWhere(
+            (d) => d.id == trx.idDompetTujuan,
+          );
+        }
+
         _filterKategori();
-        _isLoading = false;
-      });
+
+        if (trx.idKategori.isNotEmpty) {
+          _selectedKategori = _kategoriFiltered.firstWhere(
+            (k) => k.id == trx.idKategori,
+          );
+          if (trx.idSubKategori != null && _selectedKategori != null) {
+            _selectedSubKategori = _selectedKategori!.subKategori.firstWhere(
+              (sk) => sk.id == trx.idSubKategori,
+            );
+          }
+        }
+      } else {
+        _filterKategori();
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat data: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -119,14 +154,26 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      final newTransaksi = TransaksiModel(
-        id: const Uuid().v4(),
+      setState(() {
+        _isSaving = true;
+      });
+
+      final isEditMode = widget.transaksi != null;
+
+      final transaksi = TransaksiModel(
+        id: isEditMode ? widget.transaksi!.id : const Uuid().v4(),
         keterangan: _keteranganController.text,
         jumlah: double.parse(_jumlahController.text),
         tanggal: _tanggal,
         tipe: _tipe,
-        idDompet: _selectedDompet?.id ?? '',
-        namaDompet: _selectedDompet?.namaDompet ?? '',
+        idDompet: _selectedDompet!.id,
+        namaDompet: _selectedDompet!.namaDompet,
+        idDompetTujuan: _tipe == TipeTransaksi.transfer
+            ? _selectedDompetTujuan?.id
+            : null,
+        namaDompetTujuan: _tipe == TipeTransaksi.transfer
+            ? _selectedDompetTujuan?.namaDompet
+            : null,
         idKategori: _selectedKategori?.id ?? '',
         namaKategori: _selectedKategori?.nama ?? '',
         idSubKategori: _selectedSubKategori?.id,
@@ -135,7 +182,11 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       );
 
       try {
-        await _transaksiOperasi.tambahTransaksi(newTransaksi);
+        if (isEditMode) {
+          await _transaksiOperasi.updateTransaksi(transaksi);
+        } else {
+          await _transaksiOperasi.tambahTransaksi(transaksi);
+        }
         if (!mounted) return;
         Navigator.pop(context, true);
       } catch (e) {
@@ -143,6 +194,12 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal menyimpan transaksi: $e')),
         );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+        }
       }
     }
   }
@@ -150,7 +207,11 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Form Transaksi')),
+      appBar: AppBar(
+        title: Text(
+          widget.transaksi != null ? 'Edit Transaksi' : 'Tambah Transaksi',
+        ),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -159,30 +220,40 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                 key: _formKey,
                 child: ListView(
                   children: [
-                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
-                    DropdownButtonFormField<TipeTransaksi>(
-                      initialValue: _tipe,
-                      decoration: const InputDecoration(labelText: 'Tipe'),
-                      items: TipeTransaksi.values.map((TipeTransaksi tipe) {
-                        return DropdownMenuItem<TipeTransaksi>(
-                          value: tipe,
-                          child: Text(tipe.name),
-                        );
-                      }).toList(),
-                      onChanged: (TipeTransaksi? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _tipe = newValue;
-                            _filterKategori();
-                          });
-                        }
-                      },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(
+                        child: SegmentedButton<TipeTransaksi>(
+                          segments: TipeTransaksi.values.map((
+                            TipeTransaksi tipe,
+                          ) {
+                            return ButtonSegment<TipeTransaksi>(
+                              value: tipe,
+                              label: Text(tipe.name.toUpperCase()),
+                            );
+                          }).toList(),
+                          selected: <TipeTransaksi>{_tipe},
+                          onSelectionChanged:
+                              (Set<TipeTransaksi> newSelection) {
+                                setState(() {
+                                  _tipe = newSelection.first;
+                                  _selectedKategori = null;
+                                  _selectedSubKategori = null;
+                                  _selectedDompetTujuan = null;
+                                  _filterKategori();
+                                });
+                              },
+                        ),
+                      ),
                     ),
                     TextFormField(
                       controller: _keteranganController,
-                      decoration: const InputDecoration(labelText: 'Keterangan'),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Keterangan tidak boleh kosong' : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Keterangan',
+                      ),
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Keterangan tidak boleh kosong'
+                          : null,
                     ),
                     TextFormField(
                       controller: _jumlahController,
@@ -200,7 +271,8 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                     ),
                     ListTile(
                       title: Text(
-                          'Tanggal & Jam: ${_tanggal.toLocal().toString().split('.')[0]}'),
+                        'Tanggal & Jam: ${_tanggal.toLocal().toString().split('.')[0]}',
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -217,7 +289,6 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                         ],
                       ),
                     ),
-                    // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
                     DropdownButtonFormField<DompetModel>(
                       initialValue: _selectedDompet,
                       decoration: const InputDecoration(labelText: 'Dompet'),
@@ -232,13 +303,45 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                           _selectedDompet = newValue;
                         });
                       },
-                      validator: (value) => value == null ? 'Dompet harus dipilih' : null,
+                      validator: (value) =>
+                          value == null ? 'Dompet harus dipilih' : null,
                     ),
+                    if (_tipe == TipeTransaksi.transfer)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: DropdownButtonFormField<DompetModel>(
+                          initialValue: _selectedDompetTujuan,
+                          decoration: const InputDecoration(
+                            labelText: 'Dompet Tujuan',
+                          ),
+                          items: _dompetList.map((DompetModel dompet) {
+                            return DropdownMenuItem<DompetModel>(
+                              value: dompet,
+                              child: Text(dompet.namaDompet),
+                            );
+                          }).toList(),
+                          onChanged: (DompetModel? newValue) {
+                            setState(() {
+                              _selectedDompetTujuan = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Dompet tujuan harus dipilih';
+                            }
+                            if (value == _selectedDompet) {
+                              return 'Dompet tujuan tidak boleh sama dengan dompet asal';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                     if (_kategoriFiltered.isNotEmpty)
-                      // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
                       DropdownButtonFormField<KategoriModel>(
                         initialValue: _selectedKategori,
-                        decoration: const InputDecoration(labelText: 'Kategori'),
+                        decoration: const InputDecoration(
+                          labelText: 'Kategori',
+                        ),
                         items: _kategoriFiltered.map((KategoriModel kategori) {
                           return DropdownMenuItem<KategoriModel>(
                             value: kategori,
@@ -251,14 +354,19 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                             _selectedSubKategori = null;
                           });
                         },
-                        validator: (value) => value == null ? 'Kategori harus dipilih' : null,
+                        validator: (value) =>
+                            value == null ? 'Kategori harus dipilih' : null,
                       ),
-                    if (_selectedKategori != null && _selectedKategori!.subKategori.isNotEmpty)
-                      // diubah: Mengganti 'value' dengan 'initialValue' untuk mengatasi peringatan deprecated_member_use.
+                    if (_selectedKategori != null &&
+                        _selectedKategori!.subKategori.isNotEmpty)
                       DropdownButtonFormField<SubKategoriModel>(
                         initialValue: _selectedSubKategori,
-                        decoration: const InputDecoration(labelText: 'Sub Kategori'),
-                        items: _selectedKategori!.subKategori.map((SubKategoriModel sub) {
+                        decoration: const InputDecoration(
+                          labelText: 'Sub Kategori',
+                        ),
+                        items: _selectedKategori!.subKategori.map((
+                          SubKategoriModel sub,
+                        ) {
                           return DropdownMenuItem<SubKategoriModel>(
                             value: sub,
                             child: Text(sub.nama),
@@ -269,12 +377,19 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                             _selectedSubKategori = newValue;
                           });
                         },
-                        validator: (value) => value == null ? 'Sub Kategori harus dipilih' : null,
+                        validator: (value) =>
+                            value == null ? 'Sub Kategori harus dipilih' : null,
                       ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: _simpanForm,
-                      child: const Text('Simpan'),
+                      onPressed: _isSaving ? null : _simpanForm,
+                      child: _isSaving
+                          ? const CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            )
+                          : const Text('Simpan'),
                     ),
                   ],
                 ),

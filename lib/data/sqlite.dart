@@ -2,14 +2,18 @@
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
+// dihapus: Impor tidak perlu karena sudah dicakup oleh sqflite_common_ffi
+// import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Kelas ini berfungsi sebagai pusat pengelolaan koneksi dan skema database SQLite.
 class DatabaseHelper {
-  static final DatabaseHelper instance = DatabaseHelper._internal();
+  // diubah: Menjadikan constructor public agar bisa diakses untuk testing
+  static final DatabaseHelper instance = DatabaseHelper.internal();
   static Database? _database;
 
-  DatabaseHelper._internal();
+  // diubah: Menjadikan constructor public (menghapus underscore)
+  DatabaseHelper.internal();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -19,39 +23,45 @@ class DatabaseHelper {
 
   // Menginisialisasi database.
   Future<Database> _initDB() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+      return await databaseFactory.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(
+          version: 24,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
+      );
+    }
+
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      // diubah: versi dinaikkan ke 24 untuk migrasi kolom isDeleted pada tabel pelanggan
       version: 24,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
   }
 
-  // Fungsi ini dijalankan saat database pertama kali dibuat
   Future<void> _onCreate(Database db, int version) async {
     await _createTables(db);
-    // ditambahkan: agar tabel versi_apk_user juga dibuat saat install baru
     await _createVersiApkUserTable(db);
   }
 
-  // Fungsi ini menangani migrasi database saat versi berubah
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // dihapus: logika drop semua tabel karena berbahaya (menghapus data user)
-
-    // ditambahkan: migrasi aman tanpa menghapus data
     if (oldVersion < 23) {
       await _createVersiApkUserTable(db);
     }
-    // ditambahkan: migrasi untuk menambahkan kolom isDeleted pada tabel pelanggan
     if (oldVersion < 24) {
-      await db.execute('ALTER TABLE pelanggan ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0');
+      await db.execute(
+        'ALTER TABLE pelanggan ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0',
+      );
     }
   }
 
-  // Membuat semua tabel utama
   Future<void> _createTables(Database db) async {
     await _createKategoriTable(db);
     await _createSubKategoriTable(db);
@@ -65,10 +75,6 @@ class DatabaseHelper {
     await _createPesananTable(db);
   }
 
-  // ============================
-  // TABEL BARU: versi_apk_user
-  // ============================
-  // ditambahkan: tabel untuk menyimpan info versi aplikasi user
   Future<void> _createVersiApkUserTable(Database db) async {
     await db.execute('''
       CREATE TABLE versi_apk_user(
@@ -85,10 +91,6 @@ class DatabaseHelper {
       )
     ''');
   }
-
-  // ============================
-  // TABEL LAIN (TIDAK DIUBAH)
-  // ============================
 
   Future<void> _createKategoriTable(Database db) async {
     await db.execute('''
@@ -141,10 +143,9 @@ class DatabaseHelper {
         alamat TEXT NOT NULL,
         password TEXT NOT NULL,
         mac_address TEXT NOT NULL,
-        status TEXT NOT NULL, 
+        status TEXT NOT NULL DEFAULT 'aktif', 
         diperbarui TEXT,      
         diarsipkan TEXT,
-        -- ditambahkan: kolom untuk soft delete
         isDeleted INTEGER NOT NULL DEFAULT 0       
       )
     ''');

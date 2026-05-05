@@ -3,9 +3,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
-// Enum untuk status pelanggan, mendukung soft delete.
-enum StatusPelanggan { aktif, diarsip }
-
 // diubah: nama kelas untuk konsistensi penamaan
 class PelangganModel {
   final String id;
@@ -14,11 +11,13 @@ class PelangganModel {
   final String alamat;
   final String password;
   final String macAddress;
-  final StatusPelanggan status;
   final bool isDeleted;
 
-  final DateTime? diperbarui;
+  final DateTime diperbarui; // diubah: menjadi non-nullable
   final DateTime? diarsipkan;
+
+  // ditambah: Getter untuk memeriksa apakah pelanggan aktif.
+  bool get isAktif => diarsipkan == null && !isDeleted;
 
   // diubah: nama konstruktor
   PelangganModel({
@@ -28,8 +27,7 @@ class PelangganModel {
     required this.alamat,
     required this.password,
     this.macAddress = '',
-    this.status = StatusPelanggan.aktif,
-    this.diperbarui,
+    required this.diperbarui, // diubah: menjadi required
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
@@ -42,9 +40,8 @@ class PelangganModel {
     String? alamat,
     String? password,
     String? macAddress,
-    StatusPelanggan? status,
     DateTime? diperbarui,
-    bool? isDeleted, // ditambah: isDeleted
+    bool? isDeleted,
     DateTime? diarsipkan,
   }) {
     return PelangganModel(
@@ -54,9 +51,8 @@ class PelangganModel {
       alamat: alamat ?? this.alamat,
       password: password ?? this.password,
       macAddress: macAddress ?? this.macAddress,
-      status: status ?? this.status,
       diperbarui: diperbarui ?? this.diperbarui,
-      isDeleted: isDeleted ?? this.isDeleted, // ditambah: isDeleted
+      isDeleted: isDeleted ?? this.isDeleted,
       diarsipkan: diarsipkan ?? this.diarsipkan,
     );
   }
@@ -79,11 +75,9 @@ class PelangganModel {
       alamat: map['alamat'] ?? '',
       password: map['password'] ?? '',
       macAddress: map['mac_address'] ?? '',
-      status: StatusPelanggan.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => StatusPelanggan.aktif, // Default ke aktif jika tidak ada
-      ),
-      diperbarui: _parseDateTime(map['diperbarui']),
+      diperbarui:
+          _parseDateTime(map['diperbarui']) ??
+          DateTime.now(), // diubah: Memberi nilai default
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
@@ -97,9 +91,8 @@ class PelangganModel {
       'alamat': alamat,
       'password': password,
       'mac_address': macAddress,
-      'status': status.name,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0, // ditambah: isDeleted
+      'diperbarui': diperbarui.toIso8601String(),
+      'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
