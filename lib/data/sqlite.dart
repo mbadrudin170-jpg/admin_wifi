@@ -2,17 +2,13 @@
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-// dihapus: Impor tidak perlu karena sudah dicakup oleh sqflite_common_ffi
-// import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Kelas ini berfungsi sebagai pusat pengelolaan koneksi dan skema database SQLite.
 class DatabaseHelper {
-  // diubah: Menjadikan constructor public agar bisa diakses untuk testing
   static final DatabaseHelper instance = DatabaseHelper.internal();
   static Database? _database;
 
-  // diubah: Menjadikan constructor public (menghapus underscore)
   DatabaseHelper.internal();
 
   Future<Database> get database async {
@@ -23,24 +19,26 @@ class DatabaseHelper {
 
   // Menginisialisasi database.
   Future<Database> _initDB() async {
+    // untuk testing
     if (Platform.environment.containsKey('FLUTTER_TEST')) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
       return await databaseFactory.openDatabase(
         inMemoryDatabasePath,
         options: OpenDatabaseOptions(
-          version: 24,
+          version: 25, // diubah: Versi dinaikkan untuk memicu onUpgrade
           onCreate: _onCreate,
           onUpgrade: _onUpgrade,
         ),
       );
     }
 
+    // untuk production
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      version: 24,
+      version: 25, // diubah: Versi dinaikkan untuk memicu onUpgrade
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -59,6 +57,11 @@ class DatabaseHelper {
       await db.execute(
         'ALTER TABLE pelanggan ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0',
       );
+    }
+    // ditambah: Logika migrasi untuk menambahkan kolom baru ke tabel transaksi
+    if (oldVersion < 25) {
+      await db.execute('ALTER TABLE transaksi ADD COLUMN id_dompet_tujuan TEXT');
+      await db.execute('ALTER TABLE transaksi ADD COLUMN nama_dompet_tujuan TEXT');
     }
   }
 

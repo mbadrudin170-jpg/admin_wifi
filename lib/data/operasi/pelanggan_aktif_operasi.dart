@@ -192,6 +192,43 @@ class PelangganAktifOperasi {
     );
   }
 
+  Future<void> hapusPelangganYangDiArsipkan() async {
+    final db = await dbHelper.database;
+    // ditambah: Menentukan batas waktu adalah 30 hari yang lalu.
+    final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
+
+    // diubah: Query langsung ke database untuk efisiensi, tidak perlu menarik semua data.
+    final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
+      'pelanggan_aktif',
+      where: 'diarsipkan IS NOT NULL AND diarsipkan < ?',
+      whereArgs: [batasWaktu.toIso8601String()],
+    );
+
+    if (pelangganKadaluarsa.isEmpty) {
+      developer.log(
+        'ℹ️ [LOKAL] Tidak ada pelanggan aktif yang diarsipkan lebih dari 30 hari untuk dihapus.',
+        name: 'PelangganAktifOperasi',
+      );
+      return;
+    }
+
+    // ditambah: Mengumpulkan ID untuk dihapus dalam satu operasi.
+    final idsUntukDihapus = pelangganKadaluarsa
+        .map((map) => map['id'] as String)
+        .toList();
+
+    final count = await db.delete(
+      'pelanggan_aktif',
+      where: 'id IN (${List.filled(idsUntukDihapus.length, '?').join(',')})',
+      whereArgs: idsUntukDihapus,
+    );
+
+    developer.log(
+      '🧹 [LOKAL] $count pelanggan aktif yang diarsipkan lebih dari 30 hari telah dihapus permanen.',
+      name: 'PelangganAktifOperasi',
+    );
+  }
+
   // ditambah: untuk menghapus semua pelanggan aktif secara permanen
   Future<void> hapusSemuaPelangganAktif() async {
     final db = await dbHelper.database;

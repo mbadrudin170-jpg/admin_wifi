@@ -10,7 +10,6 @@ class TransaksiModel {
   final String keterangan;
   final double jumlah;
   final TipeTransaksi tipe;
-
   final String idDompet;
   final String namaDompet;
   final String? idDompetTujuan;
@@ -23,7 +22,6 @@ class TransaksiModel {
   final String? namaPaket;
   final String? idSubKategori;
   final String? namaSubKategori;
-
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
   final bool isDeleted;

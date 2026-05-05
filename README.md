@@ -1,5 +1,22 @@
 ## Dokumen Lengkap Proyek Saya per File
 
+### **File: lib/data/operasi/pelanggan_aktif_operasi.dart**
+**Fitur:** Operasi Database dan Logika Bisnis untuk Pelanggan Aktif
+**Tujuan file ini dibuat:** Untuk menyediakan sekumpulan fungsi yang menangani semua logika bisnis dan operasi database (CRUD) yang berkaitan dengan pelanggan yang memiliki langganan aktif. Ini adalah salah satu file operasi terpenting karena mengelola siklus hidup langganan, mulai dari pembuatan, pembaruan, pengarsipan, hingga penghapusan.
+
+**Daftar Fungsi/Class:**
+- `class PelangganAktifOperasi`: Kelas yang berisi semua metode untuk mengelola pelanggan aktif.
+- `Future<PelangganAktifModel> createPelangganAktif(PelangganAktifModel pelangganAktif)`: Membuat entri pelanggan aktif baru, menjadwalkan notifikasi pengingat, dan mengirim detail paket melalui WhatsApp.
+- `Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif()`: Mengambil semua data pelanggan aktif yang belum di-soft-delete.
+- `Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id)`: Mengambil satu pelanggan aktif berdasarkan ID uniknya.
+- `Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif)`: Memperbarui data pelanggan aktif dan menjadwal ulang notifikasi jika tanggal berakhirnya berubah.
+- `Future<void> sisipkanAtauPerbaruiBatch(List<PelangganAktifModel> items)`: Melakukan operasi insert atau update massal, biasanya digunakan saat sinkronisasi data dari server.
+- `Future<void> arsipkanPelangganAktif(String id)`: Melakukan *soft delete* pada satu pelanggan aktif, membatalkan notifikasi terjadwal, dan memindahkannya ke riwayat.
+- `Future<int> arsipkanPelangganKadaluarsa()`: Fungsi otomatis yang mencari semua pelanggan yang tanggal langganannya sudah lewat, memindahkan mereka ke tabel riwayat, dan kemudian mengarsipkannya dari daftar aktif.
+- `Future<int> arsipkanSemuaPelangganAktif()`: Fungsi untuk melakukan *soft delete* pada semua pelanggan aktif, berguna untuk aksi massal.
+- `Future<void> hapusSemuaPelangganAktif()`: Menghapus **secara permanen** semua data dari tabel `pelanggan_aktif`.
+- `Future<void> hapusPelangganYangDiArsipkan()`: **(Baru Diperbarui)** Fungsi pemeliharaan yang secara otomatis **menghapus permanen** data pelanggan aktif yang telah diarsipkan (soft-deleted) lebih dari 30 hari. Ini membantu menjaga kebersihan database dari data lama yang tidak relevan.
+
 ### **File: lib/data/operasi/transaksi_operasi.dart**
 **Fitur:** Operasi Logika dan Database untuk Transaksi Keuangan
 **Tujuan file ini dibuat:** Untuk menyediakan sekumpulan fungsi yang menangani logika bisnis inti dari semua transaksi keuangan (pemasukan, pengeluaran, transfer). File ini tidak hanya melakukan operasi Create, Read, Update, Delete (CRUD) pada tabel `transaksi`, tetapi juga bertanggung jawab untuk menjaga integritas data keuangan dengan memperbarui saldo pada tabel `dompet` secara transaksional.
@@ -32,7 +49,7 @@
 ### **File: lib/model/transaksi_model.dart**
 **Fitur:** Model Data untuk Transaksi Keuangan
 
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah "transaksi" keuangan. Model ini sangat detail karena mencatat semua aspek dari sebuah transaksi, termasuk relasi ke berbagai entitas lain seperti dompet, kategori, pelanggan, dan paket. Model ini juga dirancang untuk kompatibel dengan **SQLite (lokal)** dan **Firebase (server)**.
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah \"transaksi\" keuangan. Model ini sangat detail karena mencatat semua aspek dari sebuah transaksi, termasuk relasi ke berbagai entitas lain seperti dompet, kategori, pelanggan, dan paket. Model ini juga dirancang untuk kompatibel dengan **SQLite (lokal)** dan **Firebase (server)**.
 
 **Daftar Fungsi/Class:**
 - `enum TipeTransaksi`: Mendefinisikan tiga tipe transaksi: `pemasukan`, `pengeluaran`, dan `transfer`.
@@ -41,9 +58,9 @@
     - **Data Relasional**: Menyimpan ID dan nama dari dompet, kategori, pelanggan, paket, dan sub-kategori.
     - `diperbarui`, `diarsipkan`, `isDeleted`: Properti standar untuk manajemen siklus hidup data.
 - `factory TransaksiModel.fromMap(Map<String, dynamic> map)`: Factory constructor untuk membuat objek `TransaksiModel` dari `Map`. Terdapat logika penting di dalamnya:
-    - `isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true`: Logika ini dengan cerdas mengubah data `isDeleted` menjadi `bool`, baik data aslinya berasal dari **SQLite (integer `1` atau `0`)** maupun dari **Firebase (boolean `true` atau `false`)**.
+    - `isDeleted: map[\'isDeleted\'] == 1 || map[\'isDeleted\'] == true`: Logika ini dengan cerdas mengubah data `isDeleted` menjadi `bool`, baik data aslinya berasal dari **SQLite (integer `1` atau `0`)** maupun dari **Firebase (boolean `true` atau `false`)**.
 - `Map<String, dynamic> toMap()`: Mengonversi objek `TransaksiModel` menjadi `Map` yang siap untuk disimpan ke database **lokal (SQLite)**.
-    - `'isDeleted': isDeleted ? 1 : 0`: Logika ini memastikan nilai `bool` diubah menjadi `integer` agar kompatibel dengan SQLite yang tidak mendukung tipe data boolean.
+    - `\'isDeleted\': isDeleted ? 1 : 0`: Logika ini memastikan nilai `bool` diubah menjadi `integer` agar kompatibel dengan SQLite yang tidak mendukung tipe data boolean.
 - `salinDengan()`: Metode yang mirip dengan `copyWith`, memungkinkan pembuatan salinan objek dengan nilai properti yang telah diubah.
 
 **Catatan:**
@@ -54,7 +71,7 @@
 ## Catatan Pengembangan (Telah Selesai)
 - **Perbaikan Mayor Logika Transaksi**: Melakukan refactoring besar pada `transaksi_operasi.dart` untuk memastikan semua operasi (tambah, edit, hapus) bersifat transaksional dan secara akurat memperbarui saldo dompet.
 - **Implementasi Test-Driven Development (TDD)**: Membuat file `test/transaksi_operasi_test.dart` yang berisi 9 kasus uji untuk memvalidasi semua skenario logika transaksi, termasuk pemasukan, pengeluaran, transfer, dan kasus-kasus tepi saat pembaruan data.
-- **Perbaikan Model Data**: Memperbaiki `transaksi_model.dart` untuk menangani konversi tipe data antara `boolean` (dari Firebase) dan `integer` (untuk SQLite), yang menyelesaikan error `Invalid sql argument type 'bool'`.
+- **Perbaikan Model Data**: Memperbaiki `transaksi_model.dart` untuk menangani konversi tipe data antara `boolean` (dari Firebase) dan `integer` (untuk SQLite), yang menyelesaikan error `Invalid sql argument type \'bool\'`.
 - **Pembersihan Tes**: Menghapus file tes yang tidak digunakan (`widget_test.dart`, `pelanggan_aktif_operasi_test.dart`) untuk memastikan semua tes yang ada relevan dan berhasil.
 - **Hasil**: Mencapai status `All tests passed!`, yang menandakan logika bisnis inti aplikasi kini stabil dan terverifikasi.
 
@@ -71,7 +88,7 @@
 - `class PelangganAktifPage` & `_PelangganAktifPageState`: Mengelola keseluruhan state dan UI halaman, termasuk data pelanggan, status loading, dan logika interaksi pengguna.
 - `_loadData({bool forceRefresh = false})`: Fungsi inti untuk memuat data. Fungsi ini telah diperbarui dengan logika yang lebih tangguh:
     - **Timeout Refresh**: Jika pengguna melakukan *pull-to-refresh* (`forceRefresh = true`) dan koneksi internet sangat lambat, proses sinkronisasi akan dibatalkan setelah 15 detik untuk mencegah *loading* tanpa henti. Pengguna akan menerima pesan error.
-    - **Penanganan Offline**: Jika pengguna mencoba melakukan *refresh* tanpa koneksi internet, aplikasi akan menampilkan pesan "Jaringan tidak tersedia" dan lanjut menampilkan data yang tersimpan di database lokal, sehingga aplikasi tetap responsif.
+    - **Penanganan Offline**: Jika pengguna mencoba melakukan *refresh* tanpa koneksi internet, aplikasi akan menampilkan pesan \"Jaringan tidak tersedia\" dan lanjut menampilkan data yang tersimpan di database lokal, sehingga aplikasi tetap responsif.
 - `_applyFilterAndSort()`: Menerapkan logika pencarian (berdasarkan nama) dan pengurutan pada daftar pelanggan. Mendukung berbagai kriteria urut seperti tanggal berakhir, nama, status pembayaran, dan status paket.
 - `_arsipkanPelanggan()`: Menangani proses pengarsipan satu pelanggan aktif setelah mendapatkan konfirmasi dari pengguna melalui dialog.
 - `_showUrutkanDialog()`: Menampilkan dialog yang memungkinkan pengguna memilih metode pengurutan data.
@@ -99,7 +116,7 @@
 **Fitur:** Rencana Kerja Jangka Pendek
 **Tujuan file ini dibuat:** Untuk mencatat tugas-tugas spesifik yang harus segera dikerjakan oleh AI. File ini bersifat sementara dan akan dihapus setelah tugas-tugas di dalamnya selesai dilaksanakan.
 **Isi File Saat Ini:**
-- Tugas utama yang tercatat adalah "mengosongkan isi dalam kolom `diarsipkan` di Firebase pada koleksi `riwayat_langganan`". Ini adalah tugas pemeliharaan data.
+- Tugas utama yang tercatat adalah \"mengosongkan isi dalam kolom `diarsipkan` di Firebase pada koleksi `riwayat_langganan`\". Ini adalah tugas pemeliharaan data.
 
 ### **File: lib/main.dart**
 **Fitur:** Inisialisasi Aplikasi & Konfigurasi Tema
@@ -112,7 +129,7 @@
 - `MyApp.build()`: Metode ini bertanggung jawab untuk membangun antarmuka pengguna utama aplikasi. Di sinilah tema global (`ThemeData`) didefinisikan dan diterapkan.
 - `final ThemeData lightTheme`: Mendefinisikan keseluruhan tampilan dan nuansa untuk tema terang (light mode). Ini mencakup:
     - Skema warna yang dihasilkan dari `primarySeedColor` menggunakan Material 3.
-    - Tipografi kustom (`appTextTheme`) yang menggunakan font 'Oswald', 'Roboto', dan 'Open Sans'.
+    - Tipografi kustom (`appTextTheme`) yang menggunakan font \'Oswald\', \'Roboto\', dan \'Open Sans\'.
     - Gaya spesifik untuk komponen UI seperti `AppBar` dan `ElevatedButton` untuk memastikan konsistensi di seluruh aplikasi.
 - `return MaterialApp`: Mengembalikan widget `MaterialApp` yang telah dikonfigurasi dengan:
     - Judul aplikasi.
@@ -138,7 +155,7 @@
 - `initState()`: Metode ini dipanggil sekali saat widget dibuat. Di dalamnya, `_initializeAndNavigate()` dipanggil setelah frame pertama selesai dirender untuk memulai proses inisialisasi.
 - `_initializeAndNavigate()`: Ini adalah fungsi inti yang melakukan tugas-tugas berikut secara berurutan:
     1.  **Inisialisasi Firebase**: Menghubungkan aplikasi dengan layanan Google Firebase.
-    2.  **Pengaturan Lokal**: Mengatur zona waktu ke 'Asia/Jakarta' dan format tanggal ke standar Indonesia ('id_ID').
+    2.  **Pengaturan Lokal**: Mengatur zona waktu ke \'Asia/Jakarta\' dan format tanggal ke standar Indonesia (\'id_ID\').
     3.  **Inisialisasi Layanan**: Mempersiapkan layanan notifikasi dan membuka koneksi ke database lokal (SQLite).
     4.  **Cek Koneksi & Sinkronisasi**: Memeriksa apakah perangkat terhubung ke internet.
         - Jika **online**, aplikasi akan mencoba menyinkronkan data lokal dengan server.
@@ -146,7 +163,7 @@
     5.  **Navigasi**: Setelah semua langkah selesai, aplikasi akan mengarahkan pengguna ke `HalamanUtama` sambil memberikan informasi status koneksi (online/offline).
 - `build()`: Metode ini merender antarmuka pengguna (UI) dari splash screen, yang menampilkan:
     - Logo Flutter.
-    - Nama aplikasi "Admin WiFi".
+    - Nama aplikasi \"Admin WiFi\".
     - Indikator pemuatan (`CircularProgressIndicator`).
     - Pesan teks yang dinamis (`_loadingMessage`) untuk memberi tahu pengguna tentang proses yang sedang berjalan.
 
@@ -198,7 +215,7 @@
 - `_tampilkanDialogHapusSemua()`: Menampilkan dialog konfirmasi kepada pengguna sebelum menjalankan operasi penghapusan semua dompet. Ini mencegah penghapusan data yang tidak disengaja.
 - `_hapusSemuaDompet()`: Memanggil metode `hapusSemuaDompet()` dari `DompetOperasi` dan memberikan umpan balik kepada pengguna melalui `SnackBar`.
 - `_showDialogHapusSatu(DompetModel dompet)`: Menampilkan dialog konfirmasi untuk mengarsipkan satu dompet spesifik. Fungsi ini dipicu oleh gestur *long press* pada `DompetCard`.
-- `_hapusSatuDompet(DompetModel dompet)`: **(Perbaikan)** Fungsi ini sekarang dengan benar memanggil `arsipkanSatuDompet(dompet.id)` dari `DompetOperasi`, mengirimkan ID sebagai `String`. Pesan umpan baliknya juga telah diperbaiki menjadi "Dompet berhasil diarsipkan" untuk mencerminkan tindakan yang sebenarnya.
+- `_hapusSatuDompet(DompetModel dompet)`: **(Perbaikan)** Fungsi ini sekarang dengan benar memanggil `arsipkanSatuDompet(dompet.id)` dari `DompetOperasi`, mengirimkan ID sebagai `String`. Pesan umpan baliknya juga telah diperbaiki menjadi \"Dompet berhasil diarsipkan\" untuk mencerminkan tindakan yang sebenarnya.
 - `build()`: Merender UI lengkap halaman, yang terdiri dari `AppBar` dengan aksi hapus semua, `RingkasanKeuangan` di bagian atas, dan `ListView` yang di-build menggunakan `FutureBuilder` untuk menampilkan daftar `DompetCard`.
 - `class RingkasanKeuangan`: Widget terpisah (`StatefulWidget`) yang menampilkan total pemasukan, pengeluaran, dan saldo dari semua dompet. Widget ini memiliki metode `refresh()` yang dapat dipanggil oleh parent-nya untuk memuat ulang data.
 - `class DompetCard`: Widget UI (`StatelessWidget`) yang menampilkan informasi satu dompet. Widget ini menangani gestur `onTap` untuk navigasi ke detail dan `onLongPress` untuk memicu dialog pengarsipan.
@@ -225,12 +242,12 @@
 ### **File: lib/model/dompet_model.dart**
 **Fitur:** Model Data untuk Dompet
 
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah "dompet". File ini berisi kelas `DompetModel` yang merepresentasikan semua atribut yang terkait dengan entitas dompet, seperti nama, saldo, dan statusnya.
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah \"dompet\". File ini berisi kelas `DompetModel` yang merepresentasikan semua atribut yang terkait dengan entitas dompet, seperti nama, saldo, dan statusnya.
 
 **Daftar Fungsi/Class:**
 - `class DompetModel`: Kelas utama yang menampung properti-properti dari sebuah dompet.
     - `id`: ID unik untuk setiap dompet, dihasilkan otomatis menggunakan `UUID` jika tidak disediakan.
-    - `namaDompet`: Nama dari dompet (misalnya: "Dompet Utama", "Kas").
+    - `namaDompet`: Nama dari dompet (misalnya: \"Dompet Utama\", \"Kas\").
     - `saldo`: Jumlah uang yang ada di dalam dompet.
     - `diperbarui`: Tanggal dan waktu kapan data dompet terakhir kali diperbarui.
     - `isDeleted`: Status boolean untuk menandai apakah dompet telah dihapus (soft delete).
@@ -252,19 +269,19 @@
 ### **File: lib/model/kategori_model.dart**
 **Fitur:** Model Data untuk Kategori dan Sub-Kategori
 
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari "kategori" transaksi dan "sub-kategori" di dalamnya. File ini penting untuk mengelompokkan jenis-jenis pemasukan dan pengeluaran.
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari \"kategori\" transaksi dan \"sub-kategori\" di dalamnya. File ini penting untuk mengelompokkan jenis-jenis pemasukan dan pengeluaran.
 
 **Daftar Fungsi/Class:**
 - `enum TipeKategori`: Mendefinisikan tiga tipe kategori yang mungkin: `pemasukan`, `pengeluaran`, dan `transfer`.
 - `class KategoriModel`: Kelas utama yang merepresentasikan sebuah kategori.
     - `id`: ID unik yang dihasilkan oleh `UUID`.
-    - `nama`: Nama dari kategori (contoh: "Gaji", "Belanja Bulanan").
+    - `nama`: Nama dari kategori (contoh: \"Gaji\", \"Belanja Bulanan\").
     - `tipe`: Tipe dari kategori, menggunakan `enum TipeKategori`.
     - `subKategori`: Sebuah list yang berisi objek `SubKategoriModel`, memungkinkan adanya tingkatan dalam kategori.
     - `diperbarui`, `isDeleted`, `diarsipkan`: Properti untuk melacak status dan perubahan data.
 - `class SubKategoriModel`: Kelas yang merepresentasikan sebuah sub-kategori.
     - `id`: ID unik yang dihasilkan oleh `UUID`.
-    - `nama`: Nama dari sub-kategori (contoh: "Gaji Pokok", "Bonus").
+    - `nama`: Nama dari sub-kategori (contoh: \"Gaji Pokok\", \"Bonus\").
     - `diperbarui`, `isDeleted`, `diarsipkan`: Properti untuk melacak status dan perubahan data.
 - **Metode pada kedua kelas (`KategoriModel` dan `SubKategoriModel`):**
     - `copyWith()`: Untuk membuat salinan objek dengan modifikasi, mendukung *immutable state*.
@@ -284,7 +301,7 @@
 ### **File: lib/model/kritik_saran_model.dart**
 **Fitur:** Model Data untuk Kritik dan Saran
 
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari "kritik dan saran" yang dikirim oleh pengguna. File ini memungkinkan aplikasi untuk menyimpan dan mengelola masukan dari pengguna secara terstruktur.
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari \"kritik dan saran\" yang dikirim oleh pengguna. File ini memungkinkan aplikasi untuk menyimpan dan mengelola masukan dari pengguna secara terstruktur.
 
 **Daftar Fungsi/Class:**
 - `class KritikSaranModel`: Kelas yang membungkus semua informasi terkait satu masukan.
@@ -309,13 +326,13 @@
 ### **File: lib/model/paket_model.dart**
 **Fitur:** Model Data untuk Paket Langganan
 
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah "paket" internet yang dapat dibeli oleh pelanggan. File ini sangat penting untuk manajemen produk yang ditawarkan.
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari sebuah \"paket\" internet yang dapat dibeli oleh pelanggan. File ini sangat penting untuk manajemen produk yang ditawarkan.
 
 **Daftar Fungsi/Class:**
 - `enum TipeDurasi`: Mendefinisikan unit waktu untuk durasi paket, yaitu `menit`, `jam`, `hari`, dan `bulan`. Enum ini juga memiliki `displayName` untuk menampilkan nama yang lebih ramah pengguna di UI.
 - `class PaketModel`: Kelas utama yang menyimpan semua detail tentang sebuah paket.
     - `id`: ID unik untuk setiap paket, yang secara otomatis dibuat menggunakan `UUID` jika tidak disediakan.
-    - `nama`: Nama dari paket (contoh: "Paket Harian", "Paket Bulanan Super Cepat").
+    - `nama`: Nama dari paket (contoh: \"Paket Harian\", \"Paket Bulanan Super Cepat\").
     - `harga`: Harga dari paket dalam bentuk integer.
     - `durasi`: Lamanya paket aktif, dalam satuan angka.
     - `tipe`: Satuan dari durasi, menggunakan `enum TipeDurasi`.
@@ -364,7 +381,7 @@
 ### **File: lib/model/pelanggan_model.dart**
 **Fitur:** Model Data untuk Pelanggan
 
-**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari entitas "pelanggan". File ini adalah salah satu model inti yang menyimpan semua informasi detail mengenai pelanggan, seperti data pribadi dan kredensial.
+**Tujuan file ini dibuat:** Untuk mendefinisikan struktur data dari entitas \"pelanggan\". File ini adalah salah satu model inti yang menyimpan semua informasi detail mengenai pelanggan, seperti data pribadi dan kredensial.
 
 **Daftar Fungsi/Class:**
 - `enum StatusPelanggan`: Mendefinisikan status pelanggan, yang bisa `aktif` atau `diarsip`. Ini mendukung mekanisme *soft delete*.
@@ -393,7 +410,7 @@
 ### **File: lib/model/pesanan_model.dart**
 **Fitur:** Model Data untuk Pesanan
 
-**Tujuan file ini dibuat:** Untuk merepresentasikan data "pesanan" yang dibuat oleh pelanggan saat mereka membeli sebuah paket. File ini berfungsi sebagai catatan transaksi awal sebelum pembayaran dikonfirmasi.
+**Tujuan file ini dibuat:** Untuk merepresentasikan data \"pesanan\" yang dibuat oleh pelanggan saat mereka membeli sebuah paket. File ini berfungsi sebagai catatan transaksi awal sebelum pembayaran dikonfirmasi.
 
 **Daftar Fungsi/Class:**
 - `class PesananModel`: Kelas utama yang mendefinisikan struktur sebuah pesanan.
@@ -401,26 +418,26 @@
     - `idPelanggan`: ID dari pelanggan yang membuat pesanan.
     - `idPaket`: ID dari paket yang dipesan.
     - `tanggal`: Tanggal dan waktu pesanan dibuat.
-    - `status`: Status dari pesanan (misalnya: "baru", "diproses", "selesai").
+    - `status`: Status dari pesanan (misalnya: \"baru\", \"diproses\", \"selesai\").
     - `diperbarui`, `isDeleted`, `diarsipkan`: Properti standar untuk melacak perubahan, penghapusan sementara, dan pengarsipan data.
 - `copyWith()`: Metode untuk membuat salinan objek dengan beberapa properti yang diubah, mendukung *immutable state*.
 - `_parseDateTime()`: Fungsi helper internal untuk mengonversi data tanggal dari berbagai format dengan aman.
-- `factory PesananModel.fromMap(Map<String, dynamic> map)`: Factory constructor untuk membuat objek `PesananModel` dari `Map`. Jika ada data yang hilang, nilai default akan digunakan (misalnya, `status` akan menjadi "baru").
+- `factory PesananModel.fromMap(Map<String, dynamic> map)`: Factory constructor untuk membuat objek `PesananModel` dari `Map`. Jika ada data yang hilang, nilai default akan digunakan (misalnya, `status` akan menjadi \"baru\").
 - `toMap()`: Mengonversi objek `PesananModel` menjadi `Map` yang siap disimpan di database.
 
 **Catatan:**
 - Model ini penting untuk melacak alur pemesanan dari awal hingga selesai.
-- Penggunaan nilai default di `fromMap()` (seperti status "baru" dan `DateTime.now()` untuk tanggal) membuat proses pembuatan objek menjadi lebih tangguh terhadap data yang tidak lengkap.
+- Penggunaan nilai default di `fromMap()` (seperti status \"baru\" dan `DateTime.now()` untuk tanggal) membuat proses pembuatan objek menjadi lebih tangguh terhadap data yang tidak lengkap.
 
 **Rules:**
 - `idPelanggan`, `idPaket`, `tanggal`, dan `status` adalah field yang wajib diisi.
-- Jika `status` tidak ada saat data dibaca, maka akan secara default diatur ke "baru".
+- Jika `status` tidak ada saat data dibaca, maka akan secara default diatur ke \"baru\".
 - Jika `tanggal` tidak ada, maka akan diatur ke waktu saat ini.
 
 ### **File: lib/model/riwayat_langganan_model.dart**
 **Fitur:** Model Data untuk Riwayat Langganan
 
-**Tujuan file ini dibuat:** Untuk menyimpan catatan historis dari setiap langganan yang pernah dimiliki oleh pelanggan. Model ini memiliki keunikan karena ia menyimpan "snapshot" atau salinan data dari paket pada saat transaksi terjadi. Ini memastikan bahwa riwayat tetap akurat meskipun detail paket (seperti harga atau nama) berubah di masa depan.
+**Tujuan file ini dibuat:** Untuk menyimpan catatan historis dari setiap langganan yang pernah dimiliki oleh pelanggan. Model ini memiliki keunikan karena ia menyimpan \"snapshot\" atau salinan data dari paket pada saat transaksi terjadi. Ini memastikan bahwa riwayat tetap akurat meskipun detail paket (seperti harga atau nama) berubah di masa depan.
 
 **Daftar Fungsi/Class:**
 - `class RiwayatLanggananModel`: Kelas yang mendefinisikan struktur data riwayat.
@@ -442,7 +459,7 @@
 
 **Rules:**
 - Semua properti snapshot (seperti `namaPaket`, `hargaPaket`) wajib diisi untuk memastikan setiap riwayat memiliki konteks yang lengkap.
-- Saat membaca data dari `Map`, jika ada data yang hilang, nilai default yang "aman" akan digunakan (misalnya, "Tidak Diketahui" untuk nama paket).
+- Saat membaca data dari `Map`, jika ada data yang hilang, nilai default yang \"aman\" akan digunakan (misalnya, \"Tidak Diketahui\" untuk nama paket).
 
 
 ### **File: lib/services/cek_koneksi_internet.dart**
@@ -494,8 +511,8 @@
 - `class NotifikasiServis`: Kelas utama yang membungkus fungsionalitas dari plugin `flutter_local_notifications`.
 - `Future<void> inisialisasi()`: Metode krusial yang harus dipanggil sekali saat aplikasi dimulai (di `SplashScreen`). Ini melakukan:
     1.  Konfigurasi pengaturan awal untuk Android dan iOS.
-    2.  Membuat "Channel Notifikasi" khusus untuk Android, yang wajib ada untuk Android 8.0+.
-    3.  Menginisialisasi pustaka zona waktu (`timezone`) dan mengaturnya ke 'Asia/Jakarta' untuk memastikan penjadwalan notifikasi akurat.
+    2.  Membuat \"Channel Notifikasi\" khusus untuk Android, yang wajib ada untuk Android 8.0+.
+    3.  Menginisialisasi pustaka zona waktu (`timezone`) dan mengaturnya ke \'Asia/Jakarta\' untuk memastikan penjadwalan notifikasi akurat.
 - `Future<void> requestPermissions()`: Meminta izin kepada pengguna untuk menampilkan notifikasi. Ini adalah langkah penting, terutama pada iOS dan versi Android yang lebih baru.
 - `Future<void> tampilkanNotifikasiLangsung(...)`: Menampilkan notifikasi secara instan di perangkat pengguna.
 - `Future<void> jadwalNotifikasi(...)`: Menjadwalkan notifikasi untuk ditampilkan pada waktu tertentu di masa depan. Menggunakan `zonedSchedule` untuk menangani zona waktu dengan benar.
@@ -539,7 +556,7 @@
 
 **Daftar Fungsi/Class:**
 - `class FormatTanggal`: Berisi metode statis untuk memformat objek `DateTime` menjadi string tanggal.
-    - `formatTanggalBasic(DateTime)`: Mengubah `DateTime` menjadi format tanggal standar (contoh: "17 Agu 2024").
+    - `formatTanggalBasic(DateTime)`: Mengubah `DateTime` menjadi format tanggal standar (contoh: \"17 Agu 2024\").
     - `formatTanggalDanJam(DateTime)`: Mengubah `DateTime` menjadi format tanggal lengkap dengan jam dan menit.
     - `formatTanggalRingkas(DateTime)`: Mengubah `DateTime` menjadi format ringkas yang menyertakan nama hari.
 - `class FormatJam`: Berisi metode statis untuk memformat objek `DateTime` menjadi string waktu.
@@ -547,7 +564,7 @@
     - `formatJamLengkap(DateTime)`: Mengambil jam, menit, dan detik.
     - `formatTeksKeJam(String)`: Mengonversi string waktu (format ISO) menjadi format jam, dengan penanganan error jika string tidak valid.
 - `class FormatUang`: Berisi metode statis untuk memformat angka menjadi string mata uang.
-    - `formatMataUang(double)`: Mengubah angka menjadi format mata uang Rupiah yang mudah dibaca, lengkap dengan simbol "Rp" dan pemisah ribuan (contoh: "Rp 50.000").
+    - `formatMataUang(double)`: Mengubah angka menjadi format mata uang Rupiah yang mudah dibaca, lengkap dengan simbol \"Rp\" dan pemisah ribuan (contoh: \"Rp 50.000\").
 
 **Catatan:**
 - Penggunaan konstruktor privat (`._()`) adalah praktik yang baik untuk kelas utilitas murni, karena mencegah developer lain membuat instance dari kelas ini secara tidak sengaja.
@@ -584,11 +601,11 @@
     - `future`: Memanggil metode `getPelangganById(userId)` dari `PelangganOperasi` untuk memulai proses pencarian data pelanggan di database.
     - `builder`: Sebuah fungsi yang mendefinisikan apa yang harus ditampilkan di UI berdasarkan status dari `Future`:
         1.  **Saat Menunggu (`ConnectionState.waiting`)**: Menampilkan sebuah `CircularProgressIndicator` kecil untuk memberi tahu pengguna bahwa data sedang dimuat.
-        2.  **Jika Ada Error atau Data Tidak Ditemukan**: Menampilkan teks "User Tidak Dikenal". Ini adalah penanganan fallback yang baik.
+        2.  **Jika Ada Error atau Data Tidak Ditemukan**: Menampilkan teks \"User Tidak Dikenal\". Ini adalah penanganan fallback yang baik.
         3.  **Jika Berhasil**: Menampilkan nama pelanggan (`pelanggan.nama`) yang berhasil ditemukan.
 
 **Catatan:**
-- Widget ini adalah contoh yang sangat baik dari prinsip *Don't Repeat Yourself* (DRY). Daripada menulis logika `FutureBuilder` untuk mengambil nama pelanggan berulang kali di banyak tempat, kita cukup membungkusnya dalam satu widget ini.
+- Widget ini adalah contoh yang sangat baik dari prinsip *Don\'t Repeat Yourself* (DRY). Daripada menulis logika `FutureBuilder` untuk mengambil nama pelanggan berulang kali di banyak tempat, kita cukup membungkusnya dalam satu widget ini.
 - Widget ini juga memisahkan antara pengambilan data dan presentasi UI dengan rapi.
 
 **Rules:**
@@ -606,7 +623,7 @@
     - `future`: Memanggil metode `getPaketById(idPaket)` dari `PaketOperasi` untuk mengambil detail paket dari database.
     - `builder`: Fungsi yang menentukan tampilan widget berdasarkan status `Future`:
         1.  **Saat Menunggu (`ConnectionState.waiting`)**: Menampilkan `CircularProgressIndicator` kecil untuk menandakan proses loading.
-        2.  **Jika Ada Error atau Data Tidak Ditemukan**: Menampilkan teks "Paket tidak tersedia" dengan warna merah untuk memberikan indikasi yang jelas bahwa ada sesuatu yang salah.
+        2.  **Jika Ada Error atau Data Tidak Ditemukan**: Menampilkan teks \"Paket tidak tersedia\" dengan warna merah untuk memberikan indikasi yang jelas bahwa ada sesuatu yang salah.
         3.  **Jika Berhasil**: Menampilkan nama paket (`snapshot.data!.nama`) yang berhasil ditemukan.
 
 **Catatan:**
@@ -627,14 +644,14 @@
 - `build(BuildContext context)`: Seperti widget `FutureBuilder` lainnya, metode ini menangani pengambilan data secara asynchronous.
     - `future`: Memanggil `getPelangganById(idPelanggan)` dari `PelangganOperasi`.
     - `builder`: Merender UI berdasarkan state dari `Future`:
-        1.  **Saat Menunggu (`ConnectionState.waiting`)**: Menampilkan teks "..." dengan warna abu-abu. Ini adalah alternatif yang lebih minimalis dibandingkan `CircularProgressIndicator`.
-        2.  **Jika Ada Error**: Menampilkan teks "Error" dengan gaya miring dan warna merah.
+        1.  **Saat Menunggu (`ConnectionState.waiting`)**: Menampilkan teks \"...\" dengan warna abu-abu. Ini adalah alternatif yang lebih minimalis dibandingkan `CircularProgressIndicator`.
+        2.  **Jika Ada Error**: Menampilkan teks \"Error\" dengan gaya miring dan warna merah.
         3.  **Jika Berhasil**: Menampilkan nama pelanggan yang ditemukan dengan teks tebal.
-        4.  **Jika Data Tidak Ditemukan**: Menampilkan teks "Pelanggan tidak ditemukan" dengan gaya miring dan warna abu-abu.
+        4.  **Jika Data Tidak Ditemukan**: Menampilkan teks \"Pelanggan tidak ditemukan\" dengan gaya miring dan warna abu-abu.
 
 **Catatan:**
 - Widget ini menunjukkan bagaimana kita bisa membuat beberapa komponen serupa dengan sedikit variasi untuk memberikan fleksibilitas pada tim UI/UX tanpa harus mengulang logika `FutureBuilder` yang sama.
-- Perbedaan utama dari `NamaDariIdWidget` adalah penggunaan teks "..." sebagai indikator loading, yang mungkin lebih cocok untuk beberapa layout antarmuka.
+- Perbedaan utama dari `NamaDariIdWidget` adalah penggunaan teks \"...\" sebagai indikator loading, yang mungkin lebih cocok untuk beberapa layout antarmuka.
 
 **Rules:**
 - Widget ini wajib diberi `idPelanggan` yang valid.
@@ -643,7 +660,7 @@
 ### **File: lib/widget/thousands_input_formatter.dart**
 **Fitur:** Formatter Input Angka (Ribuan & Negatif)
 
-**Tujuan file ini dibuat:** Untuk menyediakan sebuah `TextInputFormatter` kustom yang dapat dipasang pada `TextField`. Formatter ini secara otomatis mengubah input angka dari pengguna menjadi format dengan pemisah ribuan (misalnya, "10000" menjadi "10.000") dan juga mendukung input angka negatif.
+**Tujuan file ini dibuat:** Untuk menyediakan sebuah `TextInputFormatter` kustom yang dapat dipasang pada `TextField`. Formatter ini secara otomatis mengubah input angka dari pengguna menjadi format dengan pemisah ribuan (misalnya, \"10000\" menjadi \"10.000\") dan juga mendukung input angka negatif.
 
 **Daftar Fungsi/Class:**
 - `class ThousandsAndNegativeInputFormatter`: Sebuah kelas yang mewarisi `TextInputFormatter`.
@@ -791,3 +808,5 @@ nama_paket.dart
 nama_pelanggan.dart
 thousands_input_formatter.dart
 ```
+## Catatan Pengembangan (Baru)
+- **Peningkatan Fitur Pemeliharaan**: Memperbarui fungsi `hapusPelangganYangDiArsipkan` di `lib/data/operasi/pelanggan_aktif_operasi.dart` untuk secara otomatis menghapus pelanggan yang telah diarsipkan lebih dari 30 hari. Ini memastikan database tetap bersih dan efisien dengan membuang data lama yang tidak lagi relevan.

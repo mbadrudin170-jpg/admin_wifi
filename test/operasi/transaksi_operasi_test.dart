@@ -381,55 +381,64 @@ void main() {
         expect(saldoAkhirB, saldoAwal);
       },
     );
-    
+
     // ===================================
     // Tes untuk Fungsi Agregat
     // ===================================
     group('Fungsi Agregat Tests', () {
-      test('getTotal... harus mengembalikan 0.0 jika tidak ada transaksi', () async {
-        final pemasukan = await operasi.getTotalPemasukan();
-        final pengeluaran = await operasi.getTotalPengeluaran();
-        final net = await operasi.getNetTotal();
+      test(
+        'getTotal... harus mengembalikan 0.0 jika tidak ada transaksi',
+        () async {
+          final pemasukan = await operasi.getTotalPemasukan();
+          final pengeluaran = await operasi.getTotalPengeluaran();
+          final net = await operasi.getNetTotal();
 
-        expect(pemasukan, 0.0);
-        expect(pengeluaran, 0.0);
-        expect(net, 0.0);
-      });
+          expect(pemasukan, 0.0);
+          expect(pengeluaran, 0.0);
+          expect(net, 0.0);
+        },
+      );
 
       test('getTotal... harus menghitung total dengan benar', () async {
-        await operasi.tambahTransaksi(TransaksiModel(
-          id: uuid.v4(),
-          keterangan: 'Pemasukan 1',
-          jumlah: 200,
-          tanggal: DateTime.now(),
-          tipe: TipeTransaksi.pemasukan,
-          idDompet: dompetA.id,
-          namaDompet: dompetA.namaDompet,
-          idKategori: '',
-          namaKategori: '',
-        ));
-        await operasi.tambahTransaksi(TransaksiModel(
-          id: uuid.v4(),
-          keterangan: 'Pemasukan 2',
-          jumlah: 300,
-          tanggal: DateTime.now(),
-          tipe: TipeTransaksi.pemasukan,
-          idDompet: dompetA.id,
-          namaDompet: dompetA.namaDompet,
-          idKategori: '',
-          namaKategori: '',
-        ));
-        await operasi.tambahTransaksi(TransaksiModel(
-          id: uuid.v4(),
-          keterangan: 'Pengeluaran 1',
-          jumlah: 150,
-          tanggal: DateTime.now(),
-          tipe: TipeTransaksi.pengeluaran,
-          idDompet: dompetA.id,
-          namaDompet: dompetA.namaDompet,
-          idKategori: '',
-          namaKategori: '',
-        ));
+        await operasi.tambahTransaksi(
+          TransaksiModel(
+            id: uuid.v4(),
+            keterangan: 'Pemasukan 1',
+            jumlah: 200,
+            tanggal: DateTime.now(),
+            tipe: TipeTransaksi.pemasukan,
+            idDompet: dompetA.id,
+            namaDompet: dompetA.namaDompet,
+            idKategori: '',
+            namaKategori: '',
+          ),
+        );
+        await operasi.tambahTransaksi(
+          TransaksiModel(
+            id: uuid.v4(),
+            keterangan: 'Pemasukan 2',
+            jumlah: 300,
+            tanggal: DateTime.now(),
+            tipe: TipeTransaksi.pemasukan,
+            idDompet: dompetA.id,
+            namaDompet: dompetA.namaDompet,
+            idKategori: '',
+            namaKategori: '',
+          ),
+        );
+        await operasi.tambahTransaksi(
+          TransaksiModel(
+            id: uuid.v4(),
+            keterangan: 'Pengeluaran 1',
+            jumlah: 150,
+            tanggal: DateTime.now(),
+            tipe: TipeTransaksi.pengeluaran,
+            idDompet: dompetA.id,
+            namaDompet: dompetA.namaDompet,
+            idKategori: '',
+            namaKategori: '',
+          ),
+        );
 
         final pemasukan = await operasi.getTotalPemasukan();
         final pengeluaran = await operasi.getTotalPengeluaran();
@@ -473,7 +482,7 @@ void main() {
           idKategori: '',
           namaKategori: '',
         );
-        
+
         // Tambahkan tidak berurutan
         await operasi.tambahTransaksi(t1);
         await operasi.tambahTransaksi(t2);
@@ -490,57 +499,68 @@ void main() {
     // Tes untuk `sisipkanAtauPerbaruiBatch` (Setelah Perbaikan)
     // ===================================
     group('sisipkanAtauPerbaruiBatch (Setelah Perbaikan)', () {
-      test('harus menyisipkan data dan memperbarui saldo dengan benar (termasuk transfer)', () async {
-        final batchTransaksi = [
-          TransaksiModel(
-            id: uuid.v4(),
-            keterangan: 'Pemasukan Batch 1',
-            jumlah: 100,
-            tanggal: DateTime.now(),
-            tipe: TipeTransaksi.pemasukan,
-            idDompet: dompetA.id,
-            namaDompet: dompetA.namaDompet,
-            idKategori: '',
-            namaKategori: '',
-          ),
-          TransaksiModel(
-            id: uuid.v4(),
-            keterangan: 'Pengeluaran Batch 1',
-            jumlah: 25,
-            tanggal: DateTime.now(),
-            tipe: TipeTransaksi.pengeluaran,
-            idDompet: dompetB.id,
-            namaDompet: dompetB.namaDompet,
-            idKategori: '',
-            namaKategori: '',
-          ),
-          // ditambah: Skenario transfer untuk kelengkapan pengujian
-          TransaksiModel(
-            id: uuid.v4(),
-            keterangan: 'Transfer Batch',
-            jumlah: 50,
-            tanggal: DateTime.now(),
-            tipe: TipeTransaksi.transfer,
-            idDompet: dompetB.id, // Dari Dompet B
-            namaDompet: dompetB.namaDompet,
-            idDompetTujuan: dompetA.id, // Ke Dompet A
-            namaDompetTujuan: dompetA.namaDompet,
-            idKategori: '',
-            namaKategori: '',
-          ),
-        ];
+      test(
+        'harus menyisipkan data dan memperbarui saldo dengan benar (termasuk transfer)',
+        () async {
+          final batchTransaksi = [
+            TransaksiModel(
+              id: uuid.v4(),
+              keterangan: 'Pemasukan Batch 1',
+              jumlah: 100,
+              tanggal: DateTime.now(),
+              tipe: TipeTransaksi.pemasukan,
+              idDompet: dompetA.id,
+              namaDompet: dompetA.namaDompet,
+              idKategori: '',
+              namaKategori: '',
+            ),
+            TransaksiModel(
+              id: uuid.v4(),
+              keterangan: 'Pengeluaran Batch 1',
+              jumlah: 25,
+              tanggal: DateTime.now(),
+              tipe: TipeTransaksi.pengeluaran,
+              idDompet: dompetB.id,
+              namaDompet: dompetB.namaDompet,
+              idKategori: '',
+              namaKategori: '',
+            ),
+            // ditambah: Skenario transfer untuk kelengkapan pengujian
+            TransaksiModel(
+              id: uuid.v4(),
+              keterangan: 'Transfer Batch',
+              jumlah: 50,
+              tanggal: DateTime.now(),
+              tipe: TipeTransaksi.transfer,
+              idDompet: dompetB.id, // Dari Dompet B
+              namaDompet: dompetB.namaDompet,
+              idDompetTujuan: dompetA.id, // Ke Dompet A
+              namaDompetTujuan: dompetA.namaDompet,
+              idKategori: '',
+              namaKategori: '',
+            ),
+          ];
 
-        await operasi.sisipkanAtauPerbaruiBatch(batchTransaksi);
+          await operasi.sisipkanAtauPerbaruiBatch(batchTransaksi);
 
-        final saldoAkhirA = await getSaldo(dompetA.id);
-        final saldoAkhirB = await getSaldo(dompetB.id);
+          final saldoAkhirA = await getSaldo(dompetA.id);
+          final saldoAkhirB = await getSaldo(dompetB.id);
 
-        // diubah: Ekspektasi saldo akhir dihitung ulang untuk mencakup transfer
-        // Saldo A = 1000 (awal) + 100 (pemasukan) + 50 (transfer masuk) = 1150
-        // Saldo B = 1000 (awal) - 25 (pengeluaran) - 50 (transfer keluar) = 925
-        expect(saldoAkhirA, saldoAwal + 100 + 50, reason: 'Saldo Dompet A seharusnya bertambah 150 total');
-        expect(saldoAkhirB, saldoAwal - 25 - 50, reason: 'Saldo Dompet B seharusnya berkurang 75 total');
-      });
+          // diubah: Ekspektasi saldo akhir dihitung ulang untuk mencakup transfer
+          // Saldo A = 1000 (awal) + 100 (pemasukan) + 50 (transfer masuk) = 1150
+          // Saldo B = 1000 (awal) - 25 (pengeluaran) - 50 (transfer keluar) = 925
+          expect(
+            saldoAkhirA,
+            saldoAwal + 100 + 50,
+            reason: 'Saldo Dompet A seharusnya bertambah 150 total',
+          );
+          expect(
+            saldoAkhirB,
+            saldoAwal - 25 - 50,
+            reason: 'Saldo Dompet B seharusnya berkurang 75 total',
+          );
+        },
+      );
     });
   });
 }
