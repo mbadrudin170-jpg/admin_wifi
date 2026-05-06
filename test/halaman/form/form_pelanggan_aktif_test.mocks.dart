@@ -404,23 +404,6 @@ class MockTransaksiOperasi extends _i1.Mock implements _i12.TransaksiOperasi {
   }
 
   @override
-  _i2.DatabaseHelper get dbHelper =>
-      (super.noSuchMethod(
-            Invocation.getter(#dbHelper),
-            returnValue: _FakeDatabaseHelper_0(
-              this,
-              Invocation.getter(#dbHelper),
-            ),
-          )
-          as _i2.DatabaseHelper);
-
-  @override
-  set dbHelper(_i2.DatabaseHelper? value) => super.noSuchMethod(
-    Invocation.setter(#dbHelper, value),
-    returnValueForMissingStub: null,
-  );
-
-  @override
   _i7.Future<void> tambahTransaksi(_i13.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
@@ -440,6 +423,18 @@ class MockTransaksiOperasi extends _i1.Mock implements _i12.TransaksiOperasi {
           as _i7.Future<List<_i13.TransaksiModel>>);
 
   @override
+  _i7.Future<List<_i13.TransaksiModel>> ambilTransaksiByDompetId(
+    String? dompetId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#ambilTransaksiByDompetId, [dompetId]),
+            returnValue: _i7.Future<List<_i13.TransaksiModel>>.value(
+              <_i13.TransaksiModel>[],
+            ),
+          )
+          as _i7.Future<List<_i13.TransaksiModel>>);
+
+  @override
   _i7.Future<void> updateTransaksi(_i13.TransaksiModel? transaksiBaru) =>
       (super.noSuchMethod(
             Invocation.method(#updateTransaksi, [transaksiBaru]),
@@ -449,9 +444,9 @@ class MockTransaksiOperasi extends _i1.Mock implements _i12.TransaksiOperasi {
           as _i7.Future<void>);
 
   @override
-  _i7.Future<void> deleteTransaksi(String? id) =>
+  _i7.Future<void> arsipkanTransaksi(String? id) =>
       (super.noSuchMethod(
-            Invocation.method(#deleteTransaksi, [id]),
+            Invocation.method(#arsipkanTransaksi, [id]),
             returnValue: _i7.Future<void>.value(),
             returnValueForMissingStub: _i7.Future<void>.value(),
           )

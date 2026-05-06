@@ -71,20 +71,25 @@ class RingkasanTransaksi extends StatelessWidget {
 }
 
 class TransaksiPage extends StatefulWidget {
-  const TransaksiPage({super.key});
+  // ditambahkan: Parameter opsional untuk injeksi dependensi saat testing.
+  final TransaksiOperasi? transaksiOperasi;
+
+  const TransaksiPage({super.key, this.transaksiOperasi});
 
   @override
   State<TransaksiPage> createState() => _TransaksiPageState();
 }
 
 class _TransaksiPageState extends State<TransaksiPage> {
-  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  // diubah: Dibuat non-final dan diinisialisasi di initState.
+  late TransaksiOperasi _transaksiOperasi;
   late Future<Map<String, dynamic>> _dataFuture;
 
   @override
   void initState() {
     super.initState();
-    // diubah: Inisialisasi Future secara langsung untuk menghindari LateInitializationError.
+    // diubah: Menggunakan dependensi yang diinjeksikan (jika ada) atau membuat instance baru.
+    _transaksiOperasi = widget.transaksiOperasi ?? TransaksiOperasi();
     _dataFuture = _getData();
   }
 
@@ -148,6 +153,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
           return Column(
             children: [
               RingkasanTransaksi(
+                key: const Key('ringkasan_transaksi'), // ditambahkan: Key untuk ringkasan
                 pemasukan: pemasukan,
                 pengeluaran: pengeluaran,
                 total: total,
@@ -239,6 +245,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
+        key: ValueKey(transaksi.id), // Key sudah ada dari sebelumnya
         onTap: () {
           Navigator.push(
             context,

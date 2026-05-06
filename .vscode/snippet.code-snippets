@@ -22,5 +22,17 @@
       "  }",
       "}"
     ]
+  },
+  "Test": {
+    "prefix": "ftest",
+    "body": [
+      "test('$1',(){expect(hasil, $2);})"
+    ]
+  },
+  "TestWidget": {
+    "prefix": "ftestwidget",
+    "body": [
+      "testWidgets('$1',(){expect(hasil, $2);});"
+    ]
   }
 }

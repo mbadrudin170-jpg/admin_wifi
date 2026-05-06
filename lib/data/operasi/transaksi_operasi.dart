@@ -1,21 +1,23 @@
 // path: lib/data/operasi/transaksi_operasi.dart
-// diubah: Memperbaiki bug di sisipkanAtauPerbaruiBatch yang tidak memperbarui saldo dompet.
+// diubah: Fungsi ambilSemuaTransaksi sekarang hanya mengambil data yang tidak dihapus (isDeleted = 0).
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class TransaksiOperasi {
   // diubah: dbHelper sekarang tidak final agar bisa diganti untuk testing.
-  DatabaseHelper dbHelper;
+  static DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   // Constructor standar yang digunakan oleh aplikasi.
-  TransaksiOperasi() : dbHelper = DatabaseHelper.instance;
+  TransaksiOperasi();
 
-  // ditambah: Constructor khusus untuk testing agar bisa memakai database in-memory.
-  TransaksiOperasi.testing(this.dbHelper);
+  // ditambah: metode untuk mengganti instance dbHelper untuk testing.
+  static void testSetInstance(DatabaseHelper dbHelper) {
+    _dbHelper = dbHelper;
+  }
 
   // diubah: getter ini memastikan kode lain tetap bisa mengakses database dengan cara yang sama.
-  Future<Database> get _db async => await dbHelper.database;
+  Future<Database> get _db async => await _dbHelper.database;
 
   // ===================================================================
   // -- OPERASI DASAR CRUD (Create, Read, Update, Delete) --
@@ -60,6 +62,22 @@ class TransaksiOperasi {
     final db = await _db;
     final List<Map<String, dynamic>> maps = await db.query(
       'transaksi',
+      where: 'isDeleted = ?', // Hanya ambil data yang belum dihapus
+      whereArgs: [0],
+      orderBy: 'tanggal DESC',
+    );
+    return List.generate(maps.length, (i) {
+      return TransaksiModel.fromMap(maps[i]);
+    });
+  }
+
+  // ditambahkan: Fungsi untuk mengambil transaksi berdasarkan ID dompet.
+  Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transaksi',
+      where: 'id_dompet = ? AND isDeleted = ?',
+      whereArgs: [dompetId, 0],
       orderBy: 'tanggal DESC',
     );
     return List.generate(maps.length, (i) {
@@ -139,7 +157,7 @@ class TransaksiOperasi {
     });
   }
 
-  Future<void> deleteTransaksi(String id) async {
+  Future<void> arsipkanTransaksi(String id) async {
     final db = await _db;
 
     await db.transaction((txn) async {
@@ -175,15 +193,21 @@ class TransaksiOperasi {
           }
         }
 
-        await txn.delete('transaksi', where: 'id = ?', whereArgs: [id]);
+        await txn.update(
+          'transaksi',
+          {'isDeleted': 1, 'diarsipkan': DateTime.now().toIso8601String()},
+          where: 'id = ?',
+          whereArgs: [id],
+        );
       }
     });
   }
 
+
   Future<double> getTotalPemasukan() async {
     final db = await _db;
     final result = await db.rawQuery(
-      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan'",
+      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND isDeleted = 0",
     );
     if (result.isNotEmpty && result.first['jumlah'] != null) {
       return (result.first['jumlah'] as num).toDouble();
@@ -194,7 +218,7 @@ class TransaksiOperasi {
   Future<double> getTotalPengeluaran() async {
     final db = await _db;
     final result = await db.rawQuery(
-      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran'",
+      "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND isDeleted = 0",
     );
     if (result.isNotEmpty && result.first['jumlah'] != null) {
       return (result.first['jumlah'] as num).toDouble();
@@ -208,40 +232,36 @@ class TransaksiOperasi {
     return pemasukan - pengeluaran;
   }
 
-  // diubah: Fungsi ini sekarang dengan benar memperbarui saldo dompet.
-  // PERINGATAN: Fungsi ini sekarang hanya aman untuk INSERT, tidak untuk UPDATE.
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
     final db = await _db;
     final batch = db.batch();
     for (var item in items) {
-      // Menyisipkan record transaksi itu sendiri
       batch.insert(
         'transaksi',
         item.salinDengan(diperbarui: DateTime.now()).toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      // ditambah: Logika untuk memperbarui saldo dompet berdasarkan tipe transaksi
       if (item.tipe == TipeTransaksi.pemasukan) {
-        batch.rawUpdate(
-          'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-          [item.jumlah, item.idDompet],
-        );
+        batch.rawUpdate('UPDATE dompet SET saldo = saldo + ? WHERE id = ?', [
+          item.jumlah,
+          item.idDompet,
+        ]);
       } else if (item.tipe == TipeTransaksi.pengeluaran) {
-        batch.rawUpdate(
-          'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-          [item.jumlah, item.idDompet],
-        );
+        batch.rawUpdate('UPDATE dompet SET saldo = saldo - ? WHERE id = ?', [
+          item.jumlah,
+          item.idDompet,
+        ]);
       } else if (item.tipe == TipeTransaksi.transfer) {
-        batch.rawUpdate(
-          'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-          [item.jumlah, item.idDompet],
-        );
+        batch.rawUpdate('UPDATE dompet SET saldo = saldo - ? WHERE id = ?', [
+          item.jumlah,
+          item.idDompet,
+        ]);
         if (item.idDompetTujuan != null) {
-          batch.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [item.jumlah, item.idDompetTujuan],
-          );
+          batch.rawUpdate('UPDATE dompet SET saldo = saldo + ? WHERE id = ?', [
+            item.jumlah,
+            item.idDompetTujuan,
+          ]);
         }
       }
     }

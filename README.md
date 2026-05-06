@@ -1,3 +1,21 @@
+### File: lib/utils/perhitungan_util.dart
+**Fitur:** Utilitas Perhitungan (Masa Aktif & Poin Hangus)
+
+**Tujuan:**
+- Menyediakan kumpulan fungsi statis untuk melakukan berbagai perhitungan terkait logika bisnis, seperti menghitung sisa masa aktif, menentukan status poin, dan memberikan representasi visual (warna, teks) berdasarkan perhitungan tersebut.
+
+**Isi:**
+- **`getPoinHangus({required DateTime tanggalMulai, DateTime? now})`**: Fungsi baru yang ditambahkan melalui TDD. Fungsi ini menentukan apakah poin dari sebuah transaksi sudah "Hangus" berdasarkan aturan bisnis: jika tanggal mulai transaksi sudah lebih dari 30 hari dari tanggal saat ini, maka akan mengembalikan string 'Hangus'. Jika tidak, mengembalikan string kosong.
+- **`sisaHari(DateTime tanggalBerakhir, {DateTime? now})`**: Menghitung selisih hari (dalam integer) antara tanggal berakhir dan tanggal sekarang. Mengembalikan nilai negatif jika sudah lewat.
+- **`getTeksSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now})`**: Memberikan representasi teks yang mudah dibaca dari sisa masa aktif. Contoh: "Sisa 5 hari", "Sisa 3 jam", atau "Berakhir".
+- **`getWarnaSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now})`**: Menentukan warna (hijau, oranye, merah) berdasarkan sisa masa aktif, berguna untuk memberikan isyarat visual di UI.
+
+**Catatan:**
+- Kelas ini adalah contoh bagus dari kelas utilitas murni yang tidak memiliki state dan semua metodenya bersifat statis.
+- Fungsi `getPoinHangus` dikembangkan menggunakan metodologi Test-Driven Development (TDD), memastikan logikanya kuat dan teruji dengan baik.
+
+---
+
 ## Dokumen Lengkap Proyek Saya per File
 
 ### **File: lib/halaman/form/form_pelanggan_aktif.dart**

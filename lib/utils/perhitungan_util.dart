@@ -7,6 +7,17 @@ import 'package:flutter/material.dart';
 
 // diubah: Nama kelas diubah menjadi lebih umum untuk menampung fungsi perhitungan lainnya.
 class PerhitunganUtil {
+  // diubah: Logika diubah untuk menghitung status 'Hangus' berdasarkan selisih 30 hari dari tanggal mulai.
+  static String getPoinHangus({required DateTime tanggalMulai, DateTime? now}) {
+    final tanggalSekarang = now ?? DateTime.now();
+    final selisihHari = tanggalSekarang.difference(tanggalMulai).inDays;
+
+    if (selisihHari > 30) {
+      return 'Hangus';
+    }
+    return '';
+  }
+
   /// Fungsi ini menghitung selisih hari antara tanggal berakhir dan tanggal sekarang.
   /// Mengembalikan jumlah sisa hari dalam bentuk integer.
   /// Jika tanggal berakhir sudah lewat, hasilnya akan menjadi negatif.
@@ -24,7 +35,10 @@ class PerhitunganUtil {
   /// diubah: Logika fungsi diperbarui untuk memberikan detail waktu yang lebih presisi (hari, jam, menit).
   /// Fungsi untuk mendapatkan representasi teks dari sisa masa aktif.
   /// Contoh: "Sisa 5 hari", "Sisa 12 jam", atau "Berakhir".
-  static String getTeksSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now}) {
+  static String getTeksSisaMasaAktif(
+    DateTime tanggalBerakhir, {
+    DateTime? now,
+  }) {
     // diubah: Menghitung selisih waktu yang presisi menggunakan Duration untuk mendapatkan jam dan menit.
     final sisa = tanggalBerakhir.difference(now ?? DateTime.now());
 
@@ -50,7 +64,10 @@ class PerhitunganUtil {
   /// - Hijau: Jika sisa masa aktif lebih dari 7 hari.
   /// - Oranye: Jika sisa masa aktif antara 1 hingga 7 hari.
   /// - Merah: Jika paket berakhir hari ini atau sudah kadaluarsa.
-  static Color getWarnaSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now}) {
+  static Color getWarnaSisaMasaAktif(
+    DateTime tanggalBerakhir, {
+    DateTime? now,
+  }) {
     // ditambah: Menghitung sisa hari sebagai dasar penentuan warna.
     final sisa = sisaHari(tanggalBerakhir, now: now);
 

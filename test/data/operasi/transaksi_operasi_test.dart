@@ -1,5 +1,6 @@
- // path: test/data/operasi/transaksi_operasi_test.dart
+// path: test/data/operasi/transaksi_operasi_test.dart
 // diubah: Mengganti MockDatabaseHelper dengan metode injeksi database ke singleton.
+// diubah: Menggunakan nama variabel lowerCamelCase dan tipe data boolean untuk isDeleted.
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -37,7 +38,7 @@ void main() {
     );
     // Tambahkan pengecekan untuk memastikan map tidak kosong
     if (map.isNotEmpty) {
-      return map.first['saldo'] as double;
+      return (map.first['saldo'] as num).toDouble();
     }
     return 0.0; // Kembalikan 0 jika dompet tidak ditemukan
   }
@@ -146,28 +147,31 @@ void main() {
     // ===================================
     // Tes untuk `deleteTransaksi` (TIDAK BERUBAH)
     // ===================================
-    test('deleteTransaksi (Pemasukan) harus mengembalikan saldo', () async {
-      final transaksi = TransaksiModel(
-        id: uuid.v4(),
-        keterangan: 'Bonus',
-        jumlah: 200,
-        tanggal: DateTime.now(),
-        tipe: TipeTransaksi.pemasukan,
-        idDompet: dompetA.id,
-        namaDompet: dompetA.namaDompet,
-        idKategori: '',
-        namaKategori: '',
-      );
-      await operasi.tambahTransaksi(transaksi);
+    test(
+      'arsipkanTransaksi (Pemasukan) harus mengembalikan saldo, data transaksi harus ubah isDeleted : true, diarspikan :DateTime.now, diperbarui : DateTime.now',
+      () async {
+        final transaksi = TransaksiModel(
+          id: uuid.v4(),
+          keterangan: 'Bonus',
+          jumlah: 200,
+          tanggal: DateTime.now(),
+          tipe: TipeTransaksi.pemasukan,
+          idDompet: dompetA.id,
+          namaDompet: dompetA.namaDompet,
+          idKategori: '',
+          namaKategori: '',
+        );
+        await operasi.tambahTransaksi(transaksi);
 
-      expect(await getSaldo(dompetA.id), saldoAwal + 200);
+        expect(await getSaldo(dompetA.id), saldoAwal + 200);
 
-      await operasi.deleteTransaksi(transaksi.id);
+        await operasi.arsipkanTransaksi(transaksi.id);
 
-      expect(await getSaldo(dompetA.id), saldoAwal);
-    });
+        expect(await getSaldo(dompetA.id), saldoAwal);
+      },
+    );
 
-    test('deleteTransaksi (Pengeluaran) harus mengembalikan saldo', () async {
+    test('arsipkanTransaksi (Pengeluaran) harus mengembalikan saldo, data transaksi harus ubah isDeleted : true, diarspikan :DateTime.now, diperbarui : DateTime.now', () async {
       final transaksi = TransaksiModel(
         id: uuid.v4(),
         keterangan: 'Makan Siang',
@@ -183,7 +187,8 @@ void main() {
 
       expect(await getSaldo(dompetA.id), saldoAwal - 50);
 
-      await operasi.deleteTransaksi(transaksi.id);
+      // diubah: memperbaiki pemanggilan fungsi yang salah
+      await operasi.arsipkanTransaksi(transaksi.id);
 
       expect(await getSaldo(dompetA.id), saldoAwal);
     });
@@ -209,7 +214,8 @@ void main() {
         expect(await getSaldo(dompetA.id), saldoAwal - 100);
         expect(await getSaldo(dompetB.id), saldoAwal + 100);
 
-        await operasi.deleteTransaksi(transaksi.id);
+        // diubah: memperbaiki pemanggilan fungsi yang salah
+        await operasi.arsipkanTransaksi(transaksi.id);
 
         expect(await getSaldo(dompetA.id), saldoAwal);
         expect(await getSaldo(dompetB.id), saldoAwal);
@@ -378,6 +384,72 @@ void main() {
       });
     });
 
+    test(
+      'ambilTransaksiByDompetId harus mengambil data berdasarkan id_dompet dan isDeletednya 0 atau false, lalu urutkan berdasarkan tanggal terbaru',
+      () async {
+        // Data Uji
+        final tDompetA1 = TransaksiModel(
+          id: uuid.v4(),
+          keterangan: 'Pemasukan Dompet A (Baru)',
+          jumlah: 100,
+          tanggal: DateTime(2023, 10, 2), // Terbaru
+          tipe: TipeTransaksi.pemasukan,
+          idDompet: dompetA.id,
+          namaDompet: dompetA.namaDompet,
+          idKategori: '',
+          namaKategori: '',
+        );
+        final tDompetA2 = TransaksiModel(
+          id: uuid.v4(),
+          keterangan: 'Pemasukan Dompet A (Lama)',
+          jumlah: 50,
+          tanggal: DateTime(2023, 10, 1), // Lama
+          tipe: TipeTransaksi.pemasukan,
+          idDompet: dompetA.id,
+          namaDompet: dompetA.namaDompet,
+          idKategori: '',
+          namaKategori: '',
+        );
+        final tDompetADihapus = TransaksiModel(
+          id: uuid.v4(),
+          keterangan: 'Pemasukan Dompet A (Dihapus)',
+          jumlah: 200,
+          tanggal: DateTime(2023, 10, 3),
+          tipe: TipeTransaksi.pemasukan,
+          idDompet: dompetA.id,
+          namaDompet: dompetA.namaDompet,
+          idKategori: '',
+          namaKategori: '',
+          isDeleted: true, // Dihapus
+        );
+        final tDompetB = TransaksiModel(
+          id: uuid.v4(),
+          keterangan: 'Pemasukan Dompet B',
+          jumlah: 1000,
+          tanggal: DateTime(2023, 10, 4),
+          tipe: TipeTransaksi.pemasukan,
+          idDompet: dompetB.id, // Beda Dompet
+          namaDompet: dompetB.namaDompet,
+          idKategori: '',
+          namaKategori: '',
+        );
+
+        // Sisipkan data mentah ke DB untuk simulasi
+        await db.insert('transaksi', tDompetA1.toMap());
+        await db.insert('transaksi', tDompetA2.toMap());
+        await db.insert('transaksi', tDompetADihapus.toMap());
+        await db.insert('transaksi', tDompetB.toMap());
+
+        // Panggil fungsi yang diuji
+        final hasil = await operasi.ambilTransaksiByDompetId(dompetA.id);
+
+        // Verifikasi
+        expect(hasil.length, 2, reason: 'Seharusnya hanya mengembalikan 2 transaksi aktif untuk dompet A');
+        expect(hasil[0].keterangan, 'Pemasukan Dompet A (Baru)', reason: 'Urutan harus yang paling baru');
+        expect(hasil[1].keterangan, 'Pemasukan Dompet A (Lama)', reason: 'Urutan kedua adalah data setelahnya');
+      },
+    );
+
     // ===================================
     // Tes untuk `ambilSemuaTransaksi` (TIDAK BERUBAH)
     // ===================================
@@ -481,6 +553,89 @@ void main() {
             saldoAkhirB,
             saldoAwal - 25 - 50,
             reason: 'Saldo Dompet B seharusnya berkurang 75 total',
+          );
+        },
+      );
+    });
+
+    // ditambahkan: Grup tes baru untuk memverifikasi logika isDeleted
+    group('ambilSemuaTransaksi (filter isDeleted)', () {
+      test(
+        'ambilTransaksiAktif harus mengambil data transaksi yang isDeleted-nya false dan urutkan berdasarkan tanggal terbaru',
+        () async {
+          // Data Uji
+          final tAktifKemarin = TransaksiModel(
+            id: uuid.v4(),
+            keterangan: 'Aktif Kemarin',
+            jumlah: 10,
+            tanggal: DateTime.now().subtract(const Duration(days: 1)),
+            tipe: TipeTransaksi.pemasukan,
+            idDompet: dompetA.id,
+            namaDompet: dompetA.namaDompet,
+            idKategori: '',
+            namaKategori: '',
+            isDeleted: false, // Aktif
+          );
+          final tAktifSekarang = TransaksiModel(
+            id: uuid.v4(),
+            keterangan: 'Aktif Sekarang',
+            jumlah: 20,
+            tanggal: DateTime.now(),
+            tipe: TipeTransaksi.pemasukan,
+            idDompet: dompetA.id,
+            namaDompet: dompetA.namaDompet,
+            idKategori: '',
+            namaKategori: '',
+            isDeleted: false, // Aktif
+          );
+          final tDihapusLampau = TransaksiModel(
+            id: uuid.v4(),
+            keterangan: 'Sudah Dihapus',
+            jumlah: 30,
+            tanggal: DateTime.now().subtract(const Duration(days: 2)),
+            tipe: TipeTransaksi.pemasukan,
+            idDompet: dompetA.id,
+            namaDompet: dompetA.namaDompet,
+            idKategori: '',
+            namaKategori: '',
+            isDeleted: true, // Dihapus
+          );
+
+          // Sisipkan data mentah ke DB untuk simulasi
+          await db.insert('transaksi', tAktifKemarin.toMap());
+          await db.insert('transaksi', tAktifSekarang.toMap());
+          await db.insert('transaksi', tDihapusLampau.toMap());
+
+          // Panggil fungsi yang diuji
+          final hasil = await operasi.ambilSemuaTransaksi();
+
+          // Verifikasi
+          // 1. Memastikan hanya ada 2 transaksi yang kembali (yang aktif)
+          expect(
+            hasil.length,
+            2,
+            reason:
+                "Seharusnya hanya mengembalikan transaksi yang tidak dihapus",
+          );
+
+          // 2. Memastikan tidak ada transaksi yang isDeleted
+          expect(
+            hasil.every((t) => !t.isDeleted),
+            isTrue,
+            reason:
+                "Semua transaksi yang dikembalikan harus memiliki isDeleted == false",
+          );
+
+          // 3. Memastikan urutan sudah benar (tanggal terbaru di atas)
+          expect(
+            hasil[0].keterangan,
+            'Aktif Sekarang',
+            reason: "Urutan pertama harus data terbaru",
+          );
+          expect(
+            hasil[1].keterangan,
+            'Aktif Kemarin',
+            reason: "Urutan kedua harus data setelahnya",
           );
         },
       );

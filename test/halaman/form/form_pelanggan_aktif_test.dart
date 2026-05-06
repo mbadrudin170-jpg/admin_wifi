@@ -11,6 +11,7 @@
 // diubah: Memperbaiki logika tes untuk `findsNothing` dengan menghapus `.last`.
 // diubah: Memperbaiki nama tes kelima agar sesuai permintaan.
 // diubah: Memperbaiki logika tes untuk `findsOneWidget` dengan menambahkan `.last` agar menargetkan item di dalam dropdown.
+// ditambahkan: Tes ke-6 untuk memverifikasi dropdown dompet hanya menampilkan dompet yang tidak dihapus.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -76,6 +77,13 @@ void main() {
   final dompetDummy = [
     DompetModel(id: 'd1', namaDompet: 'Dompet Utama', saldo: 100000),
   ];
+  final kategoriDummy = [
+    KategoriModel(
+      id: 'k1',
+      nama: 'Aktivasi Paket',
+      tipe: TipeKategori.pemasukan,
+    ),
+  ];
 
   final pelangganAktifDummy = PelangganAktifModel(
     id: 'pa-dummy',
@@ -94,23 +102,17 @@ void main() {
     mockDompetOperasi = MockDompetOperasi();
     mockKategoriOperasi = MockKategoriOperasi();
 
+    // Default mocks for general tests (1-4)
     when(
       mockPelangganOperasi.getPelanggan(),
     ).thenAnswer((_) async => pelangganDummy);
     when(mockPaketOperasi.getPaket()).thenAnswer((_) async => paketDummy);
     when(mockDompetOperasi.getDompet()).thenAnswer((_) async => dompetDummy);
+    when(
+      mockKategoriOperasi.getKategori(),
+    ).thenAnswer((_) async => kategoriDummy);
 
-    // Default mock for most tests
-    when(mockKategoriOperasi.getKategori()).thenAnswer(
-      (_) async => [
-        KategoriModel(
-          id: 'k1',
-          nama: 'Aktivasi Paket',
-          tipe: TipeKategori.pemasukan,
-        ),
-      ],
-    );
-
+    // Mocks for operations
     when(
       mockPelangganAktifOperasi.createPelangganAktif(any),
     ).thenAnswer((_) async => pelangganAktifDummy);
@@ -302,9 +304,49 @@ void main() {
       },
     );
 
-    test(
+    testWidgets(
       '6. Pilih Dompet harus menampilkan daftar akun dompet dengan menampilkan namanya saja, tapi ambil datanya yang isDeletednya 0',
-      () {},
+      (tester) async {
+        // 1. Siapkan data mock spesifik untuk tes ini
+        final dompetCampuran = [
+          DompetModel(
+            id: 'd1',
+            namaDompet: 'Dompet Utama',
+            saldo: 100000,
+            isDeleted: false,
+          ),
+          DompetModel(
+            id: 'd2',
+            namaDompet: 'Kas Toko',
+            saldo: 50000,
+            isDeleted: false,
+          ),
+          DompetModel(
+            id: 'd3',
+            namaDompet: 'Dompet Hangus',
+            saldo: 0,
+            isDeleted: true,
+          ),
+        ];
+
+        // Override mock untuk getDompet
+        when(
+          mockDompetOperasi.getDompet(),
+        ).thenAnswer((_) async => dompetCampuran);
+
+        // 2. Render form
+        await pumpForm(tester);
+        await tester.pumpAndSettle();
+
+        // 3. Tap dropdown dompet
+        await tester.tap(find.text('Pilih Dompet'));
+        await tester.pumpAndSettle();
+
+        // 4. Verifikasi item yang ada dan tidak ada
+        expect(find.text('Dompet Utama').last, findsOneWidget);
+        expect(find.text('Kas Toko').last, findsOneWidget);
+        expect(find.text('Dompet Hangus'), findsNothing);
+      },
     );
   });
 }
