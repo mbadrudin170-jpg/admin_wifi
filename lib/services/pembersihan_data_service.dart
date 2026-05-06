@@ -1,7 +1,9 @@
+
 // path: lib/services/pembersihan_data_service.dart
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:admin_wifi/data/operasi/pembersihan_data_operasi.dart';
+import 'dart:developer' as developer; // ditambah: import developer
 
 class PembersihanDataService {
   static const String _keyLastCleanup = 'last_cleanup_timestamp';
@@ -41,9 +43,11 @@ class PembersihanDataService {
       // ✅ Jalankan pembersihan
       final totalTerhapus = await _operasi.hapusSemuaDataArsipKadaluarsa();
 
-      print('Pembersihan data dijalankan. Total terhapus: $totalTerhapus');
-    } catch (e) {
-      print('Error saat pembersihan data: $e');
+      // diubah: Menggunakan developer.log untuk logging
+      developer.log('Pembersihan data dijalankan. Total terhapus: $totalTerhapus', name: 'PembersihanDataService');
+    } catch (e, s) { // diubah: Menangkap stacktrace juga
+      // diubah: Menggunakan developer.log untuk logging error
+      developer.log('Error saat pembersihan data', error: e, stackTrace: s, name: 'PembersihanDataService');
     } finally {
       _sedangBerjalan = false;
     }

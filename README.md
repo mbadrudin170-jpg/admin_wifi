@@ -42,9 +42,9 @@
 - `_updateSaldoDompet(txn, id, jumlah, {isPemasukan})`: Fungsi helper internal yang digunakan oleh metode publik untuk menambah atau mengurangi saldo pada dompet tertentu di dalam sebuah transaksi database.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 
 - Penggunaan `db.transaction()` di semua operasi tulis (tambah, update, hapus) adalah kunci untuk mencegah inkonsistensi data antara tabel transaksi dan dompet.
 - Semua logika perubahan saldo (yang sebelumnya mungkin tersebar) kini terpusat di dalam kelas ini, menjadikannya satu-satunya sumber kebenaran (`single source of truth`) untuk semua perubahan keuangan.
@@ -68,10 +68,10 @@ version: 1.0.9+4
 - `salinDengan()`: Metode yang mirip dengan `copyWith`, memungkinkan pembuatan salinan objek dengan nilai properti yang telah diubah.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
+
 
 - Model ini adalah salah satu model paling kompleks karena ia menyatukan banyak informasi dari berbagai bagian aplikasi ke dalam satu catatan transaksi.
 - Kemampuannya menangani perbedaan format data antara SQLite dan Firebase di metode `fromMap` dan `toMap` adalah kunci untuk sinkronisasi data yang mulus.
@@ -107,9 +107,9 @@ version: 1.0.9+4
 - `build()`: Merender keseluruhan UI, termasuk `RefreshIndicator` untuk `pull-to-refresh`, `ListView.builder` untuk menampilkan daftar pelanggan dalam bentuk `Card`, dan `FloatingActionButton` untuk menambah pelanggan baru.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Halaman ini menggunakan `AutomaticKeepAliveClientMixin` untuk menjaga state-nya (seperti posisi scroll dan hasil filter) bahkan ketika pengguna berpindah ke tab lain, memberikan pengalaman navigasi yang mulus.
 - Logika pada fungsi `_loadData` telah ditingkatkan secara signifikan untuk memberikan umpan balik yang lebih baik kepada pengguna dalam berbagai kondisi jaringan (online, offline, atau koneksi lambat).
 
@@ -131,9 +131,9 @@ version: 1.0.9+4
 - **Manajemen Data**: Fungsi `_refreshPelangganList()` mengambil data dari `PelangganOperasi`, mengurutkannya berdasarkan nama, dan memperbarui state UI. Ini dipanggil saat inisialisasi dan setelah ada aksi yang mengubah data (seperti menambah atau mengarsipkan pelanggan).
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Halaman ini tidak lagi menggunakan `FutureBuilder` untuk menampilkan daftar utama, melainkan mengelola daftar pelanggan dalam state lokal (`_allPelanggan` dan `_filteredPelanggan`). Pendekatan ini memberikan kontrol yang lebih baik untuk fitur dinamis seperti pencarian.
 - Penggunaan `onLongPress` untuk menampilkan opsi membuat antarmuka lebih bersih dan minimalis.
 
@@ -173,9 +173,9 @@ version: 1.0.9+4
     - `navigatorKey` dari `NavigasiServis` untuk memungkinkan navigasi dari mana saja tanpa konteks (BuildContext).
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Aplikasi ini menggunakan `SplashScreen` untuk menangani tugas inisialisasi yang berat, yang merupakan praktik bagus untuk meningkatkan waktu startup aplikasi.
 - Penggunaan `navigatorKey` global sangat berguna untuk melakukan navigasi dari dalam service atau model di luar pohon widget.
 
@@ -206,9 +206,9 @@ version: 1.0.9+4
     - Pesan teks yang dinamis (`_loadingMessage`) untuk memberi tahu pengguna tentang proses yang sedang berjalan.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Logika inisialisasi yang berat sengaja ditempatkan di sini untuk mempercepat waktu startup awal aplikasi (`main.dart`) dan memberikan umpan balik visual yang jelas kepada pengguna.
 - File ini secara efektif bertindak sebagai gerbang utama sebelum pengguna dapat berinteraksi dengan fitur-fitur inti aplikasi.
 
@@ -238,9 +238,9 @@ version: 1.0.9+4
     - `bottomNavigationBar`: Sebuah `BottomNavigationBar` dengan empat ikon (Aktif, Dompet, Transaksi, Lainnya) yang memungkinkan pengguna untuk berpindah antar halaman utama.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Halaman ini adalah pusat navigasi aplikasi. Logika untuk menampilkan halaman yang berbeda dikelola di sini.
 - Adanya pengecekan status offline memberikan pengalaman pengguna yang lebih baik karena pengguna sadar bahwa data yang ditampilkan mungkin tidak yang terbaru.
 
@@ -265,9 +265,9 @@ version: 1.0.9+4
 - `class DompetCard`: Widget UI (`StatelessWidget`) yang menampilkan informasi satu dompet. Widget ini menangani gestur `onTap` untuk navigasi ke detail dan `onLongPress` untuk memicu dialog pengarsipan.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Logika pengarsipan satu dompet telah diperbaiki dari kesalahan sebelumnya dimana ia memberikan pesan umpan balik yang salah dan memiliki parameter yang tidak tepat.
 - Penggunaan `if (!mounted) return;` telah ditambahkan di beberapa lokasi setelah operasi `async` untuk mencegah error saat mencoba menggunakan `BuildContext` pada widget yang sudah tidak ada di pohon widget.
 
@@ -305,9 +305,9 @@ version: 1.0.9+4
 - `toMap()`: Mengonversi instance `DompetModel` kembali menjadi sebuah `Map`. Ini digunakan saat menyimpan data ke database atau mengirimnya ke server.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Model ini menggunakan pendekatan *non-nullable* untuk properti-properti penting dan memberikan nilai default untuk memastikan integritas data.
 - Penggunaan `UUID` untuk `id` memastikan bahwa setiap dompet yang dibuat memiliki identitas yang unik dan tidak akan pernah `null`.
 - Konversi `isDeleted` menjadi integer (`1` atau `0`) di `toMap()` adalah untuk kompatibilitas dengan SQLite yang tidak memiliki tipe data boolean secara native.
@@ -340,9 +340,9 @@ version: 1.0.9+4
     - `toMap()`: Mengonversi objek menjadi `Map` untuk disimpan ke database.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
+
+
 - Model ini memiliki struktur bersarang, di mana sebuah `KategoriModel` bisa memiliki banyak `SubKategoriModel`.
 - Penggunaan `enum` untuk `tipe` membuat kode lebih aman dan mudah dibaca dibandingkan menggunakan `String` biasa.
 - Sama seperti model lainnya, file ini menerapkan prinsip *non-nullable* dan pembuatan `UUID` otomatis untuk ID.
@@ -370,9 +370,7 @@ version: 1.0.9+4
     Hal ini membuat model ini fleksibel dan dapat digunakan dengan kedua sumber data tersebut.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
-version: 1.0.9+4
+
 - Model ini dirancang untuk menjadi jembatan antara data di UI dan data yang disimpan di database.
 - Penanganan format tanggal yang berbeda di `fromMap()` adalah contoh praktik terbaik untuk memastikan data dapat dibaca dengan andal dari berbagai sumber.
 
@@ -399,8 +397,8 @@ version: 1.0.9+4
 - `toMap()`: Mengonversi objek `PaketModel` menjadi `Map` yang siap untuk disimpan ke dalam database.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Penggunaan `enum` untuk `TipeDurasi` membuat kode lebih terstruktur dan mengurangi kemungkinan kesalahan input dibandingkan menggunakan string biasa.
 - Seperti model data lainnya dalam proyek ini, `PaketModel` juga mengadopsi pembuatan `id` yang non-nullable dan otomatis, serta menyertakan properti untuk *soft delete* dan pengarsipan.
 
@@ -428,8 +426,8 @@ version: 1.0.9+4
 - `toMap()`: Mengonversi objek `PelangganAktifModel` menjadi `Map` untuk disimpan ke database.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Validasi `ArgumentError` di dalam `fromMap()` adalah mekanisme pertahanan yang sangat baik untuk mencegah data yang tidak valid atau korup masuk ke dalam sistem.
 - Model ini adalah inti dari logika bisnis langganan, menghubungkan pelanggan dengan layanan yang mereka gunakan.
 
@@ -460,8 +458,8 @@ version: 1.0.9+4
 - `toMap()`: Mengonversi objek `PelangganModel` menjadi `Map` untuk disimpan ke database.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Model ini sangat fundamental karena menjadi dasar dari data pelanggan yang akan digunakan di seluruh fitur aplikasi, mulai dari autentikasi hingga manajemen langganan.
 - Penggunaan `enum` untuk status membantu menjaga konsistensi data dan menghindari kesalahan pengetikan string.
 
@@ -488,8 +486,6 @@ version: 1.0.9+4
 - `toMap()`: Mengonversi objek `PesananModel` menjadi `Map` yang siap disimpan di database.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
 - Model ini penting untuk melacak alur pemesanan dari awal hingga selesai.
 - Penggunaan nilai default di `fromMap()` (seperti status \"baru\" dan `DateTime.now()` untuk tanggal) membuat proses pembuatan objek menjadi lebih tangguh terhadap data yang tidak lengkap.
 
@@ -518,8 +514,8 @@ version: 1.0.9+4
 - `toMap()`: Metode default yang akan digunakan oleh layanan sinkronisasi. Saat ini, metode ini memanggil `toMapForFirebase()`.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Penyimpanan *snapshot* data paket adalah praktik desain yang sangat baik untuk data historis, karena ini menjaga integritas data dari waktu ke waktu dan mencegah data riwayat berubah ketika data master (paket) diperbarui.
 - Adanya dua metode `toMap` yang berbeda (`toMapForFirebase` dan `toMapForSqflite`) menunjukkan bahwa model ini dirancang untuk bekerja dengan mulus di dua lingkungan database yang berbeda.
 
@@ -541,8 +537,8 @@ version: 1.0.9+4
         3. Mengembalikan `Future<bool>` yang akan bernilai `true` jika terhubung ke salah satunya, dan `false` jika tidak.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Penggunaan metode `static` sangat efisien untuk fungsi utilitas seperti ini, karena tidak perlu mengelola state dan dapat diakses secara langsung.
 - Layanan ini adalah komponen krusial, terutama untuk fitur-fitur yang memerlukan sinkronisasi data dengan server, seperti yang terlihat pada `SplashScreen`.
 
@@ -563,8 +559,8 @@ version: 1.0.9+4
     4.  Menangkap dan mencatat error secara detail jika terjadi kegagalan.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Layanan ini adalah contoh yang bagus dari pemisahan tanggung jawab (*separation of concerns*). Layanan ini bertindak sebagai koordinator (`what to do`), sementara `PelangganAktifOperasi` bertindak sebagai eksekutor (`how to do it`).
 - Layanan ini dipanggil dari `HalamanUtama`, yang berarti proses pengecekan ini dijalankan secara berkala saat pengguna membuka aplikasi.
 
@@ -591,8 +587,8 @@ version: 1.0.9+4
 - `onDidReceiveNotificationResponse(...)`: Sebuah fungsi global yang berjalan di background. Fungsi ini dipicu ketika pengguna mengetuk notifikasi, memungkinkan aplikasi untuk bereaksi terhadap interaksi tersebut.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Layanan ini sangat penting untuk mengingatkan pengguna tentang hal-hal penting, seperti langganan yang akan segera berakhir.
 - Penggunaan `developer.log` (melalui `debugPrint`) untuk mencatat setiap aksi (inisialisasi, pengiriman, penjadwalan) sangat membantu dalam proses debugging.
 
@@ -614,8 +610,8 @@ version: 1.0.9+4
     - `backgroundColor`: Warna latar belakang utama aplikasi.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Mendefinisikan warna secara terpusat seperti ini adalah praktik terbaik yang sangat disarankan. Jika suatu saat desainer meminta untuk mengubah warna utama dari biru menjadi hijau, kita hanya perlu mengubahnya di satu tempat, yaitu di file ini.
 - Semua properti di kelas ini dideklarasikan sebagai `static const`, yang berarti nilai-nilai ini adalah konstanta waktu kompilasi dan dapat diakses dari mana saja tanpa perlu membuat instance dari `AppColors` (misalnya: `AppColors.primaryColor`).
 
@@ -641,8 +637,8 @@ version: 1.0.9+4
     - `formatMataUang(double)`: Mengubah angka menjadi format mata uang Rupiah yang mudah dibaca, lengkap dengan simbol \"Rp\" dan pemisah ribuan (contoh: \"Rp 50.000\").
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Penggunaan konstruktor privat (`._()`) adalah praktik yang baik untuk kelas utilitas murni, karena mencegah developer lain membuat instance dari kelas ini secara tidak sengaja.
 - Semua metode adalah `static`, sehingga dapat dipanggil langsung dari kelasnya (misal: `FormatUang.formatMataUang(50000)`) tanpa perlu membuat objek.
 - Penggunaan paket `intl` dengan lokal `id_ID` menjamin bahwa semua format sesuai dengan standar Indonesia.
@@ -681,8 +677,8 @@ version: 1.0.9+4
         3.  **Jika Berhasil**: Menampilkan nama pelanggan (`pelanggan.nama`) yang berhasil ditemukan.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Widget ini adalah contoh yang sangat baik dari prinsip *Don\'t Repeat Yourself* (DRY). Daripada menulis logika `FutureBuilder` untuk mengambil nama pelanggan berulang kali di banyak tempat, kita cukup membungkusnya dalam satu widget ini.
 - Widget ini juga memisahkan antara pengambilan data dan presentasi UI dengan rapi.
 
@@ -705,8 +701,8 @@ version: 1.0.9+4
         3.  **Jika Berhasil**: Menampilkan nama paket (`snapshot.data!.nama`) yang berhasil ditemukan.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Widget ini sangat berguna pada halaman detail atau daftar di mana kita memiliki ID dari sebuah entitas (dalam hal ini paket) dan perlu menampilkan nama yang lebih deskriptif kepada pengguna.
 - Dengan membungkus logika ini dalam satu widget, kita memastikan bahwa semua tempat yang menampilkan nama paket dari ID akan memiliki perilaku yang konsisten, termasuk tampilan loading dan pesan error.
 
@@ -730,8 +726,8 @@ version: 1.0.9+4
         4.  **Jika Data Tidak Ditemukan**: Menampilkan teks \"Pelanggan tidak ditemukan\" dengan gaya miring dan warna abu-abu.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Widget ini menunjukkan bagaimana kita bisa membuat beberapa komponen serupa dengan sedikit variasi untuk memberikan fleksibilitas pada tim UI/UX tanpa harus mengulang logika `FutureBuilder` yang sama.
 - Perbedaan utama dari `NamaDariIdWidget` adalah penggunaan teks \"...\" sebagai indikator loading, yang mungkin lebih cocok untuk beberapa layout antarmuka.
 
@@ -755,8 +751,8 @@ version: 1.0.9+4
     6.  Mengembalikan `TextEditingValue` yang baru, yang sudah diformat, sambil memastikan posisi kursor berada di akhir teks.
 
 **Catatan:**
-version: 1.0.9+4
-version: 1.0.9+4
+
+
 - Ini adalah komponen yang sangat dapat digunakan kembali (`reusable`) untuk `TextField` mana pun yang ditujukan untuk input mata uang atau angka besar, sehingga meningkatkan pengalaman pengguna secara signifikan.
 - Logika di dalamnya cukup cerdas untuk menangani input parsial, seperti saat pengguna baru saja mengetik tanda `-` dan belum memasukkan angkanya.
 

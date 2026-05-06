@@ -2,6 +2,7 @@
 // diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 
 enum TipeKategori { pemasukan, pengeluaran, transfer }
 
@@ -12,7 +13,7 @@ class KategoriModel {
   final List<SubKategoriModel> subKategori;
   final DateTime? diperbarui;
   final bool isDeleted;
- final DateTime? diarsipkan;
+  final DateTime? diarsipkan;
 
   KategoriModel({
     String? id, // diubah: id bisa null saat pembuatan
@@ -76,65 +77,6 @@ class KategoriModel {
       'id': id,
       'nama': nama,
       'tipe': tipe.name,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0,
-      'diarsipkan': diarsipkan?.toIso8601String(),
-    };
-  }
-}
-
-class SubKategoriModel {
-  final String id; // diubah: menjadi non-nullable
-  final String nama;
-  DateTime? diperbarui;
-  bool isDeleted;
-  DateTime? diarsipkan;
-
-  SubKategoriModel({
-    String? id, // diubah: id bisa null saat pembuatan
-    required this.nama,
-    this.diperbarui,
-    this.isDeleted = false,
-    this.diarsipkan,
-  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
-
-  SubKategoriModel copyWith({
-    String? id,
-    String? nama,
-    DateTime? diperbarui,
-    bool? isDeleted,
-    DateTime? diarsipkan,
-  }) {
-    return SubKategoriModel(
-      id: id ?? this.id,
-      nama: nama ?? this.nama,
-      diperbarui: diperbarui ?? this.diperbarui,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-    );
-  }
-
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is String) return DateTime.tryParse(dateValue);
-    return null;
-  }
-
-  factory SubKategoriModel.fromMap(Map<String, dynamic> map) {
-    return SubKategoriModel(
-      id: map['id'],
-      nama: map['nama'] ?? '',
-      diperbarui: _parseDateTime(map['diperbarui']),
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
-      diarsipkan: _parseDateTime(map['diarsipkan']),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'nama': nama,
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),

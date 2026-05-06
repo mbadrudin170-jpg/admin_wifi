@@ -121,6 +121,27 @@ class _LainnyaTabState extends State<LainnyaPage> {
               ),
             ),
           ),
+          // ask:
+          // tujuan:
+          // - tambahkan list untuk menuju ke file versi apk user atau versi aplikasi lain
+          //
+          // konteks:
+          // - lib/halaman/lainnya/versi_apk_user.dart
+          //
+          // batasan:
+          // - tuliskan batasan seperti tidak boleh ubah UI / hanya logic / dll
+          //
+          // input:
+          // - data atau sumber input
+          //
+          // output:
+          // - bentuk hasil yang diharapkan
+          //
+          // edge case (opsional):
+          // - jika data kosong / null / error handling
+          //
+          // catatan tambahan:
+          // - instruksi tambahan jika ada
           _buildNavigationButton(
             title: 'Tentang Aplikasi',
             icon: Icons.info,

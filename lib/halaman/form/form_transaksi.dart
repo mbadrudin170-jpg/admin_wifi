@@ -3,6 +3,7 @@ import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
