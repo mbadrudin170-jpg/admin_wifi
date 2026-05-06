@@ -1,5 +1,27 @@
 ## Dokumen Lengkap Proyek Saya per File
 
+### **File: lib/halaman/form/form_pelanggan_aktif.dart**
+**Fitur:** Formulir Tambah/Edit Pelanggan Aktif
+**Tujuan file ini dibuat:** Untuk menyediakan antarmuka bagi admin untuk mengaktifkan pelanggan baru dengan sebuah paket atau mengubah detail langganan yang sudah ada. Formulir ini menangani pemilihan pelanggan, paket, dompet, kategori transaksi, tanggal mulai, dan status pembayaran.
+
+**Penjelasan Kode:**
+- **Mode Operasi**: Widget dapat beroperasi dalam dua mode: "Tambah" (jika `pelangganAktif` null) atau "Edit" (jika `pelangganAktif` disediakan).
+- **Manajemen Dependensi**: Semua dependensi (seperti `PelangganOperasi`, `PaketOperasi`, dll.) diinjeksikan melalui konstruktor, memungkinkan pengujian yang mudah dengan *mocking*.
+- **Pemuatan Data (`_loadAllData`)**: Saat inisialisasi, formulir memuat semua data yang diperlukan (daftar pelanggan, paket, dompet, dan kategori) secara bersamaan menggunakan `Future.wait()` untuk efisiensi.
+- **Filter Kategori**: Data kategori yang dimuat secara otomatis disaring untuk hanya menampilkan kategori dengan `tipe == TipeKategori.pemasukan` dan `isDeleted == false`, memastikan dropdown hanya berisi pilihan yang relevan.
+- **Logika Form (`_saveForm`)**: 
+    1. **Validasi**: Memeriksa apakah semua field dropdown telah diisi.
+    2. **Perhitungan Tanggal Berakhir**: Secara otomatis menghitung tanggal berakhir langganan berdasarkan tanggal mulai dan durasi paket yang dipilih.
+    3. **Operasi Database**: Memanggil `createPelangganAktif` atau `updatePelangganAktif` tergantung pada mode operasi. Jika status pembayaran adalah "Lunas", maka ia juga akan membuat catatan transaksi baru melalui `tambahTransaksi`.
+    4. **Umpan Balik & Navigasi**: Menampilkan `SnackBar` untuk memberitahukan status keberhasilan atau kegagalan, dan kemudian menutup form jika berhasil.
+- **UI & State**: Menggunakan `StatefulWidget` untuk mengelola state form. `DropdownButtonFormField` digunakan untuk semua input pilihan, dan `SingleChildScrollView` memastikan form dapat di-scroll.
+
+**Catatan:**
+- Penggunaan `initialValue` pada `DropdownButtonFormField` memastikan nilai yang benar ditampilkan, baik dalam mode tambah maupun edit.
+- Pengujian unit (`widget test`) yang ekstensif telah dibuat untuk file ini untuk memverifikasi semua logika utama, termasuk rendering UI, interaksi form, logika penyimpanan, dan pemfilteran dropdown.
+
+---
+
 ### **File: lib/halaman/form/form_versi_apk_user.dart**
 **Fitur:** Formulir Tambah/Edit Versi APK
 **Tujuan file ini dibuat:** Untuk menyediakan antarmuka bagi admin untuk menambah data versi APK baru atau mengubah data versi yang sudah ada. Formulir ini menangani input untuk semua detail versi, termasuk nomor versi, catatan rilis, tautan unduhan untuk berbagai arsitektur (universal, 32-bit, 64-bit), dan nomor build.
@@ -205,6 +227,8 @@
     - Nama aplikasi "Admin WiFi".
     - Indikator pemuatan (`CircularProgressIndicator`).
     - Pesan teks yang dinamis (`_loadingMessage`) untuk memberi tahu pengguna tentang proses yang sedang berjalan.
+- **Logo Dinamis**: `build()` method sekarang menggunakan `Builder` untuk mendeteksi `platformBrightness` (terang/gelap) dari `MediaQuery`. Berdasarkan tema, ia akan memuat `logo_splash_screen_terang.png` atau `logo_splash_screen_gelap.png`, membuat tampilan lebih adaptif.
+- **Pendaftaran Aset**: File `pubspec.yaml` juga diperbarui untuk mendaftarkan path aset logo (`assets/logo/splash_screen/`) secara lebih spesifik, untuk memastikan aset dapat diakses dengan benar.
 
 **Catatan:**
 - Logika inisialisasi yang berat sengaja ditempatkan di sini untuk mempercepat waktu startup awal aplikasi (`main.dart`) dan memberikan umpan balik visual yang jelas kepada pengguna.

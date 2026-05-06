@@ -229,7 +229,8 @@ class PelangganAktifOperasi {
           hargaPaket: paket.harga,
           durasiPaket: paket.durasi,
           tipeDurasiPaket: paket.tipe.name,
-          jumlahPoinDiperoleh: paket.jumlahPoin, // ditambahkan: snapshot poin dari paket
+          jumlahPoinDiperoleh:
+              paket.jumlahPoin, // ditambahkan: snapshot poin dari paket
           tanggalMulai: pelanggan.tanggalMulai,
           tanggalBerakhir: pelanggan.tanggalBerakhir,
           status: pelanggan.status,

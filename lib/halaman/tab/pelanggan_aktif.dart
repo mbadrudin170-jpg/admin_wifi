@@ -324,7 +324,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   void _tambahPelangganAktif() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const FormPelangganAktif()),
+      MaterialPageRoute(builder: (context) => FormPelangganAktif()),
     );
     if (!mounted) return;
     if (result == true) {

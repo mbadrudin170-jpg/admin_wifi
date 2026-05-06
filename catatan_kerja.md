@@ -1,28 +1,23 @@
-## Catatan Kerja Harian
+# Catatan Kerja - 2024-05-23
 
-### **v1.0.9+5**
+## Fitur: Logo Splash Screen Dinamis Sesuai Tema
 
-- **Refaktorisasi Halaman Versi APK**:
-    - **File**: `lib/halaman/lainnya/versi_apk_user.dart`
-    - **Perubahan**: 
-        - Mengubah halaman dari tampilan detail menjadi tampilan daftar (`ListView`) untuk menampilkan semua data versi APK.
-        - Mengimplementasikan `ListView.builder` untuk efisiensi.
-        - Menambahkan navigasi `onTap` ke halaman detail untuk setiap item dalam daftar.
-- **Penambahan Halaman Detail Versi APK**:
-    - **File**: `lib/halaman/detail/detail_versi_apk_user.dart`
-    - **Perubahan**: 
-        - Membuat halaman baru untuk menampilkan rincian lengkap dari data versi APK yang dipilih.
-- **Penambahan Fungsi Operasi**:
-    - **File**: `lib/data/operasi/versi_apk_user_operasi.dart`
-    - **Perubahan**:
-        - Menambahkan fungsi baru `ambilSemuaVersiApk()` untuk mengambil semua data versi APK dalam bentuk `List`.
+### Deskripsi
+Mengimplementasikan kemampuan pada `SplashScreen` untuk menampilkan logo yang berbeda tergantung pada mode tema sistem (terang atau gelap) yang digunakan pengguna.
 
-### **v1.0.9+4**
+### Perubahan Teknis
+1.  **`lib/splash_screen.dart`**:
+    -   **diubah**: Mengganti `Image.asset` statis dengan `Builder` widget.
+    -   **ditambahkan**: Logika untuk memeriksa `MediaQuery.of(context).platformBrightness`.
+    -   Jika tema `Brightness.dark`, maka akan memuat `assets/logo/splash_screen/logo_splash_screen_gelap.png`.
+    -   Jika tema `Brightness.light`, maka akan memuat `assets/logo/splash_screen/logo_splash_screen_terang.png`.
 
-- **Refaktorisasi & Perbaikan Halaman Kontrol APK**:
-    - **File**: `lib/halaman/lainnya/versi_apk_user.dart`
-    - **Perubahan**: 
-        - Menghapus `FutureBuilder` dan menggantinya dengan manajemen state manual untuk meningkatkan performa dan kejelasan kode.
-        - Mengimplementasikan `Future.wait` untuk memuat data dari SQLite dan Firebase secara paralel, mempercepat waktu loading halaman.
-        - Mengatasi `_CompileTimeError` yang disebabkan oleh cache build yang usang dengan melakukan `flutter clean`.
-        - Menambahkan UI yang lebih informatif dengan `SwitchListTile` untuk kontrol maintenance dan `RefreshIndicator` untuk memuat ulang data.
+2.  **`pubspec.yaml`**:
+    -   **diubah**: Memperbarui bagian `assets` dari `- assets/logo/` menjadi lebih spesifik:
+        - `- assets/logo/ikon/`
+        - `- assets/logo/splash_screen/`
+    -   Tindakan ini dilakukan untuk meningkatkan kejelasan dan pengelolaan aset proyek.
+
+### Tujuan
+- Meningkatkan pengalaman pengguna (UX) dengan menyajikan aset visual yang konsisten dengan tema aplikasi.
+- Merapikan dan memperjelas deklarasi aset di `pubspec.yaml`.

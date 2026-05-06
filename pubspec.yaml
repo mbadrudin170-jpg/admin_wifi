@@ -43,9 +43,10 @@ dev_dependencies:
 
 # ditambahkan: untuk konfigurasi flutter_launcher_icons
 flutter_launcher_icons:
-  android: true
+  android: 'launcher_icons'
   # diubah: karena hanya akan membuat ikon untuk Android
   ios: false 
+  
   image_path: "assets/logo/ikon/ikon_apk.png"
 
 flutter:
@@ -55,6 +56,7 @@ flutter:
     - assets/fonts/
     # diubah: Mendaftarkan folder logo ikon & splash screen secara spesifik
     - assets/logo/ikon/
+    
     - assets/logo/splash_screen/
 
   fonts:
