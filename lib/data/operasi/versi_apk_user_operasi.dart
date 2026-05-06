@@ -1,33 +1,94 @@
 // path: lib/data/operasi/versi_apk_user_operasi.dart
 
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:sqflite/sqflite.dart';
 
 class VersiApkUserOperasi {
   final DatabaseHelper dbHelper;
+  // ditambah: dependensi untuk koneksi, unggah, dan sync manager
+  final KoneksiInternetService koneksiService;
+  final LayananUnggahData unggahService;
+  final SyncManager syncManager;
 
-  VersiApkUserOperasi({DatabaseHelper? dbHelper})
-      : dbHelper = dbHelper ?? DatabaseHelper.instance;
+  // diubah: konstruktor untuk menerima dependensi (dependency injection)
+  VersiApkUserOperasi({
+    DatabaseHelper? dbHelper,
+    KoneksiInternetService? koneksiService,
+    LayananUnggahData? unggahService,
+    SyncManager? syncManager,
+  }) : dbHelper = dbHelper ?? DatabaseHelper.instance,
+       koneksiService = koneksiService ?? KoneksiInternetService(),
+       unggahService = unggahService ?? LayananUnggahData(),
+       syncManager = syncManager ?? SyncManager();
 
   Future<void> tambahVersiApkUser(VersiApkUserModel data) async {
     final db = await dbHelper.database;
     try {
+      // 1. Simpan ke database lokal terlebih dahulu
       final dataToSave = data.copyWith(diperbarui: DateTime.now());
       await db.insert(
         'versi_apk_user',
         dataToSave.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      developer.log(
+        'Berhasil menyimpan data ke lokal.',
+        name: 'tambahVersiApkUser',
+      );
+
+      // 2. Coba sinkronisasi jika online
+      // diubah: menggunakan instance koneksiService yang disuntikkan
+      if (await koneksiService.cekKoneksi()) {
+        developer.log(
+          'Online, mencoba sinkronisasi data.',
+          name: 'tambahVersiApkUser',
+        );
+        try {
+          final syncTime = DateTime.now();
+          // Memanggil unggah data dengan timeout
+          // diubah: menggunakan instance unggahService yang disuntikkan
+          await unggahService.unggahDataVersiApkUser().timeout(
+            const Duration(seconds: 15),
+            onTimeout: () =>
+                throw TimeoutException('Batas waktu unggah terlampaui.'),
+          );
+
+          // diubah: menggunakan instance syncManager yang disuntikkan
+          await syncManager.setLastSyncTimestamp(syncTime);
+
+          developer.log(
+            'Sinkronisasi berhasil, timestamp diperbarui.',
+            name: 'tambahVersiApkUser',
+          );
+        } catch (e, s) {
+          developer.log(
+            'Sinkronisasi gagal, timestamp tidak diperbarui.',
+            name: 'tambahVersiApkUser.Warning',
+            error: e,
+            stackTrace: s,
+          );
+          // Error tidak dilempar ulang karena penyimpanan lokal sudah sukses
+        }
+      } else {
+        developer.log(
+          'Offline, unggah data ditunda.',
+          name: 'tambahVersiApkUser',
+        );
+      }
     } catch (e, s) {
       developer.log(
-        'Gagal menambah data versi apk user',
-        name: 'tambahVersiApkUser',
+        'Gagal menyimpan data ke LOKAL.',
+        name: 'tambahVersiApkUser.Error',
         error: e,
         stackTrace: s,
       );
-      rethrow;
+      rethrow; // Lempar ulang jika penyimpanan LOKAL itu sendiri gagal
     }
   }
 
@@ -142,24 +203,21 @@ class VersiApkUserOperasi {
     }
   }
 
-  // diubah: mengambil versi APK dengan build tertinggi.
   Future<VersiApkUserModel?> ambilVersiApkTerbaru() async {
     try {
-      // 1. Ambil semua versi yang aktif
-      final List<VersiApkUserModel> semuaVersiAktif = await ambilSemuaVersiApkAktif();
+      final List<VersiApkUserModel> semuaVersiAktif =
+          await ambilSemuaVersiApkAktif();
 
       if (semuaVersiAktif.isEmpty) {
         return null;
       }
 
-      // 2. Urutkan berdasarkan nomor build 'universal'
       semuaVersiAktif.sort((a, b) {
         final buildA = a.nomorBuildTerbaru['universal'] ?? 0;
         final buildB = b.nomorBuildTerbaru['universal'] ?? 0;
-        return buildA.compareTo(buildB); // Langsung bandingkan nomor build
+        return buildA.compareTo(buildB);
       });
 
-      // 3. Kembalikan versi terakhir dari daftar (build tertinggi)
       return semuaVersiAktif.last;
     } catch (e, s) {
       developer.log(
@@ -173,7 +231,8 @@ class VersiApkUserOperasi {
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(
-      List<VersiApkUserModel> daftarVersi) async {
+    List<VersiApkUserModel> daftarVersi,
+  ) async {
     final db = await dbHelper.database;
     try {
       final batch = db.batch();

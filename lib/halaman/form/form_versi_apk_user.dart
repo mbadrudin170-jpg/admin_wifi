@@ -268,10 +268,11 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _simpanForm,
-                    child: const Text('Simpan'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    child: const Text('Simpan'),
+
                   ),
                 ],
               ),
@@ -279,7 +280,8 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              // diubah: Menggunakan withAlpha untuk mengatur opacity
+              color: Colors.black.withAlpha(128),
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],

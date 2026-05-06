@@ -24,6 +24,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   String _loadingMessage = "Memulai aplikasi...";
+  // ditambah: Buat instance untuk cek koneksi
+  final KoneksiInternetService _koneksiService = KoneksiInternetService();
 
   @override
   void initState() {
@@ -71,7 +73,8 @@ class _SplashScreenState extends State<SplashScreen> {
       // 🔥 Jalankan pembersihan data (tidak blocking UI)
       PembersihanDataService().jalankanJikaPerlu();
       _updateLoading("Mengecek koneksi internet...");
-      isOnline = await KoneksiInternetService.cekKoneksi();
+      // diubah: Menggunakan instance _koneksiService
+      isOnline = await _koneksiService.cekKoneksi();
       if (!mounted) return;
 
       if (isOnline) {

@@ -3,12 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i7;
 
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart' as _i3;
+import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart' as _i6;
 import 'package:admin_wifi/data/sqlite.dart' as _i2;
-import 'package:admin_wifi/model/versi_apk_user_model.dart' as _i5;
-import 'package:flutter/src/widgets/navigator.dart' as _i6;
+import 'package:admin_wifi/data/sync/unggah_data.dart' as _i4;
+import 'package:admin_wifi/model/versi_apk_user_model.dart' as _i8;
+import 'package:admin_wifi/services/cek_koneksi_internet.dart' as _i3;
+import 'package:admin_wifi/utils/sync_manager.dart' as _i5;
+import 'package:flutter/src/widgets/navigator.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -32,11 +35,28 @@ class _FakeDatabaseHelper_0 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
+class _FakeKoneksiInternetService_1 extends _i1.SmartFake
+    implements _i3.KoneksiInternetService {
+  _FakeKoneksiInternetService_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeLayananUnggahData_2 extends _i1.SmartFake
+    implements _i4.LayananUnggahData {
+  _FakeLayananUnggahData_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeSyncManager_3 extends _i1.SmartFake implements _i5.SyncManager {
+  _FakeSyncManager_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [VersiApkUserOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockVersiApkUserOperasi extends _i1.Mock
-    implements _i3.VersiApkUserOperasi {
+    implements _i6.VersiApkUserOperasi {
   @override
   _i2.DatabaseHelper get dbHelper =>
       (super.noSuchMethod(
@@ -53,105 +73,150 @@ class MockVersiApkUserOperasi extends _i1.Mock
           as _i2.DatabaseHelper);
 
   @override
-  _i4.Future<void> tambahVersiApkUser(_i5.VersiApkUserModel? data) =>
+  _i3.KoneksiInternetService get koneksiService =>
+      (super.noSuchMethod(
+            Invocation.getter(#koneksiService),
+            returnValue: _FakeKoneksiInternetService_1(
+              this,
+              Invocation.getter(#koneksiService),
+            ),
+            returnValueForMissingStub: _FakeKoneksiInternetService_1(
+              this,
+              Invocation.getter(#koneksiService),
+            ),
+          )
+          as _i3.KoneksiInternetService);
+
+  @override
+  _i4.LayananUnggahData get unggahService =>
+      (super.noSuchMethod(
+            Invocation.getter(#unggahService),
+            returnValue: _FakeLayananUnggahData_2(
+              this,
+              Invocation.getter(#unggahService),
+            ),
+            returnValueForMissingStub: _FakeLayananUnggahData_2(
+              this,
+              Invocation.getter(#unggahService),
+            ),
+          )
+          as _i4.LayananUnggahData);
+
+  @override
+  _i5.SyncManager get syncManager =>
+      (super.noSuchMethod(
+            Invocation.getter(#syncManager),
+            returnValue: _FakeSyncManager_3(
+              this,
+              Invocation.getter(#syncManager),
+            ),
+            returnValueForMissingStub: _FakeSyncManager_3(
+              this,
+              Invocation.getter(#syncManager),
+            ),
+          )
+          as _i5.SyncManager);
+
+  @override
+  _i7.Future<void> tambahVersiApkUser(_i8.VersiApkUserModel? data) =>
       (super.noSuchMethod(
             Invocation.method(#tambahVersiApkUser, [data]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i4.Future<void> perbaruiVersiApkUser(_i5.VersiApkUserModel? data) =>
+  _i7.Future<void> perbaruiVersiApkUser(_i8.VersiApkUserModel? data) =>
       (super.noSuchMethod(
             Invocation.method(#perbaruiVersiApkUser, [data]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i4.Future<void> arsipkanVersiApkUser(String? id) =>
+  _i7.Future<void> arsipkanVersiApkUser(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanVersiApkUser, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i4.Future<List<_i5.VersiApkUserModel>> ambilSemuaVersiApk() =>
+  _i7.Future<List<_i8.VersiApkUserModel>> ambilSemuaVersiApk() =>
       (super.noSuchMethod(
             Invocation.method(#ambilSemuaVersiApk, []),
-            returnValue: _i4.Future<List<_i5.VersiApkUserModel>>.value(
-              <_i5.VersiApkUserModel>[],
+            returnValue: _i7.Future<List<_i8.VersiApkUserModel>>.value(
+              <_i8.VersiApkUserModel>[],
             ),
             returnValueForMissingStub:
-                _i4.Future<List<_i5.VersiApkUserModel>>.value(
-                  <_i5.VersiApkUserModel>[],
+                _i7.Future<List<_i8.VersiApkUserModel>>.value(
+                  <_i8.VersiApkUserModel>[],
                 ),
           )
-          as _i4.Future<List<_i5.VersiApkUserModel>>);
+          as _i7.Future<List<_i8.VersiApkUserModel>>);
 
   @override
-  _i4.Future<List<_i5.VersiApkUserModel>> ambilSemuaVersiApkAktif() =>
+  _i7.Future<List<_i8.VersiApkUserModel>> ambilSemuaVersiApkAktif() =>
       (super.noSuchMethod(
             Invocation.method(#ambilSemuaVersiApkAktif, []),
-            returnValue: _i4.Future<List<_i5.VersiApkUserModel>>.value(
-              <_i5.VersiApkUserModel>[],
+            returnValue: _i7.Future<List<_i8.VersiApkUserModel>>.value(
+              <_i8.VersiApkUserModel>[],
             ),
             returnValueForMissingStub:
-                _i4.Future<List<_i5.VersiApkUserModel>>.value(
-                  <_i5.VersiApkUserModel>[],
+                _i7.Future<List<_i8.VersiApkUserModel>>.value(
+                  <_i8.VersiApkUserModel>[],
                 ),
           )
-          as _i4.Future<List<_i5.VersiApkUserModel>>);
+          as _i7.Future<List<_i8.VersiApkUserModel>>);
 
   @override
-  _i4.Future<_i5.VersiApkUserModel?> ambilVersiApkById(String? id) =>
+  _i7.Future<_i8.VersiApkUserModel?> ambilVersiApkById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#ambilVersiApkById, [id]),
-            returnValue: _i4.Future<_i5.VersiApkUserModel?>.value(),
+            returnValue: _i7.Future<_i8.VersiApkUserModel?>.value(),
             returnValueForMissingStub:
-                _i4.Future<_i5.VersiApkUserModel?>.value(),
+                _i7.Future<_i8.VersiApkUserModel?>.value(),
           )
-          as _i4.Future<_i5.VersiApkUserModel?>);
+          as _i7.Future<_i8.VersiApkUserModel?>);
 
   @override
-  _i4.Future<_i5.VersiApkUserModel?> ambilVersiApkTerbaru() =>
+  _i7.Future<_i8.VersiApkUserModel?> ambilVersiApkTerbaru() =>
       (super.noSuchMethod(
             Invocation.method(#ambilVersiApkTerbaru, []),
-            returnValue: _i4.Future<_i5.VersiApkUserModel?>.value(),
+            returnValue: _i7.Future<_i8.VersiApkUserModel?>.value(),
             returnValueForMissingStub:
-                _i4.Future<_i5.VersiApkUserModel?>.value(),
+                _i7.Future<_i8.VersiApkUserModel?>.value(),
           )
-          as _i4.Future<_i5.VersiApkUserModel?>);
+          as _i7.Future<_i8.VersiApkUserModel?>);
 
   @override
-  _i4.Future<void> sisipkanAtauPerbaruiBatch(
-    List<_i5.VersiApkUserModel>? daftarVersi,
+  _i7.Future<void> sisipkanAtauPerbaruiBatch(
+    List<_i8.VersiApkUserModel>? daftarVersi,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [daftarVersi]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [NavigatorObserver].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigatorObserver extends _i1.Mock implements _i6.NavigatorObserver {
+class MockNavigatorObserver extends _i1.Mock implements _i9.NavigatorObserver {
   @override
-  void didPush(_i6.Route<dynamic>? route, _i6.Route<dynamic>? previousRoute) =>
+  void didPush(_i9.Route<dynamic>? route, _i9.Route<dynamic>? previousRoute) =>
       super.noSuchMethod(
         Invocation.method(#didPush, [route, previousRoute]),
         returnValueForMissingStub: null,
       );
 
   @override
-  void didPop(_i6.Route<dynamic>? route, _i6.Route<dynamic>? previousRoute) =>
+  void didPop(_i9.Route<dynamic>? route, _i9.Route<dynamic>? previousRoute) =>
       super.noSuchMethod(
         Invocation.method(#didPop, [route, previousRoute]),
         returnValueForMissingStub: null,
@@ -159,8 +224,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i6.NavigatorObserver {
 
   @override
   void didRemove(
-    _i6.Route<dynamic>? route,
-    _i6.Route<dynamic>? previousRoute,
+    _i9.Route<dynamic>? route,
+    _i9.Route<dynamic>? previousRoute,
   ) => super.noSuchMethod(
     Invocation.method(#didRemove, [route, previousRoute]),
     returnValueForMissingStub: null,
@@ -168,8 +233,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i6.NavigatorObserver {
 
   @override
   void didReplace({
-    _i6.Route<dynamic>? newRoute,
-    _i6.Route<dynamic>? oldRoute,
+    _i9.Route<dynamic>? newRoute,
+    _i9.Route<dynamic>? oldRoute,
   }) => super.noSuchMethod(
     Invocation.method(#didReplace, [], {
       #newRoute: newRoute,
@@ -180,8 +245,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i6.NavigatorObserver {
 
   @override
   void didChangeTop(
-    _i6.Route<dynamic>? topRoute,
-    _i6.Route<dynamic>? previousTopRoute,
+    _i9.Route<dynamic>? topRoute,
+    _i9.Route<dynamic>? previousTopRoute,
   ) => super.noSuchMethod(
     Invocation.method(#didChangeTop, [topRoute, previousTopRoute]),
     returnValueForMissingStub: null,
@@ -189,8 +254,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i6.NavigatorObserver {
 
   @override
   void didStartUserGesture(
-    _i6.Route<dynamic>? route,
-    _i6.Route<dynamic>? previousRoute,
+    _i9.Route<dynamic>? route,
+    _i9.Route<dynamic>? previousRoute,
   ) => super.noSuchMethod(
     Invocation.method(#didStartUserGesture, [route, previousRoute]),
     returnValueForMissingStub: null,

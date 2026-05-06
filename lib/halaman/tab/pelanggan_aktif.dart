@@ -50,6 +50,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   OpsiUrutkan _urutanAktif = OpsiUrutkan.tanggalBerakhir;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+  // ditambah: Buat instance untuk cek koneksi
+  final KoneksiInternetService _koneksiService = KoneksiInternetService();
 
   @override
   bool get wantKeepAlive => true;
@@ -83,7 +85,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     });
 
     try {
-      final koneksiTersedia = await KoneksiInternetService.cekKoneksi();
+      // diubah: Menggunakan instance _koneksiService
+      final koneksiTersedia = await _koneksiService.cekKoneksi();
       // diubah: Logika refresh dirombak untuk menangani timeout dan mode offline.
       if (koneksiTersedia && forceRefresh) {
         // Menambahkan timeout untuk mencegah loading tanpa henti saat koneksi buruk.

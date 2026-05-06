@@ -1,19 +1,26 @@
 // path: test/data/operasi/versi_apk_user_operasi_test.dart
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
-import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
+
+import 'versi_apk_user_operasi_test.mocks.dart';
 
 // Helper untuk menginisialisasi database untuk testing
 Future<Database> _initTestDatabase() async {
   sqfliteFfiInit();
   final db = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
-
   await db.execute(DatabaseHelper.tabelVersiApkUser);
-
   return db;
 }
 
@@ -39,19 +46,44 @@ VersiApkUserModel _buatModel({
   );
 }
 
+@GenerateMocks([LayananUnggahData, KoneksiInternetService, SyncManager])
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late Database db;
   late VersiApkUserOperasi operasi;
+  late MockLayananUnggahData mockLayananUnggah;
+  late MockKoneksiInternetService mockKoneksi;
+  late MockSyncManager mockSyncManager;
+  late DatabaseHelper dbHelperMock;
 
   setUpAll(() async {
     db = await _initTestDatabase();
-    final dbHelper = DatabaseHelper.instance;
-    dbHelper.database = Future.value(db);
-    operasi = VersiApkUserOperasi(dbHelper: dbHelper);
+    dbHelperMock = DatabaseHelper.instance;
+    dbHelperMock.database = Future.value(db);
+
+    mockLayananUnggah = MockLayananUnggahData();
+    mockKoneksi = MockKoneksiInternetService();
+    mockSyncManager = MockSyncManager();
+
+    // diubah: Injeksi dependensi mock melalui konstruktor
+    operasi = VersiApkUserOperasi(
+      dbHelper: dbHelperMock,
+      koneksiService: mockKoneksi,
+      unggahService: mockLayananUnggah,
+      syncManager: mockSyncManager,
+    );
   });
 
   setUp(() async {
     await db.delete('versi_apk_user');
+    reset(mockLayananUnggah);
+    reset(mockKoneksi);
+    reset(mockSyncManager);
+
+    // ditambah: Menambahkan stub default untuk semua tes.
+    // Mengasumsikan offline by default untuk menghindari pemanggilan service yang tidak perlu.
+    // Tes yang butuh online bisa override ini secara spesifik.
+    when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => false);
   });
 
   tearDownAll(() async {
@@ -81,15 +113,77 @@ void main() {
     });
 
     group('Operasi CRUD Dasar', () {
-      test('tambahVersiApkUser harus berhasil menyimpan data baru', () async {
-        final modelBaru = _buatModel(versi: '1.0.1');
-        await operasi.tambahVersiApkUser(modelBaru);
+      test(
+        'tambahVersiApkUser harus berhasil menyimpan data, dan melakukan sinkronisasi saat online',
+        () async {
+          // Atur kondisi: online (override default)
+          when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => true);
+          when(mockLayananUnggah.unggahDataVersiApkUser())
+              .thenAnswer((_) async => Future.value());
+          when(mockSyncManager.setLastSyncTimestamp(any))
+              .thenAnswer((_) async => Future.value());
 
-        final hasil = await operasi.ambilVersiApkById(modelBaru.id);
-        expect(hasil, isNotNull);
-        expect(hasil!.id, modelBaru.id);
-        expect(hasil.versiTerbaru, '1.0.1');
-      });
+          final modelBaru = _buatModel(versi: '1.0.1');
+          await operasi.tambahVersiApkUser(modelBaru);
+
+          // Verifikasi: data tersimpan di lokal
+          final hasil = await operasi.ambilVersiApkById(modelBaru.id);
+          expect(hasil, isNotNull);
+          expect(hasil!.id, modelBaru.id);
+
+          // Verifikasi: sinkronisasi dipanggil
+          verify(mockKoneksi.cekKoneksi()).called(1);
+          verify(mockLayananUnggah.unggahDataVersiApkUser()).called(1);
+          verify(mockSyncManager.setLastSyncTimestamp(any)).called(1);
+        },
+      );
+
+      test(
+        'tambahVersiApkUser harus berhasil menyimpan data, dan TIDAK melakukan sinkronisasi saat offline',
+        () async {
+          // Atur kondisi: offline (menggunakan default dari setUp)
+
+          final modelBaru = _buatModel(versi: '1.0.2');
+          await operasi.tambahVersiApkUser(modelBaru);
+
+          // Verifikasi: data tersimpan di lokal
+          final hasil = await operasi.ambilVersiApkById(modelBaru.id);
+          expect(hasil, isNotNull);
+
+          // Verifikasi: sinkronisasi TIDAK dipanggil
+          verify(mockKoneksi.cekKoneksi()).called(1);
+          verifyNever(mockLayananUnggah.unggahDataVersiApkUser());
+          verifyNever(mockSyncManager.setLastSyncTimestamp(any));
+        },
+      );
+
+      test(
+        'tambahVersiApkUser harus menyimpan data saat timeout, tapi tidak update timestamp',
+        () async {
+          // Atur kondisi: online, tapi unggah timeout
+          when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => true);
+          when(mockLayananUnggah.unggahDataVersiApkUser()).thenAnswer((
+            _,
+          ) async {
+            await Future.delayed(
+              const Duration(milliseconds: 100),
+            ); // Sedikit delay untuk simulasi
+            throw TimeoutException('Timeout');
+          });
+
+          final modelBaru = _buatModel(versi: '1.0.3');
+          await operasi.tambahVersiApkUser(modelBaru);
+
+          // Verifikasi: data tersimpan di lokal
+          final hasil = await operasi.ambilVersiApkById(modelBaru.id);
+          expect(hasil, isNotNull);
+
+          // Verifikasi: unggah dipanggil, tapi setLastSyncTimestamp tidak
+          verify(mockKoneksi.cekKoneksi()).called(1);
+          verify(mockLayananUnggah.unggahDataVersiApkUser()).called(1);
+          verifyNever(mockSyncManager.setLastSyncTimestamp(any));
+        },
+      );
 
       test('perbaruiVersiApkUser harus berhasil mengubah data', () async {
         final modelAwal = _buatModel(versi: '2.0.0');

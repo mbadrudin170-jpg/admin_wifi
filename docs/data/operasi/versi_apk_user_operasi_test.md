@@ -1,8 +1,4 @@
-Siap. Berikut versi **per test case dengan nama HARUS sama persis seperti di file test kamu** — tinggal copy ke `.md`.
-
----
-
-# 📄 Dokumentasi Test (Sesuai Nama di File): VersiApkUserOperasi
+# tolong periksa file testnya wajib sama dengan file ini
 
 ## 🧪 1. Kondisi Database Kosong
 
@@ -24,6 +20,10 @@ Siap. Berikut versi **per test case dengan nama HARUS sama persis seperti di fil
 
 * **tambahVersiApkUser harus berhasil menyimpan data baru**
   → Data berhasil disimpan dan dapat diambil kembali berdasarkan ID
+  - tambahkan pengecekan koneksi internet panggil fungsi KoneksiInternetService di lib/services/cek_koneksi_internet.dart jika online maka panggil fungsi   Future<void> unggahDataVersiApkUser() async di lib/data/sync/unggah_data.dart. jika tidak online lewati dan tambahkan timeout jika sinyal buruk. jika fungsi  unggahDataVersiApkUser berhasil maka panggil fungsi   Future<void> setLastSyncTimestamp(DateTime time) async {
+di file lib/utils/sync_manager.dart.
+  
+
 
 * **perbaruiVersiApkUser harus berhasil mengubah data**
   → Data yang sudah ada berhasil diperbarui dan perubahan tersimpan

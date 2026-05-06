@@ -79,18 +79,15 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     }
   }
 
-  // ditambah: Fungsi cerdas untuk memperbarui atau menambahkan item di list
   void _perbaruiAtauTambahItem(VersiApkUserModel item) {
     final index = _daftarVersiApk.indexWhere((v) => v.id == item.id);
     setState(() {
       if (index != -1) {
-        // Mode Edit: Ganti item yang ada
         _daftarVersiApk[index] = item;
       } else {
-        // Mode Tambah: Tambahkan item baru
         _daftarVersiApk.add(item);
       }
-      _urutkanList(); // Selalu urutkan kembali setelah perubahan
+      _urutkanList();
     });
   }
 
@@ -98,7 +95,6 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => DetailVersiApkUser(versiApk: versiApk)));
   }
 
-  // diubah: Sekarang menunggu kembalian objek VersiApkUserModel
   void _keFormEdit(VersiApkUserModel versiApk) async {
     final hasil = await Navigator.push<VersiApkUserModel>(
       context,
@@ -109,7 +105,6 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     }
   }
 
-  // ditambah: Fungsi terpisah untuk navigasi ke form tambah
   void _keFormTambah() async {
     final hasil = await Navigator.push<VersiApkUserModel>(
       context,
@@ -126,6 +121,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
       builder: (context) => SimpleDialog(
         title: const Text('Urutkan Berdasarkan'),
         children: Urutan.values.map((urutan) {
+          // ignore: deprecated_member_use
           return RadioListTile<Urutan>(
             title: Text(_getNamaUrutan(urutan)),
             value: urutan,
@@ -173,7 +169,6 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     ));
   }
 
-  // diubah: Fungsi ini sekarang hanya menghapus item dari list, tidak memuat ulang semua data
   Future<void> _arsipkan(String id) async {
     try {
       await _versiApkUserOperasi.arsipkanVersiApkUser(id);
@@ -202,9 +197,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           IconButton(icon: const Icon(Icons.sort), onPressed: _tampilkanDialogUrutkan, tooltip: 'Urutkan'),
         ],
       ),
-      // diubah: Body sekarang menggunakan fungsi _buildContent
       body: _buildContent(),
-      // diubah: FAB sekarang memanggil _keFormTambah
       floatingActionButton: FloatingActionButton(
         onPressed: _keFormTambah,
         tooltip: 'Tambah Versi APK',

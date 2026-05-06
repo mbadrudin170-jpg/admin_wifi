@@ -24,7 +24,8 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
   late TextEditingController _namaController;
   final _namaFocusNode = FocusNode();
   bool get _isEditMode => widget.kategori != null;
-  final _cekKoneksi = KoneksiInternetService.cekKoneksi();
+  // diubah: Membuat instance baru untuk memanggil method non-static
+  final _cekKoneksi = KoneksiInternetService();
 
   @override
   void initState() {
@@ -63,7 +64,8 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
         } else {
           await _kategoriOperasi.createKategori(kategoriBaru);
         }
-        if (await _cekKoneksi) {
+        // diubah: Memanggil method dari instance yang sudah dibuat
+        if (await _cekKoneksi.cekKoneksi()) {
           await _layananUnggahData.unggahDataKategori();
         }
         if (!mounted) return;

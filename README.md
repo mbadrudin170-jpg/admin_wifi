@@ -1,5 +1,41 @@
 ## Dokumen Lengkap Proyek Saya per File
 
+### **File: lib/halaman/form/form_versi_apk_user.dart**
+**Fitur:** Formulir Tambah/Edit Versi APK
+**Tujuan file ini dibuat:** Untuk menyediakan antarmuka bagi admin untuk menambah data versi APK baru atau mengubah data versi yang sudah ada. Formulir ini menangani input untuk semua detail versi, termasuk nomor versi, catatan rilis, tautan unduhan untuk berbagai arsitektur (universal, 32-bit, 64-bit), dan nomor build.
+
+**Penjelasan Kode:**
+- **Mode Operasi**: Widget ini dapat beroperasi dalam dua mode: "Tambah" (jika `versiApkUser` null) atau "Edit" (jika `versiApkUser` disediakan).
+- **Inisialisasi Form**:
+    - **Mode Tambah**: Memanggil `_muatDataVersiTerakhir()` untuk mengambil data versi terbaru dari `VersiApkUserOperasi`. Ini digunakan untuk secara otomatis mengisi field versi dan menyarankan nomor build berikutnya, memudahkan admin.
+    - **Mode Edit**: Memanggil `_populateControllers()` untuk mengisi semua `TextFormField` dengan data dari `versiApkUser` yang ada.
+- **Manajemen Input**: Menggunakan `TextEditingController` terpisah untuk setiap field input, termasuk setiap varian build dan tautan unduhan. Ini memberikan kontrol penuh atas data form.
+- **`_simpanForm()`**: Logika utama untuk menyimpan data. Alurnya adalah sebagai berikut:
+    1.  **Validasi Form**: Memeriksa apakah semua field yang wajib diisi (seperti versi dan catatan rilis) sudah valid.
+    2.  **Dialog Konfirmasi**: Menampilkan `AlertDialog` untuk meminta konfirmasi akhir dari pengguna ("Apakah semua data yang Anda masukkan sudah benar?"). Ini mencegah kesalahan simpan yang tidak disengaja.
+    3.  **Pengumpulan Data**: Jika pengguna mengonfirmasi, data dari semua `TextEditingController` dikumpulkan dan disusun ke dalam `Map` untuk `nomorBuildTerbaru` dan `tautanUnduhan`.
+    4.  **Pembuatan Model**: Membuat objek `VersiApkUserModel` baru dari data yang dikumpulkan.
+    5.  **Operasi Database**: Memanggil `tambahVersiApkUser` atau `perbaruiVersiApkUser` dari `VersiApkUserOperasi`, tergantung pada mode operasinya.
+    6.  **Umpan Balik & Navigasi**: Menampilkan `SnackBar` (hijau untuk sukses, merah untuk gagal) dan, jika berhasil, kembali ke halaman sebelumnya dengan membawa data yang baru saja disimpan.
+- **UI Layout**:
+    - **`SingleChildScrollView`**: Memastikan form dapat di-scroll pada layar kecil.
+    - **Tombol Simpan**: `ElevatedButton` "Simpan" ditempatkan di bagian bawah form untuk aksesibilitas yang mudah, menggantikan `IconButton` di `AppBar`.
+    - **Indikator Loading**: Menampilkan overlay loading (`CircularProgressIndicator`) saat proses penyimpanan sedang berlangsung.
+
+---
+
+## Catatan Pengembangan v1.0.9+5
+
+- **Peningkatan UX Form Versi APK**:
+    - **`lib/halaman/form/form_versi_apk_user.dart`**:
+        - **Pemindahan Tombol Simpan**: Memindahkan tombol "Simpan" dari `AppBar` ke bagian bawah form. Ini meningkatkan alur kerja pengguna, terutama pada perangkat mobile, karena tombol lebih mudah dijangkau setelah mengisi semua field.
+        - **Penambahan Dialog Konfirmasi**: Mengimplementasikan `AlertDialog` yang muncul saat tombol "Simpan" ditekan. Pengguna harus mengonfirmasi kebenaran data sebelum proses penyimpanan dilanjutkan. Ini berfungsi sebagai lapisan pengaman untuk mencegah kesalahan input data.
+    - **`test/halaman/form/form_versi_apk_user_test.dart`**:
+        - **Pembaruan Pengujian UI**: Memperbarui file pengujian untuk mencerminkan perubahan UI. Pengujian sekarang memverifikasi keberadaan `ElevatedButton` di bawah form, bukan `IconButton` di `AppBar`.
+        - **Penyesuaian Alur Pengujian**: Menambahkan langkah-langkah baru dalam pengujian untuk menangani interaksi dengan dialog konfirmasi. Ini termasuk mensimulasikan penekanan tombol "Ya" dan "Tidak".
+        - **Perbaikan `Hit Test`**: Mengatasi `hit test warning` dengan menggunakan `tester.ensureVisible()` untuk melakukan scroll otomatis ke tombol "Simpan" sebelum menekannya, memastikan tombol tersebut terlihat dalam viewport pengujian.
+        - **Perbaikan Logika Verifikasi**: Memperbaiki logika verifikasi `NavigatorObserver` untuk secara akurat menghitung jumlah `pop` yang terjadi setelah dialog dan form ditutup.
+
 ### **File: lib/halaman/lainnya/versi_apk_user.dart**
 **Fitur:** Halaman Daftar Versi APK
 **Tujuan file ini dibuat:** Untuk menampilkan daftar semua data versi APK yang tersedia. Halaman ini berfungsi sebagai halaman utama untuk manajemen versi, memungkinkan pengguna untuk melihat daftar versi, menambah versi baru, dan menavigasi ke halaman detail untuk melihat rincian setiap versi.
