@@ -32,9 +32,10 @@ class VersiApkUserOperasi {
     try {
       // 1. Simpan ke database lokal terlebih dahulu
       final dataToSave = data.copyWith(diperbarui: DateTime.now());
+      // diubah: menggunakan toMapForSqlite() untuk konversi ke format SQLite
       await db.insert(
         'versi_apk_user',
-        dataToSave.toMap(),
+        dataToSave.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       developer.log(
@@ -96,9 +97,10 @@ class VersiApkUserOperasi {
     final db = await dbHelper.database;
     try {
       final dataToUpdate = data.copyWith(diperbarui: DateTime.now());
+      // diubah: menggunakan toMapForSqlite() untuk konversi ke format SQLite
       await db.update(
         'versi_apk_user',
-        dataToUpdate.toMap(),
+        dataToUpdate.toMapForSqlite(),
         where: 'id = ?',
         whereArgs: [data.id],
       );
@@ -238,9 +240,10 @@ class VersiApkUserOperasi {
       final batch = db.batch();
       for (var versi in daftarVersi) {
         final dataToSave = versi.copyWith(diperbarui: DateTime.now());
+        // diubah: menggunakan toMapForSqlite() untuk konversi ke format SQLite
         batch.insert(
           'versi_apk_user',
-          dataToSave.toMap(),
+          dataToSave.toMapForSqlite(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
