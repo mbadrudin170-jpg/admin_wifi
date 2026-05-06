@@ -2,12 +2,12 @@
 // Halaman ini menampilkan daftar semua transaksi dan ringkasannya.
 // Data diambil secara terpusat dan diteruskan ke widget yang relevan.
 
-import 'package:admin_wifi/utils/format_util.dart';
+import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_transaksi.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
-import '../detail/detail_transaksi.dart';
+import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 
 // diubah: RingkasanTransaksi sekarang menjadi StatelessWidget yang hanya menerima data.
 class RingkasanTransaksi extends StatelessWidget {
@@ -32,40 +32,28 @@ class RingkasanTransaksi extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildInfo(context, 'Pemasukan', pemasukan, Colors.green),
-            _buildInfo(context, 'Pengeluaran', pengeluaran, Colors.red),
-            _buildInfo(
-              context,
-              'Total',
-              total,
-              total >= 0 ? Colors.blue : Colors.red,
+            // diubah: Menggunakan named arguments sesuai definisi fungsi yang baru.
+            bangunInfoRingkasan(
+              context: context,
+              label: 'Pemasukan',
+              jumlah: pemasukan,
+              warna: Colors.green,
+            ),
+            bangunInfoRingkasan(
+              context: context,
+              label: 'Pengeluaran',
+              jumlah: pengeluaran,
+              warna: Colors.red,
+            ),
+            bangunInfoRingkasan(
+              context: context,
+              label: 'Total',
+              jumlah: total,
+              warna: total >= 0 ? Colors.blue : Colors.red,
             ),
           ],
         ),
       ),
-    );
-  }
-
-  // untuk membangun tampilan info ringkasan
-  Widget _buildInfo(
-    BuildContext context,
-    String label,
-    double jumlah,
-    Color warna,
-  ) {
-    return Column(
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 4),
-        Text(
-          FormatUang.formatMataUang(jumlah),
-          style: TextStyle(
-            color: warna,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -153,7 +141,9 @@ class _TransaksiPageState extends State<TransaksiPage> {
           return Column(
             children: [
               RingkasanTransaksi(
-                key: const Key('ringkasan_transaksi'), // ditambahkan: Key untuk ringkasan
+                key: const Key(
+                  'ringkasan_transaksi',
+                ), // ditambahkan: Key untuk ringkasan
                 pemasukan: pemasukan,
                 pengeluaran: pengeluaran,
                 total: total,
@@ -176,9 +166,10 @@ class _TransaksiPageState extends State<TransaksiPage> {
     );
   }
 
-  // untuk membangun daftar transaksi yang dikelompokkan berdasarkan tanggal.
+  // diubah: Menggunakan fungsi dari widget/transaksi_list_widgets.dart
   Widget _buildTransaksiList(List<TransaksiModel> transaksiData) {
-    final groupedTransaksi = _groupTransaksiByDate(transaksiData);
+    // diubah: Menggunakan fungsi publik dari file widget.
+    final groupedTransaksi = groupTransaksiByDate(transaksiData);
 
     return ListView.builder(
       itemCount: groupedTransaksi.length,
@@ -197,100 +188,15 @@ class _TransaksiPageState extends State<TransaksiPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _bangunHeaderSeksi(tanggal, totalPadaTanggal),
+            // diubah: Menggunakan widget publik dari file widget.
+            bangunHeaderSeksi(tanggal, totalPadaTanggal),
             ...transaksiPadaTanggal.map(
-              (transaksi) => _bangunItemTransaksi(transaksi),
+              // diubah: Menggunakan widget publik dari file widget dan memberikan callback _loadData.
+              (transaksi) => bangunItemTransaksi(context, transaksi, _loadData),
             ),
           ],
         );
       },
     );
-  }
-
-  // untuk membangun header seksi per tanggal
-  Widget _bangunHeaderSeksi(DateTime tanggal, double total) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            FormatTanggal.formatTanggalBasic(tanggal),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          Text(
-            FormatUang.formatMataUang(total),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: total >= 0 ? Colors.green : Colors.red,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // untuk membangun satu item dalam daftar transaksi
-  Widget _bangunItemTransaksi(TransaksiModel transaksi) {
-    IconData iconData;
-    Color iconColor;
-    if (transaksi.tipe == TipeTransaksi.pemasukan) {
-      iconData = Icons.arrow_downward;
-      iconColor = Colors.green;
-    } else {
-      iconData = Icons.arrow_upward;
-      iconColor = Colors.red;
-    }
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        key: ValueKey(transaksi.id), // Key sudah ada dari sebelumnya
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailTransaksiPage(transaksi: transaksi),
-            ),
-          ).then((_) => _loadData());
-        },
-        leading: CircleAvatar(
-          backgroundColor: iconColor.withAlpha(25),
-          child: Icon(iconData, color: iconColor),
-        ),
-        title: Text(
-          transaksi.keterangan.isNotEmpty
-              ? transaksi.keterangan
-              : transaksi.namaKategori,
-        ),
-        subtitle: Text(transaksi.namaDompet),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              FormatUang.formatMataUang(transaksi.jumlah),
-              style: TextStyle(fontWeight: FontWeight.bold, color: iconColor),
-            ),
-            Text(FormatJam.formatJamMenit(transaksi.tanggal)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // untuk mengelompokkan transaksi berdasarkan tanggal
-  Map<DateTime, List<TransaksiModel>> _groupTransaksiByDate(
-    List<TransaksiModel> transaksi,
-  ) {
-    final Map<DateTime, List<TransaksiModel>> grouped = {};
-    for (final t in transaksi) {
-      final date = DateTime(t.tanggal.year, t.tanggal.month, t.tanggal.day);
-      if (grouped[date] == null) {
-        grouped[date] = [];
-      }
-      grouped[date]!.add(t);
-    }
-    return grouped;
   }
 }

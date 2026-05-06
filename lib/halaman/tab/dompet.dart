@@ -3,7 +3,7 @@
 // dan daftar semua dompet yang tersedia. Pengguna dapat menambahkan dompet baru melalui
 // tombol floating action.
 
-import 'package:admin_wifi/utils/format_util.dart';
+import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
@@ -281,35 +281,29 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildInfo('Pemasukan', pemasukan, Colors.green),
-                      _buildInfo('Pengeluaran', pengeluaran, Colors.red),
-                      _buildInfo(
-                        'Total',
-                        total,
-                        Theme.of(context).colorScheme.primary,
+                      bangunInfoRingkasan(
+                        context: context,
+                        label: 'Pemasukan',
+                        jumlah: pemasukan,
+                        warna: Colors.green,
+                      ),
+                      bangunInfoRingkasan(
+                        context: context,
+                        label: 'Pengeluaran',
+                        jumlah: pengeluaran,
+                        warna: Colors.red,
+                      ),
+                      bangunInfoRingkasan(
+                        context: context,
+                        label: 'Total',
+                        jumlah: total,
+                        warna: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildInfo(String label, double jumlah, Color warna) {
-    return Column(
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 4),
-        Text(
-          FormatUang.formatMataUang(jumlah),
-          style: TextStyle(
-            color: warna,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
     );
   }
 }
