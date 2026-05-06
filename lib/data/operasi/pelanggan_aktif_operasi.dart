@@ -206,6 +206,7 @@ class PelangganAktifOperasi {
     );
   }
 
+  // diubah: Menambahkan snapshot jumlahPoin saat membuat riwayat.
   Future<int> arsipkanPelangganKadaluarsa() async {
     final riwayatOperasi = RiwayatLanggananOperasi();
     final paketOperasi = PaketOperasi();
@@ -228,6 +229,7 @@ class PelangganAktifOperasi {
           hargaPaket: paket.harga,
           durasiPaket: paket.durasi,
           tipeDurasiPaket: paket.tipe.name,
+          jumlahPoinDiperoleh: paket.jumlahPoin, // ditambahkan: snapshot poin dari paket
           tanggalMulai: pelanggan.tanggalMulai,
           tanggalBerakhir: pelanggan.tanggalBerakhir,
           status: pelanggan.status,

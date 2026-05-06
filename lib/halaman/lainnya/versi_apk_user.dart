@@ -7,20 +7,12 @@ import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'dart:developer' as developer;
 
-enum Urutan {
-  buildZA,
-  buildAZ,
-  versiZA,
-  versiAZ,
-}
+enum Urutan { buildZA, buildAZ, versiZA, versiAZ }
 
 class VersiApkUserPage extends StatefulWidget {
   final VersiApkUserOperasi? operasi;
 
-  const VersiApkUserPage({
-    super.key,
-    this.operasi,
-  });
+  const VersiApkUserPage({super.key, this.operasi});
 
   @override
   State<VersiApkUserPage> createState() => _VersiApkUserPageState();
@@ -44,9 +36,13 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     _daftarVersiApk.sort((a, b) {
       switch (_urutanSaatIni) {
         case Urutan.buildZA:
-          return (b.nomorBuildTerbaru['universal'] ?? 0).compareTo(a.nomorBuildTerbaru['universal'] ?? 0);
+          return (b.nomorBuildTerbaru['universal'] ?? 0).compareTo(
+            a.nomorBuildTerbaru['universal'] ?? 0,
+          );
         case Urutan.buildAZ:
-          return (a.nomorBuildTerbaru['universal'] ?? 0).compareTo(b.nomorBuildTerbaru['universal'] ?? 0);
+          return (a.nomorBuildTerbaru['universal'] ?? 0).compareTo(
+            b.nomorBuildTerbaru['universal'] ?? 0,
+          );
         case Urutan.versiZA:
           return b.versiTerbaru.compareTo(a.versiTerbaru);
         case Urutan.versiAZ:
@@ -70,7 +66,12 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
         _isLoading = false;
       });
     } catch (e, s) {
-      developer.log('Gagal memuat data', error: e, stackTrace: s, name: 'VersiApkUserPage');
+      developer.log(
+        'Gagal memuat data',
+        error: e,
+        stackTrace: s,
+        name: 'VersiApkUserPage',
+      );
       if (!mounted) return;
       setState(() {
         _error = 'Gagal memuat data: $e';
@@ -92,13 +93,23 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   void _keDetail(VersiApkUserModel versiApk) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => DetailVersiApkUser(versiApk: versiApk)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailVersiApkUser(versiApk: versiApk),
+      ),
+    );
   }
 
   void _keFormEdit(VersiApkUserModel versiApk) async {
     final hasil = await Navigator.push<VersiApkUserModel>(
       context,
-      MaterialPageRoute(builder: (context) => FormVersiApkUser(versiApkUser: versiApk, operasi: _versiApkUserOperasi)),
+      MaterialPageRoute(
+        builder: (context) => FormVersiApkUser(
+          versiApkUser: versiApk,
+          operasi: _versiApkUserOperasi,
+        ),
+      ),
     );
     if (hasil != null && mounted) {
       _perbaruiAtauTambahItem(hasil);
@@ -108,7 +119,9 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   void _keFormTambah() async {
     final hasil = await Navigator.push<VersiApkUserModel>(
       context,
-      MaterialPageRoute(builder: (context) => FormVersiApkUser(operasi: _versiApkUserOperasi)),
+      MaterialPageRoute(
+        builder: (context) => FormVersiApkUser(operasi: _versiApkUserOperasi),
+      ),
     );
     if (hasil != null && mounted) {
       _perbaruiAtauTambahItem(hasil);
@@ -118,19 +131,56 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   Future<void> _tampilkanDialogUrutkan() async {
     final urutanBaru = await showDialog<Urutan>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Urutkan Berdasarkan'),
-        children: Urutan.values.map((urutan) {
-          // ignore: deprecated_member_use
-          return RadioListTile<Urutan>(
-            title: Text(_getNamaUrutan(urutan)),
-            value: urutan,
-            groupValue: _urutanSaatIni,
-            onChanged: (Urutan? value) => Navigator.pop(context, value),
-          );
-        }).toList(),
-      ),
+      builder: (BuildContext context) {
+        Urutan? selectedUrutan = _urutanSaatIni;
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Urutkan Berdasarkan'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // wajib menggunakan RadioGroup
+                  RadioGroup<Urutan>(
+                    groupValue: selectedUrutan,
+                    onChanged: (Urutan? value) {
+                      setStateDialog(() {
+                        selectedUrutan = value;
+                      });
+                    },
+                    child: Column(
+                      children: Urutan.values.map((urutan) {
+                        return ListTile(
+                          title: Text(_getNamaUrutan(urutan)),
+                          // 2. Hapus groupValue dan onChanged dari sini
+                          leading: Radio<Urutan>(value: urutan),
+                          onTap: () {
+                            setStateDialog(() {
+                              selectedUrutan = urutan;
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Batal'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () => Navigator.of(context).pop(selectedUrutan),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+
     if (urutanBaru != null && urutanBaru != _urutanSaatIni) {
       setState(() {
         _urutanSaatIni = urutanBaru;
@@ -141,32 +191,71 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
 
   String _getNamaUrutan(Urutan urutan) {
     switch (urutan) {
-      case Urutan.buildZA: return 'Build (Terbaru ke Terlama)';
-      case Urutan.buildAZ: return 'Build (Terlama ke Terbaru)';
-      case Urutan.versiZA: return 'Versi (Z-A)';
-      case Urutan.versiAZ: return 'Versi (A-Z)';
+      case Urutan.buildZA:
+        return 'Build (Terbaru ke Terlama)';
+      case Urutan.buildAZ:
+        return 'Build (Terlama ke Terbaru)';
+      case Urutan.versiZA:
+        return 'Versi (Z-A)';
+      case Urutan.versiAZ:
+        return 'Versi (A-Z)';
     }
   }
 
   Future<void> _tampilkanDialogOpsi(VersiApkUserModel versi) async {
-    showDialog(context: context, builder: (c) => SimpleDialog(
-      title: Text('Opsi Versi ${versi.versiTerbaru}'),
-      children: [
-        SimpleDialogOption(onPressed: () { Navigator.pop(c); _keFormEdit(versi); }, child: const ListTile(leading: Icon(Icons.edit), title: Text('Edit'))),
-        SimpleDialogOption(onPressed: () { Navigator.pop(c); _tampilkanDialogArsip(versi); }, child: const ListTile(leading: Icon(Icons.archive), title: Text('Arsipkan'))),
-      ],
-    ));
+    showDialog(
+      context: context,
+      builder: (c) => SimpleDialog(
+        title: Text('Opsi Versi ${versi.versiTerbaru}'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(c);
+              _keFormEdit(versi);
+            },
+            child: const ListTile(
+              leading: Icon(Icons.edit),
+              title: Text('Edit'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(c);
+              _tampilkanDialogArsip(versi);
+            },
+            child: const ListTile(
+              leading: Icon(Icons.archive),
+              title: Text('Arsipkan'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _tampilkanDialogArsip(VersiApkUserModel versi) async {
-    showDialog(context: context, builder: (c) => AlertDialog(
-      title: const Text('Arsipkan Versi APK?'),
-      content: Text('Anda yakin ingin mengarsipkan versi ${versi.versiTerbaru}?'),
-      actions: [
-        TextButton(child: const Text('Batal'), onPressed: () => Navigator.pop(c)),
-        TextButton(child: const Text('Arsipkan'), onPressed: () { Navigator.pop(c); _arsipkan(versi.id); }),
-      ],
-    ));
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Arsipkan Versi APK?'),
+        content: Text(
+          'Anda yakin ingin mengarsipkan versi ${versi.versiTerbaru}?',
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.pop(c),
+          ),
+          TextButton(
+            child: const Text('Arsipkan'),
+            onPressed: () {
+              Navigator.pop(c);
+              _arsipkan(versi.id);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _arsipkan(String id) async {
@@ -177,13 +266,24 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
         _daftarVersiApk.removeWhere((v) => v.id == id);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil diarsipkan.'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Berhasil diarsipkan.'),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e, s) {
-      developer.log('Gagal mengarsipkan', name: 'VersiApkUserPage', error: e, stackTrace: s);
+      developer.log(
+        'Gagal mengarsipkan',
+        name: 'VersiApkUserPage',
+        error: e,
+        stackTrace: s,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengarsipkan: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Gagal mengarsipkan: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -194,7 +294,11 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
       appBar: AppBar(
         title: const Text('Daftar Versi APK'),
         actions: [
-          IconButton(icon: const Icon(Icons.sort), onPressed: _tampilkanDialogUrutkan, tooltip: 'Urutkan'),
+          IconButton(
+            icon: const Icon(Icons.sort),
+            onPressed: _tampilkanDialogUrutkan,
+            tooltip: 'Urutkan',
+          ),
         ],
       ),
       body: _buildContent(),
@@ -208,8 +312,18 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
 
   Widget _buildContent() {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) return Center(child: Padding(padding: const EdgeInsets.all(16), child: Text(_error!, textAlign: TextAlign.center)));
-    if (_daftarVersiApk.isEmpty) return const Center(child: Text('Tidak ada data versi APK.'));
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(_error!, textAlign: TextAlign.center),
+        ),
+      );
+    }
+
+    if (_daftarVersiApk.isEmpty) {
+      return const Center(child: Text('Tidak ada data versi APK.'));
+    }
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -220,8 +334,14 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: ListTile(
-              title: Text('Versi: ${versiApk.versiTerbaru} (Build: ${versiApk.nomorBuildTerbaru['universal'] ?? 0})'),
-              subtitle: Text(versiApk.catatanRilis, maxLines: 2, overflow: TextOverflow.ellipsis),
+              title: Text(
+                'Versi: ${versiApk.versiTerbaru} (Build: ${versiApk.nomorBuildTerbaru['universal'] ?? 0})',
+              ),
+              subtitle: Text(
+                versiApk.catatanRilis,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
               onTap: () => _keDetail(versiApk),
               onLongPress: () => _tampilkanDialogOpsi(versiApk),
             ),

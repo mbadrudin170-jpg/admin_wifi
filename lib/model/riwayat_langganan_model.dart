@@ -1,5 +1,5 @@
 // Path: lib/model/riwayat_langganan_model.dart
-// diubah: Menambahkan copyWith dan memperbaiki toMap
+// diubah: Menambahkan jumlahPoinDiperoleh sebagai snapshot
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'enum/status_pembayaran.dart';
 import 'package:uuid/uuid.dart';
@@ -14,6 +14,7 @@ class RiwayatLanggananModel {
   final int hargaPaket;
   final int durasiPaket;
   final String tipeDurasiPaket;
+  final int jumlahPoinDiperoleh; // ditambahkan: sebagai snapshot poin
 
   final DateTime tanggalMulai;
   final DateTime tanggalBerakhir;
@@ -32,6 +33,7 @@ class RiwayatLanggananModel {
     required this.hargaPaket,
     required this.durasiPaket,
     required this.tipeDurasiPaket,
+    this.jumlahPoinDiperoleh = 0, // ditambahkan: nilai default 0
     required this.tanggalMulai,
     required this.tanggalBerakhir,
     required this.status,
@@ -48,6 +50,7 @@ class RiwayatLanggananModel {
     int? hargaPaket,
     int? durasiPaket,
     String? tipeDurasiPaket,
+    int? jumlahPoinDiperoleh,
     DateTime? tanggalMulai,
     DateTime? tanggalBerakhir,
     StatusPembayaran? status,
@@ -63,6 +66,7 @@ class RiwayatLanggananModel {
       hargaPaket: hargaPaket ?? this.hargaPaket,
       durasiPaket: durasiPaket ?? this.durasiPaket,
       tipeDurasiPaket: tipeDurasiPaket ?? this.tipeDurasiPaket,
+      jumlahPoinDiperoleh: jumlahPoinDiperoleh ?? this.jumlahPoinDiperoleh,
       tanggalMulai: tanggalMulai ?? this.tanggalMulai,
       tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
       status: status ?? this.status,
@@ -89,6 +93,7 @@ class RiwayatLanggananModel {
       hargaPaket: (map['harga_paket'] as num? ?? 0).toInt(),
       durasiPaket: (map['durasi_paket'] as num? ?? 0).toInt(),
       tipeDurasiPaket: map['tipe_durasi_paket'] ?? 'hari',
+      jumlahPoinDiperoleh: (map['jumlah_poin_diperoleh'] as num? ?? 0).toInt(),
       tanggalMulai: _parseDateTime(map['tanggal_mulai']) ?? DateTime.now(),
       tanggalBerakhir:
           _parseDateTime(map['tanggal_berakhir']) ?? DateTime.now(),
@@ -113,6 +118,7 @@ class RiwayatLanggananModel {
       'harga_paket': hargaPaket,
       'durasi_paket': durasiPaket,
       'tipe_durasi_paket': tipeDurasiPaket,
+      'jumlah_poin_diperoleh': jumlahPoinDiperoleh,
       'tanggal_mulai': tanggalMulai.toIso8601String(),
       'tanggal_berakhir': tanggalBerakhir.toIso8601String(),
       'status': status.name,

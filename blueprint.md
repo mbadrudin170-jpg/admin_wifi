@@ -4,7 +4,7 @@ Dokumen ini adalah sumber kebenaran untuk arsitektur, fitur, dan desain aplikasi
 
 ## Gambaran Umum
 
-Admin Wifi adalah aplikasi manajemen untuk penyedia layanan internet skala kecil. Aplikasi ini memungkinkan admin untuk mengelola data pelanggan, paket internet, pembayaran, dan langganan. Fitur utamanya adalah kemampuan untuk bekerja secara offline dan menyinkronkan data secara otomatis saat kembali online.
+Admin Wifi adalah aplikasi manajemen untuk penyedia layanan internet skala kecil. Aplikasi ini memungkinkan admin untuk mengelola data pelanggan, paket internet, pembayaran, langganan, dan versi aplikasi pengguna. Fitur utamanya adalah kemampuan untuk bekerja secara offline dan menyinkronkan data secara otomatis saat kembali online.
 
 ---
 
@@ -62,9 +62,27 @@ Sistem ini menggunakan dua strategi berbeda, tergantung pada jenis data:
 **Proses Gabungan:**
 Setiap kali sinkronisasi berjalan, kedua logika (berbasis status dan waktu) dieksekusi secara berurutan untuk memastikan semua jenis data diperbarui dengan benar.
 
+### 4. Manajemen Versi Aplikasi
+
+Fitur ini memungkinkan admin untuk mengelola versi APK yang akan digunakan oleh pengguna akhir. Alur kerja ini telah diperbaiki secara ekstensif untuk meningkatkan stabilitas, pengalaman pengguna, dan kualitas kode.
+
+- **Halaman Daftar (`VersiApkUserPage`)**:
+    - **Manajemen State**: Menggunakan `StatefulWidget` dengan logika `_loadData` manual untuk mengambil daftar versi. Ini memberikan kontrol penuh atas state loading, error, dan daftar data, menggantikan `FutureBuilder` yang kurang fleksibel.
+    - **Interaksi Pengguna**: Mendukung `RefreshIndicator` untuk `pull-to-refresh`, dialog pengurutan (`_tampilkanDialogUrutkan`) yang dibangun secara modern menggunakan `AlertDialog` dan `StatefulBuilder`, serta navigasi untuk menambah atau mengedit versi.
+
+- **Formulir Tambah/Edit (`FormVersiApkUser`)**:
+    - **Mode Ganda**: Berfungsi sebagai formulir untuk menambah dan mengedit data dalam satu widget, ditentukan oleh ada atau tidaknya objek `VersiApkUserModel` yang dioper.
+    - **Pengalaman Pengguna (UX)**: Secara otomatis menyarankan nomor build berikutnya dalam mode tambah. Tombol simpan ditempatkan di bagian bawah layar untuk aksesibilitas, dan dialog konfirmasi muncul sebelum menyimpan untuk mencegah kesalahan.
+
+- **Struktur Data (`VersiApkUserModel`)**: 
+    - **Tangguh & Aman**: Model ini dirancang untuk menangani data dari berbagai sumber. Konstruktor `fromMap` secara eksplisit memeriksa keberadaan `id` dan membuat `UUID` baru jika tidak ada, mencegah error `NoSuchMethodError`.
+
+- **Operasi Data (`VersiApkUserOperasi`)**:
+    - **Lapisan Abstraksi**: Menyediakan metode yang jelas (`tambahVersiApkUser`, `perbaruiVersiApkUser`, `arsipkanVersiApkUser`) untuk berinteraksi dengan database, menyembunyikan detail implementasi dari lapisan UI.
+
 ---
 
 ## Rencana Perubahan Saat Ini
 
-- **Tugas**: Memperbarui dokumentasi proyek.
-- **Status**: **Selesai**. Dokumen `blueprint.md` ini sekarang mencerminkan arsitektur sinkronisasi hibrida yang baru diimplementasikan.
+- **Tugas**: Memperbarui dokumentasi proyek setelah perbaikan bug besar.
+- **Status**: **Selesai**. Dokumen `blueprint.md` dan `README.md` telah diperbarui untuk mencerminkan semua perbaikan error, refaktorisasi, dan peningkatan kualitas kode yang dilakukan pada fitur Manajemen Versi Aplikasi.

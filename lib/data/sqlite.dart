@@ -87,7 +87,7 @@ class DatabaseHelper {
       return await databaseFactory.openDatabase(
         inMemoryDatabasePath,
         options: OpenDatabaseOptions(
-          version: 25,
+          version: 26, // diubah: Versi dinaikkan untuk migrasi
           onCreate: _onCreate,
           onUpgrade: _onUpgrade,
         ),
@@ -98,7 +98,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      version: 25,
+      version: 26, // diubah: Versi dinaikkan untuk migrasi
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -124,6 +124,11 @@ class DatabaseHelper {
       await db.execute(
         'ALTER TABLE transaksi ADD COLUMN nama_dompet_tujuan TEXT',
       );
+    }
+    // ditambahkan: Menambahkan kolom untuk fitur poin
+    if (oldVersion < 26) {
+      await db.execute('ALTER TABLE paket ADD COLUMN jumlahPoin INTEGER NOT NULL DEFAULT 0');
+      await db.execute('ALTER TABLE riwayat_langganan ADD COLUMN jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0');
     }
   }
 
@@ -173,6 +178,7 @@ class DatabaseHelper {
         harga INTEGER NOT NULL,
         durasi INTEGER NOT NULL,
         tipe TEXT NOT NULL,
+        jumlahPoin INTEGER NOT NULL DEFAULT 0, // ditambah: Kolom untuk menyimpan poin paket
         diperbarui TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         diarsipkan TEXT
@@ -233,6 +239,7 @@ class DatabaseHelper {
         tanggal_mulai TEXT NOT NULL,
         tanggal_berakhir TEXT NOT NULL,
         status TEXT NOT NULL,
+        jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0, // ditambah: Kolom untuk poin yang didapat
         diperbarui TEXT,
         diarsipkan TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,

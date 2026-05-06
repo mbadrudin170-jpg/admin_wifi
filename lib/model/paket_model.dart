@@ -1,5 +1,5 @@
 // path: lib/model/paket_model.dart
-// diubah: Menambahkan metode copyWith untuk konsistensi.
+// diubah: Menambahkan properti jumlahPoin untuk fitur poin.
 
 import 'package:uuid/uuid.dart';
 
@@ -32,6 +32,7 @@ class PaketModel {
   final int harga;
   final int durasi;
   final TipeDurasi tipe;
+  final int jumlahPoin; // ditambahkan: untuk menyimpan poin dari paket
 
   final DateTime? diperbarui;
 
@@ -46,6 +47,7 @@ class PaketModel {
     required this.harga,
     required this.durasi,
     required this.tipe,
+    this.jumlahPoin = 0, // ditambahkan: nilai default 0
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
@@ -58,6 +60,7 @@ class PaketModel {
     int? harga,
     int? durasi,
     TipeDurasi? tipe,
+    int? jumlahPoin, // ditambahkan: properti baru
     DateTime? diperbarui,
     bool? isDeleted,
     DateTime? diarsipkan,
@@ -68,6 +71,7 @@ class PaketModel {
       harga: harga ?? this.harga,
       durasi: durasi ?? this.durasi,
       tipe: tipe ?? this.tipe,
+      jumlahPoin: jumlahPoin ?? this.jumlahPoin, // ditambahkan: properti baru
       diperbarui: diperbarui ?? this.diperbarui,
       isDeleted: isDeleted ?? this.isDeleted,
       diarsipkan: diarsipkan ?? this.diarsipkan,
@@ -105,6 +109,7 @@ class PaketModel {
         (e) => e.name == map['tipe'],
         orElse: () => TipeDurasi.hari,
       ),
+      jumlahPoin: map['jumlahPoin'] ?? 0, // ditambahkan: properti baru
       diperbarui: map['diperbarui'] != null
           ? DateTime.parse(map['diperbarui'])
           : null,
@@ -123,6 +128,7 @@ class PaketModel {
       'harga': harga,
       'durasi': durasi,
       'tipe': tipe.name,
+      'jumlahPoin': jumlahPoin, // ditambahkan: properti baru
       'diperbarui': diperbarui?.toIso8601String(),
 
       'isDeleted': isDeleted ? 1 : 0,

@@ -20,6 +20,7 @@ class _FormPaketState extends State<FormPaket> {
   final _namaController = TextEditingController();
   final _hargaController = TextEditingController();
   final _durasiController = TextEditingController();
+  final _poinController = TextEditingController(); // ditambahkan: controller untuk poin
   final PaketOperasi _paketOperasi = PaketOperasi();
 
   TipeDurasi _selectedTipe = TipeDurasi.hari;
@@ -33,6 +34,7 @@ class _FormPaketState extends State<FormPaket> {
       _namaController.text = widget.paket!.nama;
       _hargaController.text = widget.paket!.harga.toString();
       _durasiController.text = widget.paket!.durasi.toString();
+      _poinController.text = widget.paket!.jumlahPoin.toString(); // ditambahkan: inisialisasi poin
       _selectedTipe = widget.paket!.tipe;
     }
   }
@@ -44,6 +46,7 @@ class _FormPaketState extends State<FormPaket> {
         nama: _namaController.text,
         harga: int.parse(_hargaController.text),
         durasi: int.parse(_durasiController.text),
+        jumlahPoin: int.tryParse(_poinController.text) ?? 0, // ditambahkan: menyimpan poin
         tipe: _selectedTipe,
       );
       try {
@@ -146,6 +149,20 @@ class _FormPaketState extends State<FormPaket> {
                   return null;
                 },
               ),
+              // ditambahkan: TextFormField untuk poin
+              TextFormField(
+                controller: _poinController,
+                decoration: const InputDecoration(labelText: 'Jumlah Poin'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      int.tryParse(value) == null) {
+                    return 'Jumlah Poin harus berupa angka';
+                  }
+                  return null;
+                },
+              ),
               DropdownButtonFormField<TipeDurasi>(
                 initialValue: _selectedTipe,
                 decoration: const InputDecoration(labelText: 'Tipe Durasi'),
@@ -177,6 +194,7 @@ class _FormPaketState extends State<FormPaket> {
     _namaController.dispose();
     _hargaController.dispose();
     _durasiController.dispose();
+    _poinController.dispose(); // ditambahkan: dispose controller poin
     super.dispose();
   }
 }

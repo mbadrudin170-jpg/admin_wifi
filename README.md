@@ -24,6 +24,18 @@
 
 ---
 
+## Catatan Pengembangan v1.0.9+6
+
+- **Perbaikan Error Kritis & Peringatan `flutter analyze`**:
+    - **`lib/model/versi_apk_user_model.dart`**: Memperbaiki error `NoSuchMethodError` dengan mengganti anotasi `required` pada `id` di konstruktor `fromMap` menjadi pengecekan null manual. Ini memastikan `id` selalu memiliki nilai `String` (baik dari map atau UUID baru) dan mencegah error saat data dari sumber eksternal tidak memiliki `id`.
+    - **`lib/data/operasi/versi_apk_user_operasi.dart`**: Menambahkan anotasi `@override` yang hilang pada metode `arsipkanVersiApkUser`. Ini memperbaiki peringatan dari analyzer dan memastikan metode tersebut benar-benar menimpa metode dari kelas induknya, menjaga konsistensi dan mencegah perilaku tak terduga.
+    - **`lib/halaman/form/form_versi_apk_user.dart`**:
+        - Mengatasi `Missing return value` dengan menambahkan `return false;` di akhir fungsi `_simpanForm` jika validasi gagal, memastikan fungsi selalu mengembalikan nilai boolean.
+        - Mengganti penggunaan `Theme.of(context).primaryColor.withOpacity(0.5)` yang usang dengan `Theme.of(context).primaryColor.withAlpha(128)` untuk menciptakan warna transparan pada overlay loading, sesuai dengan praktik Flutter terbaru.
+    - **`lib/halaman/lainnya/versi_apk_user.dart`**: Menghilangkan peringatan `deprecated_member_use` dengan merestrukturisasi dialog pengurutan (`_tampilkanDialogUrutkan`). Mengganti `SimpleDialog` dengan `RadioListTile` yang usang menjadi `AlertDialog` yang berisi `StatefulBuilder` dan `ListTile` dengan widget `Radio`. Ini adalah pendekatan modern yang memberikan kontrol state penuh di dalam dialog dan menghilangkan semua peringatan dari analyzer.
+
+---
+
 ## Catatan Pengembangan v1.0.9+5
 
 - **Peningkatan UX Form Versi APK**:

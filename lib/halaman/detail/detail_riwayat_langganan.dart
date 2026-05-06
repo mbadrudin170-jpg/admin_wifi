@@ -81,8 +81,8 @@ class _DetailRiwayatLanggananPageState
                   child: NamaPelangganWidget(
                     idPelanggan: _riwayat.idPelanggan,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -99,6 +99,13 @@ class _DetailRiwayatLanggananPageState
                   label: 'Status Pembayaran',
                   value: statusPembayaranText,
                   valueColor: statusPembayaranColor,
+                ),
+                // ditambahkan: Menampilkan jumlah poin yang diperoleh
+                _buildDetailRow(
+                  context,
+                  icon: Icons.star,
+                  label: 'Poin Diperoleh',
+                  value: '${_riwayat.jumlahPoinDiperoleh} Poin',
                 ),
                 _buildDetailRow(
                   context,

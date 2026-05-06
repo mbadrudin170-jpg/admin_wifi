@@ -212,6 +212,12 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
                             'Status',
                             _pelangganAktif.status.displayName,
                           ),
+                          // ditambahkan: Menampilkan jumlah poin dari paket yang aktif
+                          if (_paket != null)
+                            _buildInfoRow(
+                              'Poin Diperoleh',
+                              '${_paket!.jumlahPoin} Poin',
+                            ),
 
                           _buildInfoRow(
                             'Mulai',
