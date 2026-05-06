@@ -178,7 +178,7 @@ class DatabaseHelper {
         harga INTEGER NOT NULL,
         durasi INTEGER NOT NULL,
         tipe TEXT NOT NULL,
-        jumlahPoin INTEGER NOT NULL DEFAULT 0, // ditambah: Kolom untuk menyimpan poin paket
+        jumlahPoin INTEGER NOT NULL DEFAULT 0,
         diperbarui TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         diarsipkan TEXT
@@ -239,7 +239,7 @@ class DatabaseHelper {
         tanggal_mulai TEXT NOT NULL,
         tanggal_berakhir TEXT NOT NULL,
         status TEXT NOT NULL,
-        jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0, // ditambah: Kolom untuk poin yang didapat
+        jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0,
         diperbarui TEXT,
         diarsipkan TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,

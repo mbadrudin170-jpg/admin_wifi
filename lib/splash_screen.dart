@@ -115,7 +115,19 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const FlutterLogo(size: 80),
+            // ditambahkan: Logika untuk memilih logo berdasarkan tema
+            Builder(
+              builder: (context) {
+                final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+                final logoAsset = isDarkMode
+                    ? 'assets/logo/splash_screen/logo_splash_screen_gelap.png'
+                    : 'assets/logo/splash_screen/logo_splash_screen_terang.png';
+                return Image.asset(
+                  logoAsset,
+                  width: 150,
+                );
+              },
+            ),
             const SizedBox(height: 24),
             const Text(
               'Admin WiFi',
