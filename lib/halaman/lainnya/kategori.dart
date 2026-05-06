@@ -1,6 +1,6 @@
 // path: lib/halaman/lainnya/kategori.dart
 // File ini menampilkan halaman untuk mengelola kategori pemasukan dan pengeluaran.
-// Pengguna dapat melihat, menambah, dan (nantinya) mengedit atau menghapus kategori.
+// Pengguna dapat melihat, menambah, mengedit, atau menghapus kategori.
 // Terdapat tombol untuk beralih antara tipe kategori (Pemasukan/Pengeluaran).
 
 import 'package:flutter/material.dart';
@@ -19,6 +19,10 @@ class _KategoriPageState extends State<KategoriPage> {
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   late Future<List<KategoriModel>> _listaKategoriFuture;
   TipeKategori _selectedTipe = TipeKategori.pemasukan;
+  // ditambahkan: Variabel untuk mengontrol mode edit
+  bool _isEdit = false;
+  // ditambahkan: Variabel untuk mengontrol mode hapus
+  bool _isHapus = false;
 
   @override
   void initState() {
@@ -26,12 +30,14 @@ class _KategoriPageState extends State<KategoriPage> {
     _loadKategori();
   }
 
+  // Fungsi untuk memuat ulang daftar kategori
   void _loadKategori() {
     setState(() {
       _listaKategoriFuture = _kategoriOperasi.getKategori();
     });
   }
 
+  // Fungsi untuk navigasi ke halaman tambah kategori
   void _tambahKategori() async {
     final result = await Navigator.push(
       context,
@@ -45,9 +51,36 @@ class _KategoriPageState extends State<KategoriPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kategori')),
+      appBar: AppBar(
+        title: const Text('Kategori'),
+        actions: [
+          // ditambahkan: Tombol untuk mengaktifkan/menonaktifkan mode hapus
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _isHapus = !_isHapus;
+                // dinonaktifkan: Mode edit akan dinonaktifkan jika mode hapus aktif
+                if (_isHapus) _isEdit = false;
+              });
+            },
+            icon: Icon(_isHapus ? Icons.check : Icons.delete),
+          ),
+          // diubah: Tombol untuk mengaktifkan/menonaktifkan mode edit
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _isEdit = !_isEdit;
+                // dinonaktifkan: Mode hapus akan dinonaktifkan jika mode edit aktif
+                if (_isEdit) _isHapus = false;
+              });
+            },
+            icon: Icon(_isEdit ? Icons.check : Icons.edit),
+          ),
+        ],
+      ),
       body: Column(
         children: [
+          // Tombol untuk filter tipe kategori
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -79,6 +112,7 @@ class _KategoriPageState extends State<KategoriPage> {
               ),
             ],
           ),
+          // Daftar kategori
           Expanded(
             child: FutureBuilder<List<KategoriModel>>(
               future: _listaKategoriFuture,
@@ -92,7 +126,6 @@ class _KategoriPageState extends State<KategoriPage> {
                     child: Text('Tidak ada kategori ditemukan.'),
                   );
                 } else {
-                  // diubah: Menghapus pengecekan null yang tidak perlu
                   final filteredKategori = snapshot.data!
                       .where((k) => k.tipe == _selectedTipe)
                       .toList();
@@ -104,8 +137,42 @@ class _KategoriPageState extends State<KategoriPage> {
                         margin: const EdgeInsets.all(8.0),
                         child: ExpansionTile(
                           title: Text(kategori.nama),
+                          // diubah: Menampilkan tombol edit atau hapus
+                          trailing: _isEdit
+                              ? IconButton(
+                                  onPressed: () {
+                                    // TODO: Tambahkan logika untuk mengedit kategori utama
+                                  },
+                                  icon: const Icon(Icons.edit),
+                                )
+                              : _isHapus
+                                  ? IconButton(
+                                      onPressed: () {
+                                        // TODO: Tambahkan logika untuk menghapus kategori utama
+                                      },
+                                      icon: const Icon(Icons.delete),
+                                    )
+                                  : null,
                           children: kategori.subKategori.map((sub) {
-                            return ListTile(title: Text(sub.nama));
+                            return ListTile(
+                              title: Text(sub.nama),
+                              // diubah: Menampilkan tombol edit atau hapus
+                              trailing: _isEdit
+                                  ? IconButton(
+                                      onPressed: () {
+                                        // TODO: Tambahkan logika untuk mengedit sub-kategori
+                                      },
+                                      icon: const Icon(Icons.edit),
+                                    )
+                                  : _isHapus
+                                      ? IconButton(
+                                          onPressed: () {
+                                            // TODO: Tambahkan logika untuk menghapus sub-kategori
+                                          },
+                                          icon: const Icon(Icons.delete),
+                                        )
+                                      : null,
+                            );
                           }).toList(),
                         ),
                       );

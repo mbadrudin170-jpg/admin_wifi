@@ -60,7 +60,7 @@ Widget bangunItemTransaksi(
     iconColor = Colors.red;
   }
 
-  void _arsipkanTransaksi() async {
+  void arsipkanTransaksi() async {
     final transaksiOperasi = TransaksiOperasi();
     await transaksiOperasi.arsipkanTransaksi(transaksi.id);
     onDataChanged();
@@ -109,7 +109,7 @@ Widget bangunItemTransaksi(
               TextButton(
                 onPressed: () {
                   Navigator.pop(context); // Tutup dialog
-                  _arsipkanTransaksi();
+                  arsipkanTransaksi();
                 },
                 child: const Text('Hapus'),
               ),
