@@ -124,7 +124,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 final logoAsset = isDarkMode
                     ? 'assets/logo/splash_screen/logo_splash_screen_gelap.png'
                     : 'assets/logo/splash_screen/logo_splash_screen_terang.png';
-                return Image.asset(logoAsset, width: 250);
+                return Image.asset(logoAsset, width: 300);
               },
             ),
             const SizedBox(height: 24),

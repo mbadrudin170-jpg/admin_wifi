@@ -1,5 +1,5 @@
 // path: lib/model/kategori_model.dart
-// diubah: Menggunakan 'id_sub_kategori' sebagai key di map dan memperbaiki bug copyWith.
+// diperbaiki: Menghapus cast yang tidak perlu untuk meningkatkan kebersihan kode.
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,7 +56,6 @@ class KategoriModel {
 
   factory KategoriModel.fromMap(Map<String, dynamic> map) {
     List<SubKategoriModel> subKategoriList = [];
-    // diubah: Membaca dari field 'id_sub_kategori'
     final subKategoriData = map['id_sub_kategori'];
     if (subKategoriData is String && subKategoriData.isNotEmpty) {
       final List<dynamic> decodedList = jsonDecode(subKategoriData);
@@ -64,7 +63,8 @@ class KategoriModel {
           .map((subMap) => SubKategoriModel.fromMap(subMap as Map<String, dynamic>))
           .toList();
     } else if (subKategoriData is List) {
-       subKategoriList = (subKategoriData as List<dynamic>)
+       // diperbaiki: Menghapus cast (as List<dynamic>) yang tidak perlu.
+       subKategoriList = subKategoriData
           .map((subMap) => SubKategoriModel.fromMap(subMap as Map<String, dynamic>))
           .toList();
     }
@@ -88,7 +88,6 @@ class KategoriModel {
       'id': id,
       'nama': nama,
       'tipe': tipe.name,
-      // diubah: Menyimpan ke field 'id_sub_kategori'
       'id_sub_kategori': jsonEncode(subKategori.map((sub) => sub.toMap()).toList()),
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,

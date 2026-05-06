@@ -1,22 +1,14 @@
 // lib/data/operasi/kategori_operasi.dart
-// diubah: Memperbaiki bug timestamp di createKategori.
+// diubah: Menambahkan filter untuk tidak menampilkan data yang diarsipkan.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:uuid/uuid.dart';
-
-const uuid = Uuid();
 
 class KategoriOperasi {
-  // dihapus: Variabel instance 'now' yang menyebabkan timestamp tidak update.
-  // final now = DateTime.now();
-
-  // diubah: Memindahkan DateTime.now() ke dalam method.
   Future<KategoriModel> createKategori(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
     final kategoriBaru = kategori.copyWith(
       id: kategori.id,
-      // diubah: Menggunakan DateTime.now() untuk mendapatkan timestamp terbaru setiap kali.
       diperbarui: DateTime.now(),
     );
     final data = kategoriBaru.toMap();
@@ -29,19 +21,37 @@ class KategoriOperasi {
     return kategoriBaru;
   }
 
+  // diubah: Hanya mengambil kategori yang belum diarsipkan.
   Future<List<KategoriModel>> getKategori() async {
     final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query('kategori');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'kategori',
+      where: 'diarsipkan IS NULL',
+    );
     return List.generate(maps.length, (i) {
       return KategoriModel.fromMap(maps[i]);
     });
+  }
+
+  Future<KategoriModel> getKategoriById(String id) async {
+    final db = await DatabaseHelper.instance.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'kategori',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return KategoriModel.fromMap(maps.first);
+    } else {
+      throw Exception('Kategori dengan ID $id tidak ditemukan.');
+    }
   }
 
   Future<List<KategoriModel>> getKategoriByTipe(TipeKategori tipe) async {
     final db = await DatabaseHelper.instance.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'kategori',
-      where: 'tipe = ?',
+      where: 'tipe = ? AND diarsipkan IS NULL', // ditambahkan: filter arsip
       whereArgs: [tipe.name],
     );
     return List.generate(maps.length, (i) {
@@ -49,10 +59,9 @@ class KategoriOperasi {
     });
   }
 
-  // diubah: Logika 'diperbarui' tetap sama, sudah benar.
   Future<void> update(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
-    // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini.
+    // diubah: memperbarui timestamp saat update dan juga saat arsip
     final data = kategori.copyWith(diperbarui: DateTime.now()).toMap();
     await db.update(
       'kategori',
@@ -70,19 +79,15 @@ class KategoriOperasi {
   Future<void> bersihkanDanSisipkanSemua(List<KategoriModel> items) async {
     final db = await DatabaseHelper.instance.database;
     await db.transaction((txn) async {
-      await txn.delete('kategori'); // Hapus semua data lama
+      await txn.delete('kategori');
       for (var item in items) {
-        await txn.insert('kategori', item.toMap()); // Sisipkan data baru
+        await txn.insert('kategori', item.toMap());
       }
     });
   }
 
-  // == METODE BARU UNTUK SINKRONISASI INKREMENTAL ==
-
-  /// Mengambil record yang berubah (dibuat atau diperbarui) setelah waktu [since].
   Future<List<KategoriModel>> getPerubahan(DateTime since) async {
     final db = await DatabaseHelper.instance.database;
-    // Pastikan Anda memiliki kolom 'diperbarui' di tabel Anda
     final List<Map<String, dynamic>> maps = await db.query(
       'kategori',
       where: 'diperbarui > ?',
@@ -91,13 +96,10 @@ class KategoriOperasi {
     return List.generate(maps.length, (i) => KategoriModel.fromMap(maps[i]));
   }
 
-  /// Menyisipkan atau memperbarui batch data dari Firebase.
-  /// Menggunakan `ConflictAlgorithm.replace` untuk melakukan "UPSERT".
   Future<void> sisipkanAtauPerbaruiBatch(List<KategoriModel> items) async {
     final db = await DatabaseHelper.instance.database;
     final batch = db.batch();
     for (var item in items) {
-      // Pastikan model Anda memiliki ID yang unik untuk proses ini
       batch.insert(
         'kategori',
         item.toMap(),

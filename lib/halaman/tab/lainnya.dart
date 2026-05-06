@@ -10,6 +10,7 @@ import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
 import '../lainnya/versi_apk_user.dart';
 import 'pesanan.dart';
+import '../lainnya/pengaturan.dart'; // ditambahkan: Import halaman pengaturan
 
 class LainnyaPage extends StatefulWidget {
   const LainnyaPage({super.key});
@@ -131,6 +132,15 @@ class _LainnyaTabState extends State<LainnyaPage> {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const VersiApkUserPage()),
+            ),
+          ),
+          // ditambahkan: Tombol untuk navigasi ke halaman pengaturan
+          _buildNavigationButton(
+            title: 'Pengaturan Aplikasi',
+            icon: Icons.settings,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PengaturanPage()),
             ),
           ),
           _buildNavigationButton(

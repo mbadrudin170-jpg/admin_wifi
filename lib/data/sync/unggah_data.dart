@@ -8,6 +8,7 @@ import 'package:admin_wifi/model/kritik_saran_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
@@ -93,7 +94,6 @@ class LayananUnggahData {
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      // ditambah: unggah untuk sub_kategori
       unggahDataGenerik<SubKategoriModel>(
         'sub_kategori',
         'sub_kategori',
@@ -101,11 +101,18 @@ class LayananUnggahData {
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
-      // ditambah: unggah untuk versi_apk_user
       unggahDataGenerik<VersiApkUserModel>(
         'versi_apk_user',
         'versi_apk_user',
         VersiApkUserModel.fromMap,
+        (m) => m.toMap(),
+        waktuSinkronisasiTerakhir,
+      ),
+      // ditambahkan: unggah untuk tabel pengaturan
+      unggahDataGenerik<PengaturanModel>(
+        'pengaturan',
+        'pengaturan',
+        PengaturanModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
@@ -130,7 +137,6 @@ class LayananUnggahData {
 
   // --- FUNGSI UNGGAH SPESIFIK ---
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataDompet() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<DompetModel>(
@@ -142,7 +148,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataKategori() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<KategoriModel>(
@@ -154,7 +159,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataKritikSaran() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<KritikSaranModel>(
@@ -166,7 +170,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataPaket() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<PaketModel>(
@@ -178,7 +181,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataPelangganAktif() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<PelangganAktifModel>(
@@ -190,7 +192,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataPelanggan() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<PelangganModel>(
@@ -202,7 +203,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataPesanan() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<PesananModel>(
@@ -214,7 +214,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataRiwayatLangganan() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<RiwayatLanggananModel>(
@@ -226,7 +225,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan perbaruiTimestamp: true
   Future<void> unggahDataTransaksi() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<TransaksiModel>(
@@ -238,7 +236,6 @@ class LayananUnggahData {
     );
   }
 
-  // ditambah: fungsi unggah spesifik untuk Sub Kategori
   Future<void> unggahDataSubKategori() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<SubKategoriModel>(
@@ -250,7 +247,18 @@ class LayananUnggahData {
     );
   }
 
-  // ditambah: fungsi unggah spesifik untuk Versi APK User
+  // ditambahkan: fungsi unggah spesifik untuk Pengaturan
+  Future<void> unggahDataPengaturan() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<PengaturanModel>(
+        'pengaturan',
+        'pengaturan',
+        PengaturanModel.fromMap,
+        (m) => m.toMap(),
+        waktu,
+      );
+  }
+
   Future<void> unggahDataVersiApkUser() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<VersiApkUserModel>(
@@ -262,7 +270,6 @@ class LayananUnggahData {
     );
   }
 
-  // diubah: Menambahkan parameter {bool perbaruiTimestamp = false}
   Future<void> unggahDataGenerik<T>(
     String namaTabel,
     String namaKoleksi,
@@ -273,11 +280,17 @@ class LayananUnggahData {
     try {
       final db = await _dbHelper.database;
 
-      final List<Map<String, dynamic>> dataUntukDiunggah = await db.query(
-        namaTabel,
-        where: 'diperbarui > ?',
-        whereArgs: [waktuSinkronisasiTerakhir.toIso8601String()],
-      );
+      // diubah: Logika untuk tabel pengaturan yang tidak punya kolom 'diperbarui'
+      List<Map<String, dynamic>> dataUntukDiunggah;
+      if (namaTabel == 'pengaturan') {
+        dataUntukDiunggah = await db.query(namaTabel);
+      } else {
+        dataUntukDiunggah = await db.query(
+          namaTabel,
+          where: 'diperbarui > ?',
+          whereArgs: [waktuSinkronisasiTerakhir.toIso8601String()],
+        );
+      }
 
       if (dataUntukDiunggah.isEmpty) {
         return;
@@ -289,9 +302,17 @@ class LayananUnggahData {
       for (final map in dataUntukDiunggah) {
         final T data = fromMap(map);
         final model = data as dynamic;
-        final dataUnggah = toMap(data);
 
-        final docRef = _firestore.collection(namaKoleksi).doc(model.id);
+        // diubah: Logika untuk ID dokumen di Firestore untuk tabel pengaturan
+        String idDokumen;
+        if (namaTabel == 'pengaturan') {
+          idDokumen = 'konfigurasi_global'; // ID statis untuk pengaturan
+        } else {
+          idDokumen = model.id;
+        }
+
+        final dataUnggah = toMap(data);
+        final docRef = _firestore.collection(namaKoleksi).doc(idDokumen);
         batchFirestore.set(docRef, dataUnggah, SetOptions(merge: true));
         itemsToCommit++;
       }
@@ -310,7 +331,6 @@ class LayananUnggahData {
         error: e,
         stackTrace: s,
       );
-      // diubah: Menggunakan rethrow untuk mempertahankan stack trace asli.
       rethrow;
     }
   }

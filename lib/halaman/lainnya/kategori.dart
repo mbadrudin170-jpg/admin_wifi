@@ -1,12 +1,10 @@
 // path: lib/halaman/lainnya/kategori.dart
-// File ini menampilkan halaman untuk mengelola kategori pemasukan dan pengeluaran.
-// Pengguna dapat melihat, menambah, mengedit, atau menghapus kategori.
-// Terdapat tombol untuk beralih antara tipe kategori (Pemasukan/Pengeluaran).
-
+// diperbaiki: Menambahkan pemeriksaan 'mounted' untuk mengatasi peringatan build context.
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_kategori.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 
 class KategoriPage extends StatefulWidget {
   const KategoriPage({super.key});
@@ -19,10 +17,8 @@ class _KategoriPageState extends State<KategoriPage> {
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   late Future<List<KategoriModel>> _listaKategoriFuture;
   TipeKategori _selectedTipe = TipeKategori.pemasukan;
-  // ditambahkan: Variabel untuk mengontrol mode edit
   bool _isEdit = false;
-  // ditambahkan: Variabel untuk mengontrol mode hapus
-  bool _isHapus = false;
+  bool _isArsipMode = false;
 
   @override
   void initState() {
@@ -30,14 +26,12 @@ class _KategoriPageState extends State<KategoriPage> {
     _loadKategori();
   }
 
-  // Fungsi untuk memuat ulang daftar kategori
   void _loadKategori() {
     setState(() {
       _listaKategoriFuture = _kategoriOperasi.getKategori();
     });
   }
 
-  // Fungsi untuk navigasi ke halaman tambah kategori
   void _tambahKategori() async {
     final result = await Navigator.push(
       context,
@@ -48,39 +42,124 @@ class _KategoriPageState extends State<KategoriPage> {
     }
   }
 
+  Future<bool> _tampilkanDialogKonfirmasi(String judul, String konten) async {
+    final konfirmasi = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(judul),
+          content: Text(konten),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Ya'),
+            ),
+          ],
+        );
+      },
+    );
+    return konfirmasi ?? false;
+  }
+
+  Future<void> _arsipkanKategoriUtama(KategoriModel kategori) async {
+    final bool konfirmasi = await _tampilkanDialogKonfirmasi(
+      'Arsipkan Kategori',
+      'Anda yakin ingin mengarsipkan "${kategori.nama}"? Kategori ini tidak akan bisa digunakan lagi.',
+    );
+    if (!mounted || !konfirmasi) return;
+
+    try {
+      final kategoriDiperbarui = kategori.copyWith(diarsipkan: DateTime.now());
+      await _kategoriOperasi.update(kategoriDiperbarui);
+
+      // diperbaiki: Pemeriksaan 'mounted' sebelum menggunakan BuildContext.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kategori berhasil diarsipkan.')),
+      );
+      _loadKategori();
+    } catch (e) {
+      // diperbaiki: Pemeriksaan 'mounted' sebelum menggunakan BuildContext.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengarsipkan kategori: $e')),
+      );
+    }
+  }
+
+  Future<void> _arsipkanSubKategori(
+    KategoriModel kategoriInduk,
+    SubKategoriModel subKategori,
+  ) async {
+    final bool konfirmasi = await _tampilkanDialogKonfirmasi(
+      'Arsipkan Sub-Kategori',
+      'Anda yakin ingin mengarsipkan sub-kategori "${subKategori.nama}"?',
+    );
+    if (!mounted || !konfirmasi) return;
+
+    try {
+      final subKategoriDiperbarui = subKategori.copyWith(
+        diarsipkan: DateTime.now(),
+      );
+      final daftarSubKategoriBaru = kategoriInduk.subKategori.map((sub) {
+        return sub.id == subKategori.id ? subKategoriDiperbarui : sub;
+      }).toList();
+      final kategoriIndukDiperbarui = kategoriInduk.copyWith(
+        subKategori: daftarSubKategoriBaru,
+        diperbarui: DateTime.now(),
+      );
+
+      await _kategoriOperasi.update(kategoriIndukDiperbarui);
+
+      // diperbaiki: Pemeriksaan 'mounted' sebelum menggunakan BuildContext.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sub-kategori berhasil diarsipkan.')),
+      );
+      _loadKategori();
+    } catch (e) {
+      // diperbaiki: Pemeriksaan 'mounted' sebelum menggunakan BuildContext.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengarsipkan sub-kategori: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kategori'),
         actions: [
-          // ditambahkan: Tombol untuk mengaktifkan/menonaktifkan mode hapus
           IconButton(
+            tooltip: _isArsipMode ? 'Selesai' : 'Arsipkan',
             onPressed: () {
               setState(() {
-                _isHapus = !_isHapus;
-                // dinonaktifkan: Mode edit akan dinonaktifkan jika mode hapus aktif
-                if (_isHapus) _isEdit = false;
+                _isArsipMode = !_isArsipMode;
+                if (_isArsipMode) _isEdit = false;
               });
             },
-            icon: Icon(_isHapus ? Icons.check : Icons.delete),
+            icon: Icon(_isArsipMode ? Icons.check : Icons.archive_outlined),
           ),
-          // diubah: Tombol untuk mengaktifkan/menonaktifkan mode edit
           IconButton(
+            tooltip: _isEdit ? 'Selesai' : 'Edit',
             onPressed: () {
               setState(() {
                 _isEdit = !_isEdit;
-                // dinonaktifkan: Mode hapus akan dinonaktifkan jika mode edit aktif
-                if (_isEdit) _isHapus = false;
+                if (_isEdit) _isArsipMode = false;
               });
             },
-            icon: Icon(_isEdit ? Icons.check : Icons.edit),
+            icon: Icon(_isEdit ? Icons.check : Icons.edit_outlined),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Tombol untuk filter tipe kategori
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -112,7 +191,6 @@ class _KategoriPageState extends State<KategoriPage> {
               ),
             ],
           ),
-          // Daftar kategori
           Expanded(
             child: FutureBuilder<List<KategoriModel>>(
               future: _listaKategoriFuture,
@@ -137,43 +215,67 @@ class _KategoriPageState extends State<KategoriPage> {
                         margin: const EdgeInsets.all(8.0),
                         child: ExpansionTile(
                           title: Text(kategori.nama),
-                          // diubah: Menampilkan tombol edit atau hapus
                           trailing: _isEdit
                               ? IconButton(
-                                  onPressed: () {
-                                    // TODO: Tambahkan logika untuk mengedit kategori utama
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => FormKategoriPage(
+                                          kategori: kategori,
+                                        ),
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      _loadKategori();
+                                    }
                                   },
                                   icon: const Icon(Icons.edit),
                                 )
-                              : _isHapus
-                                  ? IconButton(
-                                      onPressed: () {
-                                        // TODO: Tambahkan logika untuk menghapus kategori utama
-                                      },
-                                      icon: const Icon(Icons.delete),
-                                    )
-                                  : null,
-                          children: kategori.subKategori.map((sub) {
-                            return ListTile(
-                              title: Text(sub.nama),
-                              // diubah: Menampilkan tombol edit atau hapus
-                              trailing: _isEdit
-                                  ? IconButton(
-                                      onPressed: () {
-                                        // TODO: Tambahkan logika untuk mengedit sub-kategori
-                                      },
-                                      icon: const Icon(Icons.edit),
-                                    )
-                                  : _isHapus
+                              : _isArsipMode
+                              ? IconButton(
+                                  onPressed: () =>
+                                      _arsipkanKategoriUtama(kategori),
+                                  icon: const Icon(Icons.archive),
+                                )
+                              : null,
+                          children: kategori.subKategori
+                              .where((sub) => sub.diarsipkan == null)
+                              .map((sub) {
+                                return ListTile(
+                                  title: Text(sub.nama),
+                                  trailing: _isEdit
                                       ? IconButton(
-                                          onPressed: () {
-                                            // TODO: Tambahkan logika untuk menghapus sub-kategori
+                                          onPressed: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    FormKategoriPage(
+                                                      subKategori: sub,
+                                                      idKategoriInduk:
+                                                          kategori.id,
+                                                    ),
+                                              ),
+                                            );
+                                            if (result == true) {
+                                              _loadKategori();
+                                            }
                                           },
-                                          icon: const Icon(Icons.delete),
+                                          icon: const Icon(Icons.edit),
+                                        )
+                                      : _isArsipMode
+                                      ? IconButton(
+                                          onPressed: () => _arsipkanSubKategori(
+                                            kategori,
+                                            sub,
+                                          ),
+                                          icon: const Icon(Icons.archive),
                                         )
                                       : null,
-                            );
-                          }).toList(),
+                                );
+                              })
+                              .toList(),
                         ),
                       );
                     },

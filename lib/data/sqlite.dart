@@ -10,6 +10,9 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
+  // diubah: Versi database dinaikkan untuk migrasi kolom baru di tabel pengaturan
+  static const int _databaseVersion = 30;
+
   DatabaseHelper._internal();
 
   // ditambah: Definisi skema tabel menjadi publik agar bisa diakses dari file test.
@@ -87,7 +90,7 @@ class DatabaseHelper {
       return await databaseFactory.openDatabase(
         inMemoryDatabasePath,
         options: OpenDatabaseOptions(
-          version: 26, // diubah: Versi dinaikkan untuk migrasi
+          version: _databaseVersion, // diubah: Menggunakan konstanta versi
           onCreate: _onCreate,
           onUpgrade: _onUpgrade,
         ),
@@ -98,7 +101,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'mydatabase.db');
     return await openDatabase(
       path,
-      version: 26, // diubah: Versi dinaikkan untuk migrasi
+      version: _databaseVersion, // diubah: Menggunakan konstanta versi
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -125,34 +128,56 @@ class DatabaseHelper {
         'ALTER TABLE transaksi ADD COLUMN nama_dompet_tujuan TEXT',
       );
     }
-    // ditambahkan: Menambahkan kolom untuk fitur poin
     if (oldVersion < 26) {
       await db.execute('ALTER TABLE paket ADD COLUMN jumlahPoin INTEGER NOT NULL DEFAULT 0');
       await db.execute('ALTER TABLE riwayat_langganan ADD COLUMN jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0');
     }
+    if (oldVersion < 27) {
+      await db.execute('ALTER TABLE kategori ADD COLUMN id_sub_kategori TEXT');
+    }
+    if (oldVersion < 28) {
+        await db.execute(_tabelPengaturan);
+    }
+    if (oldVersion < 29) {
+        await db.execute('ALTER TABLE pengaturan ADD COLUMN diperbarui TEXT');
+        await db.execute('ALTER TABLE pengaturan ADD COLUMN mode_pemeliharaan INTEGER NOT NULL DEFAULT 0');
+    }
+    if (oldVersion < 30) {
+        await db.execute('ALTER TABLE pengaturan ADD COLUMN info_pemeliharaan TEXT');
+    }
   }
 
-  // diubah: Menggunakan konstanta skema yang sudah publik.
   Future<void> _createTables(Database db) async {
     await db.execute(_tabelKategori);
     await db.execute(_tabelSubKategori);
     await db.execute(_tabelPaket);
     await db.execute(_tabelPelanggan);
     await db.execute(_tabelPelangganAktif);
-    await db.execute(tabelTransaksi); // diubah
-    await db.execute(tabelDompet); // diubah
+    await db.execute(tabelTransaksi);
+    await db.execute(tabelDompet);
     await db.execute(_tabelKritikSaran);
     await db.execute(_tabelRiwayatLangganan);
     await db.execute(_tabelPesanan);
-    await db.execute(tabelVersiApkUser); // diubah
+    await db.execute(tabelVersiApkUser);
+    await db.execute(_tabelPengaturan);
   }
 
-  // diubah: Skema-skema ini akan dijadikan pribadi karena hanya digunakan di sini.
+  static const String _tabelPengaturan = '''
+    CREATE TABLE pengaturan(
+      interval_sinkronisasi_otomatis INTEGER NOT NULL DEFAULT 24,
+      hapus_otomatis_data_arsip INTEGER NOT NULL DEFAULT 30,
+      diperbarui TEXT,
+      mode_pemeliharaan INTEGER NOT NULL DEFAULT 0,
+      info_pemeliharaan TEXT
+    )
+  ''';
+
   static const String _tabelKategori = '''
       CREATE TABLE kategori(
         id TEXT PRIMARY KEY,
         nama TEXT NOT NULL,
         tipe TEXT NOT NULL,
+        id_sub_kategori TEXT,
         diperbarui TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         diarsipkan TEXT

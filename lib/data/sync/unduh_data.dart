@@ -1,5 +1,5 @@
 // path: lib/data/sync/unduh_data.dart
-// diubah: Menambahkan fungsi unduh spesifik untuk setiap tabel dan membuat fungsi generik menjadi publik.
+
 import 'dart:developer' as developer;
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
@@ -9,6 +9,8 @@ import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
+// ditambahkan: import untuk model dan operasi pengaturan
+import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
@@ -20,6 +22,7 @@ import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
@@ -41,8 +44,10 @@ class LayananUnduhData {
   final PesananOperasi _pesanOperasi = PesananOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
   final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
+  // ditambahkan: instance untuk operasi pengaturan
+  final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
-  // diubah: Fungsi ini sekarang memanggil fungsi unduh spesifik.
+  // diubah: Fungsi ini sekarang memanggil fungsi unduh spesifik, termasuk pengaturan.
   Future<void> unduhSemuaData() async {
     try {
       await Future.wait([
@@ -57,6 +62,8 @@ class LayananUnduhData {
         unduhDataPesanan(),
         unduhDataSubKategori(),
         unduhDataVersiApkUser(),
+        // ditambahkan: Panggilan untuk mengunduh pengaturan
+        unduhDataPengaturan(),
       ]);
     } catch (e, s) {
       developer.log(
@@ -72,7 +79,28 @@ class LayananUnduhData {
 
   // --- FUNGSI UNDUH SPESIFIK (PUBLIK) ---
 
-  // ditambah: Fungsi untuk mengunduh data Dompet.
+  // ditambahkan: Fungsi untuk mengunduh data Pengaturan.
+  Future<void> unduhDataPengaturan() async {
+    try {
+      final doc = await _firestore
+          .collection('pengaturan')
+          .doc('default')
+          .get();
+      if (doc.exists && doc.data() != null) {
+        final pengaturan = PengaturanModel.fromMap(doc.data()!);
+        await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
+      }
+    } catch (e, s) {
+      developer.log(
+        'Gagal unduh data pengaturan',
+        name: 'LayananUnduhData.Pengaturan',
+        error: e,
+        stackTrace: s,
+      );
+      // Tidak melempar rethrow agar proses sinkronisasi lain bisa lanjut
+    }
+  }
+
   Future<void> unduhDataDompet() async {
     await sinkronisasiKoleksi<DompetModel>(
       namaKoleksi: 'dompet',
@@ -81,7 +109,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Kategori.
   Future<void> unduhDataKategori() async {
     await sinkronisasiKoleksi<KategoriModel>(
       namaKoleksi: 'kategori',
@@ -90,7 +117,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Paket.
   Future<void> unduhDataPaket() async {
     await sinkronisasiKoleksi<PaketModel>(
       namaKoleksi: 'paket',
@@ -99,7 +125,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Pelanggan.
   Future<void> unduhDataPelanggan() async {
     await sinkronisasiKoleksi<PelangganModel>(
       namaKoleksi: 'pelanggan',
@@ -108,7 +133,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Pelanggan Aktif.
   Future<void> unduhDataPelangganAktif() async {
     await sinkronisasiKoleksi<PelangganAktifModel>(
       namaKoleksi: 'pelanggan_aktif',
@@ -118,7 +142,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Transaksi.
   Future<void> unduhDataTransaksi() async {
     await sinkronisasiKoleksi<TransaksiModel>(
       namaKoleksi: 'transaksi',
@@ -127,7 +150,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Riwayat Langganan.
   Future<void> unduhDataRiwayatLangganan() async {
     await sinkronisasiKoleksi<RiwayatLanggananModel>(
       namaKoleksi: 'riwayat_langganan',
@@ -137,7 +159,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Kritik & Saran.
   Future<void> unduhDataKritikSaran() async {
     await sinkronisasiKoleksi<KritikSaranModel>(
       namaKoleksi: 'kritik_saran',
@@ -147,7 +168,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Pesanan.
   Future<void> unduhDataPesanan() async {
     await sinkronisasiKoleksi<PesananModel>(
       namaKoleksi: 'pesan',
@@ -156,7 +176,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Sub Kategori.
   Future<void> unduhDataSubKategori() async {
     await sinkronisasiKoleksi<SubKategoriModel>(
       namaKoleksi: 'sub_kategori',
@@ -166,7 +185,6 @@ class LayananUnduhData {
     );
   }
 
-  // ditambah: Fungsi untuk mengunduh data Versi APK User.
   Future<void> unduhDataVersiApkUser() async {
     await sinkronisasiKoleksi<VersiApkUserModel>(
       namaKoleksi: 'versi_apk_user',
@@ -176,9 +194,8 @@ class LayananUnduhData {
     );
   }
 
-  // --- FUNGSI GENERIK (SEKARANG PUBLIK) ---
+  // --- FUNGSI GENERIK (PUBLIK) ---
 
-  // diubah: Fungsi ini sekarang publik (tanpa '_') untuk fleksibilitas.
   Future<void> sinkronisasiKoleksi<T>({
     required String namaKoleksi,
     required T Function(Map<String, dynamic>) fromMap,

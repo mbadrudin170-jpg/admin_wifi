@@ -1,15 +1,25 @@
-// lib/halaman/form/form_kategori.dart
-// Halaman ini menyediakan formulir untuk menambah atau mengedit kategori.
+// path: lib/halaman/form/form_kategori.dart
+// Halaman ini menyediakan formulir untuk menambah atau mengedit kategori dan sub-kategori.
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:uuid/uuid.dart';
 
 class FormKategoriPage extends StatefulWidget {
-  final KategoriModel? kategori; // Tambahkan ini untuk mode edit
-  const FormKategoriPage({super.key, this.kategori});
+  final KategoriModel? kategori;
+  final SubKategoriModel? subKategori;
+  final String? idKategoriInduk;
+
+  const FormKategoriPage({
+    super.key,
+    this.kategori,
+    this.subKategori,
+    this.idKategoriInduk,
+  });
 
   @override
   State<FormKategoriPage> createState() => _FormKategoriPageState();
@@ -23,8 +33,14 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
   late TipeKategori _tipe;
   late TextEditingController _namaController;
   final _namaFocusNode = FocusNode();
-  bool get _isEditMode => widget.kategori != null;
-  // diubah: Membuat instance baru untuk memanggil method non-static
+
+  // ditambahkan: State untuk mengelola input sub-kategori dinamis
+  final List<TextEditingController> _subKategoriControllers = [];
+
+  bool get _isEditMode => widget.kategori != null || widget.subKategori != null;
+  bool get _isSubKategoriMode =>
+      widget.subKategori != null || widget.idKategoriInduk != null;
+
   final _cekKoneksi = KoneksiInternetService();
 
   @override
@@ -32,13 +48,15 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
     super.initState();
     _namaController = TextEditingController();
 
-    if (_isEditMode) {
-      // Jika mode edit, isi form dengan data yang ada
+    if (widget.kategori != null) {
       _namaController.text = widget.kategori!.nama;
       _tipe = widget.kategori!.tipe;
+    } else if (widget.subKategori != null) {
+      _namaController.text = widget.subKategori!.nama;
     } else {
-      // Jika mode tambah, gunakan nilai default
       _tipe = TipeKategori.pemasukan;
+      // ditambahkan: Mulai dengan satu input sub-kategori kosong
+      _tambahInputSubKategori();
     }
   }
 
@@ -46,44 +64,107 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
   void dispose() {
     _namaController.dispose();
     _namaFocusNode.dispose();
+    // ditambahkan: Pastikan semua controller sub-kategori di-dispose
+    for (var controller in _subKategoriControllers) {
+      controller.dispose();
+    }
     super.dispose();
+  }
+
+  // ditambahkan: Fungsi untuk menambah field input sub-kategori baru
+  void _tambahInputSubKategori() {
+    setState(() {
+      _subKategoriControllers.add(TextEditingController());
+    });
+  }
+
+  // ditambahkan: Fungsi untuk menghapus field input sub-kategori
+  void _hapusInputSubKategori(int index) {
+    setState(() {
+      _subKategoriControllers[index].dispose();
+      _subKategoriControllers.removeAt(index);
+    });
   }
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      final kategoriBaru = KategoriModel(
-        id: _isEditMode ? widget.kategori?.id : null,
-        nama: _namaController.text,
-        tipe: _tipe,
-        diperbarui: DateTime.now(),
-      );
-
       try {
-        if (_isEditMode) {
-          await _kategoriOperasi.update(kategoriBaru);
+        if (_isEditMode && widget.subKategori != null) {
+          if (widget.idKategoriInduk == null) {
+            throw Exception(
+              'ID kategori induk tidak ditemukan saat mengedit sub-kategori.',
+            );
+          }
+          final kategoriInduk = await _kategoriOperasi.getKategoriById(
+            widget.idKategoriInduk!,
+          );
+          final subKategoriIndex = kategoriInduk.subKategori.indexWhere(
+            (s) => s.id == widget.subKategori!.id,
+          );
+
+          if (subKategoriIndex != -1) {
+            final subKategoriDiperbarui = kategoriInduk
+                .subKategori[subKategoriIndex]
+                .copyWith(
+                  nama: _namaController.text,
+                  diperbarui: DateTime.now(),
+                );
+            kategoriInduk.subKategori[subKategoriIndex] = subKategoriDiperbarui;
+            await _kategoriOperasi.update(kategoriInduk);
+          } else {
+            throw Exception('Sub-kategori tidak ditemukan untuk diedit.');
+          }
+        } else if (_isEditMode && widget.kategori != null) {
+          final kategoriDiperbarui = widget.kategori!.copyWith(
+            nama: _namaController.text,
+            tipe: _tipe,
+            diperbarui: DateTime.now(),
+          );
+          await _kategoriOperasi.update(kategoriDiperbarui);
         } else {
+          // diubah: Logika CREATE Kategori dengan Sub-Kategorinya
+          final String kategoriId = const Uuid().v4();
+
+          final List<SubKategoriModel> subKategoriList = _subKategoriControllers
+              .where((controller) => controller.text.isNotEmpty)
+              .map(
+                (controller) => SubKategoriModel(
+                  nama: controller.text,
+                  idKategori: kategoriId, // Tautkan ke ID Kategori Induk
+                  diperbarui: DateTime.now(),
+                ),
+              )
+              .toList();
+
+          final kategoriBaru = KategoriModel(
+            id: kategoriId,
+            nama: _namaController.text,
+            tipe: _tipe,
+            subKategori: subKategoriList,
+            diperbarui: DateTime.now(),
+          );
           await _kategoriOperasi.createKategori(kategoriBaru);
         }
-        // diubah: Memanggil method dari instance yang sudah dibuat
+
         if (await _cekKoneksi.cekKoneksi()) {
           await _layananUnggahData.unggahDataKategori();
         }
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            // Tambahkan const
-            content: Text('Kategori berhasil disimpan!'),
+          SnackBar(
+            content: Text(
+              '${_isSubKategoriMode ? 'Sub-Kategori' : 'Kategori'} berhasil disimpan!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context, true); // Kirim 'true' untuk menandakan sukses
+        Navigator.pop(context, true);
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            // Tidak bisa const karena ada variabel 'e'
-            content: Text('Gagal menyimpan kategori: $e'),
+            content: Text('Gagal menyimpan: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -93,68 +174,135 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
 
   @override
   Widget build(BuildContext context) {
+    String judul = 'Form Kategori';
+    if (_isEditMode && widget.kategori != null) judul = 'Edit Kategori';
+    if (_isEditMode && widget.subKategori != null) judul = 'Edit Sub-Kategori';
+    if (!_isEditMode && widget.idKategoriInduk != null) {
+      judul = 'Tambah Sub-Kategori';
+    }
+    if (!_isEditMode && widget.kategori == null && widget.subKategori == null) {
+      judul = 'Tambah Kategori Baru';
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditMode ? 'Edit Kategori' : 'Form Kategori'),
-        leading: const BackButton(),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _namaController,
-                focusNode: _namaFocusNode,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Kategori',
-                  border: OutlineInputBorder(),
-                ),
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) {
-                  FocusScope.of(context).unfocus();
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<TipeKategori>(
-                initialValue: _tipe,
-                decoration: const InputDecoration(
-                  labelText: 'Tipe',
-                  border: OutlineInputBorder(),
-                ),
-                items: TipeKategori.values.map((TipeKategori tipe) {
-                  return DropdownMenuItem<TipeKategori>(
-                    value: tipe,
-                    child: Text(
-                      tipe.name.substring(0, 1).toUpperCase() +
-                          tipe.name.substring(1),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (TipeKategori? newValue) {
-                  setState(() {
-                    if (newValue != null) {
-                      _tipe = newValue;
+      appBar: AppBar(title: Text(judul), leading: const BackButton()),
+      // diubah: Menggunakan SingleChildScrollView agar form bisa di-scroll
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _namaController,
+                  focusNode: _namaFocusNode,
+                  decoration: InputDecoration(
+                    labelText: _isSubKategoriMode
+                        ? 'Nama Sub-Kategori'
+                        : 'Nama Kategori',
+                    border: const OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Nama tidak boleh kosong';
                     }
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _simpanForm,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
+                    return null;
+                  },
                 ),
-                child: const Text('Simpan'),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // diubah: Tampilkan dropdown tipe dan input sub-kategori hanya di mode Tambah Kategori
+                if (!_isEditMode && !_isSubKategoriMode) ...[
+                  DropdownButtonFormField<TipeKategori>(
+                    // diperbaiki: 'value' diubah menjadi 'initialValue' untuk mengatasi deprecated warning.
+                    initialValue: _tipe,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipe',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: TipeKategori.values
+                        .where((tipe) => tipe != TipeKategori.transfer)
+                        .map((TipeKategori tipe) {
+                          return DropdownMenuItem<TipeKategori>(
+                            value: tipe,
+                            child: Text(
+                              tipe.name.substring(0, 1).toUpperCase() +
+                                  tipe.name.substring(1),
+                            ),
+                          );
+                        })
+                        .toList(),
+                    onChanged: (TipeKategori? newValue) {
+                      setState(() {
+                        if (newValue != null) {
+                          _tipe = newValue;
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Tambah Sub-Kategori (Opsional)',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const Divider(),
+                  // ditambahkan: ListView untuk input sub-kategori dinamis
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _subKategoriControllers.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _subKategoriControllers[index],
+                                decoration: InputDecoration(
+                                  labelText: 'Nama Sub-Kategori ${index + 1}',
+                                  border: const OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
+                              onPressed: () => _hapusInputSubKategori(index),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: _tambahInputSubKategori,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tambah Input'),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _simpanForm,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: const Text('Simpan'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
