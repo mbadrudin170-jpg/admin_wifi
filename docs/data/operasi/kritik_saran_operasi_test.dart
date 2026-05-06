@@ -1,4 +1,4 @@
-// path: test/operasi/kritik_saran_operasi_test.dart
+// path: test/data/operasi/kritik_saran_operasi_test.dart
 // diubah: Menyesuaikan dengan KritikSaranModel (isi, userId)
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
@@ -49,18 +49,22 @@ void main() {
       expect(hasil.first.isi, 'Ini adalah kritik dan saran.');
     });
 
-    test('2. getKritikSaran harus mengembalikan data terurut tanggal DESC', () async {
-      final modelLama = buatModel(userId: 'user-lama')..copyWith(tanggal: DateTime.now().subtract(const Duration(days: 1)));
-      final modelBaru = buatModel(userId: 'user-baru');
+    test(
+      '2. getKritikSaran harus mengembalikan data terurut tanggal DESC',
+      () async {
+        final modelLama = buatModel(userId: 'user-lama')
+          ..copyWith(tanggal: DateTime.now().subtract(const Duration(days: 1)));
+        final modelBaru = buatModel(userId: 'user-baru');
 
-      await operasi.createKritikSaran(modelLama);
-      await operasi.createKritikSaran(modelBaru);
+        await operasi.createKritikSaran(modelLama);
+        await operasi.createKritikSaran(modelBaru);
 
-      final hasil = await operasi.getKritikSaran();
-      expect(hasil.length, 2);
-      expect(hasil.first.userId, 'user-baru'); // Terbaru di atas
-      expect(hasil.last.userId, 'user-lama');
-    });
+        final hasil = await operasi.getKritikSaran();
+        expect(hasil.length, 2);
+        expect(hasil.first.userId, 'user-baru'); // Terbaru di atas
+        expect(hasil.last.userId, 'user-lama');
+      },
+    );
 
     test('3. hapusKritikSaran harus menghapus data', () async {
       final model = buatModel();
@@ -85,24 +89,27 @@ void main() {
       expect(perubahan.first.id, modelBaru.id);
     });
 
-    test('5. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar', () async {
-      final modelAwal = buatModel(id: 'id-tetap');
-      await operasi.createKritikSaran(modelAwal);
+    test(
+      '5. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar',
+      () async {
+        final modelAwal = buatModel(id: 'id-tetap');
+        await operasi.createKritikSaran(modelAwal);
 
-      final batch = [
-        modelAwal.copyWith(isi: 'Isi sudah diupdate'), // Update
-        buatModel(id: 'id-baru'), // Insert
-      ];
+        final batch = [
+          modelAwal.copyWith(isi: 'Isi sudah diupdate'), // Update
+          buatModel(id: 'id-baru'), // Insert
+        ];
 
-      await operasi.sisipkanAtauPerbaruiBatch(batch);
-      final hasil = await operasi.getKritikSaran();
-      expect(hasil.length, 2);
+        await operasi.sisipkanAtauPerbaruiBatch(batch);
+        final hasil = await operasi.getKritikSaran();
+        expect(hasil.length, 2);
 
-      final updatedItem = hasil.firstWhere((k) => k.id == 'id-tetap');
-      expect(updatedItem.isi, 'Isi sudah diupdate');
+        final updatedItem = hasil.firstWhere((k) => k.id == 'id-tetap');
+        expect(updatedItem.isi, 'Isi sudah diupdate');
 
-      final newItem = hasil.firstWhere((k) => k.id == 'id-baru');
-      expect(newItem, isNotNull);
-    });
+        final newItem = hasil.firstWhere((k) => k.id == 'id-baru');
+        expect(newItem, isNotNull);
+      },
+    );
   });
 }

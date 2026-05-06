@@ -29,6 +29,7 @@ dependencies:
   device_info_plus: ^12.4.0
   fluttertoast: ^9.0.0
   sqflite_common_ffi: ^2.4.0+3
+  pub_semver: ^2.2.0
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,6 @@
 {
   "File Header Path": {
     "prefix": "fpath",
-    "scope": "dart",
     "body": [
       " // path: ${RELATIVE_FILEPATH}",
       ""

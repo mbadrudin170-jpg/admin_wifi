@@ -1,4 +1,5 @@
-// path: test/operasi/kategori_operasi_test.dart
+ // path: test/data/operasi/kategori_operasi_test.dart
+
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/kategori_model.dart';

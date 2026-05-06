@@ -1,32 +1,98 @@
 // path: lib/data/operasi/versi_apk_user_operasi.dart
 
-import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:sqflite/sqflite.dart';
 
-// untuk mengelola operasi data terkait VersiApkUserModel
 class VersiApkUserOperasi {
-  final dbHelper = DatabaseHelper.instance;
-  Future<VersiApkUserModel?> ambilVersiApkById(
-    String id, {
-    bool termasukDihapus = false,
-  }) async {
+  final DatabaseHelper dbHelper;
+
+  VersiApkUserOperasi({DatabaseHelper? dbHelper})
+      : dbHelper = dbHelper ?? DatabaseHelper.instance;
+
+  Future<void> tambahVersiApkUser(VersiApkUserModel data) async {
     final db = await dbHelper.database;
-
-    final where = termasukDihapus ? 'id = ?' : 'id = ? AND isDeleted = 0';
-
-    final maps = await db.query(
-      'versi_apk_user',
-      where: where,
-      whereArgs: [id],
-      limit: 1,
-    );
-
-    if (maps.isNotEmpty) {
-      return VersiApkUserModel.fromMap(maps.first);
+    try {
+      final dataToSave = data.copyWith(diperbarui: DateTime.now());
+      await db.insert(
+        'versi_apk_user',
+        dataToSave.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e, s) {
+      developer.log(
+        'Gagal menambah data versi apk user',
+        name: 'tambahVersiApkUser',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
     }
-    return null;
+  }
+
+  Future<void> perbaruiVersiApkUser(VersiApkUserModel data) async {
+    final db = await dbHelper.database;
+    try {
+      final dataToUpdate = data.copyWith(diperbarui: DateTime.now());
+      await db.update(
+        'versi_apk_user',
+        dataToUpdate.toMap(),
+        where: 'id = ?',
+        whereArgs: [data.id],
+      );
+    } catch (e, s) {
+      developer.log(
+        'Gagal memperbarui versi apk user',
+        name: 'perbaruiVersiApkUser',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> arsipkanVersiApkUser(String id) async {
+    final db = await dbHelper.database;
+    try {
+      final now = DateTime.now();
+      await db.update(
+        'versi_apk_user',
+        {
+          'isDeleted': 1,
+          'diarsipkan': now.toIso8601String(),
+          'diperbarui': now.toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e, s) {
+      developer.log(
+        'Gagal mengarsipkan versi apk user',
+        name: 'arsipkanVersiApkUser',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<VersiApkUserModel>> ambilSemuaVersiApk() async {
+    final db = await dbHelper.database;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query('versi_apk_user');
+      return List.generate(maps.length, (i) {
+        return VersiApkUserModel.fromMap(maps[i]);
+      });
+    } catch (e, s) {
+      developer.log(
+        'Gagal mengambil semua versi apk',
+        name: 'ambilSemuaVersiApk',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
   }
 
   Future<List<VersiApkUserModel>> ambilSemuaVersiApkAktif() async {
@@ -38,12 +104,13 @@ class VersiApkUserOperasi {
         whereArgs: [0],
         orderBy: 'diperbarui DESC',
       );
-
-      return maps.map((map) => VersiApkUserModel.fromMap(map)).toList();
+      return List.generate(maps.length, (i) {
+        return VersiApkUserModel.fromMap(maps[i]);
+      });
     } catch (e, s) {
       developer.log(
-        'Gagal mengambil semua versi APK aktif',
-        name: 'VersiApkUserOperasi.Error',
+        'Gagal mengambil semua versi apk aktif',
+        name: 'ambilSemuaVersiApkAktif',
         error: e,
         stackTrace: s,
       );
@@ -51,24 +118,23 @@ class VersiApkUserOperasi {
     }
   }
 
-  // diubah: mengambil SEMUA data versi apk, termasuk yang diarsip.
-  Future<List<VersiApkUserModel>> ambilSemuaVersiApk() async {
+  Future<VersiApkUserModel?> ambilVersiApkById(String id) async {
     final db = await dbHelper.database;
     try {
       final List<Map<String, dynamic>> maps = await db.query(
         'versi_apk_user',
-        orderBy: 'diperbarui DESC',
+        where: 'id = ? AND IFNULL(isDeleted, 0) = ?',
+        whereArgs: [id, 0],
       );
 
       if (maps.isNotEmpty) {
-        return maps.map((map) => VersiApkUserModel.fromMap(map)).toList();
-      } else {
-        return [];
+        return VersiApkUserModel.fromMap(maps.first);
       }
+      return null;
     } catch (e, s) {
       developer.log(
-        'Gagal mengambil semua versi APK (termasuk yang diarsip)',
-        name: 'VersiApkUserOperasi.Error',
+        'Gagal mengambil versi apk by id',
+        name: 'ambilVersiApkById',
         error: e,
         stackTrace: s,
       );
@@ -76,24 +142,28 @@ class VersiApkUserOperasi {
     }
   }
 
-  // ditambah: fungsi untuk MENAMBAH data versi apk baru ke database
-  Future<void> tambahVersiApkUser(VersiApkUserModel data) async {
-    final db = await dbHelper.database;
+  // diubah: mengambil versi APK dengan build tertinggi.
+  Future<VersiApkUserModel?> ambilVersiApkTerbaru() async {
     try {
-      final dataToSave = data.copyWith(diperbarui: DateTime.now());
+      // 1. Ambil semua versi yang aktif
+      final List<VersiApkUserModel> semuaVersiAktif = await ambilSemuaVersiApkAktif();
 
-      await db.insert(
-        'versi_apk_user',
-        dataToSave.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.fail,
-      );
-      developer.log(
-        'Berhasil MENAMBAH versi apk dengan ID: ${data.id}',
-        name: 'VersiApkUserOperasi',
-      );
+      if (semuaVersiAktif.isEmpty) {
+        return null;
+      }
+
+      // 2. Urutkan berdasarkan nomor build 'universal'
+      semuaVersiAktif.sort((a, b) {
+        final buildA = a.nomorBuildTerbaru['universal'] ?? 0;
+        final buildB = b.nomorBuildTerbaru['universal'] ?? 0;
+        return buildA.compareTo(buildB); // Langsung bandingkan nomor build
+      });
+
+      // 3. Kembalikan versi terakhir dari daftar (build tertinggi)
+      return semuaVersiAktif.last;
     } catch (e, s) {
       developer.log(
-        'Gagal MENAMBAH versi apk dengan ID: ${data.id}',
+        'Gagal mengambil dan memproses versi APK terbaru',
         name: 'VersiApkUserOperasi.Error',
         error: e,
         stackTrace: s,
@@ -102,84 +172,24 @@ class VersiApkUserOperasi {
     }
   }
 
-  // ditambah: fungsi untuk MEMPERBARUI data versi apk yang ada di database
-  Future<void> perbaruiVersiApkUser(VersiApkUserModel data) async {
-    final db = await dbHelper.database;
-    try {
-      final dataToSave = data.copyWith(diperbarui: DateTime.now());
-
-      await db.update(
-        'versi_apk_user',
-        dataToSave.toMap(),
-        where: 'id = ?',
-        whereArgs: [data.id],
-      );
-      developer.log(
-        'Berhasil MEMPERBARUI versi apk dengan ID: ${data.id}',
-        name: 'VersiApkUserOperasi',
-      );
-    } catch (e, s) {
-      developer.log(
-        'Gagal MEMPERBARUI versi apk dengan ID: ${data.id}',
-        name: 'VersiApkUserOperasi.Error',
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-
-  // ditambah: fungsi untuk operasi batch insert/update dari server
   Future<void> sisipkanAtauPerbaruiBatch(
-    List<VersiApkUserModel> daftarVersi,
-  ) async {
+      List<VersiApkUserModel> daftarVersi) async {
     final db = await dbHelper.database;
-    final batch = db.batch();
-
-    for (var versi in daftarVersi) {
-      batch.insert(
-        'versi_apk_user',
-        versi.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-
     try {
+      final batch = db.batch();
+      for (var versi in daftarVersi) {
+        final dataToSave = versi.copyWith(diperbarui: DateTime.now());
+        batch.insert(
+          'versi_apk_user',
+          dataToSave.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
       await batch.commit(noResult: true);
-      developer.log(
-        'Batch insert/update berhasil untuk ${daftarVersi.length} item di tabel versi_apk_user.',
-        name: 'VersiApkUserOperasi',
-      );
     } catch (e, s) {
       developer.log(
-        'Gagal melakukan batch insert/update di tabel versi_apk_user.',
-        name: 'VersiApkUserOperasi.Error',
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-
-  // ditambah: fungsi untuk mengarsipkan data versi apk
-  Future<void> arsipkanVersiApkUser(String id) async {
-    final db = await dbHelper.database;
-    try {
-      final now = DateTime.now().toIso8601String();
-      final count = await db.update(
-        'versi_apk_user',
-        {'diarsipkan': now, 'isDeleted': 1, 'diperbarui': now},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      developer.log(
-        'Berhasil mengarsipkan versi apk dengan ID: $id. Jumlah baris terpengaruh: $count',
-        name: 'VersiApkUserOperasi',
-      );
-    } catch (e, s) {
-      developer.log(
-        'Gagal mengarsipkan versi apk dengan ID: $id',
-        name: 'VersiApkUserOperasi.Error',
+        'Gagal melakukan sisip atau perbarui batch',
+        name: 'sisipkanAtauPerbaruiBatch',
         error: e,
         stackTrace: s,
       );

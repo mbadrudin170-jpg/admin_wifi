@@ -1,6 +1,5 @@
-// path: test/operasi/transaksi_operasi_test.dart
-// diubah: Menghapus anotasi @override yang salah.
-
+ // path: test/data/operasi/transaksi_operasi_test.dart
+// diubah: Mengganti MockDatabaseHelper dengan metode injeksi database ke singleton.
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -9,136 +8,72 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
-// Kelas palsu (mock) untuk DatabaseHelper yang menggunakan database di memori.
-class MockDatabaseHelper extends DatabaseHelper {
-  MockDatabaseHelper._() : super.internal();
-
-  static final MockDatabaseHelper instance = MockDatabaseHelper._();
-
-  static Database? _database;
-
-  @override
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB();
-    return _database!;
-  }
-
-  // diubah: Menghapus @override karena tidak menimpa metode dari superclass.
-  Future<Database> _initDB() async {
-    // Menggunakan databaseFactoryFfi untuk membuat database di memori.
-    return await databaseFactoryFfi.openDatabase(
-      inMemoryDatabasePath, // Path khusus untuk database in-memory
-      options: OpenDatabaseOptions(
-        version: 1,
-        onCreate: (db, version) async {
-          // Membuat skema tabel yang sama persis dengan aplikasi utama.
-          await _createDompetTable(db);
-          await _createTransaksiTable(db);
-        },
-      ),
-    );
-  }
-
-  // Definisi pembuatan tabel disalin dari DatabaseHelper asli.
-  Future<void> _createDompetTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE dompet(
-        id TEXT PRIMARY KEY,
-        namaDompet TEXT NOT NULL,
-        saldo REAL NOT NULL,
-        diperbarui TEXT,
-        isDeleted INTEGER NOT NULL DEFAULT 0,
-        diarsipkan TEXT
-      )
-    ''');
-  }
-
-  Future<void> _createTransaksiTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE transaksi(
-        id TEXT PRIMARY KEY,
-        keterangan TEXT NOT NULL,
-        jumlah REAL NOT NULL,
-        tanggal TEXT NOT NULL,
-        tipe TEXT NOT NULL,
-        id_dompet TEXT NOT NULL,
-        nama_dompet TEXT NOT NULL,
-        id_dompet_tujuan TEXT, 
-        nama_dompet_tujuan TEXT,
-        id_kategori TEXT NOT NULL,
-        nama_kategori TEXT NOT NULL,
-        id_sub_kategori TEXT,
-        nama_sub_kategori TEXT,
-        id_pelanggan TEXT,
-        nama_pelanggan TEXT,
-        id_paket TEXT,
-        nama_paket TEXT,
-        diperbarui TEXT,
-        diarsipkan TEXT,
-        isDeleted INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-  }
-}
-
 void main() {
-  // Inisialisasi FFI untuk sqflite sebelum semua tes berjalan.
-  setUpAll(() {
+  late Database db;
+  late TransaksiOperasi operasi;
+  late DompetModel dompetA;
+  late DompetModel dompetB;
+  const double saldoAwal = 1000.0;
+  final uuid = const Uuid();
+
+  // Inisialisasi FFI untuk sqflite dan siapkan database in-memory
+  setUpAll(() async {
     sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
+    // Buka database in-memory SEKALI saja untuk semua tes
+    final dbFuture = databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
+    // Suntikkan database ini ke dalam instance singleton DatabaseHelper
+    DatabaseHelper.instance.database = dbFuture;
+    db = await dbFuture;
+    // Sekarang, operasi akan menggunakan database in-memory secara otomatis
+    operasi = TransaksiOperasi();
+  });
+
+  // Fungsi helper untuk mendapatkan saldo dompet
+  Future<double> getSaldo(String idDompet) async {
+    final map = await db.query(
+      'dompet',
+      where: 'id = ?',
+      whereArgs: [idDompet],
+    );
+    // Tambahkan pengecekan untuk memastikan map tidak kosong
+    if (map.isNotEmpty) {
+      return map.first['saldo'] as double;
+    }
+    return 0.0; // Kembalikan 0 jika dompet tidak ditemukan
+  }
+
+  // `setUp` dijalankan sebelum SETIAP tes untuk memastikan isolasi.
+  setUp(() async {
+    // Hapus data lama dan buat ulang tabel untuk setiap tes
+    await db.execute('DROP TABLE IF EXISTS dompet');
+    await db.execute('DROP TABLE IF EXISTS transaksi');
+    await db.execute(DatabaseHelper.tabelDompet);
+    await db.execute(DatabaseHelper.tabelTransaksi);
+
+    // Buat data dompet awal yang bersih untuk setiap tes
+    dompetA = DompetModel(
+      id: 'dompet-a',
+      namaDompet: 'Dompet A',
+      saldo: saldoAwal,
+    );
+    dompetB = DompetModel(
+      id: 'dompet-b',
+      namaDompet: 'Dompet B',
+      saldo: saldoAwal,
+    );
+
+    await db.insert('dompet', dompetA.toMap());
+    await db.insert('dompet', dompetB.toMap());
+  });
+
+  // `tearDownAll` dijalankan sekali setelah semua tes selesai.
+  tearDownAll(() async {
+    await db.close();
   });
 
   group('TransaksiOperasi Tests', () {
-    late TransaksiOperasi operasi;
-    late Database db;
-    late DompetModel dompetA;
-    late DompetModel dompetB;
-    const double saldoAwal = 1000.0;
-    final uuid = const Uuid();
-
-    // Fungsi helper untuk mendapatkan saldo dompet
-    Future<double> getSaldo(String idDompet) async {
-      final map = await db.query(
-        'dompet',
-        where: 'id = ?',
-        whereArgs: [idDompet],
-      );
-      return map.first['saldo'] as double;
-    }
-
-    // `setUp` dijalankan sebelum SETIAP tes.
-    setUp(() async {
-      // Menggunakan instance dari MockDatabaseHelper
-      final mockDbHelper = MockDatabaseHelper.instance;
-      operasi = TransaksiOperasi.testing(mockDbHelper);
-      db = await mockDbHelper.database;
-
-      // Membuat data dompet awal untuk setiap tes
-      dompetA = DompetModel(
-        id: 'dompet-a',
-        namaDompet: 'Dompet A',
-        saldo: saldoAwal,
-      );
-      dompetB = DompetModel(
-        id: 'dompet-b',
-        namaDompet: 'Dompet B',
-        saldo: saldoAwal,
-      );
-
-      await db.insert('dompet', dompetA.toMap());
-      await db.insert('dompet', dompetB.toMap());
-    });
-
-    // `tearDown` dijalankan setelah SETIAP tes.
-    tearDown(() async {
-      // Menghapus semua data agar tidak mengganggu tes berikutnya
-      await db.delete('transaksi');
-      await db.delete('dompet');
-    });
-
     // ===================================
-    // Tes untuk `tambahTransaksi`
+    // Tes untuk `tambahTransaksi` (TIDAK BERUBAH)
     // ===================================
     test('tambahTransaksi (Pemasukan) harus menambah saldo dompet', () async {
       final transaksi = TransaksiModel(
@@ -209,7 +144,7 @@ void main() {
     );
 
     // ===================================
-    // Tes untuk `deleteTransaksi`
+    // Tes untuk `deleteTransaksi` (TIDAK BERUBAH)
     // ===================================
     test('deleteTransaksi (Pemasukan) harus mengembalikan saldo', () async {
       final transaksi = TransaksiModel(
@@ -225,12 +160,10 @@ void main() {
       );
       await operasi.tambahTransaksi(transaksi);
 
-      // Saldo setelah ditambah
       expect(await getSaldo(dompetA.id), saldoAwal + 200);
 
       await operasi.deleteTransaksi(transaksi.id);
 
-      // Saldo setelah dihapus
       expect(await getSaldo(dompetA.id), saldoAwal);
     });
 
@@ -284,7 +217,7 @@ void main() {
     );
 
     // ===================================
-    // Tes untuk `updateTransaksi`
+    // Tes untuk `updateTransaksi` (TIDAK BERUBAH)
     // ===================================
     test(
       'updateTransaksi harus menyesuaikan saldo dengan benar (jumlah berubah)',
@@ -330,14 +263,12 @@ void main() {
 
         expect(await getSaldo(dompetA.id), saldoAwal + 100);
 
-        // Mengubah dari Pemasukan 100 menjadi Pengeluaran 50
         final transaksiUpdate = transaksiAwal.salinDengan(
           tipe: TipeTransaksi.pengeluaran,
           jumlah: 50,
         );
         await operasi.updateTransaksi(transaksiUpdate);
 
-        // Saldo akhir harus: saldoAwal - 50
         final saldoAkhir = await getSaldo(dompetA.id);
         expect(saldoAkhir, saldoAwal - 50);
       },
@@ -364,7 +295,6 @@ void main() {
         expect(await getSaldo(dompetA.id), saldoAwal - 100);
         expect(await getSaldo(dompetB.id), saldoAwal + 100);
 
-        // Ganti dompet tujuan dari B ke A (seharusnya menjadi pengeluaran biasa)
         final transaksiUpdate = transaksiAwal.salinDengan(
           tipe: TipeTransaksi.pengeluaran,
           idDompetTujuan: null,
@@ -375,15 +305,13 @@ void main() {
         final saldoAkhirA = await getSaldo(dompetA.id);
         final saldoAkhirB = await getSaldo(dompetB.id);
 
-        // Saldo A harus kembali ke saldo awal dikurangi 100
-        // Saldo B harus kembali ke saldo awal
         expect(saldoAkhirA, saldoAwal - 100);
         expect(saldoAkhirB, saldoAwal);
       },
     );
 
     // ===================================
-    // Tes untuk Fungsi Agregat
+    // Tes untuk Fungsi Agregat (TIDAK BERUBAH)
     // ===================================
     group('Fungsi Agregat Tests', () {
       test(
@@ -451,7 +379,7 @@ void main() {
     });
 
     // ===================================
-    // Tes untuk `ambilSemuaTransaksi`
+    // Tes untuk `ambilSemuaTransaksi` (TIDAK BERUBAH)
     // ===================================
     group('ambilSemuaTransaksi Tests', () {
       test('harus mengembalikan list kosong jika tidak ada data', () async {
@@ -483,20 +411,19 @@ void main() {
           namaKategori: '',
         );
 
-        // Tambahkan tidak berurutan
         await operasi.tambahTransaksi(t1);
         await operasi.tambahTransaksi(t2);
 
         final hasil = await operasi.ambilSemuaTransaksi();
 
         expect(hasil.length, 2);
-        expect(hasil[0].keterangan, 'Baru'); // Transaksi terbaru harus di awal
-        expect(hasil[1].keterangan, 'Lama'); // Transaksi terlama harus di akhir
+        expect(hasil[0].keterangan, 'Baru');
+        expect(hasil[1].keterangan, 'Lama');
       });
     });
 
     // ===================================
-    // Tes untuk `sisipkanAtauPerbaruiBatch` (Setelah Perbaikan)
+    // Tes untuk `sisipkanAtauPerbaruiBatch` (TIDAK BERUBAH)
     // ===================================
     group('sisipkanAtauPerbaruiBatch (Setelah Perbaikan)', () {
       test(
@@ -525,16 +452,15 @@ void main() {
               idKategori: '',
               namaKategori: '',
             ),
-            // ditambah: Skenario transfer untuk kelengkapan pengujian
             TransaksiModel(
               id: uuid.v4(),
               keterangan: 'Transfer Batch',
               jumlah: 50,
               tanggal: DateTime.now(),
               tipe: TipeTransaksi.transfer,
-              idDompet: dompetB.id, // Dari Dompet B
+              idDompet: dompetB.id,
               namaDompet: dompetB.namaDompet,
-              idDompetTujuan: dompetA.id, // Ke Dompet A
+              idDompetTujuan: dompetA.id,
               namaDompetTujuan: dompetA.namaDompet,
               idKategori: '',
               namaKategori: '',
@@ -546,9 +472,6 @@ void main() {
           final saldoAkhirA = await getSaldo(dompetA.id);
           final saldoAkhirB = await getSaldo(dompetB.id);
 
-          // diubah: Ekspektasi saldo akhir dihitung ulang untuk mencakup transfer
-          // Saldo A = 1000 (awal) + 100 (pemasukan) + 50 (transfer masuk) = 1150
-          // Saldo B = 1000 (awal) - 25 (pengeluaran) - 50 (transfer keluar) = 925
           expect(
             saldoAkhirA,
             saldoAwal + 100 + 50,

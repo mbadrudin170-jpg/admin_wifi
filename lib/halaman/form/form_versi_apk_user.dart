@@ -1,17 +1,17 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
-// Halaman ini menyediakan formulir untuk menambah atau mengedit data VersiApkUser.
-
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:uuid/uuid.dart';
 
-// untuk menampilkan form untuk menambah atau mengedit konfigurasi versi aplikasi.
 class FormVersiApkUser extends StatefulWidget {
   final VersiApkUserModel? versiApkUser;
+  final VersiApkUserOperasi operasi;
 
-  const FormVersiApkUser({super.key, this.versiApkUser});
+  FormVersiApkUser({super.key, this.versiApkUser, VersiApkUserOperasi? operasi})
+      : operasi = operasi ?? VersiApkUserOperasi();
 
   @override
   State<FormVersiApkUser> createState() => _FormVersiApkUserState();
@@ -19,22 +19,20 @@ class FormVersiApkUser extends StatefulWidget {
 
 class _FormVersiApkUserState extends State<FormVersiApkUser> {
   final _formKey = GlobalKey<FormState>();
-  final _operasi = VersiApkUserOperasi();
   bool _isLoading = false;
-
-  // ditambah: Getter untuk memeriksa mode edit dengan mudah.
   bool get _isEdit => widget.versiApkUser != null;
 
   late TextEditingController _catatanRilisController;
   late TextEditingController _versiTerbaruController;
   late TextEditingController _youtubeTutorialController;
-  late TextEditingController _buildBit32Controller;
-  late TextEditingController _buildBit64Controller;
-  late TextEditingController _buildUniversalController;
-  late TextEditingController _tautanArm64Controller;
-  late TextEditingController _tautanArmeabiController;
-  late TextEditingController _tautanUniversalController;
   late bool _wajibUpdate;
+
+  late TextEditingController _buildUniversalController;
+  late TextEditingController _build32Controller;
+  late TextEditingController _build64Controller;
+  late TextEditingController _tautanUniversalController;
+  late TextEditingController _tautan32Controller;
+  late TextEditingController _tautan64Controller;
 
   @override
   void initState() {
@@ -42,32 +40,54 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
     _catatanRilisController = TextEditingController();
     _versiTerbaruController = TextEditingController();
     _youtubeTutorialController = TextEditingController();
-    _buildBit32Controller = TextEditingController();
-    _buildBit64Controller = TextEditingController();
-    _buildUniversalController = TextEditingController();
-    _tautanArm64Controller = TextEditingController();
-    _tautanArmeabiController = TextEditingController();
-    _tautanUniversalController = TextEditingController();
     _wajibUpdate = false;
 
-    // diubah: Logika pemuatan data disederhanakan.
+    _buildUniversalController = TextEditingController();
+    _build32Controller = TextEditingController();
+    _build64Controller = TextEditingController();
+    _tautanUniversalController = TextEditingController();
+    _tautan32Controller = TextEditingController();
+    _tautan64Controller = TextEditingController();
+
     if (_isEdit) {
       _populateControllers(widget.versiApkUser!);
+    } else {
+      _muatDataVersiTerakhir();
     }
   }
 
-  // diubah: Fungsi ini sekarang hanya untuk mengisi data saat mode edit.
+  void _muatDataVersiTerakhir() async {
+    setState(() => _isLoading = true);
+    try {
+      final versiTerakhir = await widget.operasi.ambilVersiApkTerbaru();
+      if (versiTerakhir != null && mounted) {
+        _versiTerbaruController.text = versiTerakhir.versiTerbaru;
+        final buildBerikutnya =
+            (versiTerakhir.nomorBuildTerbaru['universal'] ?? 0) + 1;
+        _buildUniversalController.text = buildBerikutnya.toString();
+      }
+    } catch (e, s) {
+      developer.log('Gagal memuat data versi terakhir',
+          name: 'FormVersiApkUser', error: e, stackTrace: s);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _populateControllers(VersiApkUserModel data) {
     _catatanRilisController.text = data.catatanRilis;
     _versiTerbaruController.text = data.versiTerbaru;
     _youtubeTutorialController.text = data.youtubeTutorial;
-    _buildBit32Controller.text = data.nomorBuildTerbaru['bit_32']?.toString() ?? '';
-    _buildBit64Controller.text = data.nomorBuildTerbaru['bit_64']?.toString() ?? '';
-    _buildUniversalController.text = data.nomorBuildTerbaru['universal']?.toString() ?? '';
-    _tautanArm64Controller.text = data.tautanUnduhan['arm64-v8a'] ?? '';
-    _tautanArmeabiController.text = data.tautanUnduhan['armeabi-v7a'] ?? '';
-    _tautanUniversalController.text = data.tautanUnduhan['universal'] ?? '';
     _wajibUpdate = data.wajibUpdate;
+
+    _buildUniversalController.text =
+        data.nomorBuildTerbaru['universal']?.toString() ?? '';
+    _build32Controller.text = data.nomorBuildTerbaru['bit_32']?.toString() ?? '';
+    _build64Controller.text = data.nomorBuildTerbaru['bit_64']?.toString() ?? '';
+
+    _tautanUniversalController.text = data.tautanUnduhan['universal'] ?? '';
+    _tautan32Controller.text = data.tautanUnduhan['bit_32'] ?? '';
+    _tautan64Controller.text = data.tautanUnduhan['bit_64'] ?? '';
   }
 
   @override
@@ -75,74 +95,93 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
     _catatanRilisController.dispose();
     _versiTerbaruController.dispose();
     _youtubeTutorialController.dispose();
-    _buildBit32Controller.dispose();
-    _buildBit64Controller.dispose();
     _buildUniversalController.dispose();
-    _tautanArm64Controller.dispose();
-    _tautanArmeabiController.dispose();
+    _build32Controller.dispose();
+    _build64Controller.dispose();
     _tautanUniversalController.dispose();
+    _tautan32Controller.dispose();
+    _tautan64Controller.dispose();
     super.dispose();
   }
 
+  // diubah: Fungsi simpan sekarang menampilkan dialog konfirmasi
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      final konfirmasi = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Konfirmasi'),
+          content: const Text('Apakah semua data yang Anda masukkan sudah benar?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Tidak'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Ya'),
+            ),
+          ],
+        ),
+      );
 
-      final nomorBuildTerbaru = {
-        'bit_32': int.tryParse(_buildBit32Controller.text) ?? 0,
-        'bit_64': int.tryParse(_buildBit64Controller.text) ?? 0,
-        'universal': int.tryParse(_buildUniversalController.text) ?? 0,
-      };
+      if (konfirmasi != true) return; // Jika pengguna menekan 'Tidak' atau menutup dialog
 
-      final tautanUnduhan = {
-        'arm64-v8a': _tautanArm64Controller.text,
-        'armeabi-v7a': _tautanArmeabiController.text,
-        'universal': _tautanUniversalController.text,
-      };
+      setState(() => _isLoading = true);
 
-      // diubah: Biarkan model yang menangani pembuatan ID jika null.
+      final nomorBuild = <String, int>{};
+      if (_buildUniversalController.text.isNotEmpty) {
+        nomorBuild['universal'] = int.parse(_buildUniversalController.text);
+      }
+      if (_build32Controller.text.isNotEmpty) {
+        nomorBuild['bit_32'] = int.parse(_build32Controller.text);
+      }
+      if (_build64Controller.text.isNotEmpty) {
+        nomorBuild['bit_64'] = int.parse(_build64Controller.text);
+      }
+
+      final tautanUnduhan = <String, String>{};
+      if (_tautanUniversalController.text.isNotEmpty) {
+        tautanUnduhan['universal'] = _tautanUniversalController.text;
+      }
+      if (_tautan32Controller.text.isNotEmpty) {
+        tautanUnduhan['bit_32'] = _tautan32Controller.text;
+      }
+      if (_tautan64Controller.text.isNotEmpty) {
+        tautanUnduhan['bit_64'] = _tautan64Controller.text;
+      }
+
       final dataToSave = VersiApkUserModel(
-        id: widget.versiApkUser?.id,
+        id: widget.versiApkUser?.id ?? const Uuid().v4(),
         catatanRilis: _catatanRilisController.text,
         versiTerbaru: _versiTerbaruController.text,
         youtubeTutorial: _youtubeTutorialController.text,
         wajibUpdate: _wajibUpdate,
-        nomorBuildTerbaru: nomorBuildTerbaru,
+        nomorBuildTerbaru: nomorBuild,
         tautanUnduhan: tautanUnduhan,
       );
 
       try {
-        // diubah: Logika untuk memanggil tambah atau perbarui.
         if (_isEdit) {
-          await _operasi.perbaruiVersiApkUser(dataToSave);
+          await widget.operasi.perbaruiVersiApkUser(dataToSave);
         } else {
-          await _operasi.tambahVersiApkUser(dataToSave);
+          await widget.operasi.tambahVersiApkUser(dataToSave);
         }
 
         if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text('Data berhasil disimpan!')),
-        );
-
-        Navigator.of(context).pop(true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Data berhasil disimpan!'),
+            backgroundColor: Colors.green));
+        Navigator.of(context).pop(dataToSave);
       } catch (e, s) {
         developer.log('Gagal menyimpan versi APK',
             name: 'FormVersiApkUser', error: e, stackTrace: s);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              backgroundColor: Colors.red,
-              content: Text('Gagal menyimpan data: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.red,
+            content: Text('Gagal menyimpan data: $e')));
       } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -151,88 +190,88 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // diubah: Judul dinamis berdasarkan mode edit atau tambah.
         title: Text(_isEdit ? 'Edit Versi APK' : 'Tambah Versi APK'),
-        actions: [
-          IconButton(
-            tooltip: 'Simpan',
-            icon: const Icon(Icons.save),
-            onPressed: _isLoading ? null : _simpanForm, // Nonaktifkan saat loading
-          ),
-        ],
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
+          Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildTextFormField(
-                    controller: _catatanRilisController,
-                    labelText: 'Catatan Rilis',
-                    validator: (value) =>
-                        value!.isEmpty ? 'Catatan rilis tidak boleh kosong' : null,
+                  TextFormField(
+                    controller: _versiTerbaruController,
+                    decoration: const InputDecoration(labelText: 'Versi Terbaru'),
+                    validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  Text('Nomor Build', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _buildUniversalController,
+                    decoration:
+                        const InputDecoration(labelText: 'Build Universal'),
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
-                  _buildTextFormField(
-                    controller: _versiTerbaruController,
-                    labelText: 'Versi Terbaru (Contoh: 1.0.12+21)',
-                    validator: (value) =>
-                        value!.isEmpty ? 'Versi terbaru tidak boleh kosong' : null,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Nomor Build Terbaru'),
-                  _buildTextFormField(
-                    controller: _buildBit32Controller,
-                    labelText: 'bit_32',
+                  TextFormField(
+                    controller: _build32Controller,
+                    decoration: const InputDecoration(labelText: 'Build 32-bit'),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 8),
-                  _buildTextFormField(
-                    controller: _buildBit64Controller,
-                    labelText: 'bit_64',
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTextFormField(
-                    controller: _buildUniversalController,
-                    labelText: 'universal',
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _build64Controller,
+                    decoration: const InputDecoration(labelText: 'Build 64-bit'),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 24),
-                  _buildSectionTitle('Tautan Unduhan'),
-                  _buildTextFormField(
-                    controller: _tautanArm64Controller,
-                    labelText: 'arm64-v8a',
-                  ),
+                  Text('Tautan Unduhan',
+                      style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  _buildTextFormField(
-                    controller: _tautanArmeabiController,
-                    labelText: 'armeabi-v7a',
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTextFormField(
+                  TextFormField(
                     controller: _tautanUniversalController,
-                    labelText: 'universal',
+                    decoration:
+                        const InputDecoration(labelText: 'Tautan Universal'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _tautan32Controller,
+                    decoration: const InputDecoration(labelText: 'Tautan 32-bit'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _tautan64Controller,
+                    decoration: const InputDecoration(labelText: 'Tautan 64-bit'),
                   ),
                   const SizedBox(height: 24),
-                  _buildTextFormField(
-                    controller: _youtubeTutorialController,
-                    labelText: 'URL Tutorial YouTube',
+                  TextFormField(
+                    controller: _catatanRilisController,
+                    decoration: const InputDecoration(labelText: 'Catatan Rilis'),
+                    maxLines: 3,
+                    validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _youtubeTutorialController,
+                    decoration:
+                        const InputDecoration(labelText: 'URL Tutorial YouTube'),
+                  ),
                   SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
                     title: const Text('Wajib Update'),
                     value: _wajibUpdate,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _wajibUpdate = value;
-                      });
-                    },
+                    onChanged: (bool value) =>
+                        setState(() => _wajibUpdate = value),
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _simpanForm,
+                    child: const Text('Simpan'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ],
               ),
@@ -240,41 +279,11 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withAlpha(128),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String labelText,
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
-  }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        border: const OutlineInputBorder(),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: validator,
-      keyboardType: keyboardType,
     );
   }
 }

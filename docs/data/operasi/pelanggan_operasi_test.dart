@@ -1,4 +1,4 @@
-// path: test/operasi/pelanggan_operasi_test.dart
+ // path: test/data/operasi/pelanggan_operasi_test.dart
 // diubah: Menyesuaikan dengan PelangganModel terbaru (telepon bukan nomorTelepon)
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';

@@ -1,4 +1,4 @@
-// path: test/operasi/paket_operasi_test.dart
+ // path: test/data/operasi/paket_operasi_test.dart
 // diubah: Mengubah tipe harga menjadi int
 // ditambah: Inisialisasi binding untuk pengujian
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
