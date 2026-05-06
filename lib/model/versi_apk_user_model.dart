@@ -1,4 +1,5 @@
 // path: lib/model/versi_apk_user_model.dart
+import 'dart:convert'; // ditambah: untuk jsonEncode dan jsonDecode
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,23 +39,36 @@ class VersiApkUserModel {
     return null;
   }
 
-  // untuk membuat instance VersiApkUserModel dari Map, biasanya dari Firestore.
+  // untuk membuat instance VersiApkUserModel dari Map, biasanya dari Firestore atau SQLite.
   factory VersiApkUserModel.fromMap(Map<String, dynamic> map) {
+    // ditambah: helper untuk deserialisasi map dari JSON string jika perlu
+    dynamic _decodeMap(dynamic value) {
+      if (value is String) {
+        try {
+          return jsonDecode(value);
+        } catch (e) {
+          return {}; // Kembalikan map kosong jika ada error parsing
+        }
+      }
+      return value ?? {};
+    }
+
     return VersiApkUserModel(
       id: map['id'] as String?,
       catatanRilis: map['catatan_rilis'] as String? ?? '',
+      // diubah: menggunakan helper _decodeMap untuk deserialisasi
       nomorBuildTerbaru: Map<String, int>.from(
-        map['nomor_build_terbaru'] as Map? ?? {},
+        _decodeMap(map['nomor_build_terbaru']),
       ),
       tautanUnduhan: Map<String, String>.from(
-        map['tautan_unduhan'] as Map? ?? {},
+        _decodeMap(map['tautan_unduhan']),
       ),
       versiTerbaru: map['versi_terbaru'] as String? ?? '',
-      wajibUpdate: map['wajib_update'] as bool? ?? false,
+      wajibUpdate: map['wajib_update'] == 1 || map['wajib_update'] == true, // diubah: kompatibel dengan bool dan int
       youtubeTutorial: map['youtube_tutorial'] as String? ?? '',
 
       // tambahan
-      isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
+      isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true, // diubah: kompatibel dengan bool dan int
       diarsipkan: _parseDateTime(map['diarsipkan']),
       diperbarui: _parseDateTime(map['diperbarui']),
     );
@@ -65,14 +79,15 @@ class VersiApkUserModel {
     return {
       'id': id,
       'catatan_rilis': catatanRilis,
-      'nomor_build_terbaru': nomorBuildTerbaru,
-      'tautan_unduhan': tautanUnduhan,
+      // diubah: menggunakan jsonEncode untuk serialisasi Map ke String
+      'nomor_build_terbaru': jsonEncode(nomorBuildTerbaru),
+      'tautan_unduhan': jsonEncode(tautanUnduhan),
       'versi_terbaru': versiTerbaru,
-      'wajib_update': wajibUpdate,
+      'wajib_update': wajibUpdate ? 1 : 0, // diubah: simpan bool sebagai integer
       'youtube_tutorial': youtubeTutorial,
 
       // tambahan
-      'isDeleted': isDeleted ? 1 : 0,
+      'isDeleted': isDeleted ? 1 : 0, // diubah: simpan bool sebagai integer
       'diarsipkan': diarsipkan?.toIso8601String(),
       'diperbarui': diperbarui?.toIso8601String(),
     };

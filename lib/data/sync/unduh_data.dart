@@ -10,7 +10,9 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
+import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/kritik_saran_model.dart';
@@ -19,7 +21,9 @@ import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LayananUnduhData {
@@ -35,6 +39,8 @@ class LayananUnduhData {
       RiwayatLanggananOperasi();
   final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   final PesananOperasi _pesanOperasi = PesananOperasi();
+  final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
+  final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
 
   // diubah: Fungsi ini sekarang memanggil fungsi unduh spesifik.
   Future<void> unduhSemuaData() async {
@@ -49,6 +55,8 @@ class LayananUnduhData {
         unduhDataRiwayatLangganan(),
         unduhDataKritikSaran(),
         unduhDataPesanan(),
+        unduhDataSubKategori(),
+        unduhDataVersiApkUser(),
       ]);
     } catch (e, s) {
       developer.log(
@@ -145,6 +153,26 @@ class LayananUnduhData {
       namaKoleksi: 'pesan',
       fromMap: (map) => PesananModel.fromMap(map),
       operasiBatch: (data) => _pesanOperasi.sisipkanAtauPerbaruiBatch(data),
+    );
+  }
+
+  // ditambah: Fungsi untuk mengunduh data Sub Kategori.
+  Future<void> unduhDataSubKategori() async {
+    await sinkronisasiKoleksi<SubKategoriModel>(
+      namaKoleksi: 'sub_kategori',
+      fromMap: (map) => SubKategoriModel.fromMap(map),
+      operasiBatch: (data) =>
+          _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
+    );
+  }
+
+  // ditambah: Fungsi untuk mengunduh data Versi APK User.
+  Future<void> unduhDataVersiApkUser() async {
+    await sinkronisasiKoleksi<VersiApkUserModel>(
+      namaKoleksi: 'versi_apk_user',
+      fromMap: (map) => VersiApkUserModel.fromMap(map),
+      operasiBatch: (data) =>
+          _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 

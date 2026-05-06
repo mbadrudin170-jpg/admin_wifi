@@ -10,7 +10,9 @@ import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -88,6 +90,22 @@ class LayananUnggahData {
         'transaksi',
         'transaksi',
         TransaksiModel.fromMap,
+        (m) => m.toMap(),
+        waktuSinkronisasiTerakhir,
+      ),
+      // ditambah: unggah untuk sub_kategori
+      unggahDataGenerik<SubKategoriModel>(
+        'sub_kategori',
+        'sub_kategori',
+        SubKategoriModel.fromMap,
+        (m) => m.toMap(),
+        waktuSinkronisasiTerakhir,
+      ),
+      // ditambah: unggah untuk versi_apk_user
+      unggahDataGenerik<VersiApkUserModel>(
+        'versi_apk_user',
+        'versi_apk_user',
+        VersiApkUserModel.fromMap,
         (m) => m.toMap(),
         waktuSinkronisasiTerakhir,
       ),
@@ -215,6 +233,30 @@ class LayananUnggahData {
       'transaksi',
       'transaksi',
       TransaksiModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+    );
+  }
+
+  // ditambah: fungsi unggah spesifik untuk Sub Kategori
+  Future<void> unggahDataSubKategori() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<SubKategoriModel>(
+      'sub_kategori',
+      'sub_kategori',
+      SubKategoriModel.fromMap,
+      (m) => m.toMap(),
+      waktu,
+    );
+  }
+
+  // ditambah: fungsi unggah spesifik untuk Versi APK User
+  Future<void> unggahDataVersiApkUser() async {
+    final waktu = await _syncManager.getLastSyncTimestamp();
+    await unggahDataGenerik<VersiApkUserModel>(
+      'versi_apk_user',
+      'versi_apk_user',
+      VersiApkUserModel.fromMap,
       (m) => m.toMap(),
       waktu,
     );

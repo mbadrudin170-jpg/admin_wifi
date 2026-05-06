@@ -1,14 +1,13 @@
- // path: lib/halaman/form/form_versi_apk_user.dart
+// path: lib/halaman/form/form_versi_apk_user.dart
 
 // Halaman ini menyediakan formulir untuk menambah atau mengedit data VersiApkUser.
 
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 
-// TODO: Buat dan import file operasi untuk menyimpan data ke Firestore
-// import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
-
-// untuk menampilkan form untuk mengedit konfigurasi versi aplikasi.
+// untuk menampilkan form untuk menambah atau mengedit konfigurasi versi aplikasi.
 class FormVersiApkUser extends StatefulWidget {
   final VersiApkUserModel? versiApkUser;
 
@@ -20,55 +19,58 @@ class FormVersiApkUser extends StatefulWidget {
 
 class _FormVersiApkUserState extends State<FormVersiApkUser> {
   final _formKey = GlobalKey<FormState>();
+  final _operasi = VersiApkUserOperasi();
+  bool _isLoading = false;
 
-  // Controllers untuk field String
+  // ditambah: Getter untuk memeriksa mode edit dengan mudah.
+  bool get _isEdit => widget.versiApkUser != null;
+
   late TextEditingController _catatanRilisController;
   late TextEditingController _versiTerbaruController;
   late TextEditingController _youtubeTutorialController;
-
-  // Controllers untuk map 'nomorBuildTerbaru'
   late TextEditingController _buildBit32Controller;
   late TextEditingController _buildBit64Controller;
   late TextEditingController _buildUniversalController;
-
-  // Controllers untuk map 'tautanUnduhan'
   late TextEditingController _tautanArm64Controller;
   late TextEditingController _tautanArmeabiController;
   late TextEditingController _tautanUniversalController;
-
-  // State untuk field boolean 'wajibUpdate'
   late bool _wajibUpdate;
 
   @override
-  // untuk menginisialisasi state dan controller dengan data yang ada.
   void initState() {
     super.initState();
-    final data = widget.versiApkUser;
+    _catatanRilisController = TextEditingController();
+    _versiTerbaruController = TextEditingController();
+    _youtubeTutorialController = TextEditingController();
+    _buildBit32Controller = TextEditingController();
+    _buildBit64Controller = TextEditingController();
+    _buildUniversalController = TextEditingController();
+    _tautanArm64Controller = TextEditingController();
+    _tautanArmeabiController = TextEditingController();
+    _tautanUniversalController = TextEditingController();
+    _wajibUpdate = false;
 
-    _catatanRilisController = TextEditingController(text: data?.catatanRilis ?? '');
-    _versiTerbaruController = TextEditingController(text: data?.versiTerbaru ?? '');
-    _youtubeTutorialController =
-        TextEditingController(text: data?.youtubeTutorial ?? '');
+    // diubah: Logika pemuatan data disederhanakan.
+    if (_isEdit) {
+      _populateControllers(widget.versiApkUser!);
+    }
+  }
 
-    _buildBit32Controller = TextEditingController(
-        text: data?.nomorBuildTerbaru['bit_32']?.toString() ?? '');
-    _buildBit64Controller = TextEditingController(
-        text: data?.nomorBuildTerbaru['bit_64']?.toString() ?? '');
-    _buildUniversalController = TextEditingController(
-        text: data?.nomorBuildTerbaru['universal']?.toString() ?? '');
-
-    _tautanArm64Controller =
-        TextEditingController(text: data?.tautanUnduhan['arm64-v8a'] ?? '');
-    _tautanArmeabiController =
-        TextEditingController(text: data?.tautanUnduhan['armeabi-v7a'] ?? '');
-    _tautanUniversalController =
-        TextEditingController(text: data?.tautanUnduhan['universal'] ?? '');
-
-    _wajibUpdate = data?.wajibUpdate ?? false;
+  // diubah: Fungsi ini sekarang hanya untuk mengisi data saat mode edit.
+  void _populateControllers(VersiApkUserModel data) {
+    _catatanRilisController.text = data.catatanRilis;
+    _versiTerbaruController.text = data.versiTerbaru;
+    _youtubeTutorialController.text = data.youtubeTutorial;
+    _buildBit32Controller.text = data.nomorBuildTerbaru['bit_32']?.toString() ?? '';
+    _buildBit64Controller.text = data.nomorBuildTerbaru['bit_64']?.toString() ?? '';
+    _buildUniversalController.text = data.nomorBuildTerbaru['universal']?.toString() ?? '';
+    _tautanArm64Controller.text = data.tautanUnduhan['arm64-v8a'] ?? '';
+    _tautanArmeabiController.text = data.tautanUnduhan['armeabi-v7a'] ?? '';
+    _tautanUniversalController.text = data.tautanUnduhan['universal'] ?? '';
+    _wajibUpdate = data.wajibUpdate;
   }
 
   @override
-  // untuk membersihkan controller saat widget tidak lagi digunakan.
   void dispose() {
     _catatanRilisController.dispose();
     _versiTerbaruController.dispose();
@@ -82,10 +84,12 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
     super.dispose();
   }
 
-  // untuk memvalidasi dan menyimpan data dari form.
-  void _simpanForm() {
+  void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      // Mengumpulkan data dari controllers menjadi Map
+      setState(() {
+        _isLoading = true;
+      });
+
       final nomorBuildTerbaru = {
         'bit_32': int.tryParse(_buildBit32Controller.text) ?? 0,
         'bit_64': int.tryParse(_buildBit64Controller.text) ?? 0,
@@ -98,8 +102,9 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         'universal': _tautanUniversalController.text,
       };
 
-      // Membuat objek model baru dari data form
-      VersiApkUserModel(
+      // diubah: Biarkan model yang menangani pembuatan ID jika null.
+      final dataToSave = VersiApkUserModel(
+        id: widget.versiApkUser?.id,
         catatanRilis: _catatanRilisController.text,
         versiTerbaru: _versiTerbaruController.text,
         youtubeTutorial: _youtubeTutorialController.text,
@@ -108,123 +113,153 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         tautanUnduhan: tautanUnduhan,
       );
 
-      // TODO: Panggil operasi untuk menyimpan dataBaru ke Firestore
-      // final operasi = VersiApkUserOperasi();
-      // await operasi.updateVersiApkUser(dataBaru);
+      try {
+        // diubah: Logika untuk memanggil tambah atau perbarui.
+        if (_isEdit) {
+          await _operasi.perbaruiVersiApkUser(dataToSave);
+        } else {
+          await _operasi.tambahVersiApkUser(dataToSave);
+        }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data berhasil disimpan!')),
-      );
+        if (!mounted) return;
 
-      Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+         const SnackBar(content: Text('Data berhasil disimpan!')),
+        );
+
+        Navigator.of(context).pop(true);
+      } catch (e, s) {
+        developer.log('Gagal menyimpan versi APK',
+            name: 'FormVersiApkUser', error: e, stackTrace: s);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              backgroundColor: Colors.red,
+              content: Text('Gagal menyimpan data: $e')),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
   @override
-  // untuk membangun UI dari halaman form.
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.versiApkUser == null
-            ? 'Tambah Versi APK'
-            : 'Edit Versi APK'),
+        // diubah: Judul dinamis berdasarkan mode edit atau tambah.
+        title: Text(_isEdit ? 'Edit Versi APK' : 'Tambah Versi APK'),
         actions: [
           IconButton(
             tooltip: 'Simpan',
             icon: const Icon(Icons.save),
-            onPressed: _simpanForm,
+            onPressed: _isLoading ? null : _simpanForm, // Nonaktifkan saat loading
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTextFormField(
-                controller: _catatanRilisController,
-                labelText: 'Catatan Rilis',
-                validator: (value) =>
-                    value!.isEmpty ? 'Catatan rilis tidak boleh kosong' : null,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTextFormField(
+                    controller: _catatanRilisController,
+                    labelText: 'Catatan Rilis',
+                    validator: (value) =>
+                        value!.isEmpty ? 'Catatan rilis tidak boleh kosong' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextFormField(
+                    controller: _versiTerbaruController,
+                    labelText: 'Versi Terbaru (Contoh: 1.0.12+21)',
+                    validator: (value) =>
+                        value!.isEmpty ? 'Versi terbaru tidak boleh kosong' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Nomor Build Terbaru'),
+                  _buildTextFormField(
+                    controller: _buildBit32Controller,
+                    labelText: 'bit_32',
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTextFormField(
+                    controller: _buildBit64Controller,
+                    labelText: 'bit_64',
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTextFormField(
+                    controller: _buildUniversalController,
+                    labelText: 'universal',
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Tautan Unduhan'),
+                  _buildTextFormField(
+                    controller: _tautanArm64Controller,
+                    labelText: 'arm64-v8a',
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTextFormField(
+                    controller: _tautanArmeabiController,
+                    labelText: 'armeabi-v7a',
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTextFormField(
+                    controller: _tautanUniversalController,
+                    labelText: 'universal',
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextFormField(
+                    controller: _youtubeTutorialController,
+                    labelText: 'URL Tutorial YouTube',
+                  ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Wajib Update'),
+                    value: _wajibUpdate,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _wajibUpdate = value;
+                      });
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildTextFormField(
-                controller: _versiTerbaruController,
-                labelText: 'Versi Terbaru (Contoh: 1.0.12+21)',
-                validator: (value) =>
-                    value!.isEmpty ? 'Versi terbaru tidak boleh kosong' : null,
-              ),
-              const SizedBox(height: 24),
-
-              _buildSectionTitle('Nomor Build Terbaru'),
-              _buildTextFormField(
-                controller: _buildBit32Controller,
-                labelText: 'bit_32',
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 8),
-              _buildTextFormField(
-                controller: _buildBit64Controller,
-                labelText: 'bit_64',
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 8),
-              _buildTextFormField(
-                controller: _buildUniversalController,
-                labelText: 'universal',
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 24),
-
-              _buildSectionTitle('Tautan Unduhan'),
-              _buildTextFormField(
-                  controller: _tautanArm64Controller, labelText: 'arm64-v8a'),
-              const SizedBox(height: 8),
-              _buildTextFormField(
-                  controller: _tautanArmeabiController, labelText: 'armeabi-v7a'),
-              const SizedBox(height: 8),
-              _buildTextFormField(
-                  controller: _tautanUniversalController, labelText: 'universal'),
-              const SizedBox(height: 24),
-
-              _buildTextFormField(
-                controller: _youtubeTutorialController,
-                labelText: 'URL Tutorial YouTube',
-              ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Wajib Update'),
-                value: _wajibUpdate,
-                onChanged: (bool value) {
-                  setState(() {
-                    _wajibUpdate = value;
-                  });
-                },
-              ),
-            ],
+            ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withAlpha(128),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  // untuk membuat judul bagian form.
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
 
-  // untuk membuat TextFormField dengan gaya yang konsisten.
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String labelText,

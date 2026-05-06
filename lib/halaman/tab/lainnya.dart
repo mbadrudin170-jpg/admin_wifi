@@ -8,6 +8,7 @@ import '../lainnya/paket.dart';
 import '../lainnya/pelanggan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
+import '../lainnya/versi_apk_user.dart';
 import 'pesanan.dart';
 
 class LainnyaPage extends StatefulWidget {
@@ -72,29 +73,31 @@ class _LainnyaTabState extends State<LainnyaPage> {
             ),
           ),
           _buildNavigationButton(
-              title: 'Kritik & Saran',
-              icon: Icons.feedback,
-              onTap: () async {
-                // diubah: Ambil navigator sebelum operasi async
-                final navigator = Navigator.of(context);
+            title: 'Kritik & Saran',
+            icon: Icons.feedback,
+            onTap: () async {
+              // diubah: Ambil navigator sebelum operasi async
+              final navigator = Navigator.of(context);
 
-                // 1. Unduh data dari Firebase
-                final dataFromFirebase =
-                    await KritikSaranOperasi.unduhDataDariFirebase();
+              // 1. Unduh data dari Firebase
+              final dataFromFirebase =
+                  await KritikSaranOperasi.unduhDataDariFirebase();
 
-                // 2. Simpan data ke database lokal (jika ada)
-                if (dataFromFirebase.isNotEmpty) {
-                  final operasi = KritikSaranOperasi();
-                  await operasi.sisipkanAtauPerbaruiBatch(dataFromFirebase);
-                }
+              // 2. Simpan data ke database lokal (jika ada)
+              if (dataFromFirebase.isNotEmpty) {
+                final operasi = KritikSaranOperasi();
+                await operasi.sisipkanAtauPerbaruiBatch(dataFromFirebase);
+              }
 
-                // 3. Setelah semua selesai, periksa mounted dan navigasi
-                if (!mounted) return;
-                await navigator.push(
-                  MaterialPageRoute(
-                      builder: (context) => const KritikSaranPage()),
-                );
-              }),
+              // 3. Setelah semua selesai, periksa mounted dan navigasi
+              if (!mounted) return;
+              await navigator.push(
+                MaterialPageRoute(
+                  builder: (context) => const KritikSaranPage(),
+                ),
+              );
+            },
+          ),
           _buildNavigationButton(
             title: 'Kelola Paket WiFi',
             icon: Icons.wifi,
@@ -121,27 +124,15 @@ class _LainnyaTabState extends State<LainnyaPage> {
               ),
             ),
           ),
-          // ask:
-          // tujuan:
-          // - tambahkan list untuk menuju ke file versi apk user atau versi aplikasi lain
-          //
-          // konteks:
-          // - lib/halaman/lainnya/versi_apk_user.dart
-          //
-          // batasan:
-          // - tuliskan batasan seperti tidak boleh ubah UI / hanya logic / dll
-          //
-          // input:
-          // - data atau sumber input
-          //
-          // output:
-          // - bentuk hasil yang diharapkan
-          //
-          // edge case (opsional):
-          // - jika data kosong / null / error handling
-          //
-          // catatan tambahan:
-          // - instruksi tambahan jika ada
+          // ditambahkan: Navigasi ke Halaman Versi Aplikasi Pengguna
+          _buildNavigationButton(
+            title: 'Versi Aplikasi Pengguna',
+            icon: Icons.system_update,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const VersiApkUserPage()),
+            ),
+          ),
           _buildNavigationButton(
             title: 'Tentang Aplikasi',
             icon: Icons.info,
