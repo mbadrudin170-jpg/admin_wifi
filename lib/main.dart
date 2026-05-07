@@ -1,11 +1,10 @@
 // lib/main.dart
-// import 'package:admin_wifi/halaman/tes/halaman_tes.dart';
+import 'package:admin_wifi/services/servis_sinkronisasi.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
 
-// [OPTIMASI PERFORMA] Jadikan main() sinkron dan secepat mungkin.
-// Pekerjaan berat seperti inisialisasi Firebase dipindahkan ke SplashScreen.
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
@@ -13,6 +12,24 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        Provider<SinkronisasiService>(
+          create: (_) => SinkronisasiService(),
+          dispose: (_, service) => service.dispose(),
+        ),
+        // Tambahkan provider lain di sini jika perlu
+      ],
+      child: const AppMaterial(),
+    );
+  }
+}
+
+class AppMaterial extends StatelessWidget {
+  const AppMaterial({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +86,6 @@ class MyApp extends StatelessWidget {
       theme: lightTheme,
       themeMode: ThemeMode.light,
       home: const SplashScreen(),
-
-      // home: const HalamanTes(),
       navigatorKey: NavigasiServis.navigatorKey,
     );
   }

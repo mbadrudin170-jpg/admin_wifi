@@ -1,8 +1,12 @@
 // path : lib/splash_screen.dart
 import 'dart:async';
+import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/services/servis_sinkronisasi.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:developer' as developer;
@@ -12,7 +16,6 @@ import 'package:admin_wifi/halaman_utama.dart';
 import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
-import 'package:admin_wifi/data/services/sinkronisasi_database.dart';
 import 'package:admin_wifi/services/pembersihan_data_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,7 +27,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   String _loadingMessage = "Memulai aplikasi...";
-  // ditambah: Buat instance untuk cek koneksi
   final KoneksiInternetService _koneksiService = KoneksiInternetService();
 
   @override
@@ -35,9 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-  // ditambahkan: Fungsi untuk update loading dengan aman
   void _updateLoading(String message) {
-    // Pengecekan mounted dilakukan di dalam agar pemanggilan lebih bersih
     if (!mounted) return;
     setState(() {
       _loadingMessage = message;
@@ -70,24 +70,35 @@ class _SplashScreenState extends State<SplashScreen> {
       await DatabaseHelper.instance.database;
       if (!mounted) return;
 
-      // 🔥 Jalankan pembersihan data (tidak blocking UI)
       PembersihanDataService().jalankanJikaPerlu();
       _updateLoading("Mengecek koneksi internet...");
-      // diubah: Menggunakan instance _koneksiService
       isOnline = await _koneksiService.cekKoneksi();
       if (!mounted) return;
+
+      // Dapatkan SinkronisasiService dari Provider
+      final sinkronisasiService = Provider.of<SinkronisasiService>(context, listen: false);
 
       if (isOnline) {
         _updateLoading("Memeriksa & sinkronisasi data...");
         try {
-          await LayananSinkronisasi().sinkronisasiData();
+          await sinkronisasiService.sinkronkan(); // Gunakan service dari provider
           _updateLoading("Sinkronisasi data selesai.");
         } catch (e, s) {
           developer.log('Gagal sinkronisasi', error: e, stackTrace: s);
           _updateLoading("Gagal sinkronisasi, melanjutkan offline...");
         }
-      } else {
-        _updateLoading("Mode offline, melewati sinkronisasi...");
+      }
+
+      // Ambil pengaturan dan mulai sinkronisasi otomatis
+      try {
+        final pengaturan = await PengaturanOperasi().getPengaturan();
+        sinkronisasiService.mulaiSinkronisasiOtomatis(
+          interval: Duration(hours: pengaturan.intervalSinkronisasiOtomatis),
+        );
+      } catch (e) {
+        developer.log('Gagal memulai sinkronisasi otomatis: $e');
+        // Tetap mulai dengan interval default jika gagal mengambil pengaturan
+        sinkronisasiService.mulaiSinkronisasiOtomatis(interval: const Duration(hours: 24));
       }
 
       _updateLoading("Selesai, membuka aplikasi...");
@@ -95,7 +106,6 @@ class _SplashScreenState extends State<SplashScreen> {
     } catch (e, s) {
       developer.log('Inisialisasi gagal total', error: e, stackTrace: s);
       _updateLoading("Terjadi error, silakan mulai ulang aplikasi.");
-      // Beri waktu pengguna membaca error sebelum menutup atau melakukan aksi lain
       await Future.delayed(const Duration(seconds: 5));
     }
 
@@ -115,7 +125,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ditambahkan: Logika untuk memilih logo berdasarkan tema
             Builder(
               builder: (context) {
                 final isDarkMode =

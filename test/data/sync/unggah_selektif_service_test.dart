@@ -110,7 +110,7 @@ void main() {
 
     test('should upload data for a single table and reset status', () async {
       final status = StatusUnggahModel(tabel: NamaTabel.dompet, ids: ['id1'], status: true);
-      final dompet = DompetModel(id: 'id1', nama: 'Test', saldo: 100);
+      final dompet = DompetModel(id: 'id1', saldo: 100, namaDompet: 'test');
 
       when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status]);
       when(mockDompetOperasi.getDompetByIds(any)).thenAnswer((_) async => [dompet]);
@@ -120,7 +120,7 @@ void main() {
 
       final doc = await fakeFirestore.collection('dompet').doc('id1').get();
       expect(doc.exists, isTrue);
-      expect(doc.data()?['nama'], 'Test');
+      expect(doc.data()?['namaDompet'], 'test');
 
       verify(mockDompetOperasi.getDompetByIds(['id1'])).called(1);
       verify(mockStatusOperasi.resetStatus(NamaTabel.dompet)).called(1);
@@ -128,7 +128,7 @@ void main() {
 
     test('should handle settings upload correctly', () async {
       final status = StatusUnggahModel(tabel: NamaTabel.pengaturan, ids: ['ignored'], status: true);
-      final pengaturan = PengaturanModel(intervalSinkronisasiOtomatis: 8);
+      final pengaturan = PengaturanModel(intervalSinkronisasiOtomatis: 8, hapusOtomatisDataArsip: 30, modePemeliharaan: false, infoPemeliharaan: '');
 
       when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status]);
       when(mockPengaturanOperasi.getPengaturan()).thenAnswer((_) async => pengaturan);
@@ -156,10 +156,10 @@ void main() {
       verifyNever(mockStatusOperasi.resetStatus(any));
     });
 
-    test('should continue with next table if one fails', async () {
+    test('should continue with next table if one fails', () async {
       final status1 = StatusUnggahModel(tabel: NamaTabel.dompet, ids: ['id1'], status: true);
       final status2 = StatusUnggahModel(tabel: NamaTabel.transaksi, ids: ['id2'], status: true);
-      final transaksi = TransaksiModel.create(idDompet: 'd1', jumlah: 50, tipe: TipeTransaksi.pemasukan);
+      final transaksi = TransaksiModel(id: 'id2', idDompet: 'd1', jumlah: 50, tipe: TipeTransaksi.pemasukan, tanggal: DateTime.now(), keterangan: 'test', idKategori: 'k1', namaKategori: 'test', namaDompet: 'test');
 
       when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status1, status2]);
       when(mockDompetOperasi.getDompetByIds(any)).thenThrow(Exception('DB error'));
