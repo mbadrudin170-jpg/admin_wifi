@@ -73,20 +73,4 @@ class PengaturanOperasi {
       rethrow;
     }
   }
-
-  Future<List<PengaturanModel>> getPengaturanByIds(List<String> ids) async {
-    if (ids.isEmpty) {
-      return [];
-    }
-    final db = await DatabaseHelper.instance.database;
-    final placeholders = List.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> maps = await db.query(
-      'pengaturan',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids,
-    );
-    return List.generate(maps.length, (i) {
-      return PengaturanModel.fromMap(maps[i]);
-    });
-  }
 }

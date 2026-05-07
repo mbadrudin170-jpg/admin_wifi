@@ -264,4 +264,19 @@ class TransaksiOperasi {
     }
     await batch.commit(noResult: true);
   }
+  Future<List<TransaksiModel>> getTransaksiByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+    final db = await _db;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transaksi',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return List.generate(maps.length, (i) {
+      return TransaksiModel.fromMap(maps[i]);
+    });
+  }
 }

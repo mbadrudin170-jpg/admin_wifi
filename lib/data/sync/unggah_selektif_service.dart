@@ -101,7 +101,7 @@ class UnggahSelektifService {
             berhasil = await _unggahVersiApkUser(status.ids);
             break;
           case NamaTabel.pengaturan:
-            berhasil = await _unggahPengaturan(status.ids);
+            berhasil = await _unggahPengaturan();
             break;
           case NamaTabel.kategori:
             berhasil = await _unggahKategori(status.ids);
@@ -127,10 +127,6 @@ class UnggahSelektifService {
           case NamaTabel.pesanan:
             berhasil = await _unggahPesanan(status.ids);
             break;
-          default:
-            developer.log(
-                'Tipe tabel ${status.tabel} tidak memiliki handler unggah.',
-                name: 'UnggahSelektifService');
         }
 
         if (berhasil) {
@@ -176,24 +172,41 @@ class UnggahSelektifService {
     return true;
   }
 
-  // Fungsi ini bertujuan untuk mengambil data transaksi dari database lokal berdasarkan ID yang diberikan dan mengunggahnya ke Firestore.
   Future<bool> _unggahTransaksi(List<String> ids) async {
     final daftarTransaksi = await _transaksiOperasi.getTransaksiByIds(ids);
 
     if (daftarTransaksi.isEmpty) {
       developer.log('Tidak ada data transaksi valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahTransaksi');
-      return true; // diubah: Kembalikan true karena tidak ada yang perlu diunggah, proses dianggap selesai.
+      return true;
     }
 
     final batch = _firestore.batch();
     for (final transaksi in daftarTransaksi) {
       final docRef = _firestore.collection('transaksi').doc(transaksi.id);
-      // diubah: Menggunakan toMapForFirebase untuk memastikan kompatibilitas format data saat unggah.
       batch.set(docRef, transaksi.toMapForFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
     developer.log('Berhasil mengunggah ${daftarTransaksi.length} item transaksi secara selektif.', name: 'UnggahSelektifService._unggahTransaksi');
+    return true;
+  }
+
+  Future<bool> _unggahKritikSaran(List<String> ids) async {
+    final daftarKritikSaran = await _kritikSaranOperasi.getKritikSaranByIds(ids);
+
+    if (daftarKritikSaran.isEmpty) {
+      developer.log('Tidak ada data kritik dan saran valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahKritikSaran');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final kritikSaran in daftarKritikSaran) {
+      final docRef = _firestore.collection('kritik_saran').doc(kritikSaran.id);
+      batch.set(docRef, kritikSaran.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarKritikSaran.length} item kritik dan saran secara selektif.', name: 'UnggahSelektifService._unggahKritikSaran');
     return true;
   }
   
@@ -216,24 +229,17 @@ class UnggahSelektifService {
     return true;
   }
 
-  Future<bool> _unggahPengaturan(List<String> ids) async {
-    final daftarData = await _pengaturanOperasi.getPengaturanByIds(ids);
+  Future<bool> _unggahPengaturan() async {
+    final pengaturan = await _pengaturanOperasi.getPengaturan();
 
-    if (daftarData.isEmpty) {
-      developer.log('Tidak ada data pengaturan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPengaturan');
-      return true;
-    }
+    // diubah: Menggunakan ID "default" untuk dokumen pengaturan di Firestore
+    final docRef = _firestore.collection('pengaturan').doc('default');
+    await docRef.set(pengaturan.toMapForFirebase(), SetOptions(merge: true));
 
-    final batch = _firestore.batch();
-    for (final data in daftarData) {
-      final docRef = _firestore.collection('pengaturan').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
-    }
-
-    await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item pengaturan secara selektif.', name: 'UnggahSelektifService._unggahPengaturan');
+    developer.log('Berhasil mengunggah item pengaturan secara selektif.', name: 'UnggahSelektifService._unggahPengaturan');
     return true;
   }
+
   Future<bool> _unggahKategori(List<String> ids) async {
     final daftarData = await _kategoriOperasi.getKategoriByIds(ids);
 
@@ -322,24 +328,6 @@ class UnggahSelektifService {
 
     await batch.commit();
     developer.log('Berhasil mengunggah ${daftarData.length} item pelanggan_aktif secara selektif.', name: 'UnggahSelektifService._unggahPelangganAktif');
-    return true;
-  }
-  Future<bool> _unggahKritikSaran(List<String> ids) async {
-    final daftarData = await _kritikSaranOperasi.getKritikSaranByIds(ids);
-
-    if (daftarData.isEmpty) {
-      developer.log('Tidak ada data kritik_saran valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahKritikSaran');
-      return true;
-    }
-
-    final batch = _firestore.batch();
-    for (final data in daftarData) {
-      final docRef = _firestore.collection('kritik_saran').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
-    }
-
-    await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item kritik_saran secara selektif.', name: 'UnggahSelektifService._unggahKritikSaran');
     return true;
   }
   Future<bool> _unggahRiwayatLangganan(List<String> ids) async {
