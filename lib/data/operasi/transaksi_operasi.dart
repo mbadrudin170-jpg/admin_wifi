@@ -121,9 +121,7 @@ class TransaksiOperasi {
           }
         }
 
-        final dataUpdate = transaksiBaru.copyWith(
-          diperbarui: DateTime.now(),
-        );
+        final dataUpdate = transaksiBaru.copyWith(diperbarui: DateTime.now());
         if (dataUpdate.tipe == TipeTransaksi.pemasukan) {
           await txn.rawUpdate(
             'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
@@ -202,7 +200,6 @@ class TransaksiOperasi {
       }
     });
   }
-
 
   Future<double> getTotalPemasukan() async {
     final db = await _db;

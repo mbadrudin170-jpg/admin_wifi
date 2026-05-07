@@ -71,7 +71,9 @@ class PelangganModel {
       alamat: map['alamat'] ?? '',
       password: map['password'] ?? '',
       macAddress: map['mac_address'] ?? '',
-      diperbarui: _parseDateTime(map['diperbarui']), // diubah: Tidak perlu nilai default
+      diperbarui: _parseDateTime(
+        map['diperbarui'],
+      ), // diubah: Tidak perlu nilai default
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );

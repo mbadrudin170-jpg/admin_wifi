@@ -11,7 +11,9 @@ class PelangganOperasi {
   Future<void> createPelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = pelanggan.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
+    final data = pelanggan
+        .copyWith(diperbarui: DateTime.now())
+        .toMapForSqlite();
     await db.insert(
       'pelanggan',
       data,
@@ -60,7 +62,9 @@ class PelangganOperasi {
   Future<void> updatePelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = pelanggan.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
+    final data = pelanggan
+        .copyWith(diperbarui: DateTime.now())
+        .toMapForSqlite();
     await db.update(
       'pelanggan',
       data,

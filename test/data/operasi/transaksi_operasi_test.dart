@@ -175,27 +175,30 @@ void main() {
       },
     );
 
-    test('arsipkanTransaksi (Pengeluaran) harus mengembalikan saldo, data transaksi harus ubah isDeleted : true, diarspikan :DateTime.now, diperbarui : DateTime.now', () async {
-      final transaksi = TransaksiModel(
-        id: uuid.v4(),
-        keterangan: 'Makan Siang',
-        jumlah: 50,
-        tanggal: DateTime.now(),
-        tipe: TipeTransaksi.pengeluaran,
-        idDompet: dompetA.id,
-        namaDompet: dompetA.namaDompet,
-        idKategori: '',
-        namaKategori: '',
-      );
-      await operasi.tambahTransaksi(transaksi);
+    test(
+      'arsipkanTransaksi (Pengeluaran) harus mengembalikan saldo, data transaksi harus ubah isDeleted : true, diarspikan :DateTime.now, diperbarui : DateTime.now',
+      () async {
+        final transaksi = TransaksiModel(
+          id: uuid.v4(),
+          keterangan: 'Makan Siang',
+          jumlah: 50,
+          tanggal: DateTime.now(),
+          tipe: TipeTransaksi.pengeluaran,
+          idDompet: dompetA.id,
+          namaDompet: dompetA.namaDompet,
+          idKategori: '',
+          namaKategori: '',
+        );
+        await operasi.tambahTransaksi(transaksi);
 
-      expect(await getSaldo(dompetA.id), saldoAwal - 50);
+        expect(await getSaldo(dompetA.id), saldoAwal - 50);
 
-      // diubah: memperbaiki pemanggilan fungsi yang salah
-      await operasi.arsipkanTransaksi(transaksi.id);
+        // diubah: memperbaiki pemanggilan fungsi yang salah
+        await operasi.arsipkanTransaksi(transaksi.id);
 
-      expect(await getSaldo(dompetA.id), saldoAwal);
-    });
+        expect(await getSaldo(dompetA.id), saldoAwal);
+      },
+    );
 
     test(
       'deleteTransaksi (Transfer) harus mengembalikan saldo kedua dompet',
@@ -452,9 +455,22 @@ void main() {
         final hasil = await operasi.ambilTransaksiByDompetId(dompetA.id);
 
         // Verifikasi
-        expect(hasil.length, 2, reason: 'Seharusnya hanya mengembalikan 2 transaksi aktif untuk dompet A');
-        expect(hasil[0].keterangan, 'Pemasukan Dompet A (Baru)', reason: 'Urutan harus yang paling baru');
-        expect(hasil[1].keterangan, 'Pemasukan Dompet A (Lama)', reason: 'Urutan kedua adalah data setelahnya');
+        expect(
+          hasil.length,
+          2,
+          reason:
+              'Seharusnya hanya mengembalikan 2 transaksi aktif untuk dompet A',
+        );
+        expect(
+          hasil[0].keterangan,
+          'Pemasukan Dompet A (Baru)',
+          reason: 'Urutan harus yang paling baru',
+        );
+        expect(
+          hasil[1].keterangan,
+          'Pemasukan Dompet A (Lama)',
+          reason: 'Urutan kedua adalah data setelahnya',
+        );
       },
     );
 

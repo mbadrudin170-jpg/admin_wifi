@@ -60,7 +60,7 @@ class KategoriModel {
     // ditambah: Logika parsing subkategori yang lebih aman dan jelas
     List<SubKategoriModel> parseSubKategori(dynamic data) {
       if (data == null) return [];
-      
+
       try {
         List<dynamic> list;
         if (data is String && data.isNotEmpty) {
@@ -72,7 +72,9 @@ class KategoriModel {
         }
 
         return list
-            .map((item) => SubKategoriModel.fromMap(item as Map<String, dynamic>))
+            .map(
+              (item) => SubKategoriModel.fromMap(item as Map<String, dynamic>),
+            )
             .toList();
       } catch (e) {
         // Jika terjadi error parsing, kembalikan list kosong untuk mencegah crash
@@ -100,13 +102,16 @@ class KategoriModel {
       'nama': nama,
       'tipe': tipe.name,
       // diubah: Memanggil toMapForSqlite() pada subkategori
-      'id_sub_kategori': jsonEncode(subKategori.map((sub) => sub.toMapForSqlite()).toList()),
+      'id_sub_kategori': jsonEncode(
+        subKategori.map((sub) => sub.toMapForSqlite()).toList(),
+      ),
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
-    Map<String, dynamic> toMapForFirebase() {
+
+  Map<String, dynamic> toMapForFirebase() {
     return {
       'id': id,
       'nama': nama,
@@ -120,5 +125,4 @@ class KategoriModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
-
 }

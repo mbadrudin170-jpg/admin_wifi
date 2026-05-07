@@ -122,8 +122,8 @@ class _SplashScreenState extends State<SplashScreen> {
                     MediaQuery.of(context).platformBrightness ==
                     Brightness.dark;
                 final logoAsset = isDarkMode
-                    ? 'assets/logo/splash_screen/logo_splash_screen_gelap.png'
-                    : 'assets/logo/splash_screen/logo_splash_screen_terang.png';
+                    ? 'assets/logo/splash_screen/logo_splash_screen_terang.png'
+                    : 'assets/logo/splash_screen/logo_splash_screen_gelap.png';
                 return Image.asset(logoAsset, width: 300);
               },
             ),

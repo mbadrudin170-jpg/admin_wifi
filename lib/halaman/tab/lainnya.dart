@@ -8,6 +8,7 @@ import '../lainnya/paket.dart';
 import '../lainnya/pelanggan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
+import '../lainnya/ubah_data.dart';
 import '../lainnya/versi_apk_user.dart';
 import 'pesanan.dart';
 import '../lainnya/pengaturan.dart'; // ditambahkan: Import halaman pengaturan
@@ -45,18 +46,6 @@ class _LainnyaTabState extends State<LainnyaPage> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // diubah: Tambahkan Divider dan judul untuk bagian navigasi
-          // const Padding(
-          //   padding: EdgeInsets.symmetric(vertical: 16.0),
-          //   child: Divider(),
-          // ),
-          // Text(
-          //   'Halaman Lainnya',
-          //   style: Theme.of(context).textTheme.titleLarge,
-          // ),
-          // const SizedBox(height: 8),
-
-          // diubah: Tambahkan tombol navigasi ke halaman lainnya
           _buildNavigationButton(
             title: 'Daftar Pesanan',
             icon: Icons.shopping_cart,
@@ -123,6 +112,14 @@ class _LainnyaTabState extends State<LainnyaPage> {
               MaterialPageRoute(
                 builder: (context) => const RiwayatAktivasiPaketPage(),
               ),
+            ),
+          ),
+          _buildNavigationButton(
+            title: 'Ubah Data',
+            icon: Icons.edit,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const UbahDataPage()),
             ),
           ),
           // ditambahkan: Navigasi ke Halaman Versi Aplikasi Pengguna

@@ -8,7 +8,9 @@ class SubKategoriOperasi {
 
   Future<void> createSubKategori(SubKategoriModel subKategori) async {
     final db = await dbHelper.database;
-    final data = subKategori.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
+    final data = subKategori
+        .copyWith(diperbarui: DateTime.now())
+        .toMapForSqlite();
     await db.insert(
       'sub_kategori',
       data,
@@ -16,7 +18,9 @@ class SubKategoriOperasi {
     );
   }
 
-  Future<List<SubKategoriModel>> getSubKategoriByKategoriId(String idKategori) async {
+  Future<List<SubKategoriModel>> getSubKategoriByKategoriId(
+    String idKategori,
+  ) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'sub_kategori',
@@ -44,8 +48,15 @@ class SubKategoriOperasi {
 
   Future<void> updateSubKategori(SubKategoriModel subKategori) async {
     final db = await dbHelper.database;
-    final data = subKategori.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
-    await db.update('sub_kategori', data, where: 'id = ?', whereArgs: [subKategori.id]);
+    final data = subKategori
+        .copyWith(diperbarui: DateTime.now())
+        .toMapForSqlite();
+    await db.update(
+      'sub_kategori',
+      data,
+      where: 'id = ?',
+      whereArgs: [subKategori.id],
+    );
   }
 
   Future<void> deleteSubKategori(String id, {bool softDelete = true}) async {
@@ -61,7 +72,7 @@ class SubKategoriOperasi {
       await db.delete('sub_kategori', where: 'id = ?', whereArgs: [id]);
     }
   }
-  
+
   Future<void> sisipkanAtauPerbaruiBatch(List<SubKategoriModel> items) async {
     final db = await dbHelper.database;
     final batch = db.batch();

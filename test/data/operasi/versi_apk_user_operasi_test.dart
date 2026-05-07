@@ -118,10 +118,12 @@ void main() {
         () async {
           // Atur kondisi: online (override default)
           when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => true);
-          when(mockLayananUnggah.unggahDataVersiApkUser())
-              .thenAnswer((_) async => Future.value());
-          when(mockSyncManager.setLastSyncTimestamp(any))
-              .thenAnswer((_) async => Future.value());
+          when(
+            mockLayananUnggah.unggahDataVersiApkUser(),
+          ).thenAnswer((_) async => Future.value());
+          when(
+            mockSyncManager.setLastSyncTimestamp(any),
+          ).thenAnswer((_) async => Future.value());
 
           final modelBaru = _buatModel(versi: '1.0.1');
           await operasi.tambahVersiApkUser(modelBaru);
@@ -278,9 +280,18 @@ void main() {
               isDeleted: true,
             );
 
-            await db.insert('versi_apk_user', buildRendahTanggalBaru.toMap());
-            await db.insert('versi_apk_user', buildTinggiTanggalLama.toMap());
-            await db.insert('versi_apk_user', buildPalingTinggiDiarsip.toMap());
+            await db.insert(
+              'versi_apk_user',
+              buildRendahTanggalBaru.toMapForSqlite(),
+            );
+            await db.insert(
+              'versi_apk_user',
+              buildTinggiTanggalLama.toMapForSqlite(),
+            );
+            await db.insert(
+              'versi_apk_user',
+              buildPalingTinggiDiarsip.toMapForSqlite(),
+            );
 
             // 2. ACT: Panggil fungsi yang diuji
             final hasil = await operasi.ambilVersiApkTerbaru();

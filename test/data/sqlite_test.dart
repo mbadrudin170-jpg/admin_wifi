@@ -104,9 +104,9 @@ void main() {
           namaKategori: 'kategori',
         );
 
-        await db.insert('transaksi', model.toMap());
+        await db.insert('transaksi', model.toMapForSqlite());
 
-        final kolomModel = model.toMap().keys.toSet();
+        final kolomModel = model.toMapForSqlite().keys.toSet();
 
         final notInDb = kolomModel.difference(kolomDatabase);
         final notInModel = kolomDatabase.difference(kolomModel);

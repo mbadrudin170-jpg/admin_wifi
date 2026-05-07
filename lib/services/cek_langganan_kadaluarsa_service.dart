@@ -13,11 +13,14 @@ class CekLanggananKadaluarsaService {
   /// dan memanggil operasi untuk mengarsipkan mereka.
   Future<void> prosesLanggananKadaluarsa() async {
     try {
-      log('Memulai pengecekan dan pengarsipan langganan kedaluwarsa...',
-          name: 'CekLangganan');
+      log(
+        'Memulai pengecekan dan pengarsipan langganan kedaluwarsa...',
+        name: 'CekLangganan',
+      );
 
       // Memanggil satu fungsi yang sudah menangani seluruh logika
-      final jumlahDiarsipkan = await _pelangganAktifOperasi.arsipkanPelangganKadaluarsa();
+      final jumlahDiarsipkan = await _pelangganAktifOperasi
+          .arsipkanPelangganKadaluarsa();
 
       if (jumlahDiarsipkan > 0) {
         log(

@@ -14,7 +14,9 @@ class PesanInfoPaket {
   /// lalu secara otomatis mengirimkannya melalui WhatsApp.
   ///
   /// [pelangganAktif]: Objek PelangganAktifModel yang baru saja dibuat atau diperbarui.
-  static Future<void> kirimRincianPaket(PelangganAktifModel pelangganAktif) async {
+  static Future<void> kirimRincianPaket(
+    PelangganAktifModel pelangganAktif,
+  ) async {
     final pelangganOperasi = PelangganOperasi();
     final paketOperasi = PaketOperasi();
 
@@ -71,7 +73,9 @@ class PesanInfoPaket {
       pelangganAktif.tanggalMulai,
     );
     // diubah: Menghapus pengecekan null yang tidak perlu karena tanggalBerakhir tidak bisa null.
-    final tanggalBerakhir = FormatTanggal.formatTanggalDanJam(pelangganAktif.tanggalBerakhir);
+    final tanggalBerakhir = FormatTanggal.formatTanggalDanJam(
+      pelangganAktif.tanggalBerakhir,
+    );
 
     return '''
 *-- Rincian Aktivasi Paket --*

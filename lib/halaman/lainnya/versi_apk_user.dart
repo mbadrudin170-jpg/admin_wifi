@@ -1,6 +1,7 @@
 // path: lib/halaman/lainnya/versi_apk_user.dart
 
 import 'package:admin_wifi/halaman/detail/detail_versi_apk_user.dart';
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
@@ -32,17 +33,16 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     _loadData();
   }
 
+  // ✅ BENAR - Menggunakan ArsitekturApkEnum.universal sebagai key
   void _urutkanList() {
     _daftarVersiApk.sort((a, b) {
       switch (_urutanSaatIni) {
         case Urutan.buildZA:
-          return (b.nomorBuildTerbaru['universal'] ?? 0).compareTo(
-            a.nomorBuildTerbaru['universal'] ?? 0,
-          );
+          return (b.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0)
+              .compareTo(a.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0);
         case Urutan.buildAZ:
-          return (a.nomorBuildTerbaru['universal'] ?? 0).compareTo(
-            b.nomorBuildTerbaru['universal'] ?? 0,
-          );
+          return (a.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0)
+              .compareTo(b.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0);
         case Urutan.versiZA:
           return b.versiTerbaru.compareTo(a.versiTerbaru);
         case Urutan.versiAZ:
@@ -335,7 +335,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: ListTile(
               title: Text(
-                'Versi: ${versiApk.versiTerbaru} (Build: ${versiApk.nomorBuildTerbaru['universal'] ?? 0})',
+                'Versi: ${versiApk.versiTerbaru} (Build: ${versiApk.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0})',
               ),
               subtitle: Text(
                 versiApk.catatanRilis,

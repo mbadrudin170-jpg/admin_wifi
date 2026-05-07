@@ -50,9 +50,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     if (widget.isOffline) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Anda dalam mode offline. Data mungkin tidak terbaru.',
-          ),
+          content: Text('Anda dalam mode offline. Data mungkin tidak terbaru.'),
           backgroundColor: Colors.orange,
           duration: Duration(seconds: 5), // Tampilkan lebih lama
         ),
@@ -83,7 +81,9 @@ class _HalamanUtamaState extends State<HalamanUtama> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Theme.of(context).colorScheme.onSurface.withAlpha(179),
+        unselectedItemColor: Theme.of(
+          context,
+        ).colorScheme.onSurface.withAlpha(179),
         onTap: _onItemTapped,
         showUnselectedLabels: true,
       ),

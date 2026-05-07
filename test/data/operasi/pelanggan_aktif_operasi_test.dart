@@ -1,4 +1,4 @@
- // path: test/data/operasi/pelanggan_aktif_operasi_test.dart
+// path: test/data/operasi/pelanggan_aktif_operasi_test.dart
 // diperbaiki: Menggunakan ID yang benar saat memanggil arsipkanPelangganAktif.
 // diubah: Mengganti .toMap() menjadi .toMapForSqlite() untuk PaketModel.
 
@@ -32,7 +32,14 @@ void main() {
     operasi = PelangganAktifOperasi(notifikasiServis: mockNotifikasiServis);
 
     when(mockNotifikasiServis.batalNotifikasi(any)).thenAnswer((_) async {});
-    when(mockNotifikasiServis.jadwalNotifikasi(id: anyNamed('id'), title: anyNamed('title'), body: anyNamed('body'), jadwal: anyNamed('jadwal'))).thenAnswer((_) async {});
+    when(
+      mockNotifikasiServis.jadwalNotifikasi(
+        id: anyNamed('id'),
+        title: anyNamed('title'),
+        body: anyNamed('body'),
+        jadwal: anyNamed('jadwal'),
+      ),
+    ).thenAnswer((_) async {});
 
     await db.delete('pelanggan_aktif');
     await db.delete('paket');
@@ -49,8 +56,9 @@ void main() {
       return PelangganAktifModel(
         idPelanggan: idPelanggan,
         idPaket: idPaket,
-        tanggalMulai:
-            kadaluarsa ? DateTime.now().subtract(const Duration(days: 40)) : DateTime.now(),
+        tanggalMulai: kadaluarsa
+            ? DateTime.now().subtract(const Duration(days: 40))
+            : DateTime.now(),
         tanggalBerakhir: kadaluarsa
             ? DateTime.now().subtract(const Duration(days: 1))
             : DateTime.now().add(const Duration(days: 30)),
@@ -60,7 +68,14 @@ void main() {
 
     test('createPelangganAktif harus menjadwalkan notifikasi', () async {
       await operasi.createPelangganAktif(buatModel());
-      verify(mockNotifikasiServis.jadwalNotifikasi(id: anyNamed('id'), title: anyNamed('title'), body: anyNamed('body'), jadwal: anyNamed('jadwal'))).called(2);
+      verify(
+        mockNotifikasiServis.jadwalNotifikasi(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+          jadwal: anyNamed('jadwal'),
+        ),
+      ).called(2);
     });
 
     test('arsipkanPelangganAktif harus membatalkan notifikasi', () async {
@@ -68,25 +83,61 @@ void main() {
       final modelDibuat = await operasi.createPelangganAktif(buatModel());
       // diperbaiki: gunakan ID yang valid, bukan 'any'
       await operasi.arsipkanPelangganAktif(modelDibuat.id);
-      
+
       // Harusnya 4 kali, 2 dari create, 2 dari arsip
       verify(mockNotifikasiServis.batalNotifikasi(any)).called(4);
     });
-    
+
     test('arsipkanPelangganKadaluarsa harus memproses dengan benar', () async {
       // diubah: Menggunakan toMapForSqlite()
-      await db.insert('paket', PaketModel(id: 'paket_1', nama: 'P1', harga: 1, durasi: 1, tipe: TipeDurasi.bulan).toMapForSqlite());
-      await db.insert('paket', PaketModel(id: 'paket_2', nama: 'P2', harga: 1, durasi: 1, tipe: TipeDurasi.bulan).toMapForSqlite());
-      await db.insert('pelanggan', {'id': 'p1', 'nama': 'Test1', 'telepon': '123', 'alamat': 'a', 'password': 'p', 'mac_address': 'm'});
-      await db.insert('pelanggan', {'id': 'p2', 'nama': 'Test2', 'telepon': '123', 'alamat': 'a', 'password': 'p', 'mac_address': 'm'});
+      await db.insert(
+        'paket',
+        PaketModel(
+          id: 'paket_1',
+          nama: 'P1',
+          harga: 1,
+          durasi: 1,
+          tipe: TipeDurasi.bulan,
+        ).toMapForSqlite(),
+      );
+      await db.insert(
+        'paket',
+        PaketModel(
+          id: 'paket_2',
+          nama: 'P2',
+          harga: 1,
+          durasi: 1,
+          tipe: TipeDurasi.bulan,
+        ).toMapForSqlite(),
+      );
+      await db.insert('pelanggan', {
+        'id': 'p1',
+        'nama': 'Test1',
+        'telepon': '123',
+        'alamat': 'a',
+        'password': 'p',
+        'mac_address': 'm',
+      });
+      await db.insert('pelanggan', {
+        'id': 'p2',
+        'nama': 'Test2',
+        'telepon': '123',
+        'alamat': 'a',
+        'password': 'p',
+        'mac_address': 'm',
+      });
 
-      await operasi.createPelangganAktif(buatModel(idPelanggan: 'p1', idPaket: 'paket_1', kadaluarsa: true));
-      await operasi.createPelangganAktif(buatModel(idPelanggan: 'p2', idPaket: 'paket_2', kadaluarsa: false));
-      
+      await operasi.createPelangganAktif(
+        buatModel(idPelanggan: 'p1', idPaket: 'paket_1', kadaluarsa: true),
+      );
+      await operasi.createPelangganAktif(
+        buatModel(idPelanggan: 'p2', idPaket: 'paket_2', kadaluarsa: false),
+      );
+
       final result = await operasi.arsipkanPelangganKadaluarsa();
-      
+
       expect(result, 1);
-      
+
       final riwayat = await db.query('riwayat_langganan');
       expect(riwayat.length, 1);
 

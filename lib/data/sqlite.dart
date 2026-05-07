@@ -129,21 +129,29 @@ class DatabaseHelper {
       );
     }
     if (oldVersion < 26) {
-      await db.execute('ALTER TABLE paket ADD COLUMN jumlahPoin INTEGER NOT NULL DEFAULT 0');
-      await db.execute('ALTER TABLE riwayat_langganan ADD COLUMN jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0');
+      await db.execute(
+        'ALTER TABLE paket ADD COLUMN jumlahPoin INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute(
+        'ALTER TABLE riwayat_langganan ADD COLUMN jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0',
+      );
     }
     if (oldVersion < 27) {
       await db.execute('ALTER TABLE kategori ADD COLUMN id_sub_kategori TEXT');
     }
     if (oldVersion < 28) {
-        await db.execute(_tabelPengaturan);
+      await db.execute(_tabelPengaturan);
     }
     if (oldVersion < 29) {
-        await db.execute('ALTER TABLE pengaturan ADD COLUMN diperbarui TEXT');
-        await db.execute('ALTER TABLE pengaturan ADD COLUMN mode_pemeliharaan INTEGER NOT NULL DEFAULT 0');
+      await db.execute('ALTER TABLE pengaturan ADD COLUMN diperbarui TEXT');
+      await db.execute(
+        'ALTER TABLE pengaturan ADD COLUMN mode_pemeliharaan INTEGER NOT NULL DEFAULT 0',
+      );
     }
     if (oldVersion < 30) {
-        await db.execute('ALTER TABLE pengaturan ADD COLUMN info_pemeliharaan TEXT');
+      await db.execute(
+        'ALTER TABLE pengaturan ADD COLUMN info_pemeliharaan TEXT',
+      );
     }
   }
 

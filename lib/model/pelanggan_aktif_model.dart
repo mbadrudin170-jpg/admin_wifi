@@ -117,7 +117,8 @@ class PelangganAktifModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
-    Map<String, dynamic> toMapForFirebase() {
+
+  Map<String, dynamic> toMapForFirebase() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -126,9 +127,8 @@ class PelangganAktifModel {
       'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
       'status': status.name,
       'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ,
+      'isDeleted': isDeleted,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
-
 }

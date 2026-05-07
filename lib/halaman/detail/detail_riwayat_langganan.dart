@@ -81,8 +81,8 @@ class _DetailRiwayatLanggananPageState
                   child: NamaPelangganWidget(
                     idPelanggan: _riwayat.idPelanggan,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),

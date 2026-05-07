@@ -1,4 +1,4 @@
- // path: test/data/operasi/pelanggan_operasi_test.dart
+// path: test/data/operasi/pelanggan_operasi_test.dart
 // diubah: Menyesuaikan dengan PelangganModel terbaru (telepon bukan nomorTelepon)
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
@@ -52,40 +52,56 @@ void main() {
       expect(hasil.first.nama, 'Pelanggan Test');
     });
 
-    test('2. getPelanggan harus mengembalikan semua pelanggan (non-arsip)', () async {
-      final pelangganAktif = buatModel(nama: 'Aktif');
-      final pelangganArsip = buatModel(nama: 'Arsip').copyWith(diarsipkan: DateTime.now());
+    test(
+      '2. getPelanggan harus mengembalikan semua pelanggan (non-arsip)',
+      () async {
+        final pelangganAktif = buatModel(nama: 'Aktif');
+        final pelangganArsip = buatModel(
+          nama: 'Arsip',
+        ).copyWith(diarsipkan: DateTime.now());
 
-      await operasi.createPelanggan(pelangganAktif);
-      await operasi.createPelanggan(pelangganArsip);
+        await operasi.createPelanggan(pelangganAktif);
+        await operasi.createPelanggan(pelangganArsip);
 
-      final hasil = await operasi.getPelanggan();
-      expect(hasil.length, 1);
-      expect(hasil.first.nama, 'Aktif');
-    });
+        final hasil = await operasi.getPelanggan();
+        expect(hasil.length, 1);
+        expect(hasil.first.nama, 'Aktif');
+      },
+    );
 
-    test('3. getAllPelanggan harus mengembalikan semua pelanggan termasuk arsip', () async {
-      await operasi.createPelanggan(buatModel(nama: 'Aktif'));
-      await operasi.createPelanggan(buatModel(nama: 'Arsip').copyWith(diarsipkan: DateTime.now()));
+    test(
+      '3. getAllPelanggan harus mengembalikan semua pelanggan termasuk arsip',
+      () async {
+        await operasi.createPelanggan(buatModel(nama: 'Aktif'));
+        await operasi.createPelanggan(
+          buatModel(nama: 'Arsip').copyWith(diarsipkan: DateTime.now()),
+        );
 
-      final hasil = await operasi.getAllPelanggan();
-      expect(hasil.length, 2);
-    });
+        final hasil = await operasi.getAllPelanggan();
+        expect(hasil.length, 2);
+      },
+    );
 
-    test('4. getPelangganById harus mengembalikan pelanggan yang benar', () async {
-      final model = buatModel();
-      await operasi.createPelanggan(model);
+    test(
+      '4. getPelangganById harus mengembalikan pelanggan yang benar',
+      () async {
+        final model = buatModel();
+        await operasi.createPelanggan(model);
 
-      final hasil = await operasi.getPelangganById(model.id);
-      expect(hasil, isNotNull);
-      expect(hasil!.nama, model.nama);
-    });
+        final hasil = await operasi.getPelangganById(model.id);
+        expect(hasil, isNotNull);
+        expect(hasil!.nama, model.nama);
+      },
+    );
 
     test('5. updatePelanggan harus memperbarui data', () async {
       final modelAwal = buatModel();
       await operasi.createPelanggan(modelAwal);
 
-      final modelUpdate = modelAwal.copyWith(nama: 'Nama Baru', telepon: '089876543210');
+      final modelUpdate = modelAwal.copyWith(
+        nama: 'Nama Baru',
+        telepon: '089876543210',
+      );
       await operasi.updatePelanggan(modelUpdate);
 
       final hasil = await operasi.getPelangganById(modelAwal.id);
@@ -93,21 +109,28 @@ void main() {
       expect(hasil.telepon, '089876543210');
     });
 
-    test('6. deletePelanggan (soft delete) harus mengubah status isDeleted', () async {
-      final model = buatModel();
-      await operasi.createPelanggan(model);
+    test(
+      '6. deletePelanggan (soft delete) harus mengubah status isDeleted',
+      () async {
+        final model = buatModel();
+        await operasi.createPelanggan(model);
 
-      await operasi.deletePelanggan(model.id, softDelete: true);
+        await operasi.deletePelanggan(model.id, softDelete: true);
 
-      // getPelanggan seharusnya tidak mengembalikan yg soft-deleted
-      final hasil = await operasi.getPelanggan();
-      expect(hasil.isEmpty, isTrue);
+        // getPelanggan seharusnya tidak mengembalikan yg soft-deleted
+        final hasil = await operasi.getPelanggan();
+        expect(hasil.isEmpty, isTrue);
 
-      // Cek langsung ke DB
-      final dbData = await db.query('pelanggan', where: 'id = ?', whereArgs: [model.id]);
-      final pelangganDariDb = PelangganModel.fromMap(dbData.first);
-      expect(pelangganDariDb.isDeleted, isTrue);
-    });
+        // Cek langsung ke DB
+        final dbData = await db.query(
+          'pelanggan',
+          where: 'id = ?',
+          whereArgs: [model.id],
+        );
+        final pelangganDariDb = PelangganModel.fromMap(dbData.first);
+        expect(pelangganDariDb.isDeleted, isTrue);
+      },
+    );
 
     test('7. deletePelanggan (hard delete) harus menghapus data', () async {
       final model = buatModel();
@@ -119,7 +142,7 @@ void main() {
       expect(hasil.isEmpty, isTrue);
     });
 
-     test('8. sisipkanAtauPerbaruiBatch harus melakukan upsert data', () async {
+    test('8. sisipkanAtauPerbaruiBatch harus melakukan upsert data', () async {
       final modelAwal = buatModel(id: 'id-tetap');
       await operasi.createPelanggan(modelAwal);
 
@@ -139,18 +162,20 @@ void main() {
       expect(newItem.nama, 'Pelanggan Baru');
     });
 
-    test('9. getPerubahan harus mengembalikan data setelah timestamp', () async {
-      final waktuAmbil = DateTime.now();
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      '9. getPerubahan harus mengembalikan data setelah timestamp',
+      () async {
+        final waktuAmbil = DateTime.now();
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      final modelBaru = buatModel();
-      await operasi.createPelanggan(modelBaru);
+        final modelBaru = buatModel();
+        await operasi.createPelanggan(modelBaru);
 
-      final perubahan = await operasi.getPerubahan(waktuAmbil);
+        final perubahan = await operasi.getPerubahan(waktuAmbil);
 
-      expect(perubahan.length, 1);
-      expect(perubahan.first.id, modelBaru.id);
-    });
-
+        expect(perubahan.length, 1);
+        expect(perubahan.first.id, modelBaru.id);
+      },
+    );
   });
 }

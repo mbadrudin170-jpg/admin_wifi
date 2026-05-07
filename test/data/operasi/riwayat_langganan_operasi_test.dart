@@ -1,4 +1,4 @@
- // path: test/data/operasi/riwayat_langganan_operasi_test.dart
+// path: test/data/operasi/riwayat_langganan_operasi_test.dart
 // diperbaiki: Menggunakan DatabaseHelper langsung dan tipe data boolean yang benar.
 
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
@@ -24,7 +24,7 @@ void main() {
     // Biarkan DatabaseHelper membuat db in-memory
     db = await DatabaseHelper.instance.database;
     operasi = RiwayatLanggananOperasi();
-    
+
     // Bersihkan data sebelum setiap tes
     await db.delete('riwayat_langganan');
   });
@@ -69,33 +69,39 @@ void main() {
 
       final hasilSemua = await operasi.ambilSemuaRiwayat();
       expect(hasilSemua.length, 1);
-      
+
       final dataArsip = hasilSemua.first;
       expect(dataArsip.isDeleted, isTrue);
       expect(dataArsip.diarsipkan, isNotNull);
     });
-    
-    test('3. ambilSemuaRiwayatAktif hanya mengembalikan data yang belum diarsipkan', () async {
-      await operasi.tambahRiwayatLangganan(buatModel(id: 'aktif-1'));
-      final modelUntukArsip = buatModel(id: 'arsip-1');
-      await operasi.tambahRiwayatLangganan(modelUntukArsip);
-      
-      await operasi.arsipkanRiwayatLangganan(modelUntukArsip.id);
 
-      final hasil = await operasi.ambilSemuaRiwayatAktif();
-      expect(hasil.length, 1);
-      expect(hasil.first.id, 'aktif-1');
-    });
+    test(
+      '3. ambilSemuaRiwayatAktif hanya mengembalikan data yang belum diarsipkan',
+      () async {
+        await operasi.tambahRiwayatLangganan(buatModel(id: 'aktif-1'));
+        final modelUntukArsip = buatModel(id: 'arsip-1');
+        await operasi.tambahRiwayatLangganan(modelUntukArsip);
 
-    test('4. hapusPermanenRiwayat harus menghapus data dari database', () async {
-      final model = buatModel();
-      await operasi.tambahRiwayatLangganan(model);
+        await operasi.arsipkanRiwayatLangganan(modelUntukArsip.id);
 
-      await operasi.hapusPermanenRiwayat(model.id);
+        final hasil = await operasi.ambilSemuaRiwayatAktif();
+        expect(hasil.length, 1);
+        expect(hasil.first.id, 'aktif-1');
+      },
+    );
 
-      final hasil = await operasi.ambilSemuaRiwayat();
-      expect(hasil.isEmpty, isTrue);
-    });
+    test(
+      '4. hapusPermanenRiwayat harus menghapus data dari database',
+      () async {
+        final model = buatModel();
+        await operasi.tambahRiwayatLangganan(model);
+
+        await operasi.hapusPermanenRiwayat(model.id);
+
+        final hasil = await operasi.ambilSemuaRiwayat();
+        expect(hasil.isEmpty, isTrue);
+      },
+    );
 
     // ... tes lainnya bisa ditambahkan di sini ...
   });

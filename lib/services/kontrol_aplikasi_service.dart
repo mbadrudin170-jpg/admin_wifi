@@ -1,4 +1,3 @@
-
 // path: lib/services/kontrol_aplikasi_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer' as developer;
@@ -7,8 +6,8 @@ import 'dart:developer' as developer;
 class KontrolAplikasiService {
   // Mendapatkan referensi ke koleksi 'pengaturan' di Firestore.
   // ditambah: Menambahkan referensi koleksi untuk Firestore
-  final CollectionReference _pengaturanRef =
-      FirebaseFirestore.instance.collection('pengaturan');
+  final CollectionReference _pengaturanRef = FirebaseFirestore.instance
+      .collection('pengaturan');
 
   // untuk mendapatkan status maintenance dari firestore
   Future<bool> dapatkanStatusMaintenance() async {
@@ -19,7 +18,10 @@ class KontrolAplikasiService {
 
       // Jika dokumen ada dan berisi field 'sedang_maintenance', kembalikan nilainya.
       // ditambah: Logika untuk memeriksa keberadaan data dan mengembalikan nilai
-      if (doc.exists && (doc.data() as Map<String, dynamic>).containsKey('sedang_maintenance')) {
+      if (doc.exists &&
+          (doc.data() as Map<String, dynamic>).containsKey(
+            'sedang_maintenance',
+          )) {
         return doc['sedang_maintenance'] as bool;
       }
       // Jika dokumen tidak ada atau field tidak ada, default ke false (tidak maintenance).

@@ -26,9 +26,9 @@ class LayananUnggahData {
     DatabaseHelper? dbHelper,
     FirebaseFirestore? firestore,
     SyncManager? syncManager,
-  })  : _dbHelper = dbHelper ?? DatabaseHelper.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance,
-        _syncManager = syncManager ?? SyncManager();
+  }) : _dbHelper = dbHelper ?? DatabaseHelper.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _syncManager = syncManager ?? SyncManager();
 
   Future<void> unggahSemuaData() async {
     final waktuSinkronisasiTerakhir = await _syncManager.getLastSyncTimestamp();

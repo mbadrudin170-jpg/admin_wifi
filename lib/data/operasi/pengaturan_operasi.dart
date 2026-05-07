@@ -51,10 +51,7 @@ class PengaturanOperasi {
       final hasil = await db.query(_namaTabel, limit: 1);
 
       if (hasil.isNotEmpty) {
-        await db.update(
-          _namaTabel,
-          pengaturan.toMapForSqlite(),
-        );
+        await db.update(_namaTabel, pengaturan.toMapForSqlite());
       } else {
         await db.insert(
           _namaTabel,
@@ -62,7 +59,10 @@ class PengaturanOperasi {
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
-      developer.log('Pengaturan berhasil disimpan.', name: 'PengaturanOperasi.save');
+      developer.log(
+        'Pengaturan berhasil disimpan.',
+        name: 'PengaturanOperasi.save',
+      );
     } catch (e, stackTrace) {
       developer.log(
         'Error saat menyimpan pengaturan: $e',

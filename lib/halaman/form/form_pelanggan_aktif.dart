@@ -49,13 +49,12 @@ class FormPelangganAktif extends StatefulWidget {
     TransaksiOperasi? transaksiOperasi,
     DompetOperasi? dompetOperasi,
     KategoriOperasi? kategoriOperasi,
-  })  : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
-        paketOperasi = paketOperasi ?? PaketOperasi(),
-        pelangganAktifOperasi =
-            pelangganAktifOperasi ?? PelangganAktifOperasi(),
-        transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
-        dompetOperasi = dompetOperasi ?? DompetOperasi(),
-        kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
+  }) : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
+       paketOperasi = paketOperasi ?? PaketOperasi(),
+       pelangganAktifOperasi = pelangganAktifOperasi ?? PelangganAktifOperasi(),
+       transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
+       dompetOperasi = dompetOperasi ?? DompetOperasi(),
+       kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
 
   @override
   State<FormPelangganAktif> createState() => _FormPelangganAktifState();
@@ -103,10 +102,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
         );
         _paketList = results[1] as List<PaketModel>;
-        
+
         // diubah: Memfilter dompet untuk hanya menampilkan yang tidak dihapus.
         final semuaDompet = results[2] as List<DompetModel>;
-        _daftarDompet = semuaDompet.where((dompet) => !dompet.isDeleted).toList();
+        _daftarDompet = semuaDompet
+            .where((dompet) => !dompet.isDeleted)
+            .toList();
 
         _kategoriList = (results[3] as List<KategoriModel>)
             .where(
@@ -358,8 +359,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedPelanggan = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Pelanggan tidak boleh kosong' : null,
+                        validator: (value) => value == null
+                            ? 'Pelanggan tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<PaketModel>(
@@ -421,8 +423,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedKategori = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Kategori tidak boleh kosong' : null,
+                        validator: (value) => value == null
+                            ? 'Kategori tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -463,12 +466,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey[200],
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[200],
                                 foregroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                        ? Colors.white
-                                        : Colors.black,
+                                    ? Colors.white
+                                    : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -482,11 +485,13 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _statusPembayaran ==
+                                backgroundColor:
+                                    _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
-                                foregroundColor: _statusPembayaran ==
+                                foregroundColor:
+                                    _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Colors.white
                                     : Colors.black,
@@ -547,9 +552,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                   );
                                   final DateTime endDate =
                                       _hitungTanggalBerakhir(
-                                    startDate,
-                                    _selectedPaket!,
-                                  );
+                                        startDate,
+                                        _selectedPaket!,
+                                      );
                                   return FormatTanggal.formatTanggalDanJam(
                                     endDate,
                                   );

@@ -1,4 +1,3 @@
-
 // path: lib/services/pembersihan_data_service.dart
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,10 +43,19 @@ class PembersihanDataService {
       final totalTerhapus = await _operasi.hapusSemuaDataArsipKadaluarsa();
 
       // diubah: Menggunakan developer.log untuk logging
-      developer.log('Pembersihan data dijalankan. Total terhapus: $totalTerhapus', name: 'PembersihanDataService');
-    } catch (e, s) { // diubah: Menangkap stacktrace juga
+      developer.log(
+        'Pembersihan data dijalankan. Total terhapus: $totalTerhapus',
+        name: 'PembersihanDataService',
+      );
+    } catch (e, s) {
+      // diubah: Menangkap stacktrace juga
       // diubah: Menggunakan developer.log untuk logging error
-      developer.log('Error saat pembersihan data', error: e, stackTrace: s, name: 'PembersihanDataService');
+      developer.log(
+        'Error saat pembersihan data',
+        error: e,
+        stackTrace: s,
+        name: 'PembersihanDataService',
+      );
     } finally {
       _sedangBerjalan = false;
     }

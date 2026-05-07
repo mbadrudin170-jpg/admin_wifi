@@ -24,58 +24,71 @@ void main() {
     });
 
     // 2. Tes Metode copyWith
-    test('Metode copyWith harus membuat salinan dengan nilai yang diperbarui', () {
-      // Arrange: Buat objek awal
-      final paketAwal = PaketModel(
-        id: 'id-awal',
-        nama: 'Paket Lama',
-        harga: 5000,
-        durasi: 2,
-        tipe: TipeDurasi.jam,
-        jumlahPoin: 10,
-      );
+    test(
+      'Metode copyWith harus membuat salinan dengan nilai yang diperbarui',
+      () {
+        // Arrange: Buat objek awal
+        final paketAwal = PaketModel(
+          id: 'id-awal',
+          nama: 'Paket Lama',
+          harga: 5000,
+          durasi: 2,
+          tipe: TipeDurasi.jam,
+          jumlahPoin: 10,
+        );
 
-      // Act: Buat salinan dengan beberapa properti yang diubah
-      final paketDiperbarui = paketAwal.copyWith(
-        nama: 'Paket Baru',
-        jumlahPoin: 25,
-      );
+        // Act: Buat salinan dengan beberapa properti yang diubah
+        final paketDiperbarui = paketAwal.copyWith(
+          nama: 'Paket Baru',
+          jumlahPoin: 25,
+        );
 
-      // Assert: Periksa apakah properti yang diubah sudah benar
-      expect(paketDiperbarui.id, paketAwal.id); // ID tidak boleh berubah
-      expect(paketDiperbarui.nama, 'Paket Baru');
-      expect(paketDiperbarui.harga, paketAwal.harga); // Harga tidak boleh berubah
-      expect(paketDiperbarui.jumlahPoin, 25);
-    });
+        // Assert: Periksa apakah properti yang diubah sudah benar
+        expect(paketDiperbarui.id, paketAwal.id); // ID tidak boleh berubah
+        expect(paketDiperbarui.nama, 'Paket Baru');
+        expect(
+          paketDiperbarui.harga,
+          paketAwal.harga,
+        ); // Harga tidak boleh berubah
+        expect(paketDiperbarui.jumlahPoin, 25);
+      },
+    );
 
     // 3. Tes Konversi toMapForSqlite
-    test('Metode toMapForSqlite harus mengonversi objek ke Map dengan benar untuk SQLite', () {
-      // Arrange: Buat objek
-      final now = DateTime.now();
-      final paket = PaketModel(
-        id: 'id-test',
-        nama: 'Paket Promo',
-        harga: 25000,
-        durasi: 7,
-        tipe: TipeDurasi.hari,
-        jumlahPoin: 50,
-        diperbarui: now,
-        isDeleted: true,
-      );
+    test(
+      'Metode toMapForSqlite harus mengonversi objek ke Map dengan benar untuk SQLite',
+      () {
+        // Arrange: Buat objek
+        final now = DateTime.now();
+        final paket = PaketModel(
+          id: 'id-test',
+          nama: 'Paket Promo',
+          harga: 25000,
+          durasi: 7,
+          tipe: TipeDurasi.hari,
+          jumlahPoin: 50,
+          diperbarui: now,
+          isDeleted: true,
+        );
 
-      // Act: Konversi ke map
-      final map = paket.toMapForSqlite(); // diubah: dari toMap() ke toMapForSqlite()
+        // Act: Konversi ke map
+        final map = paket
+            .toMapForSqlite(); // diubah: dari toMap() ke toMapForSqlite()
 
-      // Assert: Periksa setiap field di dalam map
-      expect(map['id'], 'id-test');
-      expect(map['nama'], 'Paket Promo');
-      expect(map['harga'], 25000);
-      expect(map['durasi'], 7);
-      expect(map['tipe'], 'hari'); // Enum harus menjadi string
-      expect(map['jumlahPoin'], 50); // Properti baru harus ada
-      expect(map['diperbarui'], now.toIso8601String());
-      expect(map['isDeleted'], 1); // Boolean harus menjadi integer untuk SQLite
-    });
+        // Assert: Periksa setiap field di dalam map
+        expect(map['id'], 'id-test');
+        expect(map['nama'], 'Paket Promo');
+        expect(map['harga'], 25000);
+        expect(map['durasi'], 7);
+        expect(map['tipe'], 'hari'); // Enum harus menjadi string
+        expect(map['jumlahPoin'], 50); // Properti baru harus ada
+        expect(map['diperbarui'], now.toIso8601String());
+        expect(
+          map['isDeleted'],
+          1,
+        ); // Boolean harus menjadi integer untuk SQLite
+      },
+    );
 
     // 4. Tes Konversi fromMap
     test('Metode fromMap harus membuat objek dari Map dengan benar', () {

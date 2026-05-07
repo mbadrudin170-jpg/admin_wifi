@@ -1,4 +1,4 @@
- // path: test/data/operasi/paket_operasi_test.dart
+// path: test/data/operasi/paket_operasi_test.dart
 // diubah: Mengubah tipe harga menjadi int
 // ditambah: Inisialisasi binding untuk pengujian
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
@@ -28,7 +28,13 @@ void main() {
       operasi = PaketOperasi();
     });
 
-    PaketModel buatModel(String nama, int harga, TipeDurasi tipe, int durasi, {String? id}) {
+    PaketModel buatModel(
+      String nama,
+      int harga,
+      TipeDurasi tipe,
+      int durasi, {
+      String? id,
+    }) {
       return PaketModel(
         id: id ?? uuid.v4(),
         nama: nama,
@@ -51,23 +57,26 @@ void main() {
       expect(hasil.first.diperbarui, isNotNull);
     });
 
-    test('2. getPaket harus mengembalikan data terurut berdasarkan durasi efektif', () async {
-      // Urutan acak saat pembuatan
-      final paketBulan = buatModel('Bulanan', 100000, TipeDurasi.bulan, 1);
-      final paketJam = buatModel('Jam', 2000, TipeDurasi.jam, 5);
-      final paketHari = buatModel('Harian', 50000, TipeDurasi.hari, 7);
+    test(
+      '2. getPaket harus mengembalikan data terurut berdasarkan durasi efektif',
+      () async {
+        // Urutan acak saat pembuatan
+        final paketBulan = buatModel('Bulanan', 100000, TipeDurasi.bulan, 1);
+        final paketJam = buatModel('Jam', 2000, TipeDurasi.jam, 5);
+        final paketHari = buatModel('Harian', 50000, TipeDurasi.hari, 7);
 
-      await operasi.createPaket(paketBulan);
-      await operasi.createPaket(paketJam);
-      await operasi.createPaket(paketHari);
+        await operasi.createPaket(paketBulan);
+        await operasi.createPaket(paketJam);
+        await operasi.createPaket(paketHari);
 
-      final hasil = await operasi.getPaket();
-      expect(hasil.length, 3);
-      // Urutan yang benar: jam -> hari -> bulan
-      expect(hasil[0].id, paketJam.id);
-      expect(hasil[1].id, paketHari.id);
-      expect(hasil[2].id, paketBulan.id);
-    });
+        final hasil = await operasi.getPaket();
+        expect(hasil.length, 3);
+        // Urutan yang benar: jam -> hari -> bulan
+        expect(hasil[0].id, paketJam.id);
+        expect(hasil[1].id, paketHari.id);
+        expect(hasil[2].id, paketBulan.id);
+      },
+    );
 
     test('3. getPaketById harus mengembalikan paket yang benar', () async {
       final model = buatModel('Cari Saya', 1, TipeDurasi.hari, 1);
@@ -111,26 +120,35 @@ void main() {
       expect(hasil.isEmpty, isTrue);
     });
 
-    test('7. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar', () async {
-      final modelAwal = buatModel('Awal', 100, TipeDurasi.hari, 1, id: 'id-1');
-      await operasi.createPaket(modelAwal);
+    test(
+      '7. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar',
+      () async {
+        final modelAwal = buatModel(
+          'Awal',
+          100,
+          TipeDurasi.hari,
+          1,
+          id: 'id-1',
+        );
+        await operasi.createPaket(modelAwal);
 
-      final batch = [
-        modelAwal.copyWith(nama: 'Updated'), // Update
-        buatModel('Baru', 200, TipeDurasi.bulan, 1, id: 'id-2'), // Insert
-      ];
+        final batch = [
+          modelAwal.copyWith(nama: 'Updated'), // Update
+          buatModel('Baru', 200, TipeDurasi.bulan, 1, id: 'id-2'), // Insert
+        ];
 
-      await operasi.sisipkanAtauPerbaruiBatch(batch);
+        await operasi.sisipkanAtauPerbaruiBatch(batch);
 
-      final hasil = await operasi.getPaket();
-      expect(hasil.length, 2);
+        final hasil = await operasi.getPaket();
+        expect(hasil.length, 2);
 
-      final updatedItem = hasil.firstWhere((p) => p.id == 'id-1');
-      expect(updatedItem.nama, 'Updated');
+        final updatedItem = hasil.firstWhere((p) => p.id == 'id-1');
+        expect(updatedItem.nama, 'Updated');
 
-      final newItem = hasil.firstWhere((p) => p.id == 'id-2');
-      expect(newItem.nama, 'Baru');
-    });
+        final newItem = hasil.firstWhere((p) => p.id == 'id-2');
+        expect(newItem.nama, 'Baru');
+      },
+    );
 
     test('8. getPerubahan harus mengambil data setelah timestamp', () async {
       final waktuAmbil = DateTime.now();

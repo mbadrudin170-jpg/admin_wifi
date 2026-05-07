@@ -5,6 +5,7 @@ import 'dart:convert'; // ditambahkan: untuk konversi ke JSON
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
@@ -23,10 +24,10 @@ class VersiApkUserOperasi {
     KoneksiInternetService? koneksiService,
     LayananUnggahData? unggahService,
     SyncManager? syncManager,
-  })  : dbHelper = dbHelper ?? DatabaseHelper.instance,
-        koneksiService = koneksiService ?? KoneksiInternetService(),
-        unggahService = unggahService ?? LayananUnggahData(),
-        syncManager = syncManager ?? SyncManager();
+  }) : dbHelper = dbHelper ?? DatabaseHelper.instance,
+       koneksiService = koneksiService ?? KoneksiInternetService(),
+       unggahService = unggahService ?? LayananUnggahData(),
+       syncManager = syncManager ?? SyncManager();
 
   Future<void> tambahVersiApkUser(VersiApkUserModel data) async {
     final db = await dbHelper.database;
@@ -63,10 +64,10 @@ class VersiApkUserOperasi {
           // Memanggil unggah data dengan timeout
           // diubah: menggunakan instance unggahService yang disuntikkan
           await unggahService.unggahDataVersiApkUser().timeout(
-                const Duration(seconds: 15),
-                onTimeout: () =>
-                    throw TimeoutException('Batas waktu unggah terlampaui.'),
-              );
+            const Duration(seconds: 15),
+            onTimeout: () =>
+                throw TimeoutException('Batas waktu unggah terlampaui.'),
+          );
 
           // diubah: menggunakan instance syncManager yang disuntikkan
           await syncManager.setLastSyncTimestamp(syncTime);
@@ -223,8 +224,8 @@ class VersiApkUserOperasi {
       }
 
       semuaVersiAktif.sort((a, b) {
-        final buildA = a.nomorBuildTerbaru['universal'] ?? 0;
-        final buildB = b.nomorBuildTerbaru['universal'] ?? 0;
+        final buildA = a.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0;
+        final buildB = b.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0;
         return buildA.compareTo(buildB);
       });
 

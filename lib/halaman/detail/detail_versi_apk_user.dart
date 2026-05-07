@@ -55,7 +55,8 @@ class DetailVersiApkUser extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           ...versiApk.nomorBuildTerbaru.entries.map(
-            (entry) => _buildInfoRow(entry.key, entry.value.toString()),
+            (entry) => _buildInfoRow(entry.key.name, entry.value.toString()),
+            
           ),
           const SizedBox(height: 16),
           const Text(
@@ -63,7 +64,7 @@ class DetailVersiApkUser extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           ...versiApk.tautanUnduhan.entries.map(
-            (entry) => _buildInfoRow(entry.key, entry.value),
+            (entry) => _buildInfoRow(entry.key.name, entry.value),
           ),
           const SizedBox(height: 16),
           _buildInfoRow('Youtube Tutorial', versiApk.youtubeTutorial),

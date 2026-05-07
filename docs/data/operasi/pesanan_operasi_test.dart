@@ -1,4 +1,4 @@
- // path: test/data/operasi/pesanan_operasi_test.dart
+// path: test/data/operasi/pesanan_operasi_test.dart
 // diubah: Disesuaikan dengan PesananModel terbaru (tanpa namaPelanggan, harga)
 // ditambah: Inisialisasi binding untuk pengujian
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
@@ -28,7 +28,12 @@ void main() {
       operasi = PesananOperasi();
     });
 
-    PesananModel buatModel(String idPelanggan, String status, {String? id, DateTime? tanggal}) {
+    PesananModel buatModel(
+      String idPelanggan,
+      String status, {
+      String? id,
+      DateTime? tanggal,
+    }) {
       return PesananModel(
         id: id ?? uuid.v4(),
         idPelanggan: idPelanggan,
@@ -48,18 +53,28 @@ void main() {
       expect(hasil.first.idPelanggan, 'pelanggan-A');
     });
 
-    test('2. ambilSemuaPesanan harus mengembalikan data terurut tanggal DESC', () async {
-      final modelLama = buatModel('pelanggan-Lama', 'baru', tanggal: DateTime.now().subtract(const Duration(days: 1)));
-      final modelBaru = buatModel('pelanggan-Baru', 'baru');
+    test(
+      '2. ambilSemuaPesanan harus mengembalikan data terurut tanggal DESC',
+      () async {
+        final modelLama = buatModel(
+          'pelanggan-Lama',
+          'baru',
+          tanggal: DateTime.now().subtract(const Duration(days: 1)),
+        );
+        final modelBaru = buatModel('pelanggan-Baru', 'baru');
 
-      await operasi.simpanPesanan(modelLama);
-      await operasi.simpanPesanan(modelBaru);
+        await operasi.simpanPesanan(modelLama);
+        await operasi.simpanPesanan(modelBaru);
 
-      final hasil = await operasi.ambilSemuaPesanan();
-      expect(hasil.length, 2);
-      expect(hasil.first.idPelanggan, 'pelanggan-Baru'); // Data terbaru harus di atas
-      expect(hasil.last.idPelanggan, 'pelanggan-Lama');
-    });
+        final hasil = await operasi.ambilSemuaPesanan();
+        expect(hasil.length, 2);
+        expect(
+          hasil.first.idPelanggan,
+          'pelanggan-Baru',
+        ); // Data terbaru harus di atas
+        expect(hasil.last.idPelanggan, 'pelanggan-Lama');
+      },
+    );
 
     test('3. ambilPesananByStatus harus memfilter data dengan benar', () async {
       await operasi.simpanPesanan(buatModel('A', 'baru'));
@@ -78,7 +93,11 @@ void main() {
 
       await operasi.updateStatusPesanan(model.id, 'selesai');
 
-      final hasilDb = await db.query('pesanan', where: 'id = ?', whereArgs: [model.id]);
+      final hasilDb = await db.query(
+        'pesanan',
+        where: 'id = ?',
+        whereArgs: [model.id],
+      );
       final pesananDariDb = PesananModel.fromMap(hasilDb.first);
 
       expect(pesananDariDb.status, 'selesai');
@@ -94,24 +113,31 @@ void main() {
       expect(hasil.isEmpty, isTrue);
     });
 
-    test('6. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar', () async {
-      final modelAwal = buatModel('pelanggan-Lama', 'selesai', id: 'id-tetap');
-      await operasi.simpanPesanan(modelAwal);
+    test(
+      '6. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar',
+      () async {
+        final modelAwal = buatModel(
+          'pelanggan-Lama',
+          'selesai',
+          id: 'id-tetap',
+        );
+        await operasi.simpanPesanan(modelAwal);
 
-      final batch = [
-        modelAwal.copyWith(status: 'diupdate'), // Update
-        buatModel('pelanggan-Batch', 'baru', id: 'id-baru'), // Insert
-      ];
+        final batch = [
+          modelAwal.copyWith(status: 'diupdate'), // Update
+          buatModel('pelanggan-Batch', 'baru', id: 'id-baru'), // Insert
+        ];
 
-      await operasi.sisipkanAtauPerbaruiBatch(batch);
-      final hasil = await operasi.ambilSemuaPesanan();
-      expect(hasil.length, 2);
+        await operasi.sisipkanAtauPerbaruiBatch(batch);
+        final hasil = await operasi.ambilSemuaPesanan();
+        expect(hasil.length, 2);
 
-      final updatedItem = hasil.firstWhere((p) => p.id == 'id-tetap');
-      expect(updatedItem.status, 'diupdate');
+        final updatedItem = hasil.firstWhere((p) => p.id == 'id-tetap');
+        expect(updatedItem.status, 'diupdate');
 
-      final newItem = hasil.firstWhere((p) => p.id == 'id-baru');
-      expect(newItem, isNotNull);
-    });
+        final newItem = hasil.firstWhere((p) => p.id == 'id-baru');
+        expect(newItem, isNotNull);
+      },
+    );
   });
 }

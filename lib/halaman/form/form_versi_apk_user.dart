@@ -1,6 +1,7 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
 import 'dart:developer' as developer;
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
@@ -11,7 +12,7 @@ class FormVersiApkUser extends StatefulWidget {
   final VersiApkUserOperasi operasi;
 
   FormVersiApkUser({super.key, this.versiApkUser, VersiApkUserOperasi? operasi})
-      : operasi = operasi ?? VersiApkUserOperasi();
+    : operasi = operasi ?? VersiApkUserOperasi();
 
   @override
   State<FormVersiApkUser> createState() => _FormVersiApkUserState();
@@ -62,13 +63,20 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
       final versiTerakhir = await widget.operasi.ambilVersiApkTerbaru();
       if (versiTerakhir != null && mounted) {
         _versiTerbaruController.text = versiTerakhir.versiTerbaru;
+        // ✅ BENAR - Kurung seimbang
         final buildBerikutnya =
-            (versiTerakhir.nomorBuildTerbaru['universal'] ?? 0) + 1;
+            (versiTerakhir.nomorBuildTerbaru[ArsitekturApkEnum.universal] ??
+                0) +
+            1;
         _buildUniversalController.text = buildBerikutnya.toString();
       }
     } catch (e, s) {
-      developer.log('Gagal memuat data versi terakhir',
-          name: 'FormVersiApkUser', error: e, stackTrace: s);
+      developer.log(
+        'Gagal memuat data versi terakhir',
+        name: 'FormVersiApkUser',
+        error: e,
+        stackTrace: s,
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -80,14 +88,20 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
     _youtubeTutorialController.text = data.youtubeTutorial;
     _wajibUpdate = data.wajibUpdate;
 
+    // ✅ BENAR - Menggunakan enum sebagai key
     _buildUniversalController.text =
-        data.nomorBuildTerbaru['universal']?.toString() ?? '';
-    _build32Controller.text = data.nomorBuildTerbaru['bit_32']?.toString() ?? '';
-    _build64Controller.text = data.nomorBuildTerbaru['bit_64']?.toString() ?? '';
+        data.nomorBuildTerbaru[ArsitekturApkEnum.universal]?.toString() ?? '';
+    _build32Controller.text =
+        data.nomorBuildTerbaru[ArsitekturApkEnum.bit_32]?.toString() ?? '';
+    _build64Controller.text =
+        data.nomorBuildTerbaru[ArsitekturApkEnum.bit_64]?.toString() ?? '';
 
-    _tautanUniversalController.text = data.tautanUnduhan['universal'] ?? '';
-    _tautan32Controller.text = data.tautanUnduhan['bit_32'] ?? '';
-    _tautan64Controller.text = data.tautanUnduhan['bit_64'] ?? '';
+    _tautanUniversalController.text =
+        data.tautanUnduhan[ArsitekturApkEnum.universal] ?? '';
+    _tautan32Controller.text =
+        data.tautanUnduhan[ArsitekturApkEnum.bit_32] ?? '';
+    _tautan64Controller.text =
+        data.tautanUnduhan[ArsitekturApkEnum.bit_64] ?? '';
   }
 
   @override
@@ -111,7 +125,9 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Konfirmasi'),
-          content: const Text('Apakah semua data yang Anda masukkan sudah benar?'),
+          content: const Text(
+            'Apakah semua data yang Anda masukkan sudah benar?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -125,30 +141,40 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         ),
       );
 
-      if (konfirmasi != true) return; // Jika pengguna menekan 'Tidak' atau menutup dialog
+      if (konfirmasi != true) {
+        return;
+      }
 
       setState(() => _isLoading = true);
 
-      final nomorBuild = <String, int>{};
+      // ✅ BENAR - Menggunakan ArsitekturApkEnum sebagai key
+      final nomorBuild = <ArsitekturApkEnum, int>{};
       if (_buildUniversalController.text.isNotEmpty) {
-        nomorBuild['universal'] = int.parse(_buildUniversalController.text);
+        nomorBuild[ArsitekturApkEnum.universal] = int.parse(
+          _buildUniversalController.text,
+        );
       }
       if (_build32Controller.text.isNotEmpty) {
-        nomorBuild['bit_32'] = int.parse(_build32Controller.text);
+        nomorBuild[ArsitekturApkEnum.bit_32] = int.parse(
+          _build32Controller.text,
+        );
       }
       if (_build64Controller.text.isNotEmpty) {
-        nomorBuild['bit_64'] = int.parse(_build64Controller.text);
+        nomorBuild[ArsitekturApkEnum.bit_64] = int.parse(
+          _build64Controller.text,
+        );
       }
-
-      final tautanUnduhan = <String, String>{};
+      // ✅ BENAR - Menggunakan ArsitekturApkEnum sebagai key
+      final tautanUnduhan = <ArsitekturApkEnum, String>{};
       if (_tautanUniversalController.text.isNotEmpty) {
-        tautanUnduhan['universal'] = _tautanUniversalController.text;
+        tautanUnduhan[ArsitekturApkEnum.universal] =
+            _tautanUniversalController.text;
       }
       if (_tautan32Controller.text.isNotEmpty) {
-        tautanUnduhan['bit_32'] = _tautan32Controller.text;
+        tautanUnduhan[ArsitekturApkEnum.bit_32] = _tautan32Controller.text;
       }
       if (_tautan64Controller.text.isNotEmpty) {
-        tautanUnduhan['bit_64'] = _tautan64Controller.text;
+        tautanUnduhan[ArsitekturApkEnum.bit_64] = _tautan64Controller.text;
       }
 
       final dataToSave = VersiApkUserModel(
@@ -169,17 +195,27 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         }
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
             content: Text('Data berhasil disimpan!'),
-            backgroundColor: Colors.green));
+            backgroundColor: Colors.green,
+          ),
+        );
         Navigator.of(context).pop(dataToSave);
       } catch (e, s) {
-        developer.log('Gagal menyimpan versi APK',
-            name: 'FormVersiApkUser', error: e, stackTrace: s);
+        developer.log(
+          'Gagal menyimpan versi APK',
+          name: 'FormVersiApkUser',
+          error: e,
+          stackTrace: s,
+        );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             backgroundColor: Colors.red,
-            content: Text('Gagal menyimpan data: $e')));
+            content: Text('Gagal menyimpan data: $e'),
+          ),
+        );
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -203,61 +239,81 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                 children: [
                   TextFormField(
                     controller: _versiTerbaruController,
-                    decoration: const InputDecoration(labelText: 'Versi Terbaru'),
+                    decoration: const InputDecoration(
+                      labelText: 'Versi Terbaru',
+                    ),
                     validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                   ),
                   const SizedBox(height: 24),
-                  Text('Nomor Build', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Nomor Build',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _buildUniversalController,
-                    decoration:
-                        const InputDecoration(labelText: 'Build Universal'),
+                    decoration: const InputDecoration(
+                      labelText: 'Build Universal',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _build32Controller,
-                    decoration: const InputDecoration(labelText: 'Build 32-bit'),
+                    decoration: const InputDecoration(
+                      labelText: 'Build 32-bit',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _build64Controller,
-                    decoration: const InputDecoration(labelText: 'Build 64-bit'),
+                    decoration: const InputDecoration(
+                      labelText: 'Build 64-bit',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 24),
-                  Text('Tautan Unduhan',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Tautan Unduhan',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _tautanUniversalController,
-                    decoration:
-                        const InputDecoration(labelText: 'Tautan Universal'),
+                    decoration: const InputDecoration(
+                      labelText: 'Tautan Universal',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _tautan32Controller,
-                    decoration: const InputDecoration(labelText: 'Tautan 32-bit'),
+                    decoration: const InputDecoration(
+                      labelText: 'Tautan 32-bit',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _tautan64Controller,
-                    decoration: const InputDecoration(labelText: 'Tautan 64-bit'),
+                    decoration: const InputDecoration(
+                      labelText: 'Tautan 64-bit',
+                    ),
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _catatanRilisController,
-                    decoration: const InputDecoration(labelText: 'Catatan Rilis'),
+                    decoration: const InputDecoration(
+                      labelText: 'Catatan Rilis',
+                    ),
                     maxLines: 3,
                     validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _youtubeTutorialController,
-                    decoration:
-                        const InputDecoration(labelText: 'URL Tutorial YouTube'),
+                    decoration: const InputDecoration(
+                      labelText: 'URL Tutorial YouTube',
+                    ),
                   ),
                   SwitchListTile(
                     title: const Text('Wajib Update'),
@@ -272,7 +328,6 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: const Text('Simpan'),
-
                   ),
                 ],
               ),

@@ -1,12 +1,14 @@
 // path: lib/model/versi_apk_user_model.dart
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class VersiApkUserModel {
   final String id;
   final String catatanRilis;
-  final Map<String, int> nomorBuildTerbaru;
-  final Map<String, String> tautanUnduhan;
+  final Map<ArsitekturApkEnum, int> nomorBuildTerbaru;
+  final Map<ArsitekturApkEnum, String> tautanUnduhan;
   final String versiTerbaru;
   final bool wajibUpdate;
   final String youtubeTutorial;
@@ -17,8 +19,8 @@ class VersiApkUserModel {
   VersiApkUserModel({
     required this.id,
     this.catatanRilis = '',
-    this.nomorBuildTerbaru = const {},
-    this.tautanUnduhan = const {},
+    this.nomorBuildTerbaru = defaultNomorBuildTerbaru,
+    this.tautanUnduhan = defaultTautanUnduhan,
     this.versiTerbaru = '',
     this.wajibUpdate = false,
     this.youtubeTutorial = '',
@@ -57,8 +59,13 @@ class VersiApkUserModel {
       'youtube_tutorial': youtubeTutorial,
       'diarsipkan': diarsipkan,
       'diperbarui': diperbarui,
-      'nomor_build_terbaru': nomorBuildTerbaru, // Dikirim sebagai MAP
-      'tautan_unduhan': tautanUnduhan, // Dikirim sebagai MAP
+      'nomor_build_terbaru': nomorBuildTerbaru.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+
+      'tautan_unduhan': tautanUnduhan.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
       'wajib_update': wajibUpdate, // Dikirim sebagai BOOLEAN
       'isDeleted': isDeleted, // Dikirim sebagai BOOLEAN
     };
@@ -74,11 +81,14 @@ class VersiApkUserModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
       'diperbarui': diperbarui?.toIso8601String(),
       'nomor_build_terbaru': jsonEncode(
-        nomorBuildTerbaru,
-      ), // Diubah jadi STRING JSON
-      'tautan_unduhan': jsonEncode(tautanUnduhan), // Diubah jadi STRING JSON
-      'wajib_update': wajibUpdate ? 1 : 0, // Diubah jadi INTEGER
-      'isDeleted': isDeleted ? 1 : 0, // Diubah jadi INTEGER
+        nomorBuildTerbaru.map((key, value) => MapEntry(key.name, value)),
+      ),
+
+      'tautan_unduhan': jsonEncode(
+        tautanUnduhan.map((key, value) => MapEntry(key.name, value)),
+      ),
+      'wajib_update': wajibUpdate ? 1 : 0,
+      'isDeleted': isDeleted ? 1 : 0,
     };
   }
 
@@ -90,50 +100,105 @@ class VersiApkUserModel {
     return null;
   }
 
-  static Map<String, int> _parseNomorBuild(dynamic data) {
-    if (data is Map) {
-      return Map<String, int>.from(
-        data.map((key, value) => MapEntry(key, (value as num).toInt())),
-      );
+  static const Map<ArsitekturApkEnum, int> defaultNomorBuildTerbaru = {
+    ArsitekturApkEnum.bit_32: 0,
+    ArsitekturApkEnum.bit_64: 0,
+    ArsitekturApkEnum.universal: 0,
+  };
+
+  static const Map<ArsitekturApkEnum, String> defaultTautanUnduhan = {
+    ArsitekturApkEnum.bit_32: '',
+    ArsitekturApkEnum.bit_64: '',
+    ArsitekturApkEnum.universal: '',
+  };
+
+  static ArsitekturApkEnum? _arsitekturDariString(String value) {
+    try {
+      return ArsitekturApkEnum.values.firstWhere((e) => e.name == value);
+    } catch (_) {
+      return null;
     }
+  }
+
+  static Map<ArsitekturApkEnum, int> _parseNomorBuild(dynamic data) {
+    final hasil = <ArsitekturApkEnum, int>{};
+
+    Map<dynamic, dynamic>? mapData;
+
+    if (data is Map) {
+      mapData = data;
+    }
+
     if (data is String) {
       try {
         final decoded = jsonDecode(data);
+
         if (decoded is Map) {
-          return Map<String, int>.from(
-            decoded.map((key, value) => MapEntry(key, (value as num).toInt())),
-          );
+          mapData = decoded;
         }
-      } catch (_) {}
+      } catch (e) {
+        if (kDebugMode) {
+          print('Gagal parse nomor build: $e');
+        }
+      }
     }
-    return {};
+
+    if (mapData != null) {
+      for (final item in mapData.entries) {
+        final arsitektur = _arsitekturDariString(item.key.toString());
+
+        if (arsitektur != null) {
+          hasil[arsitektur] = item.value is num
+              ? (item.value as num).toInt()
+              : 0;
+        }
+      }
+    }
+
+    return {...defaultNomorBuildTerbaru, ...hasil};
   }
 
-  static Map<String, String> _parseTautanUnduhan(dynamic data) {
+  static Map<ArsitekturApkEnum, String> _parseTautanUnduhan(dynamic data) {
+    final hasil = <ArsitekturApkEnum, String>{};
+
+    Map<dynamic, dynamic>? mapData;
+
     if (data is Map) {
-      return Map<String, String>.from(
-        data.map((key, value) => MapEntry(key, value as String)),
-      );
+      mapData = data;
     }
+
     if (data is String) {
       try {
         final decoded = jsonDecode(data);
-        if (decoded is Map) {
-          return Map<String, String>.from(
-            decoded.map((key, value) => MapEntry(key, value as String)),
-          );
-        }
-      } catch (_) {}
-    }
-    return {};
-  }
 
-  // Fungsi copyWith untuk memudahkan update objek
+        if (decoded is Map) {
+          mapData = decoded;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Gagal parse tautan unduhan: $e');
+        }
+      }
+    }
+
+    if (mapData != null) {
+      for (final item in mapData.entries) {
+        final arsitektur = _arsitekturDariString(item.key.toString());
+
+        if (arsitektur != null) {
+          hasil[arsitektur] = item.value?.toString() ?? '';
+        }
+      }
+    }
+
+    return {...defaultTautanUnduhan, ...hasil};
+  } // Fungsi copyWith untuk memudahkan update objek
+
   VersiApkUserModel copyWith({
     String? id,
     String? catatanRilis,
-    Map<String, int>? nomorBuildTerbaru,
-    Map<String, String>? tautanUnduhan,
+    Map<ArsitekturApkEnum, int>? nomorBuildTerbaru,
+    Map<ArsitekturApkEnum, String>? tautanUnduhan,
     String? versiTerbaru,
     bool? wajibUpdate,
     String? youtubeTutorial,
