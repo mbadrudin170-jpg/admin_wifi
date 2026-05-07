@@ -1,5 +1,5 @@
 // path: lib/data/sync/unggah_data.dart
-// diubah: Menambahkan parameter boolean untuk kontrol timestamp di fungsi generik.
+// diubah: Mengganti semua pemanggilan .toMap() menjadi .toMapForFirebase() untuk konsistensi unggah data.
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -18,11 +18,18 @@ import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LayananUnggahData {
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SyncManager _syncManager = SyncManager();
+  final DatabaseHelper _dbHelper;
+  final FirebaseFirestore _firestore;
+  final SyncManager _syncManager;
 
-  // untuk mengunggah semua data yang belum sinkron ke Firebase secara paralel.
+  LayananUnggahData({
+    DatabaseHelper? dbHelper,
+    FirebaseFirestore? firestore,
+    SyncManager? syncManager,
+  })  : _dbHelper = dbHelper ?? DatabaseHelper.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _syncManager = syncManager ?? SyncManager();
+
   Future<void> unggahSemuaData() async {
     final waktuSinkronisasiTerakhir = await _syncManager.getLastSyncTimestamp();
     developer.log(
@@ -30,90 +37,90 @@ class LayananUnggahData {
       name: 'UnggahDataService',
     );
 
+    // diubah: semua pemanggilan m.toMap() diubah ke m.toMapForFirebase()
     final List<Future<void>> daftarUnggah = [
       unggahDataGenerik<DompetModel>(
         'dompet',
         'dompet',
         DompetModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<KategoriModel>(
         'kategori',
         'kategori',
         KategoriModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<KritikSaranModel>(
         'kritik_saran',
         'kritik_saran',
         KritikSaranModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PaketModel>(
         'paket',
         'paket',
         PaketModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PelangganAktifModel>(
         'pelanggan_aktif',
         'pelanggan_aktif',
         PelangganAktifModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PelangganModel>(
         'pelanggan',
         'pelanggan',
         PelangganModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PesananModel>(
         'pesanan',
         'pesan',
         PesananModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<RiwayatLanggananModel>(
         'riwayat_langganan',
         'riwayat_langganan',
         RiwayatLanggananModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<TransaksiModel>(
         'transaksi',
         'transaksi',
         TransaksiModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<SubKategoriModel>(
         'sub_kategori',
         'sub_kategori',
         SubKategoriModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<VersiApkUserModel>(
         'versi_apk_user',
         'versi_apk_user',
         VersiApkUserModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
-      // ditambahkan: unggah untuk tabel pengaturan
       unggahDataGenerik<PengaturanModel>(
         'pengaturan',
         'pengaturan',
         PengaturanModel.fromMap,
-        (m) => m.toMap(),
+        (m) => m.toMapForFirebase(),
         waktuSinkronisasiTerakhir,
       ),
     ];
@@ -136,6 +143,7 @@ class LayananUnggahData {
   }
 
   // --- FUNGSI UNGGAH SPESIFIK ---
+  // diubah: semua pemanggilan m.toMap() diubah ke m.toMapForFirebase()
 
   Future<void> unggahDataDompet() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
@@ -143,7 +151,7 @@ class LayananUnggahData {
       'dompet',
       'dompet',
       DompetModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -154,7 +162,7 @@ class LayananUnggahData {
       'kategori',
       'kategori',
       KategoriModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -165,7 +173,7 @@ class LayananUnggahData {
       'kritik_saran',
       'kritik_saran',
       KritikSaranModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -176,7 +184,7 @@ class LayananUnggahData {
       'paket',
       'paket',
       PaketModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -187,7 +195,7 @@ class LayananUnggahData {
       'pelanggan_aktif',
       'pelanggan_aktif',
       PelangganAktifModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -198,7 +206,7 @@ class LayananUnggahData {
       'pelanggan',
       'pelanggan',
       PelangganModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -209,7 +217,7 @@ class LayananUnggahData {
       'pesanan',
       'pesan',
       PesananModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -220,7 +228,7 @@ class LayananUnggahData {
       'riwayat_langganan',
       'riwayat_langganan',
       RiwayatLanggananModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -231,7 +239,7 @@ class LayananUnggahData {
       'transaksi',
       'transaksi',
       TransaksiModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -242,21 +250,20 @@ class LayananUnggahData {
       'sub_kategori',
       'sub_kategori',
       SubKategoriModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
 
-  // ditambahkan: fungsi unggah spesifik untuk Pengaturan
   Future<void> unggahDataPengaturan() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
     await unggahDataGenerik<PengaturanModel>(
-        'pengaturan',
-        'pengaturan',
-        PengaturanModel.fromMap,
-        (m) => m.toMap(),
-        waktu,
-      );
+      'pengaturan',
+      'pengaturan',
+      PengaturanModel.fromMap,
+      (m) => m.toMapForFirebase(),
+      waktu,
+    );
   }
 
   Future<void> unggahDataVersiApkUser() async {
@@ -265,7 +272,7 @@ class LayananUnggahData {
       'versi_apk_user',
       'versi_apk_user',
       VersiApkUserModel.fromMap,
-      (m) => m.toMap(),
+      (m) => m.toMapForFirebase(),
       waktu,
     );
   }
@@ -280,7 +287,6 @@ class LayananUnggahData {
     try {
       final db = await _dbHelper.database;
 
-      // diubah: Logika untuk tabel pengaturan yang tidak punya kolom 'diperbarui'
       List<Map<String, dynamic>> dataUntukDiunggah;
       if (namaTabel == 'pengaturan') {
         dataUntukDiunggah = await db.query(namaTabel);
@@ -303,10 +309,9 @@ class LayananUnggahData {
         final T data = fromMap(map);
         final model = data as dynamic;
 
-        // diubah: Logika untuk ID dokumen di Firestore untuk tabel pengaturan
         String idDokumen;
         if (namaTabel == 'pengaturan') {
-          idDokumen = 'konfigurasi_global'; // ID statis untuk pengaturan
+          idDokumen = 'konfigurasi_global';
         } else {
           idDokumen = model.id;
         }

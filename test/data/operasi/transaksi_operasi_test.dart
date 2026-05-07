@@ -1,6 +1,9 @@
 // path: test/data/operasi/transaksi_operasi_test.dart
 // diubah: Mengganti MockDatabaseHelper dengan metode injeksi database ke singleton.
 // diubah: Menggunakan nama variabel lowerCamelCase dan tipe data boolean untuk isDeleted.
+// diubah: Mengganti semua pemanggilan .toMap() menjadi .toMapForSqlite().
+// diubah: Mengganti semua pemanggilan .salinDengan() menjadi .copyWith().
+
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -63,8 +66,9 @@ void main() {
       saldo: saldoAwal,
     );
 
-    await db.insert('dompet', dompetA.toMap());
-    await db.insert('dompet', dompetB.toMap());
+    // diubah: Menggunakan toMapForSqlite()
+    await db.insert('dompet', dompetA.toMapForSqlite());
+    await db.insert('dompet', dompetB.toMapForSqlite());
   });
 
   // `tearDownAll` dijalankan sekali setelah semua tes selesai.
@@ -243,7 +247,8 @@ void main() {
 
         expect(await getSaldo(dompetA.id), saldoAwal + 100);
 
-        final transaksiUpdate = transaksiAwal.salinDengan(jumlah: 250);
+        // diubah: Menggunakan copyWith()
+        final transaksiUpdate = transaksiAwal.copyWith(jumlah: 250);
         await operasi.updateTransaksi(transaksiUpdate);
 
         final saldoAkhir = await getSaldo(dompetA.id);
@@ -269,7 +274,8 @@ void main() {
 
         expect(await getSaldo(dompetA.id), saldoAwal + 100);
 
-        final transaksiUpdate = transaksiAwal.salinDengan(
+        // diubah: Menggunakan copyWith()
+        final transaksiUpdate = transaksiAwal.copyWith(
           tipe: TipeTransaksi.pengeluaran,
           jumlah: 50,
         );
@@ -301,7 +307,8 @@ void main() {
         expect(await getSaldo(dompetA.id), saldoAwal - 100);
         expect(await getSaldo(dompetB.id), saldoAwal + 100);
 
-        final transaksiUpdate = transaksiAwal.salinDengan(
+        // diubah: Menggunakan copyWith()
+        final transaksiUpdate = transaksiAwal.copyWith(
           tipe: TipeTransaksi.pengeluaran,
           idDompetTujuan: null,
           namaDompetTujuan: null,
@@ -435,10 +442,11 @@ void main() {
         );
 
         // Sisipkan data mentah ke DB untuk simulasi
-        await db.insert('transaksi', tDompetA1.toMap());
-        await db.insert('transaksi', tDompetA2.toMap());
-        await db.insert('transaksi', tDompetADihapus.toMap());
-        await db.insert('transaksi', tDompetB.toMap());
+        // diubah: Menggunakan toMapForSqlite()
+        await db.insert('transaksi', tDompetA1.toMapForSqlite());
+        await db.insert('transaksi', tDompetA2.toMapForSqlite());
+        await db.insert('transaksi', tDompetADihapus.toMapForSqlite());
+        await db.insert('transaksi', tDompetB.toMapForSqlite());
 
         // Panggil fungsi yang diuji
         final hasil = await operasi.ambilTransaksiByDompetId(dompetA.id);
@@ -602,9 +610,10 @@ void main() {
           );
 
           // Sisipkan data mentah ke DB untuk simulasi
-          await db.insert('transaksi', tAktifKemarin.toMap());
-          await db.insert('transaksi', tAktifSekarang.toMap());
-          await db.insert('transaksi', tDihapusLampau.toMap());
+          // diubah: Menggunakan toMapForSqlite()
+          await db.insert('transaksi', tAktifKemarin.toMapForSqlite());
+          await db.insert('transaksi', tAktifSekarang.toMapForSqlite());
+          await db.insert('transaksi', tDihapusLampau.toMapForSqlite());
 
           // Panggil fungsi yang diuji
           final hasil = await operasi.ambilSemuaTransaksi();

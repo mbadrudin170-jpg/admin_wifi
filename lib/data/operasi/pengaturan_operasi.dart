@@ -53,12 +53,12 @@ class PengaturanOperasi {
       if (hasil.isNotEmpty) {
         await db.update(
           _namaTabel,
-          pengaturan.toMap(),
+          pengaturan.toMapForSqlite(),
         );
       } else {
         await db.insert(
           _namaTabel,
-          pengaturan.toMap(),
+          pengaturan.toMapForSqlite(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }

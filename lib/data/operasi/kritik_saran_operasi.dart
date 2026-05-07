@@ -14,7 +14,8 @@ class KritikSaranOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menambahkan timestamp 'diperbarui' sebelum menyimpan.
-    final data = kritikSaran.toMap()..['diperbarui'] = now.toIso8601String();
+    final data = kritikSaran.toMapForSqlite()
+      ..['diperbarui'] = now.toIso8601String();
 
     await db.insert(
       'kritik_saran',
@@ -74,7 +75,7 @@ class KritikSaranOperasi {
     for (var kritikSaranModel in daftarKritikSaran) {
       batch.insert(
         'kritik_saran',
-        kritikSaranModel.toMap(),
+        kritikSaranModel.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

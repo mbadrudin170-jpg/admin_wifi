@@ -1,9 +1,9 @@
 // path: lib/model/pelanggan_model.dart
 // Model ini merepresentasikan data pelanggan dengan soft delete.
+// diubah: Field 'diperbarui' dijadikan nullable untuk konsistensi.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
-// diubah: nama kelas untuk konsistensi penamaan
 class PelangganModel {
   final String id;
   final String nama;
@@ -13,13 +13,12 @@ class PelangganModel {
   final String macAddress;
   final bool isDeleted;
 
-  final DateTime diperbarui; // diubah: menjadi non-nullable
+  final DateTime? diperbarui; // diubah: menjadi nullable
   final DateTime? diarsipkan;
 
   // ditambah: Getter untuk memeriksa apakah pelanggan aktif.
   bool get isAktif => diarsipkan == null && !isDeleted;
 
-  // diubah: nama konstruktor
   PelangganModel({
     String? id,
     required this.nama,
@@ -27,12 +26,11 @@ class PelangganModel {
     required this.alamat,
     required this.password,
     this.macAddress = '',
-    required this.diperbarui, // diubah: menjadi required
+    this.diperbarui, // diubah: tidak lagi required
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
-  // ditambah: Metode copyWith untuk membuat salinan objek dengan nilai yang diperbarui.
   PelangganModel copyWith({
     String? id,
     String? nama,
@@ -65,25 +63,21 @@ class PelangganModel {
     return null;
   }
 
-  // diubah: nama factory dan tipe kembalian
   factory PelangganModel.fromMap(Map<String, dynamic> map) {
-    // diubah: pembuatan instance kelas
     return PelangganModel(
-      id: map['id'],
+      id: map['id'] as String? ?? '',
       nama: map['nama'] ?? '',
       telepon: map['telepon'] ?? '',
       alamat: map['alamat'] ?? '',
       password: map['password'] ?? '',
       macAddress: map['mac_address'] ?? '',
-      diperbarui:
-          _parseDateTime(map['diperbarui']) ??
-          DateTime.now(), // diubah: Memberi nilai default
+      diperbarui: _parseDateTime(map['diperbarui']), // diubah: Tidak perlu nilai default
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'nama': nama,
@@ -91,9 +85,23 @@ class PelangganModel {
       'alamat': alamat,
       'password': password,
       'mac_address': macAddress,
-      'diperbarui': diperbarui.toIso8601String(),
+      'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'nama': nama,
+      'telepon': telepon,
+      'alamat': alamat,
+      'password': password,
+      'mac_address': macAddress,
+      'diperbarui': diperbarui,
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan,
     };
   }
 }

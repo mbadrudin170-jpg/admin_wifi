@@ -11,7 +11,7 @@ class PelangganOperasi {
   Future<void> createPelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = pelanggan.copyWith(diperbarui: DateTime.now()).toMap();
+    final data = pelanggan.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
     await db.insert(
       'pelanggan',
       data,
@@ -60,7 +60,7 @@ class PelangganOperasi {
   Future<void> updatePelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = pelanggan.copyWith(diperbarui: DateTime.now()).toMap();
+    final data = pelanggan.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
     await db.update(
       'pelanggan',
       data,
@@ -120,7 +120,7 @@ class PelangganOperasi {
       final itemToSave = item.copyWith(diperbarui: DateTime.now());
       batch.insert(
         'pelanggan',
-        itemToSave.toMap(),
+        itemToSave.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

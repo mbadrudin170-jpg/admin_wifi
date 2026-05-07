@@ -34,7 +34,7 @@ class PelangganAktifOperasi {
       id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
       diperbarui: DateTime.now(),
     );
-    final data = pelangganUntukDisimpan.toMap();
+    final data = pelangganUntukDisimpan.toMapForSqlite();
     await db.insert(
       'pelanggan_aktif',
       data,
@@ -76,7 +76,7 @@ class PelangganAktifOperasi {
 
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
-    final data = pelangganAktif.toMap();
+    final data = pelangganAktif.toMapForSqlite();
     await db.update(
       'pelanggan_aktif',
       data,
@@ -133,7 +133,7 @@ class PelangganAktifOperasi {
     for (var item in items) {
       batch.insert(
         'pelanggan_aktif',
-        item.toMap(),
+        item.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -156,7 +156,7 @@ class PelangganAktifOperasi {
     );
     await db.update(
       'pelanggan_aktif',
-      pelangganDiarsipkan.toMap(),
+      pelangganDiarsipkan.toMapForSqlite(),
       where: 'id = ?',
       whereArgs: [id],
     );

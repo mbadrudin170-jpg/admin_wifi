@@ -1,4 +1,7 @@
 // path: lib/model/pengaturan_model.dart
+// diubah: Menghapus toMap() dan hanya menyisakan toMapForSqlite() dan toMapForFirebase().
+// ditambah: _parseDateTime helper function untuk konsistensi.
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PengaturanModel {
   final int intervalSinkronisasiOtomatis;
@@ -15,25 +18,39 @@ class PengaturanModel {
     this.diperbarui,
   });
 
+  static DateTime? _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return null;
+    if (dateValue is Timestamp) return dateValue.toDate();
+    if (dateValue is String) return DateTime.tryParse(dateValue);
+    return null;
+  }
+
   factory PengaturanModel.fromMap(Map<String, dynamic> map) {
     return PengaturanModel(
       intervalSinkronisasiOtomatis: map['interval_sinkronisasi_otomatis'] ?? 24,
       hapusOtomatisDataArsip: map['hapus_otomatis_data_arsip'] ?? 30,
       modePemeliharaan: (map['mode_pemeliharaan'] ?? 0) == 1,
-      // ditambahkan: Mengambil data info pemeliharaan
       infoPemeliharaan: map['info_pemeliharaan'] ?? '',
-      diperbarui: map['diperbarui'] != null
-          ? DateTime.parse(map['diperbarui'])
-          : null,
+      diperbarui: _parseDateTime(map['diperbarui']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  // diubah: Hanya ada toMapForSqlite dan toMapForFirebase
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
       'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
       'mode_pemeliharaan': modePemeliharaan ? 1 : 0,
-      // ditambahkan: Menyimpan data info pemeliharaan
+      'info_pemeliharaan': infoPemeliharaan,
+      'diperbarui': DateTime.now().toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
+      'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
+      'mode_pemeliharaan': modePemeliharaan,
       'info_pemeliharaan': infoPemeliharaan,
       'diperbarui': DateTime.now().toIso8601String(),
     };

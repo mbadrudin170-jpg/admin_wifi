@@ -26,10 +26,10 @@ class TransaksiOperasi {
   Future<void> tambahTransaksi(TransaksiModel transaksi) async {
     final db = await _db;
     await db.transaction((txn) async {
-      final dataBaru = transaksi.salinDengan(diperbarui: DateTime.now());
+      final dataBaru = transaksi.copyWith(diperbarui: DateTime.now());
       await txn.insert(
         'transaksi',
-        dataBaru.toMap(),
+        dataBaru.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
@@ -121,7 +121,7 @@ class TransaksiOperasi {
           }
         }
 
-        final dataUpdate = transaksiBaru.salinDengan(
+        final dataUpdate = transaksiBaru.copyWith(
           diperbarui: DateTime.now(),
         );
         if (dataUpdate.tipe == TipeTransaksi.pemasukan) {
@@ -149,7 +149,7 @@ class TransaksiOperasi {
 
         await txn.update(
           'transaksi',
-          dataUpdate.toMap(),
+          dataUpdate.toMapForSqlite(),
           where: 'id = ?',
           whereArgs: [dataUpdate.id],
         );
@@ -238,7 +238,7 @@ class TransaksiOperasi {
     for (var item in items) {
       batch.insert(
         'transaksi',
-        item.salinDengan(diperbarui: DateTime.now()).toMap(),
+        item.copyWith(diperbarui: DateTime.now()).toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 

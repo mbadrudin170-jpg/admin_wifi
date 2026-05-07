@@ -1,4 +1,5 @@
 // path: lib/model/transaksi_model.dart
+// diubah: Standarisasi nama metode toMap, toMapForFirebase, dan copyWith.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -59,7 +60,7 @@ class TransaksiModel {
 
   factory TransaksiModel.fromMap(Map<String, dynamic> map) {
     return TransaksiModel(
-      id: map['id'],
+      id: map['id'] as String? ?? '',
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
       keterangan: map['keterangan'] ?? '',
       jumlah: (map['jumlah'] as num? ?? 0).toDouble(),
@@ -81,12 +82,12 @@ class TransaksiModel {
       namaSubKategori: map['nama_sub_kategori'],
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
-      // diubah: Konversi dari integer (SQLite) atau boolean (Firestore) ke boolean.
       isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  // diubah: Nama metode menjadi toMapForSqlite
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'tanggal': tanggal.toIso8601String(),
@@ -107,12 +108,38 @@ class TransaksiModel {
       'nama_sub_kategori': namaSubKategori,
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
-      // diubah: Konversi boolean ke integer untuk kompatibilitas dengan SQLite.
       'isDeleted': isDeleted ? 1 : 0,
     };
   }
 
-  TransaksiModel salinDengan({
+  // ditambahkan: Metode toMapForFirebase
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'tanggal': tanggal,
+      'keterangan': keterangan,
+      'jumlah': jumlah,
+      'tipe': tipe.name,
+      'id_dompet': idDompet,
+      'nama_dompet': namaDompet,
+      'id_dompet_tujuan': idDompetTujuan,
+      'nama_dompet_tujuan': namaDompetTujuan,
+      'id_kategori': idKategori,
+      'nama_kategori': namaKategori,
+      'id_pelanggan': idPelanggan,
+      'nama_pelanggan': namaPelanggan,
+      'id_paket': idPaket,
+      'nama_paket': namaPaket,
+      'id_sub_kategori': idSubKategori,
+      'nama_sub_kategori': namaSubKategori,
+      'diperbarui': diperbarui,
+      'diarsipkan': diarsipkan,
+      'isDeleted': isDeleted,
+    };
+  }
+
+  // diubah: Nama metode menjadi copyWith
+  TransaksiModel copyWith({
     String? id,
     DateTime? tanggal,
     String? keterangan,

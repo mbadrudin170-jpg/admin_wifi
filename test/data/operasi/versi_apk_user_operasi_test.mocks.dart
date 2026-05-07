@@ -138,6 +138,15 @@ class MockLayananUnggahData extends _i1.Mock implements _i2.LayananUnggahData {
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> unggahDataPengaturan() =>
+      (super.noSuchMethod(
+            Invocation.method(#unggahDataPengaturan, []),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   _i3.Future<void> unggahDataVersiApkUser() =>
       (super.noSuchMethod(
             Invocation.method(#unggahDataVersiApkUser, []),

@@ -104,7 +104,7 @@ class PelangganAktifModel {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -117,4 +117,18 @@ class PelangganAktifModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
+    Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'id_pelanggan': idPelanggan,
+      'id_paket': idPaket,
+      'tanggalMulai': tanggalMulai.toIso8601String(),
+      'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
+      'status': status.name,
+      'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted ,
+      'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
+
 }

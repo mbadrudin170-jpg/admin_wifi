@@ -10,7 +10,7 @@ class PesananOperasi {
   // Simpan pesanan baru
   Future<void> simpanPesanan(PesananModel pesanan) async {
     final db = await dbHelper.database;
-    await db.insert('pesanan', pesanan.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('pesanan', pesanan.toMapForSqlite(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Ambil semua pesanan (terbaru di atas)
@@ -59,7 +59,7 @@ class PesananOperasi {
     for (var item in items) {
       batch.insert(
         'pesanan',
-        item.toMap(),
+        item.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

@@ -40,6 +40,7 @@ dev_dependencies:
   dependency_validator: ^5.0.5
   mockito: ^5.6.4
   flutter_launcher_icons: ^0.14.4
+  fake_cloud_firestore: ^4.1.0+1
 
 # ditambahkan: untuk konfigurasi flutter_launcher_icons
 flutter_launcher_icons:

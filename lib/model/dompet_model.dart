@@ -56,13 +56,24 @@ class DompetModel {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'namaDompet': namaDompet,
       'saldo': saldo,
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
+      'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'namaDompet': namaDompet,
+      'saldo': saldo,
+      'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }

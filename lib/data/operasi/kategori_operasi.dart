@@ -11,7 +11,7 @@ class KategoriOperasi {
       id: kategori.id,
       diperbarui: DateTime.now(),
     );
-    final data = kategoriBaru.toMap();
+    final data = kategoriBaru.toMapForSqlite();
 
     await db.insert(
       'kategori',
@@ -62,7 +62,7 @@ class KategoriOperasi {
   Future<void> update(KategoriModel kategori) async {
     final db = await DatabaseHelper.instance.database;
     // diubah: memperbarui timestamp saat update dan juga saat arsip
-    final data = kategori.copyWith(diperbarui: DateTime.now()).toMap();
+    final data = kategori.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
     await db.update(
       'kategori',
       data,
@@ -81,7 +81,7 @@ class KategoriOperasi {
     await db.transaction((txn) async {
       await txn.delete('kategori');
       for (var item in items) {
-        await txn.insert('kategori', item.toMap());
+        await txn.insert('kategori', item.toMapForSqlite());
       }
     });
   }
@@ -102,7 +102,7 @@ class KategoriOperasi {
     for (var item in items) {
       batch.insert(
         'kategori',
-        item.toMap(),
+        item.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

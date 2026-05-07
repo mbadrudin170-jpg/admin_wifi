@@ -1,10 +1,10 @@
 // path: lib/model/pesanan_model.dart
-// diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
+// diubah: Mengganti toMap() dengan toMapForSqlite() dan toMapForFirebase()
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class PesananModel {
-  final String id; // diubah: dari int? menjadi String
+  final String id;
   final String idPelanggan;
   final String idPaket;
   final DateTime tanggal;
@@ -14,7 +14,7 @@ class PesananModel {
   final DateTime? diarsipkan;
 
   PesananModel({
-    String? id, // diubah: id bisa null saat pembuatan
+    String? id,
     required this.idPelanggan,
     required this.idPaket,
     required this.tanggal,
@@ -22,7 +22,7 @@ class PesananModel {
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
-  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
+  }) : id = id ?? const Uuid().v4();
 
   PesananModel copyWith({
     String? id,
@@ -53,7 +53,8 @@ class PesananModel {
     return null;
   }
 
-  Map<String, dynamic> toMap() {
+  // diubah: Nama metode menjadi toMapForSqlite
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -66,9 +67,23 @@ class PesananModel {
     };
   }
 
+  // ditambahkan: Metode toMapForFirebase
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'id_pelanggan': idPelanggan,
+      'id_paket': idPaket,
+      'tanggal': tanggal,
+      'status': status,
+      'diperbarui': diperbarui,
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan,
+    };
+  }
+
   factory PesananModel.fromMap(Map<String, dynamic> map) {
     return PesananModel(
-      id: map['id'],
+      id: map['id'] as String? ?? '',
       idPelanggan: map['id_pelanggan'] ?? '',
       idPaket: map['id_paket'] ?? '',
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),

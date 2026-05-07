@@ -49,7 +49,7 @@ class VersiApkUserModel {
   }
 
   // --- FUNGSI UNTUK FIREBASE ---
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapForFirebase() {
     return {
       'id': id,
       'catatan_rilis': catatanRilis,

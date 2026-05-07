@@ -1,5 +1,5 @@
 // lib/data/operasi/riwayat_langganan_operasi.dart
-// diubah: Menggunakan toMap() yang sudah diperbaiki
+// diubah: Menggunakan toMapForSqlite() yang sudah diperbaiki
 import 'package:sqflite/sqflite.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
@@ -12,7 +12,7 @@ class RiwayatLanggananOperasi {
     final db = await dbHelper.database;
     await db.insert(
       'riwayat_langganan',
-      riwayat.toMap(),
+      riwayat.toMapForSqlite(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -22,7 +22,7 @@ class RiwayatLanggananOperasi {
     final db = await dbHelper.database;
     await db.update(
       'riwayat_langganan',
-      riwayat.toMap(),
+      riwayat.toMapForSqlite(),
       where: 'id = ?',
       whereArgs: [riwayat.id],
     );
@@ -90,7 +90,7 @@ class RiwayatLanggananOperasi {
     for (var item in items) {
       batch.insert(
         'riwayat_langganan',
-        item.toMap(),
+        item.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

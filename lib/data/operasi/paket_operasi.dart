@@ -13,7 +13,7 @@ class PaketOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = paket.copyWith(diperbarui: now).toMap();
+    final data = paket.copyWith(diperbarui: now).toMapForSqlite();
     await db.insert(
       'paket',
       data,
@@ -58,7 +58,7 @@ class PaketOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = paket.copyWith(diperbarui: now).toMap();
+    final data = paket.copyWith(diperbarui: now).toMapForSqlite();
     await db.update('paket', data, where: 'id = ?', whereArgs: [paket.id]);
   }
 
@@ -88,7 +88,7 @@ class PaketOperasi {
     for (var item in items) {
       batch.insert(
         'paket',
-        item.toMap(),
+        item.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

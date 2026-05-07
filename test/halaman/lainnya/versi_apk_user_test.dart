@@ -41,8 +41,18 @@ void main() {
   setUp(() {
     mockOperasi = MockVersiApkUserOperasi();
     dataLokal = [
-      _buatModel(id: 'id-10', versi: '1.2.0', buildNumber: 10, diperbarui: DateTime(2023, 10, 1)),
-      _buatModel(id: 'id-5', versi: '1.0.0', buildNumber: 5, diperbarui: DateTime(2023, 5, 1)),
+      _buatModel(
+        id: 'id-10',
+        versi: '1.2.0',
+        buildNumber: 10,
+        diperbarui: DateTime(2023, 10, 1),
+      ),
+      _buatModel(
+        id: 'id-5',
+        versi: '1.0.0',
+        buildNumber: 5,
+        diperbarui: DateTime(2023, 5, 1),
+      ),
     ];
 
     // Konfigurasi mock untuk `ambilSemuaVersiApkAktif`
@@ -59,7 +69,8 @@ void main() {
 
     // Konfigurasi mock untuk `perbaruiVersiApkUser`
     when(mockOperasi.perbaruiVersiApkUser(any)).thenAnswer((invocation) async {
-      final versiDiperbarui = invocation.positionalArguments.first as VersiApkUserModel;
+      final versiDiperbarui =
+          invocation.positionalArguments.first as VersiApkUserModel;
       final index = dataLokal.indexWhere((v) => v.id == versiDiperbarui.id);
       if (index != -1) {
         dataLokal[index] = versiDiperbarui;
@@ -68,15 +79,16 @@ void main() {
 
     // Konfigurasi mock untuk `tambahVersiApkUser`
     when(mockOperasi.tambahVersiApkUser(any)).thenAnswer((invocation) async {
-      final versiBaru = invocation.positionalArguments.first as VersiApkUserModel;
+      final versiBaru =
+          invocation.positionalArguments.first as VersiApkUserModel;
       dataLokal.add(versiBaru);
     });
-    
+
     // Konfigurasi mock untuk `ambilVersiApkTerbaru` untuk halaman tambah
     when(mockOperasi.ambilVersiApkTerbaru()).thenAnswer((_) async {
-       if (dataLokal.isEmpty) return null;
-       dataLokal.sort((a, b) => b.diperbarui!.compareTo(a.diperbarui!));
-       return dataLokal.first;
+      if (dataLokal.isEmpty) return null;
+      dataLokal.sort((a, b) => b.diperbarui!.compareTo(a.diperbarui!));
+      return dataLokal.first;
     });
   });
 
@@ -84,13 +96,13 @@ void main() {
   Widget buatWidgetYangDiuji() => MaterialApp(
     home: VersiApkUserPage(operasi: mockOperasi),
     // Menambahkan rute untuk FormVersiApkUser agar navigasi berhasil
-    routes: {
-      '/form': (context) => FormVersiApkUser(operasi: mockOperasi),
-    },
+    routes: {'/form': (context) => FormVersiApkUser(operasi: mockOperasi)},
   );
 
   group('Pengujian Lengkap Halaman VersiApkUserPage', () {
-    testWidgets('1. Menampilkan data & urutan default (terbaru) dengan benar', (tester) async {
+    testWidgets('1. Menampilkan data & urutan default (terbaru) dengan benar', (
+      tester,
+    ) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
       await tester.pumpAndSettle();
 
@@ -115,7 +127,7 @@ void main() {
       // Pilih urutan build terlama ke terbaru
       await tester.tap(find.text('Build (Terlama ke Terbaru)'));
       await tester.pumpAndSettle(); // Tunggu dialog tertutup
-      
+
       // Tekan OK
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
@@ -125,7 +137,9 @@ void main() {
       expect((listTiles.first.title as Text).data, contains('Build: 5'));
     });
 
-    testWidgets('3. Navigasi ke halaman detail saat item ditekan', (tester) async {
+    testWidgets('3. Navigasi ke halaman detail saat item ditekan', (
+      tester,
+    ) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
       await tester.pumpAndSettle();
 
@@ -135,7 +149,9 @@ void main() {
       expect(find.byType(DetailVersiApkUser), findsOneWidget);
     });
 
-    testWidgets('4. Alur arsip menghapus item dari UI secara langsung', (tester) async {
+    testWidgets('4. Alur arsip menghapus item dari UI secara langsung', (
+      tester,
+    ) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
       await tester.pumpAndSettle();
 
@@ -170,11 +186,14 @@ void main() {
       expect(find.byType(FormVersiApkUser), findsOneWidget);
 
       // Ubah teks di form
-      await tester.enterText(find.widgetWithText(TextFormField, '1.2.0'), '1.2.1');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, '1.2.0'),
+        '1.2.1',
+      );
       // ditambahkan: Update juga catatan rilis agar teks '1.2.0' benar-benar hilang
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Rilis 1.2.0 build 10'),
-        'Rilis 1.2.1 build 10'
+        'Rilis 1.2.1 build 10',
       );
       await tester.pump();
 
@@ -194,9 +213,11 @@ void main() {
       expect(find.textContaining('Versi: 1.2.1'), findsOneWidget);
       expect(find.text('Rilis 1.2.1 build 10'), findsOneWidget);
       expect(find.textContaining('1.2.0'), findsNothing);
-      
+
       // ditambahkan: Verifikasi bahwa data tidak di-fetch ulang, tapi diperbarui dari hasil pop
-      verify(mockOperasi.ambilSemuaVersiApkAktif()).called(1); // Hanya dipanggil sekali di initState
+      verify(
+        mockOperasi.ambilSemuaVersiApkAktif(),
+      ).called(1); // Hanya dipanggil sekali di initState
       verify(mockOperasi.perbaruiVersiApkUser(any)).called(1);
     });
 
@@ -212,12 +233,18 @@ void main() {
 
       // Pastikan halaman form muncul
       expect(find.byType(FormVersiApkUser), findsOneWidget);
-      
+
       // Isi form
       // Catatan: Label 'Versi Terbaru' & 'Build Universal' akan terisi otomatis dari _muatDataVersiTerakhir
-      await tester.enterText(find.widgetWithText(TextFormField, '1.2.0'), '2.0.0');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, '1.2.0'),
+        '2.0.0',
+      );
       await tester.enterText(find.widgetWithText(TextFormField, '11'), '20');
-      await tester.enterText(find.widgetWithText(TextFormField, 'Catatan Rilis'), 'Rilis Baru');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Catatan Rilis'),
+        'Rilis Baru',
+      );
       await tester.pump();
 
       // ditambahkan: Pastikan tombol 'Simpan' terlihat di layar sebelum menekannya
@@ -227,7 +254,7 @@ void main() {
       // Simpan form
       await tester.tap(find.text('Simpan'));
       await tester.pumpAndSettle();
-      
+
       // Konfirmasi di dialog
       await tester.tap(find.widgetWithText(TextButton, 'Ya'));
       await tester.pumpAndSettle(); // Tunggu navigasi kembali dan UI update
@@ -235,9 +262,11 @@ void main() {
       // Verifikasi UI diperbarui di halaman daftar
       expect(find.text('Rilis Baru'), findsOneWidget);
       expect(find.byType(ListTile), findsNWidgets(3));
-      
+
       // ditambahkan: Verifikasi bahwa data tidak di-fetch ulang
-      verify(mockOperasi.ambilSemuaVersiApkAktif()).called(1); // Hanya dipanggil sekali di initState
+      verify(
+        mockOperasi.ambilSemuaVersiApkAktif(),
+      ).called(1); // Hanya dipanggil sekali di initState
       verify(mockOperasi.tambahVersiApkUser(any)).called(1);
     });
   });

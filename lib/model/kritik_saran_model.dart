@@ -34,16 +34,6 @@ class KritikSaranModel {
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'isi': isi,
-      'tanggal': tanggal.toIso8601String(),
-      'userId': userId,
-      'diperbarui': diperbarui?.toIso8601String(),
-    };
-  }
-
   factory KritikSaranModel.fromMap(Map<String, dynamic> map) {
     var tanggalValue = map['tanggal'];
     DateTime parsedDate;
@@ -52,9 +42,9 @@ class KritikSaranModel {
     } else if (tanggalValue is String) {
       parsedDate = DateTime.parse(tanggalValue);
     } else {
-      parsedDate = DateTime.now(); 
+      parsedDate = DateTime.now();
     }
-    
+
     var diperbaruiValue = map['diperbarui'];
     DateTime? parsedDiperbarui;
     if (diperbaruiValue is Timestamp) {
@@ -70,5 +60,24 @@ class KritikSaranModel {
       tanggal: parsedDate,
       diperbarui: parsedDiperbarui,
     );
+  }
+  Map<String, dynamic> toMapForSqlite() {
+    return {
+      'id': id,
+      'isi': isi,
+      'tanggal': tanggal.toIso8601String(),
+      'userId': userId,
+      'diperbarui': diperbarui?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'isi': isi,
+      'tanggal': tanggal.toIso8601String(),
+      'userId': userId,
+      'diperbarui': diperbarui?.toIso8601String(),
+    };
   }
 }

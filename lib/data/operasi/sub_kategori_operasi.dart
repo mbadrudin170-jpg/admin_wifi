@@ -8,7 +8,7 @@ class SubKategoriOperasi {
 
   Future<void> createSubKategori(SubKategoriModel subKategori) async {
     final db = await dbHelper.database;
-    final data = subKategori.copyWith(diperbarui: DateTime.now()).toMap();
+    final data = subKategori.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
     await db.insert(
       'sub_kategori',
       data,
@@ -44,7 +44,7 @@ class SubKategoriOperasi {
 
   Future<void> updateSubKategori(SubKategoriModel subKategori) async {
     final db = await dbHelper.database;
-    final data = subKategori.copyWith(diperbarui: DateTime.now()).toMap();
+    final data = subKategori.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
     await db.update('sub_kategori', data, where: 'id = ?', whereArgs: [subKategori.id]);
   }
 
@@ -69,7 +69,7 @@ class SubKategoriOperasi {
       final itemToSave = item.copyWith(diperbarui: DateTime.now());
       batch.insert(
         'sub_kategori',
-        itemToSave.toMap(),
+        itemToSave.toMapForSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

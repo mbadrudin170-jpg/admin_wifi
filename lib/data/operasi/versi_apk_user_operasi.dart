@@ -1,6 +1,7 @@
 // path: lib/data/operasi/versi_apk_user_operasi.dart
 
 import 'dart:async';
+import 'dart:convert'; // ditambahkan: untuk konversi ke JSON
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
@@ -22,24 +23,31 @@ class VersiApkUserOperasi {
     KoneksiInternetService? koneksiService,
     LayananUnggahData? unggahService,
     SyncManager? syncManager,
-  }) : dbHelper = dbHelper ?? DatabaseHelper.instance,
-       koneksiService = koneksiService ?? KoneksiInternetService(),
-       unggahService = unggahService ?? LayananUnggahData(),
-       syncManager = syncManager ?? SyncManager();
+  })  : dbHelper = dbHelper ?? DatabaseHelper.instance,
+        koneksiService = koneksiService ?? KoneksiInternetService(),
+        unggahService = unggahService ?? LayananUnggahData(),
+        syncManager = syncManager ?? SyncManager();
 
   Future<void> tambahVersiApkUser(VersiApkUserModel data) async {
     final db = await dbHelper.database;
     try {
       // 1. Simpan ke database lokal terlebih dahulu
       final dataToSave = data.copyWith(diperbarui: DateTime.now());
-      // diubah: menggunakan toMapForSqlite() untuk konversi ke format SQLite
+      final dataUntukDb = dataToSave.toMapForSqlite();
+
       await db.insert(
         'versi_apk_user',
-        dataToSave.toMapForSqlite(),
+        dataUntukDb,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+
+      // ditambahkan: konversi map ke string JSON yang rapi
+      const jsonEncoder = JsonEncoder.withIndent('  ');
+      final dataJson = jsonEncoder.convert(dataUntukDb);
+
+      // diubah: mencetak string JSON
       developer.log(
-        'Berhasil menyimpan data ke lokal.',
+        'Berhasil menyimpan data ke lokal. Data yang disimpan:\n$dataJson',
         name: 'tambahVersiApkUser',
       );
 
@@ -55,10 +63,10 @@ class VersiApkUserOperasi {
           // Memanggil unggah data dengan timeout
           // diubah: menggunakan instance unggahService yang disuntikkan
           await unggahService.unggahDataVersiApkUser().timeout(
-            const Duration(seconds: 15),
-            onTimeout: () =>
-                throw TimeoutException('Batas waktu unggah terlampaui.'),
-          );
+                const Duration(seconds: 15),
+                onTimeout: () =>
+                    throw TimeoutException('Batas waktu unggah terlampaui.'),
+              );
 
           // diubah: menggunakan instance syncManager yang disuntikkan
           await syncManager.setLastSyncTimestamp(syncTime);

@@ -627,6 +627,19 @@ class MockKategoriOperasi extends _i1.Mock implements _i16.KategoriOperasi {
           as _i7.Future<List<_i5.KategoriModel>>);
 
   @override
+  _i7.Future<_i5.KategoriModel> getKategoriById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getKategoriById, [id]),
+            returnValue: _i7.Future<_i5.KategoriModel>.value(
+              _FakeKategoriModel_3(
+                this,
+                Invocation.method(#getKategoriById, [id]),
+              ),
+            ),
+          )
+          as _i7.Future<_i5.KategoriModel>);
+
+  @override
   _i7.Future<List<_i5.KategoriModel>> getKategoriByTipe(
     _i5.TipeKategori? tipe,
   ) =>

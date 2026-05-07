@@ -1,5 +1,6 @@
 // path: lib/model/paket_model.dart
 // diubah: Menambahkan properti jumlahPoin untuk fitur poin.
+// ditambahkan: Metode toMapForFirebase untuk memastikan isDeleted adalah boolean.
 
 import 'package:uuid/uuid.dart';
 
@@ -120,8 +121,8 @@ class PaketModel {
     );
   }
 
-  // Konversi dari objek Paket ke Map (untuk database)
-  Map<String, dynamic> toMap() {
+  // Konversi dari objek Paket ke Map (untuk database lokal SQLite)
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'nama': nama,
@@ -130,8 +131,22 @@ class PaketModel {
       'tipe': tipe.name,
       'jumlahPoin': jumlahPoin, // ditambahkan: properti baru
       'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted ? 1 : 0, // diubah: Untuk kompatibilitas SQLite
+      'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
 
-      'isDeleted': isDeleted ? 1 : 0,
+  // ditambahkan: Konversi ke Map untuk Firebase (isDeleted sebagai boolean)
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'nama': nama,
+      'harga': harga,
+      'durasi': durasi,
+      'tipe': tipe.name,
+      'jumlahPoin': jumlahPoin,
+      'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted, // tetap boolean untuk Firebase
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }

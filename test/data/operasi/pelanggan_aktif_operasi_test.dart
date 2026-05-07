@@ -1,5 +1,6 @@
  // path: test/data/operasi/pelanggan_aktif_operasi_test.dart
 // diperbaiki: Menggunakan ID yang benar saat memanggil arsipkanPelangganAktif.
+// diubah: Mengganti .toMap() menjadi .toMapForSqlite() untuk PaketModel.
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
@@ -73,8 +74,9 @@ void main() {
     });
     
     test('arsipkanPelangganKadaluarsa harus memproses dengan benar', () async {
-      await db.insert('paket', PaketModel(id: 'paket_1', nama: 'P1', harga: 1, durasi: 1, tipe: TipeDurasi.bulan).toMap());
-      await db.insert('paket', PaketModel(id: 'paket_2', nama: 'P2', harga: 1, durasi: 1, tipe: TipeDurasi.bulan).toMap());
+      // diubah: Menggunakan toMapForSqlite()
+      await db.insert('paket', PaketModel(id: 'paket_1', nama: 'P1', harga: 1, durasi: 1, tipe: TipeDurasi.bulan).toMapForSqlite());
+      await db.insert('paket', PaketModel(id: 'paket_2', nama: 'P2', harga: 1, durasi: 1, tipe: TipeDurasi.bulan).toMapForSqlite());
       await db.insert('pelanggan', {'id': 'p1', 'nama': 'Test1', 'telepon': '123', 'alamat': 'a', 'password': 'p', 'mac_address': 'm'});
       await db.insert('pelanggan', {'id': 'p2', 'nama': 'Test2', 'telepon': '123', 'alamat': 'a', 'password': 'p', 'mac_address': 'm'});
 

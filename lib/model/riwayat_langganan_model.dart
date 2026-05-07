@@ -1,5 +1,5 @@
 // Path: lib/model/riwayat_langganan_model.dart
-// diubah: Menambahkan jumlahPoinDiperoleh sebagai snapshot
+// diubah: Mengganti toMap() dengan toMapForSqlite() dan toMapForFirebase()
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'enum/status_pembayaran.dart';
 import 'package:uuid/uuid.dart';
@@ -109,7 +109,8 @@ class RiwayatLanggananModel {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  // diubah: Nama metode menjadi toMapForSqlite
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -125,6 +126,26 @@ class RiwayatLanggananModel {
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
+    };
+  }
+
+  // ditambahkan: Metode toMapForFirebase
+  Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'id_pelanggan': idPelanggan,
+      'id_paket': idPaket,
+      'nama_paket': namaPaket,
+      'harga_paket': hargaPaket,
+      'durasi_paket': durasiPaket,
+      'tipe_durasi_paket': tipeDurasiPaket,
+      'jumlah_poin_diperoleh': jumlahPoinDiperoleh,
+      'tanggal_mulai': tanggalMulai,
+      'tanggal_berakhir': tanggalBerakhir,
+      'status': status.name,
+      'diperbarui': diperbarui,
+      'diarsipkan': diarsipkan,
+      'isDeleted': isDeleted,
     };
   }
 }

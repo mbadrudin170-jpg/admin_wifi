@@ -1,5 +1,7 @@
 // path: lib/model/kategori_model.dart
 // diperbaiki: Menghapus cast yang tidak perlu untuk meningkatkan kebersihan kode.
+// diubah: Logika parsing subkategori yang lebih aman dan ID yang lebih ketat.
+// diubah: Memperbaiki panggilan ke toMap pada subkategori menjadi toMapForSqlite dan toMapForFirebase.
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -55,43 +57,68 @@ class KategoriModel {
   }
 
   factory KategoriModel.fromMap(Map<String, dynamic> map) {
-    List<SubKategoriModel> subKategoriList = [];
-    final subKategoriData = map['id_sub_kategori'];
-    if (subKategoriData is String && subKategoriData.isNotEmpty) {
-      final List<dynamic> decodedList = jsonDecode(subKategoriData);
-      subKategoriList = decodedList
-          .map((subMap) => SubKategoriModel.fromMap(subMap as Map<String, dynamic>))
-          .toList();
-    } else if (subKategoriData is List) {
-       // diperbaiki: Menghapus cast (as List<dynamic>) yang tidak perlu.
-       subKategoriList = subKategoriData
-          .map((subMap) => SubKategoriModel.fromMap(subMap as Map<String, dynamic>))
-          .toList();
+    // ditambah: Logika parsing subkategori yang lebih aman dan jelas
+    List<SubKategoriModel> parseSubKategori(dynamic data) {
+      if (data == null) return [];
+      
+      try {
+        List<dynamic> list;
+        if (data is String && data.isNotEmpty) {
+          list = jsonDecode(data);
+        } else if (data is List) {
+          list = data;
+        } else {
+          return [];
+        }
+
+        return list
+            .map((item) => SubKategoriModel.fromMap(item as Map<String, dynamic>))
+            .toList();
+      } catch (e) {
+        // Jika terjadi error parsing, kembalikan list kosong untuk mencegah crash
+        return [];
+      }
     }
 
     return KategoriModel(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'], // diubah: ID harus berasal dari map, tidak boleh dibuat baru di sini.
       nama: map['nama'] ?? '',
       tipe: TipeKategori.values.firstWhere(
         (e) => e.name == map['tipe'],
         orElse: () => TipeKategori.pemasukan,
       ),
-      subKategori: subKategoriList,
+      subKategori: parseSubKategori(map['id_sub_kategori']),
       diperbarui: _parseDateTime(map['diperbarui']),
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapForSqlite() {
     return {
       'id': id,
       'nama': nama,
       'tipe': tipe.name,
-      'id_sub_kategori': jsonEncode(subKategori.map((sub) => sub.toMap()).toList()),
+      // diubah: Memanggil toMapForSqlite() pada subkategori
+      'id_sub_kategori': jsonEncode(subKategori.map((sub) => sub.toMapForSqlite()).toList()),
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
+    Map<String, dynamic> toMapForFirebase() {
+    return {
+      'id': id,
+      'nama': nama,
+      'tipe': tipe.name,
+      // diubah: Memanggil toMapForFirebase() pada subkategori
+      'id_sub_kategori': jsonEncode(
+        subKategori.map((sub) => sub.toMapForFirebase()).toList(),
+      ),
+      'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
+
 }
