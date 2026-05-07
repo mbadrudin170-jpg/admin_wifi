@@ -34,7 +34,6 @@ class UnggahSelektifService {
   final TransaksiOperasi _transaksiOperasi;
   final VersiApkUserOperasi _versiApkUserOperasi;
 
-
   // diubah: Menggunakan konstruktor untuk Dependency Injection
   UnggahSelektifService({
     FirebaseFirestore? firestore,
@@ -51,41 +50,46 @@ class UnggahSelektifService {
     SubKategoriOperasi? subKategoriOperasi,
     TransaksiOperasi? transaksiOperasi,
     VersiApkUserOperasi? versiApkUserOperasi,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _statusOperasi = statusOperasi ?? StatusUnggahOperasi(),
-        _dompetOperasi = dompetOperasi ?? DompetOperasi(),
-        _kategoriOperasi = kategoriOperasi ?? KategoriOperasi(),
-        _kritikSaranOperasi = kritikSaranOperasi ?? KritikSaranOperasi(),
-        _paketOperasi = paketOperasi ?? PaketOperasi(),
-        _pelangganAktifOperasi =
-            pelangganAktifOperasi ?? PelangganAktifOperasi(),
-        _pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
-        _pengaturanOperasi = pengaturanOperasi ?? PengaturanOperasi(),
-        _pesananOperasi = pesananOperasi ?? PesananOperasi(),
-        _riwayatLanggananOperasi =
-            riwayatLanggananOperasi ?? RiwayatLanggananOperasi(),
-        _subKategoriOperasi = subKategoriOperasi ?? SubKategoriOperasi(),
-        _transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
-        _versiApkUserOperasi = versiApkUserOperasi ?? VersiApkUserOperasi();
-
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _statusOperasi = statusOperasi ?? StatusUnggahOperasi(),
+       _dompetOperasi = dompetOperasi ?? DompetOperasi(),
+       _kategoriOperasi = kategoriOperasi ?? KategoriOperasi(),
+       _kritikSaranOperasi = kritikSaranOperasi ?? KritikSaranOperasi(),
+       _paketOperasi = paketOperasi ?? PaketOperasi(),
+       _pelangganAktifOperasi =
+           pelangganAktifOperasi ?? PelangganAktifOperasi(),
+       _pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
+       _pengaturanOperasi = pengaturanOperasi ?? PengaturanOperasi(),
+       _pesananOperasi = pesananOperasi ?? PesananOperasi(),
+       _riwayatLanggananOperasi =
+           riwayatLanggananOperasi ?? RiwayatLanggananOperasi(),
+       _subKategoriOperasi = subKategoriOperasi ?? SubKategoriOperasi(),
+       _transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
+       _versiApkUserOperasi = versiApkUserOperasi ?? VersiApkUserOperasi();
 
   Future<void> unggahPerubahanTertunda() async {
-    developer.log('Memulai pengecekan perubahan tertunda untuk diunggah.',
-        name: 'UnggahSelektifService');
+    developer.log(
+      'Memulai pengecekan perubahan tertunda untuk diunggah.',
+      name: 'UnggahSelektifService',
+    );
 
     final daftarStatus = await _statusOperasi.ambilSemuaStatusUnggah();
-    final perluDiunggah =
-        daftarStatus.where((s) => s.status && s.ids.isNotEmpty).toList();
+    final perluDiunggah = daftarStatus
+        .where((s) => s.status && s.ids.isNotEmpty)
+        .toList();
 
     if (perluDiunggah.isEmpty) {
-      developer.log('Tidak ada data yang perlu diunggah secara selektif.',
-          name: 'UnggahSelektifService');
+      developer.log(
+        'Tidak ada data yang perlu diunggah secara selektif.',
+        name: 'UnggahSelektifService',
+      );
       return;
     }
 
     developer.log(
-        'Ditemukan ${perluDiunggah.length} tabel dengan perubahan yang perlu diunggah.',
-        name: 'UnggahSelektifService');
+      'Ditemukan ${perluDiunggah.length} tabel dengan perubahan yang perlu diunggah.',
+      name: 'UnggahSelektifService',
+    );
 
     for (final status in perluDiunggah) {
       try {
@@ -131,8 +135,9 @@ class UnggahSelektifService {
 
         if (berhasil) {
           developer.log(
-              'Unggah untuk tabel ${status.tabel} berhasil, mereset status.',
-              name: 'UnggahSelektifService');
+            'Unggah untuk tabel ${status.tabel} berhasil, mereset status.',
+            name: 'UnggahSelektifService',
+          );
           await _statusOperasi.resetStatus(status.tabel);
         }
       } catch (e, stackTrace) {
@@ -145,8 +150,10 @@ class UnggahSelektifService {
       }
     }
 
-    developer.log('Proses unggah selektif selesai.',
-        name: 'UnggahSelektifService');
+    developer.log(
+      'Proses unggah selektif selesai.',
+      name: 'UnggahSelektifService',
+    );
   }
 
   Future<bool> _unggahDompet(List<String> ids) async {
@@ -154,8 +161,9 @@ class UnggahSelektifService {
 
     if (daftarDompet.isEmpty) {
       developer.log(
-          'Tidak ada data dompet valid yang ditemukan untuk diunggah.',
-          name: 'UnggahSelektifService');
+        'Tidak ada data dompet valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService',
+      );
       return true;
     }
 
@@ -167,8 +175,9 @@ class UnggahSelektifService {
 
     await batch.commit();
     developer.log(
-        'Berhasil mengunggah ${daftarDompet.length} item dompet secara selektif.',
-        name: 'UnggahSelektifService');
+      'Berhasil mengunggah ${daftarDompet.length} item dompet secara selektif.',
+      name: 'UnggahSelektifService',
+    );
     return true;
   }
 
@@ -176,7 +185,10 @@ class UnggahSelektifService {
     final daftarTransaksi = await _transaksiOperasi.getTransaksiByIds(ids);
 
     if (daftarTransaksi.isEmpty) {
-      developer.log('Tidak ada data transaksi valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahTransaksi');
+      developer.log(
+        'Tidak ada data transaksi valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahTransaksi',
+      );
       return true;
     }
 
@@ -187,34 +199,52 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarTransaksi.length} item transaksi secara selektif.', name: 'UnggahSelektifService._unggahTransaksi');
+    developer.log(
+      'Berhasil mengunggah ${daftarTransaksi.length} item transaksi secara selektif.',
+      name: 'UnggahSelektifService._unggahTransaksi',
+    );
     return true;
   }
 
   Future<bool> _unggahKritikSaran(List<String> ids) async {
-    final daftarKritikSaran = await _kritikSaranOperasi.getKritikSaranByIds(ids);
+    final daftarKritikSaran = await _kritikSaranOperasi.getKritikSaranByIds(
+      ids,
+    );
 
     if (daftarKritikSaran.isEmpty) {
-      developer.log('Tidak ada data kritik dan saran valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahKritikSaran');
+      developer.log(
+        'Tidak ada data kritik dan saran valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahKritikSaran',
+      );
       return true;
     }
 
     final batch = _firestore.batch();
     for (final kritikSaran in daftarKritikSaran) {
       final docRef = _firestore.collection('kritik_saran').doc(kritikSaran.id);
-      batch.set(docRef, kritikSaran.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(
+        docRef,
+        kritikSaran.toMapForFirebase(),
+        SetOptions(merge: true),
+      );
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarKritikSaran.length} item kritik dan saran secara selektif.', name: 'UnggahSelektifService._unggahKritikSaran');
+    developer.log(
+      'Berhasil mengunggah ${daftarKritikSaran.length} item kritik dan saran secara selektif.',
+      name: 'UnggahSelektifService._unggahKritikSaran',
+    );
     return true;
   }
-  
+
   Future<bool> _unggahVersiApkUser(List<String> ids) async {
     final daftarData = await _versiApkUserOperasi.getVersiApkUserByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data versi_apk_user valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahVersiApkUser');
+      developer.log(
+        'Tidak ada data versi_apk_user valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahVersiApkUser',
+      );
       return true;
     }
 
@@ -225,7 +255,10 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item versi_apk_user secara selektif.', name: 'UnggahSelektifService._unggahVersiApkUser');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item versi_apk_user secara selektif.',
+      name: 'UnggahSelektifService._unggahVersiApkUser',
+    );
     return true;
   }
 
@@ -236,7 +269,10 @@ class UnggahSelektifService {
     final docRef = _firestore.collection('pengaturan').doc('default');
     await docRef.set(pengaturan.toMapForFirebase(), SetOptions(merge: true));
 
-    developer.log('Berhasil mengunggah item pengaturan secara selektif.', name: 'UnggahSelektifService._unggahPengaturan');
+    developer.log(
+      'Berhasil mengunggah item pengaturan secara selektif.',
+      name: 'UnggahSelektifService._unggahPengaturan',
+    );
     return true;
   }
 
@@ -244,7 +280,10 @@ class UnggahSelektifService {
     final daftarData = await _kategoriOperasi.getKategoriByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data kategori valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahKategori');
+      developer.log(
+        'Tidak ada data kategori valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahKategori',
+      );
       return true;
     }
 
@@ -255,14 +294,21 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item kategori secara selektif.', name: 'UnggahSelektifService._unggahKategori');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item kategori secara selektif.',
+      name: 'UnggahSelektifService._unggahKategori',
+    );
     return true;
   }
+
   Future<bool> _unggahSubKategori(List<String> ids) async {
     final daftarData = await _subKategoriOperasi.getSubKategoriByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data sub_kategori valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahSubKategori');
+      developer.log(
+        'Tidak ada data sub_kategori valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahSubKategori',
+      );
       return true;
     }
 
@@ -273,14 +319,21 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item sub_kategori secara selektif.', name: 'UnggahSelektifService._unggahSubKategori');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item sub_kategori secara selektif.',
+      name: 'UnggahSelektifService._unggahSubKategori',
+    );
     return true;
   }
+
   Future<bool> _unggahPaket(List<String> ids) async {
     final daftarData = await _paketOperasi.getPaketByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data paket valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPaket');
+      developer.log(
+        'Tidak ada data paket valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahPaket',
+      );
       return true;
     }
 
@@ -291,14 +344,21 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item paket secara selektif.', name: 'UnggahSelektifService._unggahPaket');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item paket secara selektif.',
+      name: 'UnggahSelektifService._unggahPaket',
+    );
     return true;
   }
+
   Future<bool> _unggahPelanggan(List<String> ids) async {
     final daftarData = await _pelangganOperasi.getPelangganByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data pelanggan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPelanggan');
+      developer.log(
+        'Tidak ada data pelanggan valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahPelanggan',
+      );
       return true;
     }
 
@@ -309,14 +369,21 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item pelanggan secara selektif.', name: 'UnggahSelektifService._unggahPelanggan');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item pelanggan secara selektif.',
+      name: 'UnggahSelektifService._unggahPelanggan',
+    );
     return true;
   }
+
   Future<bool> _unggahPelangganAktif(List<String> ids) async {
     final daftarData = await _pelangganAktifOperasi.getPelangganAktifByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data pelanggan_aktif valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPelangganAktif');
+      developer.log(
+        'Tidak ada data pelanggan_aktif valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahPelangganAktif',
+      );
       return true;
     }
 
@@ -327,14 +394,23 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item pelanggan_aktif secara selektif.', name: 'UnggahSelektifService._unggahPelangganAktif');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item pelanggan_aktif secara selektif.',
+      name: 'UnggahSelektifService._unggahPelangganAktif',
+    );
     return true;
   }
+
   Future<bool> _unggahRiwayatLangganan(List<String> ids) async {
-    final daftarData = await _riwayatLanggananOperasi.getRiwayatLanggananByIds(ids);
+    final daftarData = await _riwayatLanggananOperasi.getRiwayatLanggananByIds(
+      ids,
+    );
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data riwayat_langganan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahRiwayatLangganan');
+      developer.log(
+        'Tidak ada data riwayat_langganan valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahRiwayatLangganan',
+      );
       return true;
     }
 
@@ -345,14 +421,21 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item riwayat_langganan secara selektif.', name: 'UnggahSelektifService._unggahRiwayatLangganan');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item riwayat_langganan secara selektif.',
+      name: 'UnggahSelektifService._unggahRiwayatLangganan',
+    );
     return true;
   }
+
   Future<bool> _unggahPesanan(List<String> ids) async {
     final daftarData = await _pesananOperasi.getPesananByIds(ids);
 
     if (daftarData.isEmpty) {
-      developer.log('Tidak ada data pesanan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPesanan');
+      developer.log(
+        'Tidak ada data pesanan valid yang ditemukan untuk diunggah.',
+        name: 'UnggahSelektifService._unggahPesanan',
+      );
       return true;
     }
 
@@ -363,7 +446,10 @@ class UnggahSelektifService {
     }
 
     await batch.commit();
-    developer.log('Berhasil mengunggah ${daftarData.length} item pesanan secara selektif.', name: 'UnggahSelektifService._unggahPesanan');
+    developer.log(
+      'Berhasil mengunggah ${daftarData.length} item pesanan secara selektif.',
+      name: 'UnggahSelektifService._unggahPesanan',
+    );
     return true;
   }
 }
