@@ -1,149 +1,182 @@
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
-import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
-import 'package:admin_wifi/data/sync/unggah_selektif_service.dart';
-import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
-import 'package:admin_wifi/model/status_unggah_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// test/data/sync/unggah_selektif_service_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
+import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
+import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
+import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
+import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
+import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
+import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
+import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/data/sync/unggah_selektif_service.dart';
+import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/model/status_unggah_model.dart';
+import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/model/kritik_saran_model.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
+import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+import 'package:admin_wifi/model/pesanan_model.dart';
 
 import 'unggah_selektif_service_test.mocks.dart';
 
-// Anotasi untuk menghasilkan file mock
 @GenerateMocks([
-  FirebaseFirestore,
-  CollectionReference,
-  DocumentReference,
-  WriteBatch,
   StatusUnggahOperasi,
   DompetOperasi,
-], customMocks: [
-  MockSpec<QuerySnapshot<Map<String, dynamic>>>(as: #MockQuerySnapshot),
-  MockSpec<DocumentSnapshot<Map<String, dynamic>>>(as: #MockDocumentSnapshot),
+  KategoriOperasi,
+  KritikSaranOperasi,
+  PaketOperasi,
+  PelangganAktifOperasi,
+  PelangganOperasi,
+  PengaturanOperasi,
+  PesananOperasi,
+  RiwayatLanggananOperasi,
+  SubKategoriOperasi,
+  TransaksiOperasi,
+  VersiApkUserOperasi,
 ])
 void main() {
-  // Deklarasi variabel mock
-  late MockFirebaseFirestore mockFirestore;
-  late MockCollectionReference<Map<String, dynamic>> mockCollection;
-  late MockDocumentReference<Map<String, dynamic>> mockDocRef;
-  late MockWriteBatch mockWriteBatch;
-  late MockStatusUnggahOperasi mockStatusUnggahOperasi;
+  late UnggahSelektifService service;
+  late FakeFirebaseFirestore fakeFirestore;
+  late MockStatusUnggahOperasi mockStatusOperasi;
   late MockDompetOperasi mockDompetOperasi;
-  
-  // Instance dari kelas yang akan diuji
-  late UnggahSelektifService unggahSelektifService;
-
-  // Data palsu untuk pengujian
-  final idDompet1 = 'dompet-id-1';
-  final idDompet2 = 'dompet-id-2';
-  final dompet1 = DompetModel(id: idDompet1, namaDompet: 'Dompet A', saldo: 1000, diperbarui: DateTime.now());
-  final dompet2 = DompetModel(id: idDompet2, namaDompet: 'Dompet B', saldo: 2000, diperbarui: DateTime.now());
+  late MockKategoriOperasi mockKategoriOperasi;
+  late MockKritikSaranOperasi mockKritikSaranOperasi;
+  late MockPaketOperasi mockPaketOperasi;
+  late MockPelangganAktifOperasi mockPelangganAktifOperasi;
+  late MockPelangganOperasi mockPelangganOperasi;
+  late MockPengaturanOperasi mockPengaturanOperasi;
+  late MockPesananOperasi mockPesananOperasi;
+  late MockRiwayatLanggananOperasi mockRiwayatLanggananOperasi;
+  late MockSubKategoriOperasi mockSubKategoriOperasi;
+  late MockTransaksiOperasi mockTransaksiOperasi;
+  late MockVersiApkUserOperasi mockVersiApkUserOperasi;
 
   setUp(() {
-    // Inisialisasi Mocks
-    mockFirestore = MockFirebaseFirestore();
-    mockCollection = MockCollectionReference();
-    mockDocRef = MockDocumentReference();
-    mockWriteBatch = MockWriteBatch();
-    mockStatusUnggahOperasi = MockStatusUnggahOperasi();
+    fakeFirestore = FakeFirebaseFirestore();
+    mockStatusOperasi = MockStatusUnggahOperasi();
     mockDompetOperasi = MockDompetOperasi();
+    mockKategoriOperasi = MockKategoriOperasi();
+    mockKritikSaranOperasi = MockKritikSaranOperasi();
+    mockPaketOperasi = MockPaketOperasi();
+    mockPelangganAktifOperasi = MockPelangganAktifOperasi();
+    mockPelangganOperasi = MockPelangganOperasi();
+    mockPengaturanOperasi = MockPengaturanOperasi();
+    mockPesananOperasi = MockPesananOperasi();
+    mockRiwayatLanggananOperasi = MockRiwayatLanggananOperasi();
+    mockSubKategoriOperasi = MockSubKategoriOperasi();
+    mockTransaksiOperasi = MockTransaksiOperasi();
+    mockVersiApkUserOperasi = MockVersiApkUserOperasi();
 
-    // diubah: Menyuntikkan mock langsung ke konstruktor
-    unggahSelektifService = UnggahSelektifService(
-      firestore: mockFirestore,
-      statusOperasi: mockStatusUnggahOperasi,
+    service = UnggahSelektifService(
+      firestore: fakeFirestore,
+      statusOperasi: mockStatusOperasi,
       dompetOperasi: mockDompetOperasi,
+      kategoriOperasi: mockKategoriOperasi,
+      kritikSaranOperasi: mockKritikSaranOperasi,
+      paketOperasi: mockPaketOperasi,
+      pelangganAktifOperasi: mockPelangganAktifOperasi,
+      pelangganOperasi: mockPelangganOperasi,
+      pengaturanOperasi: mockPengaturanOperasi,
+      pesananOperasi: mockPesananOperasi,
+      riwayatLanggananOperasi: mockRiwayatLanggananOperasi,
+      subKategoriOperasi: mockSubKategoriOperasi,
+      transaksiOperasi: mockTransaksiOperasi,
+      versiApkUserOperasi: mockVersiApkUserOperasi,
     );
-
-    // Stubbing default untuk Firestore
-    when(mockFirestore.collection(any)).thenReturn(mockCollection);
-    when(mockCollection.doc(any)).thenReturn(mockDocRef);
-    when(mockFirestore.batch()).thenReturn(mockWriteBatch);
   });
 
-  group('UnggahSelektifService', () {
-
-    test('tidak melakukan apa-apa jika tidak ada data untuk diunggah', () async {
-      // ARRANGE
-      when(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => []);
-
-      // ACT
-      await unggahSelektifService.unggahPerubahanTertunda();
-
-      // ASSERT
-      verify(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).called(1);
-      verifyNever(mockDompetOperasi.getDompetByIds(any));
-      verifyNever(mockFirestore.batch());
+  group('unggahPerubahanTertunda', () {
+    test('should do nothing if there are no pending changes', () async {
+      when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => []);
+      await service.unggahPerubahanTertunda();
+      verify(mockStatusOperasi.ambilSemuaStatusUnggah()).called(1);
+      verifyNoMoreInteractions(mockDompetOperasi);
     });
 
-    test('mengunggah data dompet dan mereset status saat berhasil', () async {
-      // ARRANGE
-      final statusList = [
-        StatusUnggahModel(tabel: NamaTabel.dompet, status: true, ids: [idDompet1, idDompet2]),
-      ];
-      final List<DompetModel> dompetList = [dompet1, dompet2];
+    test('should upload data for a single table and reset status', () async {
+      final status = StatusUnggahModel(tabel: NamaTabel.dompet, ids: ['id1'], status: true);
+      final dompet = DompetModel(id: 'id1', nama: 'Test', saldo: 100);
 
-      when(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => statusList);
-      when(mockDompetOperasi.getDompetByIds(any)).thenAnswer((_) async => dompetList);
-      when(mockStatusUnggahOperasi.resetStatus(any)).thenAnswer((_) async => Future.value());
-      
-      // ACT
-      await unggahSelektifService.unggahPerubahanTertunda();
+      when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status]);
+      when(mockDompetOperasi.getDompetByIds(any)).thenAnswer((_) async => [dompet]);
+      when(mockStatusOperasi.resetStatus(any)).thenAnswer((_) async {});
 
-      // ASSERT
-      verify(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).called(1);
-      verify(mockDompetOperasi.getDompetByIds([idDompet1, idDompet2])).called(1);
-      verify(mockFirestore.batch()).called(1);
-      verify(mockCollection.doc(idDompet1)).called(1);
-      verify(mockWriteBatch.set(any, dompet1.toMapForFirebase(), any)).called(1);
-      verify(mockCollection.doc(idDompet2)).called(1);
-      verify(mockWriteBatch.set(any, dompet2.toMapForFirebase(), any)).called(1);
-      verify(mockWriteBatch.commit()).called(1);
-      verify(mockStatusUnggahOperasi.resetStatus(NamaTabel.dompet)).called(1);
+      await service.unggahPerubahanTertunda();
+
+      final doc = await fakeFirestore.collection('dompet').doc('id1').get();
+      expect(doc.exists, isTrue);
+      expect(doc.data()?['nama'], 'Test');
+
+      verify(mockDompetOperasi.getDompetByIds(['id1'])).called(1);
+      verify(mockStatusOperasi.resetStatus(NamaTabel.dompet)).called(1);
     });
 
-    test('tidak mereset status jika unggah ke Firestore gagal', () async {
-      // ARRANGE
-      final statusList = [
-        StatusUnggahModel(tabel: NamaTabel.dompet, status: true, ids: [idDompet1]),
-      ];
-      final List<DompetModel> dompetList = [dompet1];
+    test('should handle settings upload correctly', () async {
+      final status = StatusUnggahModel(tabel: NamaTabel.pengaturan, ids: ['ignored'], status: true);
+      final pengaturan = PengaturanModel(intervalSinkronisasiOtomatis: 8);
 
-      when(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => statusList);
-      when(mockDompetOperasi.getDompetByIds(any)).thenAnswer((_) async => dompetList);
-      when(mockWriteBatch.commit()).thenThrow(Exception('Firestore error'));
+      when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status]);
+      when(mockPengaturanOperasi.getPengaturan()).thenAnswer((_) async => pengaturan);
+      when(mockStatusOperasi.resetStatus(any)).thenAnswer((_) async {});
 
-      // ACT
-      await unggahSelektifService.unggahPerubahanTertunda();
+      await service.unggahPerubahanTertunda();
+
+      final doc = await fakeFirestore.collection('pengaturan').doc('default').get();
+      expect(doc.exists, isTrue);
+      expect(doc.data()?['interval_sinkronisasi_otomatis'], 8);
+
+      verify(mockPengaturanOperasi.getPengaturan()).called(1);
+      verify(mockStatusOperasi.resetStatus(NamaTabel.pengaturan)).called(1);
+    });
+
+    test('should not reset status if upload fails', () async {
+      final status = StatusUnggahModel(tabel: NamaTabel.dompet, ids: ['id1'], status: true);
       
-      // ASSERT
-      verify(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).called(1);
+      when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status]);
+      when(mockDompetOperasi.getDompetByIds(any)).thenThrow(Exception('DB error'));
+
+      await service.unggahPerubahanTertunda();
+
       verify(mockDompetOperasi.getDompetByIds(any)).called(1);
-      verify(mockWriteBatch.commit()).called(1);
-      verifyNever(mockStatusUnggahOperasi.resetStatus(any));
+      verifyNever(mockStatusOperasi.resetStatus(any));
     });
 
-     test('mereset status meskipun tidak ada data dompet yang ditemukan', () async {
-      // ARRANGE
-      final statusList = [
-        StatusUnggahModel(tabel: NamaTabel.dompet, status: true, ids: ['id-hilang']),
-      ];
+    test('should continue with next table if one fails', async () {
+      final status1 = StatusUnggahModel(tabel: NamaTabel.dompet, ids: ['id1'], status: true);
+      final status2 = StatusUnggahModel(tabel: NamaTabel.transaksi, ids: ['id2'], status: true);
+      final transaksi = TransaksiModel.create(idDompet: 'd1', jumlah: 50, tipe: TipeTransaksi.pemasukan);
 
-      when(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => statusList);
-      when(mockDompetOperasi.getDompetByIds(any)).thenAnswer((_) async => []);
+      when(mockStatusOperasi.ambilSemuaStatusUnggah()).thenAnswer((_) async => [status1, status2]);
+      when(mockDompetOperasi.getDompetByIds(any)).thenThrow(Exception('DB error'));
+      when(mockTransaksiOperasi.getTransaksiByIds(any)).thenAnswer((_) async => [transaksi]);
+      when(mockStatusOperasi.resetStatus(any)).thenAnswer((_) async {});
+      
+      await service.unggahPerubahanTertunda();
 
-      // ACT
-      await unggahSelektifService.unggahPerubahanTertunda();
+      // Verify first one failed
+      verify(mockDompetOperasi.getDompetByIds(any)).called(1);
+      verifyNever(mockStatusOperasi.resetStatus(NamaTabel.dompet));
 
-      // ASSERT
-      verify(mockStatusUnggahOperasi.ambilSemuaStatusUnggah()).called(1);
-      verify(mockDompetOperasi.getDompetByIds(['id-hilang'])).called(1);
-      verifyNever(mockFirestore.batch());
-      verifyNever(mockWriteBatch.commit());
-      verify(mockStatusUnggahOperasi.resetStatus(NamaTabel.dompet)).called(1);
+      // Verify second one succeeded
+      final doc = await fakeFirestore.collection('transaksi').doc(transaksi.id).get();
+      expect(doc.exists, isTrue);
+      verify(mockTransaksiOperasi.getTransaksiByIds(any)).called(1);
+      verify(mockStatusOperasi.resetStatus(NamaTabel.transaksi)).called(1);
     });
-
   });
 }

@@ -171,6 +171,16 @@ class MockPelangganOperasi extends _i1.Mock implements _i7.PelangganOperasi {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<List<_i9.PelangganModel>> getPelangganByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPelangganByIds, [ids]),
+            returnValue: _i8.Future<List<_i9.PelangganModel>>.value(
+              <_i9.PelangganModel>[],
+            ),
+          )
+          as _i8.Future<List<_i9.PelangganModel>>);
 }
 
 /// A class which mocks [PaketOperasi].
@@ -264,6 +274,16 @@ class MockPaketOperasi extends _i1.Mock implements _i10.PaketOperasi {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<List<_i11.PaketModel>> getPaketByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPaketByIds, [ids]),
+            returnValue: _i8.Future<List<_i11.PaketModel>>.value(
+              <_i11.PaketModel>[],
+            ),
+          )
+          as _i8.Future<List<_i11.PaketModel>>);
 }
 
 /// A class which mocks [PelangganAktifOperasi].
@@ -400,6 +420,18 @@ class MockPelangganAktifOperasi extends _i1.Mock
             returnValue: _i8.Future<int>.value(0),
           )
           as _i8.Future<int>);
+
+  @override
+  _i8.Future<List<_i4.PelangganAktifModel>> getPelangganAktifByIds(
+    List<String>? ids,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPelangganAktifByIds, [ids]),
+            returnValue: _i8.Future<List<_i4.PelangganAktifModel>>.value(
+              <_i4.PelangganAktifModel>[],
+            ),
+          )
+          as _i8.Future<List<_i4.PelangganAktifModel>>);
 }
 
 /// A class which mocks [TransaksiOperasi].
@@ -493,6 +525,16 @@ class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<List<_i14.TransaksiModel>> getTransaksiByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiByIds, [ids]),
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
+            ),
+          )
+          as _i8.Future<List<_i14.TransaksiModel>>);
 }
 
 /// A class which mocks [DompetOperasi].
@@ -724,4 +766,14 @@ class MockKategoriOperasi extends _i1.Mock implements _i17.KategoriOperasi {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<List<_i6.KategoriModel>> getKategoriByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getKategoriByIds, [ids]),
+            returnValue: _i8.Future<List<_i6.KategoriModel>>.value(
+              <_i6.KategoriModel>[],
+            ),
+          )
+          as _i8.Future<List<_i6.KategoriModel>>);
 }

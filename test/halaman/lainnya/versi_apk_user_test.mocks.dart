@@ -177,4 +177,16 @@ class MockVersiApkUserOperasi extends _i1.Mock
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
           as _i7.Future<void>);
+
+  @override
+  _i7.Future<List<_i8.VersiApkUserModel>> getVersiApkUserByIds(
+    List<String>? ids,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getVersiApkUserByIds, [ids]),
+            returnValue: _i7.Future<List<_i8.VersiApkUserModel>>.value(
+              <_i8.VersiApkUserModel>[],
+            ),
+          )
+          as _i7.Future<List<_i8.VersiApkUserModel>>);
 }

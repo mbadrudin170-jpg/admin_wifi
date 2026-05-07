@@ -137,6 +137,20 @@ class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
             returnValueForMissingStub: _i5.Future<void>.value(),
           )
           as _i5.Future<void>);
+
+  @override
+  _i5.Future<List<_i6.TransaksiModel>> getTransaksiByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiByIds, [ids]),
+            returnValue: _i5.Future<List<_i6.TransaksiModel>>.value(
+              <_i6.TransaksiModel>[],
+            ),
+            returnValueForMissingStub:
+                _i5.Future<List<_i6.TransaksiModel>>.value(
+                  <_i6.TransaksiModel>[],
+                ),
+          )
+          as _i5.Future<List<_i6.TransaksiModel>>);
 }
 
 /// A class which mocks [DompetOperasi].
