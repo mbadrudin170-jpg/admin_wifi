@@ -1,5 +1,7 @@
 // lib/halaman/detail/detail_pelanggan.dart
+import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_pelanggan.dart';
+import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,39 @@ class DetailPelangganPage extends StatefulWidget {
 
 class DetailPelangganPageState extends State<DetailPelangganPage> {
   bool _isPasswordVisible = false;
+  int _totalPoin = 0;
+  bool _isLoadingPoin = true;
+  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTotalPoin();
+  }
+
+  Future<void> _loadTotalPoin() async {
+    try {
+      final poin = await _pelangganOperasi.getTotalPoin(widget.pelanggan.id);
+      if (mounted) {
+        setState(() {
+          _totalPoin = poin;
+          _isLoadingPoin = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingPoin = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat poin: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _launchWhatsApp(String phoneNumber) async {
     String formattedNumber =
@@ -66,11 +101,13 @@ class DetailPelangganPageState extends State<DetailPelangganPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildPoinCard(),
+            const SizedBox(height: 20),
             Text(
               'Nama: ${widget.pelanggan.nama}',
               style: const TextStyle(fontSize: 16),
@@ -198,4 +235,60 @@ Password: ${widget.pelanggan.password}
       ),
     );
   }
+
+  Widget _buildPoinCard() {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HalamanPoin()),
+        );
+      },
+      child: Card(
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade700, Colors.deepPurple.shade900],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.star, color: Colors.yellow, size: 40),
+              const SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Total Poin', 
+                    style: TextStyle(color: Colors.white70, fontSize: 16)
+                  ),
+                  if (_isLoadingPoin)
+                    const SizedBox(
+                      height: 20, 
+                      width: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    )
+                  else
+                    Text(
+                      '$_totalPoin',
+                      style: const TextStyle(
+                        color: Colors.white, 
+                        fontSize: 28, 
+                        fontWeight: FontWeight.bold
+                      ),
+                    ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 }

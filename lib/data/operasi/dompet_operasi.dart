@@ -86,7 +86,9 @@ class DompetOperasi {
 
   Future<double> getTotalSaldo() async {
     final db = await dbHelper.database;
-    final result = await db.rawQuery('SELECT SUM(saldo) as total FROM dompet WHERE isDeleted = 0');
+    final result = await db.rawQuery(
+      'SELECT SUM(saldo) as total FROM dompet WHERE isDeleted = 0',
+    );
     if (result.isNotEmpty && result.first['total'] != null) {
       return (result.first['total'] as num).toDouble();
     }
@@ -127,8 +129,6 @@ class DompetOperasi {
       );
     }
     await batch.commit(noResult: true);
-    final ids = items.map((e) => e.id).toList();
-    await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, ids);
   }
 
   /// Mengambil beberapa dompet dari database lokal berdasarkan daftar ID.

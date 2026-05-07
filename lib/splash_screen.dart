@@ -1,6 +1,9 @@
-// path : lib/splash_screen.dart
+// path: lib/splash_screen.dart
+
 import 'dart:async';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+// diubah: Mengganti impor ke layanan unduhan awal yang benar dan lengkap.
+import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/services/servis_sinkronisasi.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +69,13 @@ class _SplashScreenState extends State<SplashScreen> {
       await notifikasiServis.requestPermissions();
       if (!mounted) return;
 
+      _updateLoading("Mempersiapkan database lokal...");
       await DatabaseHelper.instance.database;
+      if (!mounted) return;
+
+      // diubah: Memanggil layanan unduhan awal yang benar dan lengkap.
+      _updateLoading("Memeriksa data awal...");
+      await UnduhanAwalService().jalankanUnduhanAwal();
       if (!mounted) return;
 
       PembersihanDataService().jalankanJikaPerlu();
@@ -74,13 +83,12 @@ class _SplashScreenState extends State<SplashScreen> {
       isOnline = await _koneksiService.cekKoneksi();
       if (!mounted) return;
 
-      // Dapatkan SinkronisasiService dari Provider
       final sinkronisasiService = Provider.of<SinkronisasiService>(context, listen: false);
 
       if (isOnline) {
         _updateLoading("Memeriksa & sinkronisasi data...");
         try {
-          await sinkronisasiService.sinkronkan(); // Gunakan service dari provider
+          await sinkronisasiService.sinkronkan();
           _updateLoading("Sinkronisasi data selesai.");
         } catch (e, s) {
           developer.log('Gagal sinkronisasi', error: e, stackTrace: s);
@@ -88,7 +96,6 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       }
 
-      // Ambil pengaturan dan mulai sinkronisasi otomatis
       try {
         final pengaturan = await PengaturanOperasi().getPengaturan();
         sinkronisasiService.mulaiSinkronisasiOtomatis(
@@ -96,7 +103,6 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       } catch (e) {
         developer.log('Gagal memulai sinkronisasi otomatis: $e');
-        // Tetap mulai dengan interval default jika gagal mengambil pengaturan
         sinkronisasiService.mulaiSinkronisasiOtomatis(interval: const Duration(hours: 24));
       }
 

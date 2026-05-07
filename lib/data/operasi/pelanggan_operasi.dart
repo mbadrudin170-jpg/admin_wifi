@@ -1,5 +1,7 @@
 // path: lib/data/operasi/pelanggan_operasi.dart
 // diubah: Disesuaikan dengan PelangganModel yang baru (menghapus status).
+import 'dart:developer' as developer;
+
 import 'package:sqflite/sqflite.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
@@ -7,17 +9,23 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 class PelangganOperasi {
   final dbHelper = DatabaseHelper.instance;
 
-  // diubah: Menggunakan copyWith untuk mengisi 'diperbarui'.
+  // diubah: Menggunakan copyWith untuk mengisi 'diperbarui' dan menambah logging.
   Future<void> createPelanggan(PelangganModel pelanggan) async {
     final db = await dbHelper.database;
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = pelanggan
-        .copyWith(diperbarui: DateTime.now())
-        .toMapForSqlite();
+    final pelangganUntukDisimpan = pelanggan.copyWith(
+      diperbarui: DateTime.now(),
+    );
+    final data = pelangganUntukDisimpan.toMapForSqlite();
     await db.insert(
       'pelanggan',
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    // ditambah: Menambahkan log untuk konfirmasi pembuatan pelanggan.
+    developer.log(
+      '✅ [LOKAL] Pelanggan (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat.',
+      name: 'PelangganOperasi',
     );
   }
 
@@ -145,5 +153,20 @@ class PelangganOperasi {
     return List.generate(maps.length, (i) {
       return PelangganModel.fromMap(maps[i]);
     });
+  }
+
+  // Fungsi ini bertujuan untuk mengambil jumlah total poin dari seorang pelanggan.
+  Future<int> getTotalPoin(String idPelanggan) async {
+    final db = await dbHelper.database;
+    final result = await db.rawQuery(
+      'SELECT SUM(jumlah_poin_diperoleh) as total FROM riwayat_langganan WHERE id_pelanggan = ? AND isDeleted = 0',
+      [idPelanggan],
+    );
+
+    final total = result.first['total'];
+    if (total is int) {
+      return total;
+    }
+    return 0;
   }
 }

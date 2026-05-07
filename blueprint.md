@@ -1,3 +1,37 @@
+# Versi: v1.1.2 (Internal Refactor)
+Sumber: Perubahan internal, versi pubspec tidak berubah
+Tanggal: 2024-07-27
+
+## Tujuan:
+Menyempurnakan dan merapikan alur inisialisasi aplikasi saat pertama kali dijalankan. Tujuannya adalah untuk memastikan bahwa jika database lokal masih kosong, aplikasi akan secara proaktif mengunduh data awal dari server (Firestore), bukan lagi menggunakan data dummy. Ini meningkatkan pengalaman pengguna baru secara signifikan.
+
+## Perubahan:
+- **`lib/data/sync/pengecekan_tabel_kosong.dart` (File Baru):**
+    - Membuat file baru yang berisi `PengecekanTabelKosongService`.
+    - **Logika Cerdas**: Layanan ini memeriksa tabel-tabel penting (`paket`, `kategori`, dll.) satu per satu.
+    - **Pemicu Unduhan**: Jika sebuah tabel ditemukan kosong (`COUNT(*) == 0`), layanan ini akan memanggil metode unduh yang sesuai dari `LayananUnduhData` untuk mengisi tabel tersebut dengan data *live* dari server.
+    - **Perubahan Nama**: Nama file diubah dari `unduhan_awal.dart` dan kelas diubah dari `UnduhanAwalService` untuk lebih akurat mendeskripsikan fungsinya.
+- **`lib/splash_screen.dart` (Integrasi):**
+    - **Integrasi Pengecekan**: Memanggil `PengecekanTabelKosongService().cekDanIsiDataAwal()` di dalam alur inisialisasi `_initializeAndNavigate()`.
+    - **Urutan Eksekusi**: Panggilan ini ditempatkan secara strategis *setelah* database berhasil diinisialisasi (`await DatabaseHelper.instance.database;`) dan *sebelum* proses sinkronisasi data umum, memastikan database siap dan sudah berisi data dasar jika diperlukan.
+    - **Umpan Balik Pengguna**: Menambahkan pesan status `_updateLoading("Memeriksa data awal...")` untuk memberi tahu pengguna apa yang sedang terjadi.
+- **`lib/services/servis_sinkronisasi.dart` (File Baru):**
+    - Membuat layanan terpusat untuk mengelola sinkronisasi data.
+    - **Sinkronisasi Manual**: Menyediakan metode `sinkronisasiManual()` yang mengorkestrasi proses unggah data lokal ke server diikuti dengan unduh data dari server.
+    - **Sinkronisasi Otomatis**: Menyediakan metode `mulaiSinkronisasiOtomatis()` yang menggunakan `Timer.periodic` untuk menjalankan sinkronisasi secara berkala pada interval yang dapat dikonfigurasi.
+    - **Manajemen State**: Menggunakan `ChangeNotifier` untuk memberi tahu bagian lain dari aplikasi (misalnya, UI) tentang status proses sinkronisasi (`_isSinkronisasi`).
+
+## Dampak:
+- **Pengalaman Pengguna Baru yang Lebih Baik**: Saat aplikasi diinstal untuk pertama kalinya, aplikasi akan langsung terisi dengan data terbaru dari server, bukan data dummy statis.
+- **Kode Lebih Rapi & Terpusat**: Logika pengecekan data awal dan logika sinkronisasi kini berada di dalam kelas layanan mereka sendiri, membuat `SplashScreen` lebih bersih dan lebih fokus pada orkestrasi.
+- **Otomatisasi**: Proses sinkronisasi data sekarang dapat berjalan secara otomatis di latar belakang, menjaga data tetap segar tanpa intervensi pengguna.
+
+## Analisa:
+- Memisahkan logika bisnis (seperti inisialisasi data dan sinkronisasi) ke dalam kelas-kelas layanan khusus adalah praktik yang baik. Ini mengikuti prinsip *Single Responsibility Principle* dan membuat kode lebih mudah diuji, dipelihara, dan dipahami.
+- Menempatkan pemicu layanan ini di `SplashScreen` adalah pilihan yang tepat karena ini adalah titik masuk utama aplikasi di mana semua tugas persiapan harus diselesaikan sebelum pengguna dapat berinteraksi dengan aplikasi.
+
+---
+
 # Versi: Perbaikan Internal (Testing)
 Tanggal: 2024-07-27
 
@@ -43,7 +77,7 @@ Sumber: pubspec.yaml (version: 1.0.9+4)
 Tanggal: 2024-07-27
 
 ## Tujuan:
-Mengimplementasikan fitur \"Pengaturan Aplikasi\" secara penuh, memungkinkan admin untuk mengonfigurasi interval sinkronisasi, kebijakan penghapusan data arsip, dan mengaktifkan/menonaktifkan mode pemeliharaan langsung dari antarmuka aplikasi.
+Mengimplementasikan fitur "Pengaturan Aplikasi" secara penuh, memungkinkan admin untuk mengonfigurasi interval sinkronisasi, kebijakan penghapusan data arsip, dan mengaktifkan/menonaktifkan mode pemeliharaan langsung dari antarmuka aplikasi.
 
 ## Perubahan:
 - **`lib/model/pengaturan_model.dart`**: Membuat model data baru (`PengaturanModel`) untuk mendefinisikan struktur data pengaturan.
@@ -57,7 +91,7 @@ Mengimplementasikan fitur \"Pengaturan Aplikasi\" secara penuh, memungkinkan adm
 ## Bug:
 - Ditemukan error `Missing required argument` saat membuat instance `PengaturanModel` tanpa argumen, karena konstruktor telah diubah untuk menuntut nilai.
 - Analyzer melaporkan penggunaan `withOpacity` yang sudah usang (`deprecated_member_use`) dan urutan properti `child` yang salah (`sort_child_properties_last`) di file `form_pengaturan.dart`.
-- Sebuah baris komentar \"tugas\" di `unduh_data.dart` menyebabkan parser analyzer gagal dan melaporkan banyak error sintaks yang keliru.
+- Sebuah baris komentar "tugas" di `unduh_data.dart` menyebabkan parser analyzer gagal dan melaporkan banyak error sintaks yang keliru.
 
 ## Solusi:
 - Memperbaiki `pengaturan_operasi.dart` dengan menyediakan nilai default yang eksplisit saat `PengaturanModel` dibuat dalam kondisi fallback (data tidak ada atau terjadi error).
@@ -77,11 +111,11 @@ Sumber: pubspec.yaml (version: 1.1.0+7)
 Tanggal: 2024-07-26
 
 ## Tujuan:
-Menambahkan fungsionalitas untuk membuat sub-kategori secara dinamis langsung dari halaman \"Tambah Kategori Baru\". Ini menyederhanakan alur kerja admin, karena mereka tidak perlu lagi membuat kategori induk terlebih dahulu dan kemudian mengeditnya untuk menambahkan sub-kategori.
+Menambahkan fungsionalitas untuk membuat sub-kategori secara dinamis langsung dari halaman "Tambah Kategori Baru". Ini menyederhanakan alur kerja admin, karena mereka tidak perlu lagi membuat kategori induk terlebih dahulu dan kemudian mengeditnya untuk menambahkan sub-kategori.
 
 ## Perubahan:
 - **`lib/halaman/form/form_kategori.dart`**:
-    - **UI Dinamis**: Menambahkan `ListView.builder` dan `TextButton` \\\\\\\"Tambah Input\\\\\\\" yang hanya muncul dalam mode \\\\\\\"Tambah Kategori\\\\\\\". Ini memungkinkan pengguna menambah atau menghapus field input untuk sub-kategori sesuai kebutuhan.
+    - **UI Dinamis**: Menambahkan `ListView.builder` dan `TextButton` "Tambah Input" yang hanya muncul dalam mode "Tambah Kategori". Ini memungkinkan pengguna menambah atau menghapus field input untuk sub-kategori sesuai kebutuhan.
     - **Manajemen State**: Menggunakan `List<TextEditingController>` untuk mengelola input teks dari setiap sub-kategori yang dinamis.
     - **Logika Penyimpanan (`_simpanForm`)**: Saat menyimpan kategori baru, logika diperbarui untuk:
         1.  Membuat ID unik untuk kategori induk terlebih dahulu.
@@ -89,7 +123,7 @@ Menambahkan fungsionalitas untuk membuat sub-kategori secara dinamis langsung da
         3.  Setiap `SubKategoriModel` baru secara otomatis ditautkan ke ID kategori induk.
         4.  Menyimpan `KategoriModel` yang lengkap (termasuk daftar sub-kategorinya) ke database.
     - **Layout**: Seluruh form dibungkus dengan `SingleChildScrollView` untuk memastikan halaman dapat di-scroll jika daftar sub-kategori menjadi panjang.
-    - **Perbaikan Analyzer**: Mengganti properti `value` yang usang pada `DropdownButtonFormField` dengan `initialValue` untuk mengatasi peringatan dari `flutter analyze`.\\\
+    - **Perbaikan Analyzer**: Mengganti properti `value` yang usang pada `DropdownButtonFormField` dengan `initialValue` untuk mengatasi peringatan dari `flutter analyze`.\
 - **`lib/data/sqlite.dart`**:
     - **Migrasi Database**: Menaikkan versi database dari 26 ke 27.
     - **Skema & Migrasi**: Menambahkan kolom `id_sub_kategori` bertipe `TEXT` ke tabel `kategori`. Ini penting untuk menyimpan daftar sub-kategori yang sudah di-serialize sebagai JSON string.
@@ -117,16 +151,19 @@ Sumber: pubspec.yaml (version: 1.1.0+7)
 Tanggal: 2024-07-26
 
 ## Tujuan:
-Mengimplementasikan fitur \\\\\\\"Arsip\\\\\\\" untuk Kategori dan Sub-Kategori, menggantikan fungsi \\\\\\\"Hapus\\\\\\\" yang bersifat destruktif. Ini memungkinkan data disembunyikan dari tampilan utama tanpa menghapusnya secara permanen dari database.
+Mengimplementasikan fitur "Arsip" untuk Kategori dan Sub-Kategori, menggantikan fungsi "Hapus" yang bersifat destruktif. Ini memungkinkan data disembunyikan dari tampilan utama tanpa menghapusnya secara permanen dari database.
 
 ## Perubahan:
-- **`lib/halaman/lainnya/kategori.dart`**:\n    - Mode \\\\\\\"Hapus\\\\\\\" diubah menjadi mode \\\\\\\"Arsip\\\\\\\".
+- **`lib/halaman/lainnya/kategori.dart`**:
+    - Mode "Hapus" diubah menjadi mode "Arsip".
     - Ikon `delete` diganti dengan ikon `archive`.
     - Mengimplementasikan dialog konfirmasi sebelum melakukan pengarsipan.
     - Logika untuk mengarsipkan kategori dan sub-kategori dengan mengatur tanggal `diarsipkan`.
     - Menambahkan pemeriksaan `if (!mounted) return;` setelah operasi `async` untuk mencegah *crash*.
-- **`lib/data/operasi/kategori_operasi.dart`**:\n    - Fungsi `getKategori()` dan `getKategoriByTipe()` dimodifikasi untuk hanya mengambil data yang kolom `diarsipkan`-nya `NULL`.
-- **`lib/model/kategori_model.dart`**:\n    - Memperbaiki `toMap()` dan `fromMap()` untuk menangani serialisasi daftar `subKategori` dengan benar (menggunakan `jsonEncode` dan `jsonDecode`).
+- **`lib/data/operasi/kategori_operasi.dart`**:
+    - Fungsi `getKategori()` dan `getKategoriByTipe()` dimodifikasi untuk hanya mengambil data yang kolom `diarsipkan`-nya `NULL`.
+- **`lib/model/kategori_model.dart`**:
+    - Memperbaiki `toMap()` dan `fromMap()` untuk menangani serialisasi daftar `subKategori` dengan benar (menggunakan `jsonEncode` dan `jsonDecode`).
     - Mengganti *key* dari `subKategori` menjadi `id_sub_kategori` di dalam `Map` untuk konsistensi database.
     - Memperbaiki bug di metode `copyWith` dimana nilai `diarsipkan` tidak disalin dengan benar.
     - Menghapus *cast* yang tidak perlu untuk meningkatkan kebersihan kode.
@@ -200,7 +237,7 @@ Mengimplementasikan fitur \\\\\\\"Arsip\\\\\\\" untuk Kategori dan Sub-Kategori,
 **Penjelasan Kode:**
 - **Manajemen Form**: Menggunakan `GlobalKey<FormState>` untuk validasi dan `TextEditingController` untuk setiap field input.
 - **Validasi Input**: Setiap `TextFormField` untuk input angka memiliki validator yang memastikan field tidak kosong, merupakan angka yang valid, dan lebih besar dari 0.
-- **`_simpanForm()`**: Logika utama yang dipicu saat tombol \"Simpan\" ditekan. Fungsi ini akan:
+- **`_simpanForm()`**: Logika utama yang dipicu saat tombol "Simpan" ditekan. Fungsi ini akan:
     1.  Memvalidasi form.
     2.  Membuat objek `PengaturanModel` baru dari nilai-nilai di controller.
     3.  Memanggil `_pengaturanOperasi.simpanAtauPerbaruiPengaturan()` untuk menyimpan data ke database.
@@ -218,8 +255,9 @@ Mengimplementasikan fitur \\\\\\\"Arsip\\\\\\\" untuk Kategori dan Sub-Kategori,
 **Tujuan file ini dibuat:** Untuk menampilkan daftar kategori dan sub-kategori pemasukan/pengeluaran. Pengguna dapat menambah, mengedit, dan sekarang mengarsipkan item.
 
 **Penjelasan Kode:**
-- **Mode Arsip**: Mengganti mode \\\\\\\"Hapus\\\\\\\" dengan \\\\\\\"Arsip\\\\\\\" (`_isArsipMode`). Tombol di `AppBar` diubah dari ikon `delete` menjadi `archive`.
-- **Logika Arsip (`_arsipkanKategoriUtama` & `_arsipkanSubKategori`)**:\n    1.  Menampilkan `AlertDialog` untuk konfirmasi pengguna.
+- **Mode Arsip**: Mengganti mode "Hapus" dengan "Arsip" (`_isArsipMode`). Tombol di `AppBar` diubah dari ikon `delete` menjadi `archive`.
+- **Logika Arsip (`_arsipkanKategoriUtama` & `_arsipkanSubKategori`)**:
+    1.  Menampilkan `AlertDialog` untuk konfirmasi pengguna.
     2.  Jika dikonfirmasi, memanggil metode `copyWith()` pada model untuk mengatur properti `diarsipkan` dengan tanggal saat ini.
     3.  Memanggil `_kategoriOperasi.update()` untuk menyimpan perubahan ke database.
     4.  Menampilkan `SnackBar` sebagai umpan balik dan memuat ulang data.
@@ -246,7 +284,7 @@ Mengimplementasikan fitur \\\\\\\"Arsip\\\\\\\" untuk Kategori dan Sub-Kategori,
 **Tujuan file ini dibuat:** Menyediakan fungsi CRUD (Create, Read, Update, Delete) untuk data kategori di database SQLite.
 
 **Penjelasan Kode:**
-- **`getKategori()`**: Fungsi ini dimodifikasi. Sekarang menggunakan klausa `WHERE \\\\\\\'diarsipkan\\\\\\\' IS NULL` dalam query-nya untuk memastikan hanya kategori yang tidak diarsipkan yang diambil dari database.
+- **`getKategori()`**: Fungsi ini dimodifikasi. Sekarang menggunakan klausa `WHERE 'diarsipkan' IS NULL` dalam query-nya untuk memastikan hanya kategori yang tidak diarsipkan yang diambil dari database.
 - **`getKategoriByTipe(TipeKategori tipe)`**: Fungsi ini juga diperbarui dengan filter `diarsipkan IS NULL` untuk memastikan hanya kategori aktif dari tipe tertentu yang dikembalikan.
 - **`update(KategoriModel kategori)`**: Fungsi ini sekarang tidak hanya untuk mengedit nama, tetapi juga digunakan untuk proses pengarsipan dengan menyimpan objek `KategoriModel` yang sudah diperbarui (termasuk nilai `diarsipkan`).
 
@@ -291,14 +329,29 @@ Mengimplementasikan fitur \\\\\\\"Arsip\\\\\\\" untuk Kategori dan Sub-Kategori,
 - Menyediakan kumpulan fungsi statis untuk melakukan berbagai perhitungan terkait logika bisnis, seperti menghitung sisa masa aktif, menentukan status poin, dan memberikan representasi visual (warna, teks) berdasarkan perhitungan tersebut.
 
 **Isi:**
-- **`getPoinHangus({required DateTime tanggalMulai, DateTime? now})`**: Fungsi baru yang ditambahkan melalui TDD. Fungsi ini menentukan apakah poin dari sebuah transaksi sudah \\\\\\\"Hangus\\\\\\\" berdasarkan aturan bisnis: jika tanggal mulai transaksi sudah lebih dari 30 hari dari tanggal saat ini, maka akan mengembalikan string \\\\\\\'Hangus\\\\\\\'. Jika tidak, mengembalikan string kosong.
+- **`getPoinHangus({required DateTime tanggalMulai, DateTime? now})`**: Fungsi baru yang ditambahkan melalui TDD. Fungsi ini menentukan apakah poin dari sebuah transaksi sudah "Hangus" berdasarkan aturan bisnis: jika tanggal mulai transaksi sudah lebih dari 30 hari dari tanggal saat ini, maka akan mengembalikan string 'Hangus'. Jika tidak, mengembalikan string kosong.
 - **`sisaHari(DateTime tanggalBerakhir, {DateTime? now})`**: Menghitung selisih hari (dalam integer) antara tanggal berakhir dan tanggal sekarang. Mengembalikan nilai negatif jika sudah lewat.
-- **`getTeksSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now})`**: Memberikan representasi teks yang mudah dibaca dari sisa masa aktif. Contoh: \\\\\\\"Sisa 5 hari\\\\\\\", \\\\\\\"Sisa 3 jam\\\\\\\", atau \\\\\\\"Berakhir\\\\\\\".
+- **`getTeksSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now})`**: Memberikan representasi teks yang mudah dibaca dari sisa masa aktif. Contoh: "Sisa 5 hari", "Sisa 3 jam", atau "Berakhir".
 - **`getWarnaSisaMasaAktif(DateTime tanggalBerakhir, {DateTime? now})`**: Menentukan warna (hijau, oranye, merah) berdasarkan sisa masa aktif, berguna untuk memberikan isyarat visual di UI.
 
 **Catatan:**
 - Kelas ini adalah contoh bagus dari kelas utilitas murni yang tidak memiliki state dan semua metodenya bersifat statis.
 - Fungsi `getPoinHangus` dikembangkan menggunakan metodologi Test-Driven Development (TDD), memastikan logikanya kuat dan teruji dengan baik.
+
+---
+
+### File: lib/halaman/detail/detail_pelanggan.dart
+**Fitur:** Detail Pelanggan
+**Tujuan file ini dibuat:** Untuk menyediakan halaman antarmuka yang menampilkan semua informasi rinci tentang seorang pelanggan, lengkap dengan interaksi cepat seperti menghubungi via WhatsApp, menyalin informasi, dan melihat total poin.
+
+**Penjelasan Kode:**
+- **`initState()` & `_loadTotalPoin()`**: Saat halaman pertama kali dibuka, `initState` akan memanggil `_loadTotalPoin`. Fungsi ini secara asinkron mengambil data total poin pelanggan dari `PelangganOperasi` dan memperbarui state (`_totalPoin` dan `_isLoadingPoin`) untuk ditampilkan di UI. Ini memastikan UI tetap responsif saat data poin sedang dimuat.
+- **`_launchWhatsApp(String phoneNumber)`**: Fungsi ini memformat nomor telepon ke standar internasional (`62...`) dan menggunakan `url_launcher` untuk membuka aplikasi WhatsApp dan langsung memulai chat. Terdapat penanganan error jika WhatsApp tidak terinstal.
+- **`_buildPoinCard()`**: Widget khusus yang menampilkan total poin pelanggan dalam sebuah kartu (Card) dengan desain gradien yang menarik. Widget ini juga berfungsi sebagai tombol yang dapat diklik untuk menavigasi pengguna ke `HalamanPoin`. Menampilkan `CircularProgressIndicator` saat data poin masih dimuat (`_isLoadingPoin`).
+- **Interaksi Pengguna**:
+    - **Password Visibility**: Menggunakan state `_isPasswordVisible` untuk menampilkan atau menyembunyikan password pelanggan.
+    - **Salin Informasi**: Menggunakan `Clipboard.setData()` untuk menyediakan fungsionalitas "salin" pada nomor telepon, MAC address, dan semua informasi pelanggan sekaligus, yang sangat memudahkan admin.
+- **Navigasi**: Terdapat tombol `edit` di `AppBar` yang menavigasi ke `FormPelanggan` untuk memperbarui data pelanggan.
 
 ---
 
@@ -472,3 +525,20 @@ transaksi_list_widgets.dart
 4.  Model kompatibel untuk **SQLite dan Firebase**.
 5.  Menggunakan **immutable pattern** untuk menjaga konsistensi state.
 6.  Memiliki fondasi untuk **skalabilitas** di masa depan (misalnya, menambahkan `versioning` atau `audit log`).
+
+---
+
+### File: lib/halaman/pembantu/halaman_poin.dart
+**Fitur:** Halaman Poin & Reward Pengguna
+**Tujuan file ini dibuat:** Untuk menampilkan halaman antarmuka (UI) yang informatif dan menarik terkait status poin pengguna, daftar reward yang bisa ditukarkan, dan riwayat transaksi mereka.
+
+**Penjelasan Kode:**
+- **Pemisahan Data & UI**: Kode ini secara tegas memisahkan data dari tampilan. Data untuk transaksi dan reward tidak lagi di-hardcode di dalam widget, melainkan didefinisikan dalam `List` menggunakan class model `_ModelTransaksi` dan `_ModelReward`.
+- **Manajemen State Sederhana**: Menggunakan `StatefulWidget` dengan variabel `_tampilkanReward` (boolean) untuk mengontrol tampilan antara daftar transaksi dan grid reward. Pembaruan UI dipicu oleh `setState()`.
+- **Model Data Lokal**: Terdapat dua class privat, `_ModelReward` dan `_ModelTransaksi`, yang berfungsi sebagai cetakan (blueprint) untuk data. Ini membuat struktur data menjadi jelas dan mudah dikelola.
+- **Logging Detail**: Setiap interaksi pengguna (misalnya, menekan tombol) dan setiap perubahan state (misalnya, `initState`, `build`, `setState`) dicatat secara eksplisit menggunakan `developer.log`. Ini sangat penting untuk debugging dan memahami alur kerja aplikasi.
+- **Fungsi Builder yang Terstruktur**: UI dipecah menjadi beberapa fungsi privat yang lebih kecil dan mudah dikelola (contoh: `_bangunHeader`, `_bangunKartuPoin`, `_bangunGridReward`), mengikuti prinsip *Single Responsibility*.
+- **Perbaikan Kualitas Kode**:
+    - Semua penamaan (variabel, fungsi, class) telah diubah ke Bahasa Indonesia.
+    - Semua fungsi telah diberi komentar dokumentasi yang menjelaskan tujuannya.
+    - Error analisis terkait `FontWeight.black` dan `withOpacity` telah diperbaiki menjadi `FontWeight.w900` dan `.withAlpha()`.

@@ -1,18 +1,20 @@
+// path: lib/services/servis_sinkronisasi.dart
 
 import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:admin_wifi/data/sync/unggah_selektif_service.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
+// ditambah: Mengimpor layanan koneksi internet yang terpusat.
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 
 /// [SinkronisasiService] bertanggung jawab untuk mengelola proses sinkronisasi
 /// data secara keseluruhan, baik mengunggah perubahan lokal maupun mengunduh
 /// pembaruan dari server.
 class SinkronisasiService {
   final UnggahSelektifService _unggahService;
+  // diubah: Menggunakan KoneksiInternetService sebagai sumber tunggal pengecekan koneksi.
+  final KoneksiInternetService _koneksiInternetService;
   // final UnduhSinkronisasiService _unduhService; // Akan ditambahkan nanti
-  final Connectivity _connectivity;
 
   // Timer untuk sinkronisasi otomatis
   Timer? _syncTimer;
@@ -21,13 +23,14 @@ class SinkronisasiService {
   final _syncStatusController = StreamController<bool>.broadcast();
   Stream<bool> get isSyncing => _syncStatusController.stream;
 
+  // diubah: Konstruktor diperbarui untuk menggunakan KoneksiInternetService.
   SinkronisasiService({
     UnggahSelektifService? unggahService,
+    KoneksiInternetService? koneksiInternetService,
     // UnduhSinkronisasiService? unduhService,
-    Connectivity? connectivity,
   })  : _unggahService = unggahService ?? UnggahSelektifService(),
+        _koneksiInternetService = koneksiInternetService ?? KoneksiInternetService();
         // _unduhService = unduhService ?? UnduhSinkronisasiService(),
-        _connectivity = connectivity ?? Connectivity();
 
   /// Memulai proses sinkronisasi manual.
   ///
@@ -36,7 +39,8 @@ class SinkronisasiService {
     _syncStatusController.add(true);
     developer.log('Memulai sinkronisasi manual.', name: 'SinkronisasiService');
 
-    final isConnected = await _isConnected();
+    // diubah: Pengecekan koneksi sekarang memanggil layanan terpusat.
+    final isConnected = await _koneksiInternetService.cekKoneksi();
     if (!isConnected) {
       developer.log('Sinkronisasi gagal: Tidak ada koneksi internet.', name: 'SinkronisasiService');
       _syncStatusController.add(false);
@@ -84,15 +88,7 @@ class SinkronisasiService {
     developer.log('Sinkronisasi otomatis dihentikan.', name: 'SinkronisasiService');
   }
 
-  /// Memeriksa apakah perangkat terhubung ke internet.
-  Future<bool> _isConnected() async {
-    if (kIsWeb) {
-      // Asumsikan selalu terhubung di web
-      return true;
-    }
-    final result = await _connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
-  }
+  // dihapus: Metode _isConnected() telah dihapus karena fungsinya digantikan oleh KoneksiInternetService.
 
   /// Membersihkan resource saat service tidak lagi digunakan.
   void dispose() {
@@ -100,4 +96,3 @@ class SinkronisasiService {
     _syncStatusController.close();
   }
 }
-
