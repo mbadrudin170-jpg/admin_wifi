@@ -266,4 +266,20 @@ class PelangganAktifOperasi {
     );
     return semuaPelanggan.length;
   }
+
+  Future<List<PelangganAktifModel>> getPelangganAktifByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+    final db = await dbHelper.database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'pelanggan_aktif',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return List.generate(maps.length, (i) {
+      return PelangganAktifModel.fromMap(maps[i]);
+    });
+  }
 }

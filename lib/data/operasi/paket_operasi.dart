@@ -94,4 +94,20 @@ class PaketOperasi {
     }
     await batch.commit(noResult: true);
   }
+
+  Future<List<PaketModel>> getPaketByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+    final db = await dbHelper.database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'paket',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return List.generate(maps.length, (i) {
+      return PaketModel.fromMap(maps[i]);
+    });
+  }
 }

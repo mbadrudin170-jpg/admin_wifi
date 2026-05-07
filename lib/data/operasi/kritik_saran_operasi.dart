@@ -208,4 +208,20 @@ class KritikSaranOperasi {
       return [];
     }
   }
+
+  Future<List<KritikSaranModel>> getKritikSaranByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+    final db = await dbHelper.database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'kritik_saran',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return List.generate(maps.length, (i) {
+      return KritikSaranModel.fromMap(maps[i]);
+    });
+  }
 }
