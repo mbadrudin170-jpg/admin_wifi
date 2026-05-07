@@ -2,16 +2,117 @@
 
 ------------------------
 
+---
 
-AI wajib mengikuti apa yang user perintahkan.
-AI dilarang berasumsi tanyakan kepada user kalau datanya samar samar.
-AI jangan biarkan ada error yang tidak di ketahui.
-AI diharapkan jaga konsistensi proyek user.
-AI jangan melawan perintah dari saya.
-AI harus membuat file salinan untuk mencoba fitur baru atau kode baru sebelum kdoe nya berjalan dan tidak ada bug baru boleh pindahkan ke file aslinya.___________________
+**Presentasi Aturan Kerja & Pengembangan Proyek**
+
+Selamat pagi/siang rekan-rekan tim,
+
+Dokumen ini bertujuan untuk menyamakan persepsi dan menetapkan standar operasional yang jelas dalam pengembangan proyek ini. Aturan-aturan ini dirancang untuk memastikan konsistensi, kualitas kode, ketertelusuran (traceability), dan efisiensi kolaborasi, terutama dalam interaksi dengan AI. Saya akan membacakan poin-poin krusialnya secara terstruktur.
+
+---
+
+### I. Hirarki dan Inisiasi Pekerjaan
+
+1.  **Otoritas Penuh Pengguna**: Semua instruksi yang diberikan oleh pengguna bersifat mutlak. AI dilarang keras menolak, melawan, atau berasumsi di luar instruksi yang telah diberikan. Jika terdapat data atau instruksi yang ambigu, AI wajib bertanya untuk klarifikasi sebelum bertindak.
+2.  **Inisiasi Pekerjaan dengan Konfirmasi**:
+    *   Sebelum mengeksekusi tugas apa pun, AI wajib memberikan penjelasan terperinci mengenai pekerjaan yang akan dilakukan, termasuk tujuan, dampak, dan file yang terpengaruh.
+    *   Pekerjaan hanya boleh dilanjutkan setelah mendapatkan konfirmasi eksplisit dari pengguna (contoh: "setuju", "oke", "ya").
+    *   Instruksi penolakan (contoh: "jangan", "tidak", "nggak") berarti pekerjaan tersebut tidak boleh dikerjakan.
+3.  **Kepatuhan pada Cetak Biru Proyek**: File `blueprint.md` adalah dokumen otoritatif alur kerja proyek. AI wajib membaca dan memahami dokumen ini sebelum memulai pekerjaan apa pun.
+4.  **Prosedur Sebelum Build**:
+    *   AI wajib memeriksa `blueprint.md` untuk mengidentifikasi jenis perubahan (fitur baru vs perbaikan bug).
+    *   Jika hanya perbaikan bug, **hanya nomor build yang dinaikkan, versi aplikasi pada `pubspec.yaml` tidak boleh diubah.**
+    *   Perintah build tidak boleh dijalankan tanpa instruksi eksplisit dari pengguna. Setelah diperintahkan, jalankan: `flutter clean && flutter pub get && flutter build apk --release --split-per-abi`.
+
+---
+
+### II. Konvensi Kode, Penamaan, dan Komentar
+
+1.  **Bahasa Indonesia sebagai Standar**: Wajib menggunakan Bahasa Indonesia untuk semua penamaan (fungsi, variabel, parameter, nama file), komentar kode, dan komunikasi lisan/tertulis dengan pengguna.
+2.  **Header File Wajib**: Setiap file kode **harus** diawali dengan komentar yang menunjukkan path relatif file tersebut.
+    *   **Format**: `// path: lib/nama_folder/nama_file.dart`
+3.  **Dokumentasi Inline yang Komprehensif**:
+    *   **Dokumentasi Fungsi**: Setiap fungsi wajib memiliki komentar di atasnya yang menjelaskan tujuan spesifik pembuatan fungsi tersebut.
+        *   **Format**: `// Fungsi ini bertujuan untuk menavigasi ke halaman detail produk.`
+    *   **Klarifikasi Kode Rumit**: Pada baris kode yang kompleks atau tidak intuitif, tambahkan komentar di sampingnya untuk menjelaskan alasan logisnya.
+    *   **Log Perubahan Inline**: Setiap kali melakukan modifikasi pada kode yang sudah ada, komentar di samping atau di atas blok kode terkait **harus** ditambahkan dengan struktur berikut:
+        *   **Penghapusan**: `// dihapus: [alasan menghapus kode lama]`
+        *   **Modifikasi/Penambahan**: `// diubah/ditambah: [alasan perubahan/penambahan]`
+4.  **Kewajiban `const`**: Untuk meningkatkan performa UI dan mengurangi konsumsi memori, penggunaan keyword `const` pada widget dan deklarasi statis adalah wajib diterapkan sebanyak mungkin.
+5.  **Identifikasi Data Non-Null**: Usahakan semua data teridentifikasi dan hindari nilai `null`. Default value yang logis harus diberikan, terutama pada file model. **Larangan tegas untuk mendeklarasikan field model sebagai nullable tanpa alasan kuat.**
+6.  **Penggunaan UUID untuk ID**: Setiap entitas data yang memerlukan identifikasi unik wajib menggunakan `UUID`. Kolom ID tidak boleh `null`.
+7.  **Hindari `late` yang Tidak Perlu**: Jangan gunakan keyword `late` kecuali benar-benar diperlukan dan logika aplikasi menjamin inisialisasinya sebelum penggunaan.
+8.  **Penggunaan `DropdownButtonFormField`**: Saat menggunakan widget ini, set nilai default melalui properti `initialValue`, jangan gunakan properti `value`.
+9.  **Pencatatan Log**: Gunakan `developer.log()` untuk semua keperluan pencatatan informasi di konsol.
+
+---
+
+### III. Manajemen State, Data, dan Asinkronus
+
+1.  **Pola Asynchronous Wajib**: Setiap operasi yang melibatkan I/O, permintaan jaringan, atau interaksi basis data **wajib** menggunakan pola `async/await` dan mengembalikan `Future`. Penggunaan `.then()` berantai sangat dilarang.
+2.  **Keamanan State dengan `mounted`**: Sebelum memanggil `setState` atau operasi lain yang bergantung pada siklus hidup widget setelah operasi asinkronus, **wajib** melakukan pengecekan `if (!mounted) return;` untuk mencegah error.
+3.  **Penggunaan Data Statis vs. Realtime**:
+    *   Gunakan metode `get()` untuk mengambil data statis.
+    *   Gunakan `snapshots()` hanya jika fitur secara eksplisit membutuhkan pembaruan data secara realtime.
+4.  **Konfigurasi Firestore**: Aktifkan persistence dengan pengaturan `persistenceEnabled: true` untuk mendukung fungsionalitas offline.
+5.  **Pengelompokan Fungsi dalam File Operasi**: Di setiap file yang berisi operasi (misal: service, repository), kelompokkan fungsi berdasarkan kategori aksinya: `Create`, `Read`, `Update`, `Delete`, `Arsipkan`.
+
+---
+
+### IV. Kualitas Kode, Pengujian, dan Validasi
+
+1.  **Analisis Kode Proaktif**: Setelah menyelesaikan pekerjaan pada sebuah file, AI wajib langsung menjalankan perintah `analyze_files` untuk memastikan kode bebas dari error dan peringatan.
+2.  **Metode Pengembangan Fitur Baru yang Aman**:
+    *   Untuk uji coba fitur atau kode baru, **wajib membuat file salinan terpisah** (misal: `nama_file_baru.dart`).
+    *   Hanya setelah kode baru dipastikan berfungsi tanpa bug, kode tersebut boleh dipindahkan ke file aslinya.
+3.  **Prosedur Perbaikan Kesalahan Wajib**: Sebelum memperbaiki kode, AI wajib menunjukkan perbandingan eksplisit: blok kode yang salah dan blok kode hasil perbaikannya. Pekerjaan perbaikan hanya dilakukan setelah dikonfirmasi oleh pengguna.
+4.  **Kelengkapan Unit Test**:
+    *   Jalankan `ls -R test/` untuk memverifikasi ketersediaan file test untuk setiap file kode di direktori `lib/`.
+    *   Setiap file di `lib/` wajib memiliki file test yang sesuai. Deskripsi test harus benar-benar merefleksikan skenario yang diuji.
+    *   Untuk test yang bergantung pada SQLite, gunakan kelas tiruan (mock) dengan database in-memory untuk `DatabaseHelper`.
+5.  **Otoritas File `GEMINI.md`**: AI dilarang keras mengubah file `GEMINI.md` tanpa perintah langsung dan eksplisit dari pengguna.
+
+---
+
+### V. Dokumentasi Proyek dan Ketertelusuran
+
+1.  **Pembaruan `blueprint.md`**:
+    *   Setelah menyelesaikan pekerjaan, AI wajib memperbarui dokumentasi struktur proyek di `blueprint.md` dengan menjalankan perintah `ls -R lib/` dan menuliskan output-nya.
+    *   Format dokumentasi per file yang dikerjakan harus terstruktur dan dikelompokkan berdasarkan folder:
+        *   **File:** `lib/path/nama_file.dart`
+        *   **Fitur:** [Nama Fitur]
+        *   **Tujuan File:** [Tujuan keseluruhan file ini dibuat, misal: Untuk menginisialisasi data awal aplikasi]
+        *   **Detail Kode:**
+            *   `Kode A`: [Penjelasan fungsinya, misal: Untuk memanggil fungsi `getData` dari service]
+            *   `Kode B`: [Penjelasan fungsinya, misal: Untuk menampilkan data `C` ke dalam ListView]
+2.  **Catatan Riwayat Kerja (`catatan_kerja.md`)**:
+    *   Semua pekerjaan yang dilakukan, termasuk penjelasan, analisis, dan solusi, wajib dicatat dalam file `catatan_kerja.md`.
+    *   Pengelompokan catatan harus mengikuti versi yang tertera pada `pubspec.yaml`.
+3.  **Logging Versi Terstandarisasi**:
+    *   Versi resmi proyek **hanya bersumber dari field `version` di `pubspec.yaml`**. AI dilarang menebak atau membuat versi sendiri.
+    *   Format penulisan versi di seluruh log dan dokumen adalah `v<versi_utama>` (contoh: dari `version: 1.0.3+4` menjadi `v1.0.3`).
+    *   Setiap kali terjadi perubahan pada proyek, sebuah entri log wajib dibuat dengan format baku sebagai berikut:
+        ```markdown
+        # Versi: v<versi_dari_pubspec>
+        Sumber: pubspec.yaml (version: <versi_lengkap_dari_pubspec>)
+        Tanggal: <tanggal_pengerjaan>
+
+        ## Tujuan:
+        ## Perubahan:
+        ## Bug:
+        ## Solusi:
+        ## Dampak:
+        ## Catatan:
+        ## Analisa:
+        ```
+
+
+___________________
 
 
 ## **Modifikasi Kode & Manajemen Dependensi**
+
 
 AI diberdayakan untuk memodifikasi basis kode Flutter dan mengelola dependensinya secara mandiri berdasarkan permintaan pengguna dan masalah yang terdeteksi. AI bersifat kreatif dan mengantisipasi fitur yang mungkin dibutuhkan pengguna meskipun tidak diminta secara eksplisit.
 
