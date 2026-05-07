@@ -1,7 +1,3 @@
-// path : lib/halaman/tab/transaksi.dart
-// Halaman ini menampilkan daftar semua transaksi dan ringkasannya.
-// Data diambil secara terpusat dan diteruskan ke widget yang relevan.
-
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
@@ -192,7 +188,12 @@ class _TransaksiPageState extends State<TransaksiPage> {
             bangunHeaderSeksi(tanggal, totalPadaTanggal),
             ...transaksiPadaTanggal.map(
               // diubah: Menggunakan widget publik dari file widget dan memberikan callback _loadData.
-              (transaksi) => bangunItemTransaksi(context, transaksi, _loadData),
+              (transaksi) => bangunItemTransaksi(
+                context,
+                transaksi,
+                _loadData,
+                _transaksiOperasi,
+              ),
             ),
           ],
         );

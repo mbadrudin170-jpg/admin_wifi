@@ -281,7 +281,7 @@ class LayananUnggahData {
     String namaTabel,
     String namaKoleksi,
     T Function(Map<String, dynamic>) fromMap,
-    Map<String, dynamic> Function(T) toMap,
+    Map<String, dynamic> Function(T) toMapForFirebase,
     DateTime waktuSinkronisasiTerakhir,
   ) async {
     try {
@@ -316,7 +316,7 @@ class LayananUnggahData {
           idDokumen = model.id;
         }
 
-        final dataUnggah = toMap(data);
+        final dataUnggah = toMapForFirebase(data);
         final docRef = _firestore.collection(namaKoleksi).doc(idDokumen);
         batchFirestore.set(docRef, dataUnggah, SetOptions(merge: true));
         itemsToCommit++;

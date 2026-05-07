@@ -30,17 +30,21 @@ dependencies:
   fluttertoast: ^9.0.0
   sqflite_common_ffi: ^2.4.0+3
   pub_semver: ^2.2.0
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.11.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.13.1
+  build_runner: ^2.15.0
   dependency_validator: ^5.0.5
   mockito: ^5.6.4
   flutter_launcher_icons: ^0.14.4
   fake_cloud_firestore: ^4.1.0+1
+  freezed: ^3.2.5
+  json_serializable: ^6.13.2
 
 # ditambahkan: untuk konfigurasi flutter_launcher_icons
 flutter_launcher_icons:

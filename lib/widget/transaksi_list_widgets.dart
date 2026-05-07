@@ -48,7 +48,8 @@ Widget bangunHeaderSeksi(DateTime tanggal, double total) {
 Widget bangunItemTransaksi(
   BuildContext context,
   TransaksiModel transaksi,
-  VoidCallback onDataChanged, // Callback untuk memuat ulang data
+  VoidCallback onDataChanged,
+  TransaksiOperasi transaksiOperasi, // Diubah: Menerima TransaksiOperasi
 ) {
   IconData iconData;
   Color iconColor;
@@ -60,8 +61,9 @@ Widget bangunItemTransaksi(
     iconColor = Colors.red;
   }
 
+  // Diubah: Fungsi ini sekarang menggunakan instance yang diteruskan
   void arsipkanTransaksi() async {
-    final transaksiOperasi = TransaksiOperasi();
+    // final transaksiOperasi = TransaksiOperasi(); // Baris ini dihapus
     await transaksiOperasi.arsipkanTransaksi(transaksi.id);
     onDataChanged();
   }

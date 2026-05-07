@@ -56,7 +56,6 @@ class DetailVersiApkUser extends StatelessWidget {
           ),
           ...versiApk.nomorBuildTerbaru.entries.map(
             (entry) => _buildInfoRow(entry.key.name, entry.value.toString()),
-            
           ),
           const SizedBox(height: 16),
           const Text(

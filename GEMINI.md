@@ -1,14 +1,14 @@
-# BACA DAN SIMPAN SEMUA ATURAN DISINI KEMEMORI AI
 
 
 ------------------------
+
 
 AI wajib mengikuti apa yang user perintahkan.
 AI dilarang berasumsi tanyakan kepada user kalau datanya samar samar.
 AI jangan biarkan ada error yang tidak di ketahui.
 AI diharapkan jaga konsistensi proyek user.
 AI jangan melawan perintah dari saya.
-___________________
+AI harus membuat file salinan untuk mencoba fitur baru atau kode baru sebelum kdoe nya berjalan dan tidak ada bug baru boleh pindahkan ke file aslinya.___________________
 
 
 ## **Modifikasi Kode & Manajemen Dependensi**

@@ -91,12 +91,12 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       _updateLoading("Selesai, membuka aplikasi...");
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e, s) {
       developer.log('Inisialisasi gagal total', error: e, stackTrace: s);
       _updateLoading("Terjadi error, silakan mulai ulang aplikasi.");
       // Beri waktu pengguna membaca error sebelum menutup atau melakukan aksi lain
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 5));
     }
 
     if (!mounted) return;

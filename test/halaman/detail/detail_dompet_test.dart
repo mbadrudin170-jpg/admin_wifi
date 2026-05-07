@@ -1,5 +1,3 @@
-// path: test/halaman/detail/detail_dompet_test.dart
-
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_dompet.dart';
@@ -62,6 +60,7 @@ void main() {
     mockDompetOperasi = MockDompetOperasi();
     mockNavigatorObserver = MockNavigatorObserver();
 
+    // Atur data awal yang akan dimuat saat widget pertama kali dirender
     when(
       mockTransaksiOperasi.ambilTransaksiByDompetId(any),
     ).thenAnswer((_) async => transaksiList);
@@ -88,36 +87,24 @@ void main() {
         '1.1 menampilkan total saldo pemasukan dengan memanggil fungsi ambilTransaksiByDompetId dan sum total pemasukan',
         (WidgetTester tester) async {
           await pumpDetailDompet(tester);
-          // diubah: Menggunakan find.byKey untuk keunikan
           expect(find.byKey(const Key('totalPemasukan')), findsOneWidget);
-          expect(
-            find.text('Rp 100.000'),
-            findsWidgets,
-          ); // Dibiarkan untuk verifikasi nilai
+          expect(find.text('Rp 100.000'), findsWidgets);
         },
       );
       testWidgets(
         '1.2 menampilkan total saldo pengeluaran dengan memanggil fungsi ambilTransaksiByDompetId dan sum total pengeluaran',
         (WidgetTester tester) async {
           await pumpDetailDompet(tester);
-          // diubah: Menggunakan find.byKey untuk keunikan
           expect(find.byKey(const Key('totalPengeluaran')), findsOneWidget);
-          expect(
-            find.text('Rp 25.000'),
-            findsWidgets,
-          ); // Dibiarkan untuk verifikasi nilai
+          expect(find.text('Rp 25.000'), findsWidgets);
         },
       );
       testWidgets(
         '1.3 menampilkan total saldo dengan membuat fungsi total saldo pemasukan dikurangi total saldo pengeluaran',
         (WidgetTester tester) async {
           await pumpDetailDompet(tester);
-          // diubah: Menggunakan find.byKey untuk keunikan
           expect(find.byKey(const Key('totalSaldo')), findsOneWidget);
-          expect(
-            find.text('Rp 125.000'),
-            findsWidgets,
-          ); // Dibiarkan untuk verifikasi nilai
+          expect(find.text('Rp 125.000'), findsWidgets);
         },
       );
     });
@@ -126,7 +113,11 @@ void main() {
       WidgetTester tester,
     ) async {
       await pumpDetailDompet(tester);
-      expect(find.text('Dompet Utama'), findsOneWidget);
+      final appBarFinder = find.byKey(const Key('appBar'));
+      expect(
+        find.descendant(of: appBarFinder, matching: find.text('Dompet Utama')),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('totalSaldo')), findsOneWidget);
     });
 
@@ -146,7 +137,6 @@ void main() {
       await pumpDetailDompet(tester);
       await tester.tap(find.byIcon(Icons.edit));
       await tester.pumpAndSettle();
-      // diubah: Verifikasi diganti menjadi pengecekan pemanggilan navigasi
       verify(mockNavigatorObserver.didPush(any, any));
     });
   });
@@ -185,35 +175,61 @@ void main() {
       testWidgets('8. tombol hapus harus memanggil fungsi arsipkanTransaksi', (
         WidgetTester tester,
       ) async {
-        await pumpDetailDompet(tester);
-        expect(find.text('Beli Kopi'), findsOneWidget);
-
+        // ARRANGE: Atur mock untuk operasi arsip itu sendiri
         when(
           mockTransaksiOperasi.arsipkanTransaksi('t2'),
         ).thenAnswer((_) async {});
 
-        final dompetAfterDelete = DompetModel(
-          id: '1',
-          namaDompet: 'Dompet Utama',
-          saldo: 100000,
+        // ACT & ASSERT: Render halaman dan verifikasi kondisi awal
+        await pumpDetailDompet(tester);
+        expect(
+          find.text('Beli Kopi'),
+          findsOneWidget,
+          reason: 'Item "Beli Kopi" harus ada sebelum dihapus',
         );
 
-        when(
-          mockDompetOperasi.getDompetById('1'),
-        ).thenAnswer((_) async => dompetAfterDelete);
+        // ACT: Munculkan dialog
+        await tester.longPress(find.text('Beli Kopi'));
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+
+        // ARRANGE (LANJUTAN): Atur ulang mock untuk data setelah hapus
         when(
           mockTransaksiOperasi.ambilTransaksiByDompetId('1'),
         ).thenAnswer((_) async => [transaksiList[0]]);
+        when(mockDompetOperasi.getDompetById('1')).thenAnswer(
+          (_) async =>
+              DompetModel(id: '1', namaDompet: 'Dompet Utama', saldo: 100000),
+        );
 
-        await tester.longPress(find.text('Beli Kopi'));
-        await tester.pumpAndSettle();
-
+        // ACT: Tekan tombol Hapus
         await tester.tap(find.text('Hapus'));
         await tester.pumpAndSettle();
 
+        // ASSERT: Verifikasi hasil akhir
         verify(mockTransaksiOperasi.arsipkanTransaksi('t2')).called(1);
-        expect(find.byType(AlertDialog), findsNothing);
-        expect(find.text('Beli Kopi'), findsNothing);
+        expect(
+          find.byType(AlertDialog),
+          findsNothing,
+          reason: 'Dialog harus tertutup setelah hapus',
+        );
+        expect(
+          find.text('Beli Kopi'),
+          findsNothing,
+          reason: 'Item "Beli Kopi" harus hilang setelah dihapus',
+        );
+
+        // Diubah: Verifikasi saldo dengan menemukan widget Text secara langsung
+        // melalui key-nya, lalu memeriksa properti `data`.
+        final totalSaldoTextWidget = tester.widget<Text>(
+          find.byKey(const Key('totalSaldo')),
+        );
+        expect(
+          totalSaldoTextWidget.data,
+          'Rp 100.000',
+          reason:
+              'Properti data dari widget Text dengan key totalSaldo harus \'Rp 100.000\'',
+        );
       });
     });
   });

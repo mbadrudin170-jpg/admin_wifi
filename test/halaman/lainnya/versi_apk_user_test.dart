@@ -2,12 +2,14 @@
 // diubah: keseluruhan file untuk memperbaiki logika mock, interaksi UI, dan validasi pengujian.
 // ditambahkan: `ensureVisible` untuk memastikan tombol terlihat sebelum ditekan.
 // ditambahkan: Memperbarui catatan rilis di pengujian edit untuk validasi yang akurat.
+// diperbaiki: Kompatibilitas dengan model VersiApkUserModel terbaru (ArsitekturApkEnum)
 
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_versi_apk_user.dart';
 import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/halaman/lainnya/versi_apk_user.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart'; // ✅ Tambahan import
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -16,7 +18,7 @@ import 'package:uuid/uuid.dart';
 
 import 'versi_apk_user_test.mocks.dart';
 
-// Fungsi helper untuk membuat model dummy
+// ✅ DIPERBAIKI: Fungsi helper menggunakan ArsitekturApkEnum sebagai key
 VersiApkUserModel _buatModel({
   String? id,
   String versi = '1.0.0',
@@ -26,7 +28,11 @@ VersiApkUserModel _buatModel({
   return VersiApkUserModel(
     id: id ?? const Uuid().v4(),
     versiTerbaru: versi,
-    nomorBuildTerbaru: {'universal': buildNumber},
+    nomorBuildTerbaru: {
+      ArsitekturApkEnum.universal: buildNumber, // ✅ Gunakan enum
+      ArsitekturApkEnum.bit_32: 0,
+      ArsitekturApkEnum.bit_64: 0,
+    },
     catatanRilis: 'Rilis $versi build $buildNumber',
     diperbarui: diperbarui ?? DateTime.now(),
   );
@@ -57,7 +63,6 @@ void main() {
 
     // Konfigurasi mock untuk `ambilSemuaVersiApkAktif`
     when(mockOperasi.ambilSemuaVersiApkAktif()).thenAnswer((_) async {
-      // Selalu kembalikan salinan list agar tidak terpengaruh mutasi
       return List<VersiApkUserModel>.from(dataLokal);
     });
 
@@ -92,11 +97,12 @@ void main() {
     });
   });
 
-  // Fungsi helper untuk membangun widget yang akan diuji
+  // ✅ DIPERBAIKI: Widget builder dengan rute yang tepat
   Widget buatWidgetYangDiuji() => MaterialApp(
     home: VersiApkUserPage(operasi: mockOperasi),
-    // Menambahkan rute untuk FormVersiApkUser agar navigasi berhasil
-    routes: {'/form': (context) => FormVersiApkUser(operasi: mockOperasi)},
+    routes: {
+      // Rute tidak diperlukan karena navigasi menggunakan MaterialPageRoute langsung
+    },
   );
 
   group('Pengujian Lengkap Halaman VersiApkUserPage', () {
@@ -108,11 +114,13 @@ void main() {
 
       final listTiles = tester.widgetList<ListTile>(find.byType(ListTile));
       expect(listTiles, hasLength(2));
-      // Data teratas harus yang terbaru (build 10)
+      // ✅ Data teratas harus yang terbaru (build 10)
       expect((listTiles.first.title as Text).data, contains('Build: 10'));
     });
 
-    testWidgets('2. Fitur urutkan (A-Z & Z-A) berfungsi', (tester) async {
+    testWidgets('2. Fitur urutkan (Build Terbaru & Terlama) berfungsi', (
+      tester,
+    ) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
       await tester.pumpAndSettle();
 
@@ -126,7 +134,7 @@ void main() {
 
       // Pilih urutan build terlama ke terbaru
       await tester.tap(find.text('Build (Terlama ke Terbaru)'));
-      await tester.pumpAndSettle(); // Tunggu dialog tertutup
+      await tester.pumpAndSettle();
 
       // Tekan OK
       await tester.tap(find.text('OK'));
@@ -171,7 +179,6 @@ void main() {
       expect(find.byType(ListTile), findsOneWidget); // Harusnya sisa 1 item
     });
 
-    // diperbaiki: Logika pengujian untuk alur edit diperbaiki
     testWidgets('5. Alur edit memperbarui UI tanpa reload', (tester) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
       await tester.pumpAndSettle();
@@ -190,14 +197,14 @@ void main() {
         find.widgetWithText(TextFormField, '1.2.0'),
         '1.2.1',
       );
-      // ditambahkan: Update juga catatan rilis agar teks '1.2.0' benar-benar hilang
+      // Update juga catatan rilis agar konsisten
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Rilis 1.2.0 build 10'),
         'Rilis 1.2.1 build 10',
       );
       await tester.pump();
 
-      // ditambahkan: Pastikan tombol 'Simpan' terlihat di layar sebelum menekannya
+      // Pastikan tombol 'Simpan' terlihat sebelum menekannya
       await tester.ensureVisible(find.text('Simpan'));
       await tester.pumpAndSettle();
 
@@ -207,21 +214,18 @@ void main() {
 
       // Konfirmasi di dialog
       await tester.tap(find.widgetWithText(TextButton, 'Ya'));
-      await tester.pumpAndSettle(); // Tunggu navigasi kembali dan UI update
+      await tester.pumpAndSettle();
 
       // Verifikasi bahwa UI di halaman daftar diperbarui
       expect(find.textContaining('Versi: 1.2.1'), findsOneWidget);
       expect(find.text('Rilis 1.2.1 build 10'), findsOneWidget);
       expect(find.textContaining('1.2.0'), findsNothing);
 
-      // ditambahkan: Verifikasi bahwa data tidak di-fetch ulang, tapi diperbarui dari hasil pop
-      verify(
-        mockOperasi.ambilSemuaVersiApkAktif(),
-      ).called(1); // Hanya dipanggil sekali di initState
+      // Verifikasi bahwa data tidak di-fetch ulang
+      verify(mockOperasi.ambilSemuaVersiApkAktif()).called(1);
       verify(mockOperasi.perbaruiVersiApkUser(any)).called(1);
     });
 
-    // diperbaiki: Logika pengujian untuk alur tambah diperbaiki
     testWidgets('6. Alur tambah memperbarui UI tanpa reload', (tester) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
       await tester.pumpAndSettle();
@@ -235,7 +239,6 @@ void main() {
       expect(find.byType(FormVersiApkUser), findsOneWidget);
 
       // Isi form
-      // Catatan: Label 'Versi Terbaru' & 'Build Universal' akan terisi otomatis dari _muatDataVersiTerakhir
       await tester.enterText(
         find.widgetWithText(TextFormField, '1.2.0'),
         '2.0.0',
@@ -247,7 +250,7 @@ void main() {
       );
       await tester.pump();
 
-      // ditambahkan: Pastikan tombol 'Simpan' terlihat di layar sebelum menekannya
+      // Pastikan tombol 'Simpan' terlihat sebelum menekannya
       await tester.ensureVisible(find.text('Simpan'));
       await tester.pumpAndSettle();
 
@@ -257,16 +260,14 @@ void main() {
 
       // Konfirmasi di dialog
       await tester.tap(find.widgetWithText(TextButton, 'Ya'));
-      await tester.pumpAndSettle(); // Tunggu navigasi kembali dan UI update
+      await tester.pumpAndSettle();
 
       // Verifikasi UI diperbarui di halaman daftar
       expect(find.text('Rilis Baru'), findsOneWidget);
       expect(find.byType(ListTile), findsNWidgets(3));
 
-      // ditambahkan: Verifikasi bahwa data tidak di-fetch ulang
-      verify(
-        mockOperasi.ambilSemuaVersiApkAktif(),
-      ).called(1); // Hanya dipanggil sekali di initState
+      // Verifikasi bahwa data tidak di-fetch ulang
+      verify(mockOperasi.ambilSemuaVersiApkAktif()).called(1);
       verify(mockOperasi.tambahVersiApkUser(any)).called(1);
     });
   });

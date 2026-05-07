@@ -4,17 +4,14 @@ import 'dart:async';
 
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
-import 'package:admin_wifi/services/cek_koneksi_internet.dart';
-import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
-import 'versi_apk_user_operasi_test.mocks.dart';
+import '../../helpers/test_helpers.mocks.dart';
 
 // Helper untuk menginisialisasi database untuk testing
 Future<Database> _initTestDatabase() async {
@@ -28,7 +25,9 @@ Future<Database> _initTestDatabase() async {
 VersiApkUserModel _buatModel({
   String? id,
   String versi = '1.0.0',
-  Map<String, int> nomorBuildTerbaru = const {'universal': 1},
+  Map<ArsitekturApkEnum, int> nomorBuildTerbaru = const {
+    ArsitekturApkEnum.universal: 1
+  },
   bool isDeleted = false,
   DateTime? diperbarui,
 }) {
@@ -37,7 +36,9 @@ VersiApkUserModel _buatModel({
     versiTerbaru: versi,
     catatanRilis: 'Catatan rilis untuk $versi',
     nomorBuildTerbaru: nomorBuildTerbaru,
-    tautanUnduhan: {'universal': 'http://example.com/$versi.apk'},
+    tautanUnduhan: {
+      ArsitekturApkEnum.universal: 'http://example.com/$versi.apk'
+    },
     youtubeTutorial: 'http://youtube.com/watch?v=$versi',
     wajibUpdate: false,
     diperbarui: diperbarui ?? DateTime.now(),
@@ -46,7 +47,6 @@ VersiApkUserModel _buatModel({
   );
 }
 
-@GenerateMocks([LayananUnggahData, KoneksiInternetService, SyncManager])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Database db;
@@ -263,19 +263,19 @@ void main() {
             // 1. SETUP: Buat skenario di mana hanya build number yang relevan
             final buildRendahTanggalBaru = _buatModel(
               versi: '2.0.0', // Versi sama untuk semua
-              nomorBuildTerbaru: {'universal': 5},
+              nomorBuildTerbaru: {ArsitekturApkEnum.universal: 5},
               diperbarui: DateTime.now(),
             );
 
             final buildTinggiTanggalLama = _buatModel(
               versi: '2.0.0', // Versi sama untuk semua
-              nomorBuildTerbaru: {'universal': 10},
+              nomorBuildTerbaru: {ArsitekturApkEnum.universal: 10},
               diperbarui: DateTime.now().subtract(const Duration(days: 2)),
             );
 
             final buildPalingTinggiDiarsip = _buatModel(
               versi: '2.0.0', // Versi sama untuk semua
-              nomorBuildTerbaru: {'universal': 15},
+              nomorBuildTerbaru: {ArsitekturApkEnum.universal: 15},
               diperbarui: DateTime.now(),
               isDeleted: true,
             );
@@ -298,7 +298,7 @@ void main() {
 
             // 3. ASSERT: Verifikasi hasilnya harus yang build 10
             expect(hasil, isNotNull);
-            expect(hasil!.nomorBuildTerbaru['universal'], 10);
+            expect(hasil!.nomorBuildTerbaru[ArsitekturApkEnum.universal], 10);
             expect(hasil.isDeleted, isFalse);
           },
         );

@@ -2,13 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 
-// diubah: Semua parameter diubah menjadi named arguments untuk kejelasan dan keamanan tipe.
+// diubah: Menambahkan parameter `textKey` opsional.
 Widget bangunInfoRingkasan({
   required BuildContext context,
   required String label,
   required double jumlah,
   required Color warna,
   CrossAxisAlignment alignment = CrossAxisAlignment.center,
+  Key? textKey, // ditambahkan: Parameter `textKey` opsional.
 }) {
   return Column(
     crossAxisAlignment: alignment,
@@ -17,6 +18,8 @@ Widget bangunInfoRingkasan({
       const SizedBox(height: 4),
       Text(
         FormatUang.formatMataUang(jumlah),
+        // diubah: Menggunakan `textKey` jika tersedia.
+        key: textKey ?? ValueKey(label),
         style: TextStyle(
           color: warna,
           fontWeight: FontWeight.bold,

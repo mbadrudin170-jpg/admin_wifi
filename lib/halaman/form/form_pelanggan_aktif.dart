@@ -11,6 +11,7 @@
 // diubah: Memfilter daftar kategori agar hanya menampilkan tipe pemasukan.
 // diubah: Memfilter daftar kategori untuk mengecualikan yang sudah dihapus (isDeleted == true).
 // ditambahkan: filter untuk hanya menampilkan dompet yang isDeleted-nya false.
+// ditambahkan: Key unik untuk setiap DropdownButtonFormField untuk pengujian.
 
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -105,9 +106,8 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
         // diubah: Memfilter dompet untuk hanya menampilkan yang tidak dihapus.
         final semuaDompet = results[2] as List<DompetModel>;
-        _daftarDompet = semuaDompet
-            .where((dompet) => !dompet.isDeleted)
-            .toList();
+        _daftarDompet =
+            semuaDompet.where((dompet) => !dompet.isDeleted).toList();
 
         _kategoriList = (results[3] as List<KategoriModel>)
             .where(
@@ -343,6 +343,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                   child: Column(
                     children: [
                       DropdownButtonFormField<PelangganModel>(
+                        key: const Key('pelanggan_dropdown'),
                         decoration: const InputDecoration(
                           labelText: 'Pilih Pelanggan',
                           border: OutlineInputBorder(),
@@ -359,12 +360,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedPelanggan = newValue;
                           });
                         },
-                        validator: (value) => value == null
-                            ? 'Pelanggan tidak boleh kosong'
-                            : null,
+                        validator: (value) =>
+                            value == null ? 'Pelanggan tidak boleh kosong' : null,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<PaketModel>(
+                        key: const Key('paket_dropdown'),
                         decoration: const InputDecoration(
                           labelText: 'Pilih Paket',
                           border: OutlineInputBorder(),
@@ -386,6 +387,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<DompetModel>(
+                        key: const Key('dompet_dropdown'),
                         decoration: const InputDecoration(
                           labelText: 'Pilih Dompet',
                           border: OutlineInputBorder(),
@@ -407,6 +409,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<KategoriModel>(
+                        key: const Key('kategori_dropdown'),
                         decoration: const InputDecoration(
                           labelText: 'Pilih Kategori Transaksi',
                           border: OutlineInputBorder(),
@@ -423,9 +426,8 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedKategori = newValue;
                           });
                         },
-                        validator: (value) => value == null
-                            ? 'Kategori tidak boleh kosong'
-                            : null,
+                        validator: (value) =>
+                            value == null ? 'Kategori tidak boleh kosong' : null,
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -466,12 +468,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey[200],
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey[200],
                                 foregroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                    ? Colors.white
-                                    : Colors.black,
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -485,13 +487,11 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    _statusPembayaran ==
+                                backgroundColor: _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
-                                foregroundColor:
-                                    _statusPembayaran ==
+                                foregroundColor: _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Colors.white
                                     : Colors.black,
@@ -552,9 +552,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                   );
                                   final DateTime endDate =
                                       _hitungTanggalBerakhir(
-                                        startDate,
-                                        _selectedPaket!,
-                                      );
+                                    startDate,
+                                    _selectedPaket!,
+                                  );
                                   return FormatTanggal.formatTanggalDanJam(
                                     endDate,
                                   );

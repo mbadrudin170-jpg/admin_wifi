@@ -98,6 +98,7 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
                   'Durasi',
                   '${_paket.durasi} ${_paket.tipe.name}',
                 ),
+                _buildDetailRow('Jumlah Poin', _paket.jumlahPoin.toString()),
               ],
             ),
           ),

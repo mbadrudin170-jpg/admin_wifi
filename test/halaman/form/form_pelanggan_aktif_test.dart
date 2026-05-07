@@ -12,6 +12,7 @@
 // diubah: Memperbaiki nama tes kelima agar sesuai permintaan.
 // diubah: Memperbaiki logika tes untuk `findsOneWidget` dengan menambahkan `.last` agar menargetkan item di dalam dropdown.
 // ditambahkan: Tes ke-6 untuk memverifikasi dropdown dompet hanya menampilkan dompet yang tidak dihapus.
+// diubah: Menggunakan `find.byKey` untuk mengetuk DropdownButtonFormField, memperbaiki peringatan `tap()`.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -163,12 +164,12 @@ void main() {
         await pumpForm(tester);
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Pilih Pelanggan'));
+        await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Pelanggan A').last);
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Pilih Paket'));
+        await tester.tap(find.byKey(const Key('paket_dropdown')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Paket 1 Jam').last);
         await tester.pumpAndSettle();
@@ -195,11 +196,11 @@ void main() {
         await pumpForm(tester);
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Pilih Pelanggan'));
+        await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Pelanggan A').last);
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Pilih Paket'));
+        await tester.tap(find.byKey(const Key('paket_dropdown')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Paket 1 Jam').last);
         await tester.pumpAndSettle();
@@ -291,7 +292,7 @@ void main() {
         await pumpForm(tester);
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Pilih Kategori Transaksi'));
+        await tester.tap(find.byKey(const Key('kategori_dropdown')));
         await tester.pumpAndSettle();
 
         // Memverifikasi item yang seharusnya ADA di dalam dropdown
@@ -339,7 +340,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // 3. Tap dropdown dompet
-        await tester.tap(find.text('Pilih Dompet'));
+        await tester.tap(find.byKey(const Key('dompet_dropdown')));
         await tester.pumpAndSettle();
 
         // 4. Verifikasi item yang ada dan tidak ada

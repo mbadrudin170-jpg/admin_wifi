@@ -3,6 +3,7 @@
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart'; // ✅ Tambahan import
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -10,27 +11,39 @@ import 'package:mockito/mockito.dart';
 
 import 'form_versi_apk_user_test.mocks.dart';
 
-// Data untuk mode Edit
+// ✅ DIPERBAIKI: Gunakan ArsitekturApkEnum sebagai key
 final dataUntukEdit = VersiApkUserModel(
   id: 'id-edit',
   versiTerbaru: '1.5.0',
-  nomorBuildTerbaru: {'universal': 15, 'bit_32': 1532, 'bit_64': 1564},
+  nomorBuildTerbaru: {
+    ArsitekturApkEnum.universal: 15,
+    ArsitekturApkEnum.bit_32: 1532,
+    ArsitekturApkEnum.bit_64: 1564,
+  },
   tautanUnduhan: {
-    'universal': 'link_universal_lama',
-    'bit_32': 'link_32_lama',
-    'bit_64': 'link_64_lama',
+    ArsitekturApkEnum.universal: 'link_universal_lama',
+    ArsitekturApkEnum.bit_32: 'link_32_lama',
+    ArsitekturApkEnum.bit_64: 'link_64_lama',
   },
   catatanRilis: 'Catatan rilis lama',
   wajibUpdate: false,
   youtubeTutorial: 'youtube.com/lama',
 );
 
-// Data yang dikembalikan saat form 'Tambah' dibuka
+// ✅ DIPERBAIKI: Gunakan ArsitekturApkEnum sebagai key
 final dataVersiTerakhir = VersiApkUserModel(
   id: 'id-terakhir',
   versiTerbaru: '1.9.9',
-  nomorBuildTerbaru: {'universal': 25},
-  tautanUnduhan: {},
+  nomorBuildTerbaru: {
+    ArsitekturApkEnum.universal: 25,
+    ArsitekturApkEnum.bit_32: 0,
+    ArsitekturApkEnum.bit_64: 0,
+  },
+  tautanUnduhan: {
+    ArsitekturApkEnum.universal: '',
+    ArsitekturApkEnum.bit_32: '',
+    ArsitekturApkEnum.bit_64: '',
+  },
   catatanRilis: 'Terbaru',
 );
 
@@ -63,13 +76,18 @@ void main() {
 
   group('Pengujian FormVersiApkUser dengan Dialog Konfirmasi', () {
     testWidgets(
-      '1. Mode Tambah: Harus memuat data dari `ambilVersiApkTerbaru` form harus terisi semua dari data yang di panggil oleh ambilVersiApkTerbaru, kecuali form tautanUnduhan, untuk form nomorBuildTerbaru harus ada fungsi penambahan jika datanya nomornya 1 maka diform harus 2',
+      '1. Mode Tambah: Harus memuat data dari `ambilVersiApkTerbaru` dengan build +1',
       (tester) async {
         await tester.pumpWidget(buatWidgetYangDiuji());
         await tester.pumpAndSettle();
 
+        // Verifikasi API dipanggil
         verify(mockOperasi.ambilVersiApkTerbaru()).called(1);
+
+        // Verifikasi field terisi dari data versi terakhir
         expect(find.widgetWithText(TextFormField, '1.9.9'), findsOneWidget);
+
+        // ✅ Build universal harus 26 (25 + 1)
         expect(find.widgetWithText(TextFormField, '26'), findsOneWidget);
       },
     );
@@ -80,8 +98,10 @@ void main() {
       await tester.pumpWidget(buatWidgetYangDiuji(dataEdit: dataUntukEdit));
       await tester.pumpAndSettle();
 
+      // Verifikasi API tidak dipanggil di mode edit
       verifyNever(mockOperasi.ambilVersiApkTerbaru());
 
+      // Verifikasi semua field terisi dengan benar
       expect(find.widgetWithText(TextFormField, '1.5.0'), findsOneWidget);
       expect(find.widgetWithText(TextFormField, '15'), findsOneWidget);
       expect(find.widgetWithText(TextFormField, '1532'), findsOneWidget);
@@ -114,25 +134,33 @@ void main() {
       await tester.pumpWidget(buatWidgetYangDiuji(dataEdit: dataUntukEdit));
       await tester.pumpAndSettle();
 
+      // Ubah nilai build universal
       await tester.enterText(find.widgetWithText(TextFormField, '15'), '16');
+      await tester.pump();
 
+      // Tekan tombol Simpan
       final saveButton = find.widgetWithText(ElevatedButton, 'Simpan');
       await tester.ensureVisible(saveButton);
       await tester.tap(saveButton);
       await tester.pumpAndSettle();
 
+      // Verifikasi dialog konfirmasi muncul
       expect(
         find.text('Apakah semua data yang Anda masukkan sudah benar?'),
         findsOneWidget,
       );
+
+      // Konfirmasi Ya
       await tester.tap(find.widgetWithText(TextButton, 'Ya'));
       await tester.pumpAndSettle();
 
+      // ✅ DIPERBAIKI: Verifikasi captured dengan ArsitekturApkEnum
       final captured = verify(
         mockOperasi.perbaruiVersiApkUser(captureAny),
       ).captured;
-      expect(captured.first.nomorBuildTerbaru['universal'], 16);
-      // diubah: Harusnya ada 2 pop (dialog dan form)
+      expect(captured.first.nomorBuildTerbaru[ArsitekturApkEnum.universal], 16);
+
+      // Verifikasi navigasi pop (dialog + form)
       verify(mockObserver.didPop(any, any)).called(2);
     });
 
@@ -142,33 +170,48 @@ void main() {
         await tester.pumpWidget(buatWidgetYangDiuji());
         await tester.pumpAndSettle();
 
+        // Ubah versi
         await tester.enterText(
           find.widgetWithText(TextFormField, '1.9.9'),
           '2.0.0',
         );
-        // diubah: Mengisi field Catatan Rilis yang wajib
+        // Isi field Catatan Rilis yang wajib
         await tester.enterText(
           find.widgetWithText(TextFormField, 'Catatan Rilis'),
           'Rilis baru!',
         );
+        await tester.pump();
 
+        // Tekan tombol Simpan
         final saveButton = find.widgetWithText(ElevatedButton, 'Simpan');
         await tester.ensureVisible(saveButton);
         await tester.tap(saveButton);
         await tester.pumpAndSettle();
 
+        // Verifikasi dialog konfirmasi muncul
         expect(
           find.text('Apakah semua data yang Anda masukkan sudah benar?'),
           findsOneWidget,
         );
+
+        // Konfirmasi Ya
         await tester.tap(find.widgetWithText(TextButton, 'Ya'));
         await tester.pumpAndSettle();
 
+        // Verifikasi data tersimpan
         final captured = verify(
           mockOperasi.tambahVersiApkUser(captureAny),
         ).captured;
         expect(captured.first.versiTerbaru, '2.0.0');
-        // diubah: Harusnya ada 2 pop (dialog dan form)
+        expect(captured.first.catatanRilis, 'Rilis baru!');
+
+        // ✅ DIPERBAIKI: Verifikasi build universal adalah 26 (25 + 1)
+        expect(
+          captured.first.nomorBuildTerbaru[ArsitekturApkEnum.universal],
+          26,
+        );
+
+        // Verifikasi navigasi pop (dialog + form)
         verify(mockObserver.didPop(any, any)).called(2);
       },
     );
@@ -179,27 +222,34 @@ void main() {
       await tester.pumpWidget(buatWidgetYangDiuji(dataEdit: dataUntukEdit));
       await tester.pumpAndSettle();
 
+      // Tekan tombol Simpan tanpa ubah data
       final saveButton = find.widgetWithText(ElevatedButton, 'Simpan');
       await tester.ensureVisible(saveButton);
       await tester.tap(saveButton);
       await tester.pumpAndSettle();
 
+      // Konfirmasi Tidak
       await tester.tap(find.widgetWithText(TextButton, 'Tidak'));
       await tester.pumpAndSettle();
 
+      // Verifikasi tidak ada operasi yang dipanggil
       verifyNever(mockOperasi.perbaruiVersiApkUser(any));
       verifyNever(mockOperasi.tambahVersiApkUser(any));
-      // diubah: Harusnya ada 1 pop (hanya dialog)
+
+      // Verifikasi hanya dialog yang di-pop
       verify(mockObserver.didPop(any, any)).called(1);
     });
 
     testWidgets('6. UI: Tombol simpan harus ada di bawah form', (tester) async {
       await tester.pumpWidget(buatWidgetYangDiuji());
+      await tester.pumpAndSettle();
 
+      // Verifikasi tombol Simpan ada dan terlihat
       final saveButton = find.widgetWithText(ElevatedButton, 'Simpan');
       await tester.ensureVisible(saveButton);
       expect(saveButton, findsOneWidget);
 
+      // Verifikasi tidak ada tombol simpan di AppBar
       expect(
         find.descendant(
           of: find.byType(AppBar),

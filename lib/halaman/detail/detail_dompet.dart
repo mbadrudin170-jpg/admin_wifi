@@ -1,4 +1,3 @@
-// path: lib/halaman/detail/detail_dompet.dart
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_dompet.dart';
@@ -98,6 +97,8 @@ class _DetailDompetState extends State<DetailDompet> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // ditambahkan: Key untuk AppBar
+        key: const Key('appBar'),
         title: Text(widget.dompet.namaDompet),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -159,20 +160,21 @@ class _DetailDompetState extends State<DetailDompet> {
                           label: 'Pemasukan',
                           jumlah: data.totalPemasukan,
                           warna: Colors.green,
+                          textKey: const Key('totalPemasukan'),
                         ),
-
-                        // diubah: Menggunakan named arguments
                         bangunInfoRingkasan(
                           context: context,
                           label: 'Pengeluaran',
                           jumlah: data.totalPengeluaran,
                           warna: Colors.red,
+                          textKey: const Key('totalPengeluaran'),
                         ),
                         bangunInfoRingkasan(
                           context: context,
                           label: 'Total',
                           jumlah: total,
                           warna: total >= 0 ? Colors.blue : Colors.red,
+                          textKey: const Key('totalSaldo'),
                         ),
                       ],
                     ),
@@ -226,8 +228,12 @@ class _DetailDompetState extends State<DetailDompet> {
           children: [
             bangunHeaderSeksi(tanggal, totalPadaTanggal),
             ...transaksiPadaTanggal.map(
-              (transaksi) =>
-                  bangunItemTransaksi(context, transaksi, _muatUlangData),
+              (transaksi) => bangunItemTransaksi(
+                context,
+                transaksi,
+                _muatUlangData,
+                _transaksiOperasi, // Diubah: Menambahkan parameter yang hilang
+              ),
             ),
           ],
         );

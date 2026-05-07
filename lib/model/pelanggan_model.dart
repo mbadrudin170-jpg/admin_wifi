@@ -26,7 +26,7 @@ class PelangganModel {
     required this.alamat,
     required this.password,
     this.macAddress = '',
-    this.diperbarui, // diubah: tidak lagi required
+    this.diperbarui, 
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();

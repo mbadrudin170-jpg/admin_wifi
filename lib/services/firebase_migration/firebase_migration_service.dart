@@ -55,43 +55,108 @@ class FirebaseMigrationService {
     final QuerySnapshot snapshot = await _firestore
         .collection('versi_apk_user')
         .get();
-    int migratedCount = 0;
+    int migratedBuildCount = 0;
+    int migratedTautanCount = 0;
+    int migratedBuildDanTautanCount = 0;
 
     for (final doc in snapshot.docs) {
       final data = doc.data() as Map<String, dynamic>;
       final docRef = doc.reference;
 
-      final nomorBuild = data['nomor_build_terbaru'];
-      final tautanUnduhan = data['tautan_unduhan'];
+      final dynamic nomorBuildLama = data['nomor_build_terbaru'];
+      final dynamic tautanUnduhanLama = data['tautan_unduhan'];
 
-      bool needsMigration = false;
       Map<String, dynamic> updateData = {};
+      bool buildPerluMigrasi = false;
+      bool tautanPerluMigrasi = false;
 
-      if (nomorBuild is int) {
-        needsMigration = true;
-        updateData['nomor_build_terbaru'] = {'universal': nomorBuild};
-      } else if (nomorBuild is String && int.tryParse(nomorBuild) != null) {
-        needsMigration = true;
-        updateData['nomor_build_terbaru'] = {
-          'universal': int.parse(nomorBuild),
-        };
-      }
+      // ✅ Migrasi nomor_build_terbaru
+      if (nomorBuildLama != null && nomorBuildLama is! Map) {
+        buildPerluMigrasi = true;
 
-      if (tautanUnduhan is String && tautanUnduhan.isNotEmpty) {
-        // Hanya migrasi jika bukan Map
-        if (data['tautan_unduhan'] is! Map) {
-          needsMigration = true;
-          updateData['tautan_unduhan'] = {'universal': tautanUnduhan};
+        if (nomorBuildLama is int) {
+          // Data lama berupa int, konversi ke Map dengan key 'universal'
+          updateData['nomor_build_terbaru'] = {
+            'universal': nomorBuildLama,
+            'bit_32': 0,
+            'bit_64': 0,
+          };
+        } else if (nomorBuildLama is String &&
+            int.tryParse(nomorBuildLama) != null) {
+          // Data lama berupa String angka, konversi ke Map dengan key 'universal'
+          updateData['nomor_build_terbaru'] = {
+            'universal': int.parse(nomorBuildLama),
+            'bit_32': 0,
+            'bit_64': 0,
+          };
+        } else {
+          // Data tidak valid, set default
+          updateData['nomor_build_terbaru'] = {
+            'universal': 0,
+            'bit_32': 0,
+            'bit_64': 0,
+          };
         }
       }
 
-      if (needsMigration) {
+      // ✅ Migrasi tautan_unduhan
+      if (tautanUnduhanLama != null && tautanUnduhanLama is! Map) {
+        tautanPerluMigrasi = true;
+
+        if (tautanUnduhanLama is String && tautanUnduhanLama.isNotEmpty) {
+          // Data lama berupa String, konversi ke Map dengan key 'universal'
+          updateData['tautan_unduhan'] = {
+            'universal': tautanUnduhanLama,
+            'bit_32': '',
+            'bit_64': '',
+          };
+        } else {
+          // Data kosong atau tidak valid, set default
+          updateData['tautan_unduhan'] = {
+            'universal': '',
+            'bit_32': '',
+            'bit_64': '',
+          };
+        }
+      }
+
+      // ✅ Update jika ada yang perlu dimigrasi
+      if (updateData.isNotEmpty) {
         batch.update(docRef, updateData);
-        migratedCount++;
+
+        if (buildPerluMigrasi && tautanPerluMigrasi) {
+          migratedBuildDanTautanCount++;
+        } else if (buildPerluMigrasi) {
+          migratedBuildCount++;
+        } else if (tautanPerluMigrasi) {
+          migratedTautanCount++;
+        }
       }
     }
-    if (migratedCount > 0) {
-      logs.add('  - [VersiApkUser] $migratedCount dokumen akan dimigrasi.');
+
+    // ✅ Log hasil migrasi
+    if (migratedBuildCount > 0) {
+      logs.add(
+        '  - [nomor_build_terbaru] $migratedBuildCount dokumen akan dimigrasi.',
+      );
+    }
+    if (migratedTautanCount > 0) {
+      logs.add(
+        '  - [tautan_unduhan] $migratedTautanCount dokumen akan dimigrasi.',
+      );
+    }
+    if (migratedBuildDanTautanCount > 0) {
+      logs.add(
+        '  - [nomor_build + tautan] $migratedBuildDanTautanCount dokumen akan dimigrasi.',
+      );
+    }
+
+    final totalMigrated =
+        migratedBuildCount + migratedTautanCount + migratedBuildDanTautanCount;
+    if (totalMigrated > 0) {
+      logs.add(
+        '  Total: $totalMigrated dokumen di `versi_apk_user` akan dimigrasi.',
+      );
     }
   }
 
