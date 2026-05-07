@@ -130,4 +130,24 @@ class DompetOperasi {
     final ids = items.map((e) => e.id).toList();
     await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, ids);
   }
+
+  /// Mengambil beberapa dompet dari database lokal berdasarkan daftar ID.
+  ///
+  /// Fungsi ini efisien untuk mengambil data secara massal untuk proses sinkronisasi.
+  Future<List<DompetModel>> getDompetByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+    final db = await dbHelper.database;
+    // Membuat placeholder '?' sebanyak jumlah id untuk query yang aman
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'dompet',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return List.generate(maps.length, (i) {
+      return DompetModel.fromMap(maps[i]);
+    });
+  }
 }

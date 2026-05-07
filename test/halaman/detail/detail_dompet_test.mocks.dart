@@ -266,6 +266,19 @@ class MockDompetOperasi extends _i1.Mock implements _i7.DompetOperasi {
             returnValueForMissingStub: _i5.Future<void>.value(),
           )
           as _i5.Future<void>);
+
+  @override
+  _i5.Future<List<_i8.DompetModel>> getDompetByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getDompetByIds, [ids]),
+            returnValue: _i5.Future<List<_i8.DompetModel>>.value(
+              <_i8.DompetModel>[],
+            ),
+            returnValueForMissingStub: _i5.Future<List<_i8.DompetModel>>.value(
+              <_i8.DompetModel>[],
+            ),
+          )
+          as _i5.Future<List<_i8.DompetModel>>);
 }
 
 /// A class which mocks [NavigatorObserver].

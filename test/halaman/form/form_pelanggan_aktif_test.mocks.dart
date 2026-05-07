@@ -611,6 +611,16 @@ class MockDompetOperasi extends _i1.Mock implements _i15.DompetOperasi {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<List<_i16.DompetModel>> getDompetByIds(List<String>? ids) =>
+      (super.noSuchMethod(
+            Invocation.method(#getDompetByIds, [ids]),
+            returnValue: _i8.Future<List<_i16.DompetModel>>.value(
+              <_i16.DompetModel>[],
+            ),
+          )
+          as _i8.Future<List<_i16.DompetModel>>);
 }
 
 /// A class which mocks [KategoriOperasi].

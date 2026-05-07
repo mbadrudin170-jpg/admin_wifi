@@ -104,4 +104,22 @@ class StatusUnggahOperasi {
     // Simpan status yang diperbarui ke database.
     await simpanStatusUnggah(statusDiperbarui);
   }
+
+  /// Mereset status unggah untuk tabel tertentu.
+  ///
+  /// Ini akan mengatur `status` menjadi `false` dan mengosongkan daftar `ids`.
+  /// Biasanya dipanggil setelah proses unggah ke Firebase berhasil.
+  Future<void> resetStatus(NamaTabel tabel) async {
+    final db = await _dbHelper.database;
+    await db.update(
+      'status_unggah',
+      {
+        'status': 0, // false
+        'ids': '[]', // JSON string untuk list kosong
+      },
+      where: 'tabel = ?',
+      whereArgs: [tabel.name],
+    );
+    developer.log('Status unggah untuk tabel ${tabel.name} telah di-reset.', name: 'StatusUnggahOperasi');
+  }
 }
