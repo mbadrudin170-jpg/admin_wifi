@@ -176,49 +176,206 @@ class UnggahSelektifService {
     return true;
   }
 
-  // ditambah: Placeholder untuk setiap metode unggah
+  // Fungsi ini bertujuan untuk mengambil data transaksi dari database lokal berdasarkan ID yang diberikan dan mengunggahnya ke Firestore.
   Future<bool> _unggahTransaksi(List<String> ids) async {
-    developer.log('Handler untuk unggah transaksi belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false; // diubah: Kembalikan false agar status tidak di-reset
+    final daftarTransaksi = await _transaksiOperasi.getTransaksiByIds(ids);
+
+    if (daftarTransaksi.isEmpty) {
+      developer.log('Tidak ada data transaksi valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahTransaksi');
+      return true; // diubah: Kembalikan true karena tidak ada yang perlu diunggah, proses dianggap selesai.
+    }
+
+    final batch = _firestore.batch();
+    for (final transaksi in daftarTransaksi) {
+      final docRef = _firestore.collection('transaksi').doc(transaksi.id);
+      // diubah: Menggunakan toMapForFirebase untuk memastikan kompatibilitas format data saat unggah.
+      batch.set(docRef, transaksi.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarTransaksi.length} item transaksi secara selektif.', name: 'UnggahSelektifService._unggahTransaksi');
+    return true;
   }
+  
   Future<bool> _unggahVersiApkUser(List<String> ids) async {
-    developer.log('Handler untuk unggah versiApkUser belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _versiApkUserOperasi.getVersiApkUserByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data versi_apk_user valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahVersiApkUser');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('versi_apk_user').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item versi_apk_user secara selektif.', name: 'UnggahSelektifService._unggahVersiApkUser');
+    return true;
   }
+
   Future<bool> _unggahPengaturan(List<String> ids) async {
-    developer.log('Handler untuk unggah pengaturan belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _pengaturanOperasi.getPengaturanByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data pengaturan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPengaturan');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('pengaturan').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item pengaturan secara selektif.', name: 'UnggahSelektifService._unggahPengaturan');
+    return true;
   }
   Future<bool> _unggahKategori(List<String> ids) async {
-    developer.log('Handler untuk unggah kategori belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _kategoriOperasi.getKategoriByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data kategori valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahKategori');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('kategori').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item kategori secara selektif.', name: 'UnggahSelektifService._unggahKategori');
+    return true;
   }
   Future<bool> _unggahSubKategori(List<String> ids) async {
-    developer.log('Handler untuk unggah subKategori belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _subKategoriOperasi.getSubKategoriByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data sub_kategori valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahSubKategori');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('sub_kategori').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item sub_kategori secara selektif.', name: 'UnggahSelektifService._unggahSubKategori');
+    return true;
   }
   Future<bool> _unggahPaket(List<String> ids) async {
-    developer.log('Handler untuk unggah paket belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _paketOperasi.getPaketByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data paket valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPaket');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('paket').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item paket secara selektif.', name: 'UnggahSelektifService._unggahPaket');
+    return true;
   }
   Future<bool> _unggahPelanggan(List<String> ids) async {
-    developer.log('Handler untuk unggah pelanggan belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _pelangganOperasi.getPelangganByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data pelanggan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPelanggan');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('pelanggan').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item pelanggan secara selektif.', name: 'UnggahSelektifService._unggahPelanggan');
+    return true;
   }
   Future<bool> _unggahPelangganAktif(List<String> ids) async {
-    developer.log('Handler untuk unggah pelangganAktif belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _pelangganAktifOperasi.getPelangganAktifByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data pelanggan_aktif valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPelangganAktif');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('pelanggan_aktif').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item pelanggan_aktif secara selektif.', name: 'UnggahSelektifService._unggahPelangganAktif');
+    return true;
   }
   Future<bool> _unggahKritikSaran(List<String> ids) async {
-    developer.log('Handler untuk unggah kritikSaran belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _kritikSaranOperasi.getKritikSaranByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data kritik_saran valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahKritikSaran');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('kritik_saran').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item kritik_saran secara selektif.', name: 'UnggahSelektifService._unggahKritikSaran');
+    return true;
   }
   Future<bool> _unggahRiwayatLangganan(List<String> ids) async {
-    developer.log('Handler untuk unggah riwayatLangganan belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _riwayatLanggananOperasi.getRiwayatLanggananByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data riwayat_langganan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahRiwayatLangganan');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('riwayat_langganan').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item riwayat_langganan secara selektif.', name: 'UnggahSelektifService._unggahRiwayatLangganan');
+    return true;
   }
   Future<bool> _unggahPesanan(List<String> ids) async {
-    developer.log('Handler untuk unggah pesanan belum diimplementasikan.', name: 'UnggahSelektifService');
-    return false;
+    final daftarData = await _pesananOperasi.getPesananByIds(ids);
+
+    if (daftarData.isEmpty) {
+      developer.log('Tidak ada data pesanan valid yang ditemukan untuk diunggah.', name: 'UnggahSelektifService._unggahPesanan');
+      return true;
+    }
+
+    final batch = _firestore.batch();
+    for (final data in daftarData) {
+      final docRef = _firestore.collection('pesanan').doc(data.id);
+      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+    }
+
+    await batch.commit();
+    developer.log('Berhasil mengunggah ${daftarData.length} item pesanan secara selektif.', name: 'UnggahSelektifService._unggahPesanan');
+    return true;
   }
 }
