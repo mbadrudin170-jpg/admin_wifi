@@ -1,7 +1,6 @@
 // path : lib/splash_screen.dart
 import 'dart:async';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/services/servis_sinkronisasi.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
