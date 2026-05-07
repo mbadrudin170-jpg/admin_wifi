@@ -1,7 +1,7 @@
 // path: lib/model/status_unggah_model.dart
 import 'dart:convert';
 
-import 'package:admin_wifi/model/enum/nama_tabel.dart';
+import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
 
 class StatusUnggahModel {
   final NamaTabel tabel;
@@ -13,6 +13,18 @@ class StatusUnggahModel {
     required this.status,
     required this.ids,
   });
+
+  StatusUnggahModel copyWith({
+    NamaTabel? tabel,
+    bool? status,
+    List<String>? ids,
+  }) {
+    return StatusUnggahModel(
+      tabel: tabel ?? this.tabel,
+      status: status ?? this.status,
+      ids: ids ?? this.ids,
+    );
+  }
 
   // diubah: Metode ini sekarang dapat menangani data dari SQLite (int) dan Firebase (bool).
   factory StatusUnggahModel.fromMap(Map<String, dynamic> map) {

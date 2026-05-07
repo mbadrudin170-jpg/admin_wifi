@@ -1,4 +1,5 @@
 // lib/main.dart
+// import 'package:admin_wifi/halaman/tes/halaman_tes.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
@@ -68,6 +69,8 @@ class MyApp extends StatelessWidget {
       theme: lightTheme,
       themeMode: ThemeMode.light,
       home: const SplashScreen(),
+
+      // home: const HalamanTes(),
       navigatorKey: NavigasiServis.navigatorKey,
     );
   }

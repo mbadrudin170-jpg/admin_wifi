@@ -1,9 +1,3 @@
-// path: test/data/operasi/transaksi_operasi_test.dart
-// diubah: Mengganti MockDatabaseHelper dengan metode injeksi database ke singleton.
-// diubah: Menggunakan nama variabel lowerCamelCase dan tipe data boolean untuk isDeleted.
-// diubah: Mengganti semua pemanggilan .toMap() menjadi .toMapForSqlite().
-// diubah: Mengganti semua pemanggilan .salinDengan() menjadi .copyWith().
-
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -20,39 +14,23 @@ void main() {
   const double saldoAwal = 1000.0;
   final uuid = const Uuid();
 
-  // Inisialisasi FFI untuk sqflite dan siapkan database in-memory
-  setUpAll(() async {
-    sqfliteFfiInit();
-    // Buka database in-memory SEKALI saja untuk semua tes
-    final dbFuture = databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
-    // Suntikkan database ini ke dalam instance singleton DatabaseHelper
-    DatabaseHelper.instance.database = dbFuture;
-    db = await dbFuture;
-    // Sekarang, operasi akan menggunakan database in-memory secara otomatis
-    operasi = TransaksiOperasi();
-  });
-
-  // Fungsi helper untuk mendapatkan saldo dompet
-  Future<double> getSaldo(String idDompet) async {
-    final map = await db.query(
-      'dompet',
-      where: 'id = ?',
-      whereArgs: [idDompet],
-    );
-    // Tambahkan pengecekan untuk memastikan map tidak kosong
-    if (map.isNotEmpty) {
-      return (map.first['saldo'] as num).toDouble();
-    }
-    return 0.0; // Kembalikan 0 jika dompet tidak ditemukan
-  }
-
   // `setUp` dijalankan sebelum SETIAP tes untuk memastikan isolasi.
   setUp(() async {
-    // Hapus data lama dan buat ulang tabel untuk setiap tes
-    await db.execute('DROP TABLE IF EXISTS dompet');
-    await db.execute('DROP TABLE IF EXISTS transaksi');
-    await db.execute(DatabaseHelper.tabelDompet);
-    await db.execute(DatabaseHelper.tabelTransaksi);
+    // Inisialisasi FFI untuk sqflite dan gunakan factory-nya
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+
+    // Buka database in-memory yang baru untuk setiap tes
+    db = await databaseFactory.openDatabase(inMemoryDatabasePath);
+
+    // Inisialisasi skema database dari DatabaseHelper
+    await DatabaseHelper.instance.createTables(db);
+
+    // Suntikkan database in-memory ini ke dalam instance singleton DatabaseHelper
+    DatabaseHelper.instance.stubDb(db);
+
+    // Buat instance operasi dengan database yang sudah di-stub
+    operasi = TransaksiOperasi();
 
     // Buat data dompet awal yang bersih untuk setiap tes
     dompetA = DompetModel(
@@ -66,20 +44,29 @@ void main() {
       saldo: saldoAwal,
     );
 
-    // diubah: Menggunakan toMapForSqlite()
     await db.insert('dompet', dompetA.toMapForSqlite());
     await db.insert('dompet', dompetB.toMapForSqlite());
   });
 
-  // `tearDownAll` dijalankan sekali setelah semua tes selesai.
-  tearDownAll(() async {
+  // `tearDown` dijalankan setelah SETIAP tes untuk membersihkan.
+  tearDown(() async {
     await db.close();
   });
 
+  // Fungsi helper untuk mendapatkan saldo dompet
+  Future<double> getSaldo(String idDompet) async {
+    final map = await db.query(
+      'dompet',
+      where: 'id = ?',
+      whereArgs: [idDompet],
+    );
+    if (map.isNotEmpty) {
+      return (map.first['saldo'] as num).toDouble();
+    }
+    return 0.0;
+  }
+
   group('TransaksiOperasi Tests', () {
-    // ===================================
-    // Tes untuk `tambahTransaksi` (TIDAK BERUBAH)
-    // ===================================
     test('tambahTransaksi (Pemasukan) harus menambah saldo dompet', () async {
       final transaksi = TransaksiModel(
         id: uuid.v4(),
@@ -148,9 +135,6 @@ void main() {
       },
     );
 
-    // ===================================
-    // Tes untuk `deleteTransaksi` (TIDAK BERUBAH)
-    // ===================================
     test(
       'arsipkanTransaksi (Pemasukan) harus mengembalikan saldo, data transaksi harus ubah isDeleted : true, diarspikan :DateTime.now, diperbarui : DateTime.now',
       () async {
@@ -193,7 +177,6 @@ void main() {
 
         expect(await getSaldo(dompetA.id), saldoAwal - 50);
 
-        // diubah: memperbaiki pemanggilan fungsi yang salah
         await operasi.arsipkanTransaksi(transaksi.id);
 
         expect(await getSaldo(dompetA.id), saldoAwal);
@@ -221,7 +204,6 @@ void main() {
         expect(await getSaldo(dompetA.id), saldoAwal - 100);
         expect(await getSaldo(dompetB.id), saldoAwal + 100);
 
-        // diubah: memperbaiki pemanggilan fungsi yang salah
         await operasi.arsipkanTransaksi(transaksi.id);
 
         expect(await getSaldo(dompetA.id), saldoAwal);
@@ -229,9 +211,6 @@ void main() {
       },
     );
 
-    // ===================================
-    // Tes untuk `updateTransaksi` (TIDAK BERUBAH)
-    // ===================================
     test(
       'updateTransaksi harus menyesuaikan saldo dengan benar (jumlah berubah)',
       () async {
@@ -250,7 +229,6 @@ void main() {
 
         expect(await getSaldo(dompetA.id), saldoAwal + 100);
 
-        // diubah: Menggunakan copyWith()
         final transaksiUpdate = transaksiAwal.copyWith(jumlah: 250);
         await operasi.updateTransaksi(transaksiUpdate);
 
@@ -277,7 +255,6 @@ void main() {
 
         expect(await getSaldo(dompetA.id), saldoAwal + 100);
 
-        // diubah: Menggunakan copyWith()
         final transaksiUpdate = transaksiAwal.copyWith(
           tipe: TipeTransaksi.pengeluaran,
           jumlah: 50,
@@ -310,7 +287,6 @@ void main() {
         expect(await getSaldo(dompetA.id), saldoAwal - 100);
         expect(await getSaldo(dompetB.id), saldoAwal + 100);
 
-        // diubah: Menggunakan copyWith()
         final transaksiUpdate = transaksiAwal.copyWith(
           tipe: TipeTransaksi.pengeluaran,
           idDompetTujuan: null,
@@ -326,9 +302,6 @@ void main() {
       },
     );
 
-    // ===================================
-    // Tes untuk Fungsi Agregat (TIDAK BERUBAH)
-    // ===================================
     group('Fungsi Agregat Tests', () {
       test(
         'getTotal... harus mengembalikan 0.0 jika tidak ada transaksi',
@@ -397,7 +370,6 @@ void main() {
     test(
       'ambilTransaksiByDompetId harus mengambil data berdasarkan id_dompet dan isDeletednya 0 atau false, lalu urutkan berdasarkan tanggal terbaru',
       () async {
-        // Data Uji
         final tDompetA1 = TransaksiModel(
           id: uuid.v4(),
           keterangan: 'Pemasukan Dompet A (Baru)',
@@ -444,17 +416,13 @@ void main() {
           namaKategori: '',
         );
 
-        // Sisipkan data mentah ke DB untuk simulasi
-        // diubah: Menggunakan toMapForSqlite()
         await db.insert('transaksi', tDompetA1.toMapForSqlite());
         await db.insert('transaksi', tDompetA2.toMapForSqlite());
         await db.insert('transaksi', tDompetADihapus.toMapForSqlite());
         await db.insert('transaksi', tDompetB.toMapForSqlite());
 
-        // Panggil fungsi yang diuji
         final hasil = await operasi.ambilTransaksiByDompetId(dompetA.id);
 
-        // Verifikasi
         expect(
           hasil.length,
           2,
@@ -474,9 +442,6 @@ void main() {
       },
     );
 
-    // ===================================
-    // Tes untuk `ambilSemuaTransaksi` (TIDAK BERUBAH)
-    // ===================================
     group('ambilSemuaTransaksi Tests', () {
       test('harus mengembalikan list kosong jika tidak ada data', () async {
         final hasil = await operasi.ambilSemuaTransaksi();
@@ -518,9 +483,6 @@ void main() {
       });
     });
 
-    // ===================================
-    // Tes untuk `sisipkanAtauPerbaruiBatch` (TIDAK BERUBAH)
-    // ===================================
     group('sisipkanAtauPerbaruiBatch (Setelah Perbaikan)', () {
       test(
         'harus menyisipkan data dan memperbarui saldo dengan benar (termasuk transfer)',
@@ -582,12 +544,10 @@ void main() {
       );
     });
 
-    // ditambahkan: Grup tes baru untuk memverifikasi logika isDeleted
     group('ambilSemuaTransaksi (filter isDeleted)', () {
       test(
         'ambilTransaksiAktif harus mengambil data transaksi yang isDeleted-nya false dan urutkan berdasarkan tanggal terbaru',
         () async {
-          // Data Uji
           final tAktifKemarin = TransaksiModel(
             id: uuid.v4(),
             keterangan: 'Aktif Kemarin',
@@ -598,7 +558,7 @@ void main() {
             namaDompet: dompetA.namaDompet,
             idKategori: '',
             namaKategori: '',
-            isDeleted: false, // Aktif
+            isDeleted: false,
           );
           final tAktifSekarang = TransaksiModel(
             id: uuid.v4(),
@@ -610,7 +570,7 @@ void main() {
             namaDompet: dompetA.namaDompet,
             idKategori: '',
             namaKategori: '',
-            isDeleted: false, // Aktif
+            isDeleted: false,
           );
           final tDihapusLampau = TransaksiModel(
             id: uuid.v4(),
@@ -622,20 +582,15 @@ void main() {
             namaDompet: dompetA.namaDompet,
             idKategori: '',
             namaKategori: '',
-            isDeleted: true, // Dihapus
+            isDeleted: true,
           );
 
-          // Sisipkan data mentah ke DB untuk simulasi
-          // diubah: Menggunakan toMapForSqlite()
           await db.insert('transaksi', tAktifKemarin.toMapForSqlite());
           await db.insert('transaksi', tAktifSekarang.toMapForSqlite());
           await db.insert('transaksi', tDihapusLampau.toMapForSqlite());
 
-          // Panggil fungsi yang diuji
           final hasil = await operasi.ambilSemuaTransaksi();
 
-          // Verifikasi
-          // 1. Memastikan hanya ada 2 transaksi yang kembali (yang aktif)
           expect(
             hasil.length,
             2,
@@ -643,7 +598,6 @@ void main() {
                 "Seharusnya hanya mengembalikan transaksi yang tidak dihapus",
           );
 
-          // 2. Memastikan tidak ada transaksi yang isDeleted
           expect(
             hasil.every((t) => !t.isDeleted),
             isTrue,
@@ -651,7 +605,6 @@ void main() {
                 "Semua transaksi yang dikembalikan harus memiliki isDeleted == false",
           );
 
-          // 3. Memastikan urutan sudah benar (tanggal terbaru di atas)
           expect(
             hasil[0].keterangan,
             'Aktif Sekarang',

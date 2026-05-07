@@ -1,7 +1,4 @@
-// path: test/data/operasi/versi_apk_user_operasi_test.dart
-
 import 'dart:async';
-
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
@@ -12,14 +9,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../helpers/test_helpers.mocks.dart';
-
-// Helper untuk menginisialisasi database untuk testing
-Future<Database> _initTestDatabase() async {
-  sqfliteFfiInit();
-  final db = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
-  await db.execute(DatabaseHelper.tabelVersiApkUser);
-  return db;
-}
 
 // Helper untuk membuat instance VersiApkUserModel baru untuk tes
 VersiApkUserModel _buatModel({
@@ -48,45 +37,42 @@ VersiApkUserModel _buatModel({
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  // Inisialisasi FFI sekali di awal
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
   late Database db;
   late VersiApkUserOperasi operasi;
   late MockLayananUnggahData mockLayananUnggah;
   late MockKoneksiInternetService mockKoneksi;
   late MockSyncManager mockSyncManager;
-  late DatabaseHelper dbHelperMock;
 
-  setUpAll(() async {
-    db = await _initTestDatabase();
-    dbHelperMock = DatabaseHelper.instance;
-    dbHelperMock.database = Future.value(db);
+  // setUp dijalankan sebelum setiap tes
+  setUp(() async {
+    // Buka database in-memory baru untuk setiap tes
+    db = await databaseFactory.openDatabase(inMemoryDatabasePath);
+    await DatabaseHelper.instance.createTables(db);
+    DatabaseHelper.instance.stubDb(db);
 
+    // Inisialisasi ulang mock untuk setiap tes
     mockLayananUnggah = MockLayananUnggahData();
     mockKoneksi = MockKoneksiInternetService();
     mockSyncManager = MockSyncManager();
 
-    // diubah: Injeksi dependensi mock melalui konstruktor
+    // Buat instance baru dari operasi dengan mock yang bersih
     operasi = VersiApkUserOperasi(
-      dbHelper: dbHelperMock,
+      dbHelper: DatabaseHelper.instance, // Gunakan instance singleton yang sudah di-stub
       koneksiService: mockKoneksi,
       unggahService: mockLayananUnggah,
       syncManager: mockSyncManager,
     );
-  });
 
-  setUp(() async {
-    await db.delete('versi_apk_user');
-    reset(mockLayananUnggah);
-    reset(mockKoneksi);
-    reset(mockSyncManager);
-
-    // ditambah: Menambahkan stub default untuk semua tes.
-    // Mengasumsikan offline by default untuk menghindari pemanggilan service yang tidak perlu.
-    // Tes yang butuh online bisa override ini secara spesifik.
+    // Atur kondisi default untuk mock (offline)
     when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => false);
   });
 
-  tearDownAll(() async {
+  // tearDown dijalankan setelah setiap tes
+  tearDown(() async {
     await db.close();
   });
 
@@ -106,6 +92,7 @@ void main() {
         final hasil = await operasi.ambilVersiApkById('id-tidak-ada');
         expect(hasil, isNull);
       });
+
       test('ambilVersiApkTerbaru harus mengembalikan null', () async {
         final hasil = await operasi.ambilVersiApkTerbaru();
         expect(hasil, isNull);
@@ -116,24 +103,17 @@ void main() {
       test(
         'tambahVersiApkUser harus berhasil menyimpan data, dan melakukan sinkronisasi saat online',
         () async {
-          // Atur kondisi: online (override default)
           when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => true);
-          when(
-            mockLayananUnggah.unggahDataVersiApkUser(),
-          ).thenAnswer((_) async => Future.value());
-          when(
-            mockSyncManager.setLastSyncTimestamp(any),
-          ).thenAnswer((_) async => Future.value());
+          when(mockLayananUnggah.unggahDataVersiApkUser()).thenAnswer((_) async => Future.value());
+          when(mockSyncManager.setLastSyncTimestamp(any)).thenAnswer((_) async => Future.value());
 
           final modelBaru = _buatModel(versi: '1.0.1');
           await operasi.tambahVersiApkUser(modelBaru);
 
-          // Verifikasi: data tersimpan di lokal
           final hasil = await operasi.ambilVersiApkById(modelBaru.id);
           expect(hasil, isNotNull);
           expect(hasil!.id, modelBaru.id);
 
-          // Verifikasi: sinkronisasi dipanggil
           verify(mockKoneksi.cekKoneksi()).called(1);
           verify(mockLayananUnggah.unggahDataVersiApkUser()).called(1);
           verify(mockSyncManager.setLastSyncTimestamp(any)).called(1);
@@ -143,16 +123,12 @@ void main() {
       test(
         'tambahVersiApkUser harus berhasil menyimpan data, dan TIDAK melakukan sinkronisasi saat offline',
         () async {
-          // Atur kondisi: offline (menggunakan default dari setUp)
-
           final modelBaru = _buatModel(versi: '1.0.2');
           await operasi.tambahVersiApkUser(modelBaru);
 
-          // Verifikasi: data tersimpan di lokal
           final hasil = await operasi.ambilVersiApkById(modelBaru.id);
           expect(hasil, isNotNull);
 
-          // Verifikasi: sinkronisasi TIDAK dipanggil
           verify(mockKoneksi.cekKoneksi()).called(1);
           verifyNever(mockLayananUnggah.unggahDataVersiApkUser());
           verifyNever(mockSyncManager.setLastSyncTimestamp(any));
@@ -162,25 +138,17 @@ void main() {
       test(
         'tambahVersiApkUser harus menyimpan data saat timeout, tapi tidak update timestamp',
         () async {
-          // Atur kondisi: online, tapi unggah timeout
           when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => true);
-          when(mockLayananUnggah.unggahDataVersiApkUser()).thenAnswer((
-            _,
-          ) async {
-            await Future.delayed(
-              const Duration(milliseconds: 100),
-            ); // Sedikit delay untuk simulasi
+          when(mockLayananUnggah.unggahDataVersiApkUser()).thenAnswer((_) async {
             throw TimeoutException('Timeout');
           });
 
           final modelBaru = _buatModel(versi: '1.0.3');
           await operasi.tambahVersiApkUser(modelBaru);
 
-          // Verifikasi: data tersimpan di lokal
           final hasil = await operasi.ambilVersiApkById(modelBaru.id);
           expect(hasil, isNotNull);
 
-          // Verifikasi: unggah dipanggil, tapi setLastSyncTimestamp tidak
           verify(mockKoneksi.cekKoneksi()).called(1);
           verify(mockLayananUnggah.unggahDataVersiApkUser()).called(1);
           verifyNever(mockSyncManager.setLastSyncTimestamp(any));
@@ -191,9 +159,7 @@ void main() {
         final modelAwal = _buatModel(versi: '2.0.0');
         await operasi.tambahVersiApkUser(modelAwal);
 
-        final modelUpdate = modelAwal.copyWith(
-          catatanRilis: 'Catatan Rilis Diperbarui',
-        );
+        final modelUpdate = modelAwal.copyWith(catatanRilis: 'Catatan Rilis Diperbarui');
         await operasi.perbaruiVersiApkUser(modelUpdate);
 
         final hasil = await operasi.ambilVersiApkById(modelAwal.id);
@@ -209,23 +175,14 @@ void main() {
           await operasi.tambahVersiApkUser(model);
 
           final timestampAwal = model.diperbarui!;
-
           await Future.delayed(const Duration(milliseconds: 10));
 
           await operasi.arsipkanVersiApkUser(model.id);
 
-          final hasilDb = await db.query(
-            'versi_apk_user',
-            where: 'id = ?',
-            whereArgs: [model.id],
-          );
+          final hasilDb = await db.query('versi_apk_user', where: 'id = ?', whereArgs: [model.id]);
           final dataMap = hasilDb.first;
-          final timestampDiarsipkan = DateTime.parse(
-            dataMap['diarsipkan'] as String,
-          );
-          final timestampDiperbarui = DateTime.parse(
-            dataMap['diperbarui'] as String,
-          );
+          final timestampDiarsipkan = DateTime.parse(dataMap['diarsipkan'] as String);
+          final timestampDiperbarui = DateTime.parse(dataMap['diperbarui'] as String);
 
           expect(dataMap['isDeleted'], 1);
           expect(dataMap['diarsipkan'], isNotNull);
@@ -241,62 +198,28 @@ void main() {
 
     group('Fungsi Pengambilan (Fetch)', () {
       group('ambilVersiApkTerbaru', () {
-        test(
-          'harus mengembalikan null jika hanya ada data yang diarsip',
-          () async {
-            final modelDiarsip = _buatModel(
-              versi: '5.0.0',
-              diperbarui: DateTime.now(),
-            );
-            await operasi.tambahVersiApkUser(modelDiarsip);
-            await operasi.arsipkanVersiApkUser(modelDiarsip.id);
+        test('harus mengembalikan null jika hanya ada data yang diarsip', () async {
+          final modelDiarsip = _buatModel(versi: '5.0.0', diperbarui: DateTime.now());
+          await operasi.tambahVersiApkUser(modelDiarsip);
+          await operasi.arsipkanVersiApkUser(modelDiarsip.id);
 
-            final hasil = await operasi.ambilVersiApkTerbaru();
-            expect(hasil, isNull);
-          },
-        );
+          final hasil = await operasi.ambilVersiApkTerbaru();
+          expect(hasil, isNull);
+        });
 
-        // diubah: Hanya isi tes ini yang diubah sesuai aturan baru
         test(
           'harus mengambil data yang hanya kolom build nya lebih tinggi dari data yang ada dan tidak diarsip',
           () async {
-            // 1. SETUP: Buat skenario di mana hanya build number yang relevan
-            final buildRendahTanggalBaru = _buatModel(
-              versi: '2.0.0', // Versi sama untuk semua
-              nomorBuildTerbaru: {ArsitekturApkEnum.universal: 5},
-              diperbarui: DateTime.now(),
-            );
+            final buildRendahTanggalBaru = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 5}, diperbarui: DateTime.now());
+            final buildTinggiTanggalLama = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 10}, diperbarui: DateTime.now().subtract(const Duration(days: 2)));
+            final buildPalingTinggiDiarsip = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 15}, diperbarui: DateTime.now(), isDeleted: true);
 
-            final buildTinggiTanggalLama = _buatModel(
-              versi: '2.0.0', // Versi sama untuk semua
-              nomorBuildTerbaru: {ArsitekturApkEnum.universal: 10},
-              diperbarui: DateTime.now().subtract(const Duration(days: 2)),
-            );
+            await db.insert('versi_apk_user', buildRendahTanggalBaru.toMapForSqlite());
+            await db.insert('versi_apk_user', buildTinggiTanggalLama.toMapForSqlite());
+            await db.insert('versi_apk_user', buildPalingTinggiDiarsip.toMapForSqlite());
 
-            final buildPalingTinggiDiarsip = _buatModel(
-              versi: '2.0.0', // Versi sama untuk semua
-              nomorBuildTerbaru: {ArsitekturApkEnum.universal: 15},
-              diperbarui: DateTime.now(),
-              isDeleted: true,
-            );
-
-            await db.insert(
-              'versi_apk_user',
-              buildRendahTanggalBaru.toMapForSqlite(),
-            );
-            await db.insert(
-              'versi_apk_user',
-              buildTinggiTanggalLama.toMapForSqlite(),
-            );
-            await db.insert(
-              'versi_apk_user',
-              buildPalingTinggiDiarsip.toMapForSqlite(),
-            );
-
-            // 2. ACT: Panggil fungsi yang diuji
             final hasil = await operasi.ambilVersiApkTerbaru();
 
-            // 3. ASSERT: Verifikasi hasilnya harus yang build 10
             expect(hasil, isNotNull);
             expect(hasil!.nomorBuildTerbaru[ArsitekturApkEnum.universal], 10);
             expect(hasil.isDeleted, isFalse);
@@ -306,80 +229,56 @@ void main() {
 
       group('dengan data awal', () {
         setUp(() async {
-          await operasi.tambahVersiApkUser(
-            _buatModel(versi: '1.0.0', diperbarui: DateTime(2023, 1, 1)),
-          );
-          await operasi.tambahVersiApkUser(
-            _buatModel(versi: '2.0.0', diperbarui: DateTime(2023, 1, 3)),
-          );
-          final modelDiarsip = _buatModel(
-            versi: '0.9.0',
-            diperbarui: DateTime(2023, 1, 2),
-          );
+          await operasi.tambahVersiApkUser(_buatModel(versi: '1.0.0', diperbarui: DateTime(2023, 1, 1)));
+          await operasi.tambahVersiApkUser(_buatModel(versi: '2.0.0', diperbarui: DateTime(2023, 1, 3)));
+          final modelDiarsip = _buatModel(versi: '0.9.0', diperbarui: DateTime(2023, 1, 2));
           await operasi.tambahVersiApkUser(modelDiarsip);
           await operasi.arsipkanVersiApkUser(modelDiarsip.id);
         });
 
-        test(
-          'ambilSemuaVersiApkAktif hanya mengembalikan data yang isDeleted nya 0',
-          () async {
-            final hasilModel = await operasi.ambilSemuaVersiApkAktif();
-            expect(hasilModel.length, 2);
+        test('ambilSemuaVersiApkAktif hanya mengembalikan data yang isDeleted nya 0', () async {
+          final hasilModel = await operasi.ambilSemuaVersiApkAktif();
+          expect(hasilModel.length, 2);
 
-            for (final model in hasilModel) {
-              expect(model.isDeleted, isFalse);
-            }
-          },
-        );
+          for (final model in hasilModel) {
+            expect(model.isDeleted, isFalse);
+          }
+        });
 
-        test(
-          'ambilSemuaVersiApk harus mengembalikan semua data (aktif dan diarsip)',
-          () async {
-            final hasil = await operasi.ambilSemuaVersiApk();
-            expect(hasil.length, 3);
-          },
-        );
+        test('ambilSemuaVersiApk harus mengembalikan semua data (aktif dan diarsip)', () async {
+          final hasil = await operasi.ambilSemuaVersiApk();
+          expect(hasil.length, 3);
+        });
 
-        test(
-          'ambilSemuaVersiApkAktif harus mengembalikan data terurut dari yang terbaru (berdasarkan tanggal)',
-          () async {
-            final hasil = await operasi.ambilSemuaVersiApkAktif();
-            expect(hasil.first.versiTerbaru, '2.0.0');
-            expect(hasil.last.versiTerbaru, '1.0.0');
-          },
-        );
+        test('ambilSemuaVersiApkAktif harus mengembalikan data terurut dari yang terbaru (berdasarkan tanggal)', () async {
+          final hasil = await operasi.ambilSemuaVersiApkAktif();
+          expect(hasil.first.versiTerbaru, '2.0.0');
+          expect(hasil.last.versiTerbaru, '1.0.0');
+        });
       });
     });
 
     group('Operasi Batch', () {
-      test(
-        'sisipkanAtauPerbaruiBatch harus memasukkan beberapa data baru',
-        () async {
-          final batchList = [_buatModel(versi: 'B1'), _buatModel(versi: 'B2')];
-          await operasi.sisipkanAtauPerbaruiBatch(batchList);
-          final hasil = await operasi.ambilSemuaVersiApk();
-          expect(hasil.length, 2);
-        },
-      );
+      test('sisipkanAtauPerbaruiBatch harus memasukkan beberapa data baru', () async {
+        final batchList = [_buatModel(versi: 'B1'), _buatModel(versi: 'B2')];
+        await operasi.sisipkanAtauPerbaruiBatch(batchList);
+        final hasil = await operasi.ambilSemuaVersiApk();
+        expect(hasil.length, 2);
+      });
 
-      test(
-        'sisipkanAtauPerbaruiBatch harus memperbarui data yang ada',
-        () async {
-          final modelAwal = _buatModel(versi: 'C1');
-          await operasi.tambahVersiApkUser(modelAwal);
+      test('sisipkanAtauPerbaruiBatch harus memperbarui data yang ada', () async {
+        final modelAwal = _buatModel(versi: 'C1');
+        await operasi.tambahVersiApkUser(modelAwal);
 
-          final modelUpdate = modelAwal.copyWith(catatanRilis: "batch update");
-          final batchList = [modelUpdate, _buatModel(versi: 'C2')];
-          await operasi.sisipkanAtauPerbaruiBatch(batchList);
+        final modelUpdate = modelAwal.copyWith(catatanRilis: "batch update");
+        final batchList = [modelUpdate, _buatModel(versi: 'C2')];
+        await operasi.sisipkanAtauPerbaruiBatch(batchList);
 
-          final hasil = await operasi.ambilSemuaVersiApk();
-          expect(hasil.length, 2);
-          final itemDiperbarui = hasil.firstWhere(
-            (item) => item.id == modelAwal.id,
-          );
-          expect(itemDiperbarui.catatanRilis, "batch update");
-        },
-      );
+        final hasil = await operasi.ambilSemuaVersiApk();
+        expect(hasil.length, 2);
+        final itemDiperbarui = hasil.firstWhere((item) => item.id == modelAwal.id);
+        expect(itemDiperbarui.catatanRilis, "batch update");
+      });
     });
   });
 }

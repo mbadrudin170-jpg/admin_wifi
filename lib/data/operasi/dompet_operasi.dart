@@ -1,11 +1,14 @@
 // path: lib/data/operasi/dompet_operasi.dart
 // diubah: Menambahkan pengisian timestamp 'diperbarui' pada operasi create dan update.
+import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DompetOperasi {
   final dbHelper = DatabaseHelper.instance;
+  final statusUnggahOperasi = StatusUnggahOperasi();
 
   // diubah: Menambahkan pengisian timestamp 'diperbarui' saat membuat dompet
   Future<void> createDompet(DompetModel dompet) async {
@@ -18,11 +21,17 @@ class DompetOperasi {
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [
+      dompet.id,
+    ]);
   }
 
   Future<List<DompetModel>> getDompet() async {
     final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('dompet');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'dompet',
+      where: 'isDeleted = 0',
+    );
     return List.generate(maps.length, (i) {
       return DompetModel.fromMap(maps[i]);
     });
@@ -32,7 +41,7 @@ class DompetOperasi {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'dompet',
-      where: 'id = ?',
+      where: 'id = ? AND isDeleted = 0',
       whereArgs: [id],
     );
     if (maps.isNotEmpty) {
@@ -48,6 +57,9 @@ class DompetOperasi {
     // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
     final data = dompet.copyWith(diperbarui: now).toMapForSqlite();
     await db.update('dompet', data, where: 'id = ?', whereArgs: [dompet.id]);
+    await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [
+      dompet.id,
+    ]);
   }
 
   // ditambahkan: fungsi untuk menghapus semua dompet
@@ -69,11 +81,12 @@ class DompetOperasi {
       where: 'id = ?',
       whereArgs: [id],
     );
+    await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [id]);
   }
 
   Future<double> getTotalSaldo() async {
     final db = await dbHelper.database;
-    final result = await db.rawQuery('SELECT SUM(saldo) as total FROM dompet');
+    final result = await db.rawQuery('SELECT SUM(saldo) as total FROM dompet WHERE isDeleted = 0');
     if (result.isNotEmpty && result.first['total'] != null) {
       return (result.first['total'] as num).toDouble();
     }
@@ -83,7 +96,7 @@ class DompetOperasi {
   Future<double> getTotalSaldoPositif() async {
     final db = await dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT SUM(saldo) as total FROM dompet WHERE saldo > 0',
+      'SELECT SUM(saldo) as total FROM dompet WHERE saldo > 0 AND isDeleted = 0',
     );
     if (result.isNotEmpty && result.first['total'] != null) {
       return (result.first['total'] as num).toDouble();
@@ -94,7 +107,7 @@ class DompetOperasi {
   Future<double> getTotalSaldoNegatif() async {
     final db = await dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT SUM(saldo) as total FROM dompet WHERE saldo < 0',
+      'SELECT SUM(saldo) as total FROM dompet WHERE saldo < 0 AND isDeleted = 0',
     );
     if (result.isNotEmpty && result.first['total'] != null) {
       return (result.first['total'] as num).toDouble();
@@ -114,5 +127,7 @@ class DompetOperasi {
       );
     }
     await batch.commit(noResult: true);
+    final ids = items.map((e) => e.id).toList();
+    await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, ids);
   }
 }

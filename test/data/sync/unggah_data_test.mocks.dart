@@ -54,10 +54,19 @@ class MockDatabaseHelper extends _i1.Mock implements _i3.DatabaseHelper {
           as _i4.Future<_i2.Database>);
 
   @override
-  set database(_i4.Future<_i2.Database>? db) => super.noSuchMethod(
-    Invocation.setter(#database, db),
+  void stubDb(_i2.Database? db) => super.noSuchMethod(
+    Invocation.method(#stubDb, [db]),
     returnValueForMissingStub: null,
   );
+
+  @override
+  _i4.Future<void> createTables(_i2.Database? db) =>
+      (super.noSuchMethod(
+            Invocation.method(#createTables, [db]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }
 
 /// A class which mocks [SyncManager].

@@ -3,14 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i5;
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart' as _i6;
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i3;
+import 'package:admin_wifi/data/operasi/dompet_operasi.dart' as _i7;
+import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart' as _i3;
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i4;
 import 'package:admin_wifi/data/sqlite.dart' as _i2;
-import 'package:admin_wifi/model/dompet_model.dart' as _i7;
-import 'package:admin_wifi/model/transaksi_model.dart' as _i5;
-import 'package:flutter/src/widgets/navigator.dart' as _i8;
+import 'package:admin_wifi/model/dompet_model.dart' as _i8;
+import 'package:admin_wifi/model/transaksi_model.dart' as _i6;
+import 'package:flutter/src/widgets/navigator.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -34,108 +35,114 @@ class _FakeDatabaseHelper_0 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
+class _FakeStatusUnggahOperasi_1 extends _i1.SmartFake
+    implements _i3.StatusUnggahOperasi {
+  _FakeStatusUnggahOperasi_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [TransaksiOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTransaksiOperasi extends _i1.Mock implements _i3.TransaksiOperasi {
+class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
   @override
-  _i4.Future<void> tambahTransaksi(_i5.TransaksiModel? transaksi) =>
+  _i5.Future<void> tambahTransaksi(_i6.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<List<_i5.TransaksiModel>> ambilSemuaTransaksi() =>
+  _i5.Future<List<_i6.TransaksiModel>> ambilSemuaTransaksi() =>
       (super.noSuchMethod(
             Invocation.method(#ambilSemuaTransaksi, []),
-            returnValue: _i4.Future<List<_i5.TransaksiModel>>.value(
-              <_i5.TransaksiModel>[],
+            returnValue: _i5.Future<List<_i6.TransaksiModel>>.value(
+              <_i6.TransaksiModel>[],
             ),
             returnValueForMissingStub:
-                _i4.Future<List<_i5.TransaksiModel>>.value(
-                  <_i5.TransaksiModel>[],
+                _i5.Future<List<_i6.TransaksiModel>>.value(
+                  <_i6.TransaksiModel>[],
                 ),
           )
-          as _i4.Future<List<_i5.TransaksiModel>>);
+          as _i5.Future<List<_i6.TransaksiModel>>);
 
   @override
-  _i4.Future<List<_i5.TransaksiModel>> ambilTransaksiByDompetId(
+  _i5.Future<List<_i6.TransaksiModel>> ambilTransaksiByDompetId(
     String? dompetId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByDompetId, [dompetId]),
-            returnValue: _i4.Future<List<_i5.TransaksiModel>>.value(
-              <_i5.TransaksiModel>[],
+            returnValue: _i5.Future<List<_i6.TransaksiModel>>.value(
+              <_i6.TransaksiModel>[],
             ),
             returnValueForMissingStub:
-                _i4.Future<List<_i5.TransaksiModel>>.value(
-                  <_i5.TransaksiModel>[],
+                _i5.Future<List<_i6.TransaksiModel>>.value(
+                  <_i6.TransaksiModel>[],
                 ),
           )
-          as _i4.Future<List<_i5.TransaksiModel>>);
+          as _i5.Future<List<_i6.TransaksiModel>>);
 
   @override
-  _i4.Future<void> updateTransaksi(_i5.TransaksiModel? transaksiBaru) =>
+  _i5.Future<void> updateTransaksi(_i6.TransaksiModel? transaksiBaru) =>
       (super.noSuchMethod(
             Invocation.method(#updateTransaksi, [transaksiBaru]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> arsipkanTransaksi(String? id) =>
+  _i5.Future<void> arsipkanTransaksi(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanTransaksi, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<double> getTotalPemasukan() =>
+  _i5.Future<double> getTotalPemasukan() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalPemasukan, []),
-            returnValue: _i4.Future<double>.value(0.0),
-            returnValueForMissingStub: _i4.Future<double>.value(0.0),
+            returnValue: _i5.Future<double>.value(0.0),
+            returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
-          as _i4.Future<double>);
+          as _i5.Future<double>);
 
   @override
-  _i4.Future<double> getTotalPengeluaran() =>
+  _i5.Future<double> getTotalPengeluaran() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalPengeluaran, []),
-            returnValue: _i4.Future<double>.value(0.0),
-            returnValueForMissingStub: _i4.Future<double>.value(0.0),
+            returnValue: _i5.Future<double>.value(0.0),
+            returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
-          as _i4.Future<double>);
+          as _i5.Future<double>);
 
   @override
-  _i4.Future<double> getNetTotal() =>
+  _i5.Future<double> getNetTotal() =>
       (super.noSuchMethod(
             Invocation.method(#getNetTotal, []),
-            returnValue: _i4.Future<double>.value(0.0),
-            returnValueForMissingStub: _i4.Future<double>.value(0.0),
+            returnValue: _i5.Future<double>.value(0.0),
+            returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
-          as _i4.Future<double>);
+          as _i5.Future<double>);
 
   @override
-  _i4.Future<void> sisipkanAtauPerbaruiBatch(List<_i5.TransaksiModel>? items) =>
+  _i5.Future<void> sisipkanAtauPerbaruiBatch(List<_i6.TransaksiModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 }
 
 /// A class which mocks [DompetOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDompetOperasi extends _i1.Mock implements _i6.DompetOperasi {
+class MockDompetOperasi extends _i1.Mock implements _i7.DompetOperasi {
   @override
   _i2.DatabaseHelper get dbHelper =>
       (super.noSuchMethod(
@@ -152,113 +159,128 @@ class MockDompetOperasi extends _i1.Mock implements _i6.DompetOperasi {
           as _i2.DatabaseHelper);
 
   @override
-  _i4.Future<void> createDompet(_i7.DompetModel? dompet) =>
+  _i3.StatusUnggahOperasi get statusUnggahOperasi =>
+      (super.noSuchMethod(
+            Invocation.getter(#statusUnggahOperasi),
+            returnValue: _FakeStatusUnggahOperasi_1(
+              this,
+              Invocation.getter(#statusUnggahOperasi),
+            ),
+            returnValueForMissingStub: _FakeStatusUnggahOperasi_1(
+              this,
+              Invocation.getter(#statusUnggahOperasi),
+            ),
+          )
+          as _i3.StatusUnggahOperasi);
+
+  @override
+  _i5.Future<void> createDompet(_i8.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#createDompet, [dompet]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<List<_i7.DompetModel>> getDompet() =>
+  _i5.Future<List<_i8.DompetModel>> getDompet() =>
       (super.noSuchMethod(
             Invocation.method(#getDompet, []),
-            returnValue: _i4.Future<List<_i7.DompetModel>>.value(
-              <_i7.DompetModel>[],
+            returnValue: _i5.Future<List<_i8.DompetModel>>.value(
+              <_i8.DompetModel>[],
             ),
-            returnValueForMissingStub: _i4.Future<List<_i7.DompetModel>>.value(
-              <_i7.DompetModel>[],
+            returnValueForMissingStub: _i5.Future<List<_i8.DompetModel>>.value(
+              <_i8.DompetModel>[],
             ),
           )
-          as _i4.Future<List<_i7.DompetModel>>);
+          as _i5.Future<List<_i8.DompetModel>>);
 
   @override
-  _i4.Future<_i7.DompetModel?> getDompetById(String? id) =>
+  _i5.Future<_i8.DompetModel?> getDompetById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getDompetById, [id]),
-            returnValue: _i4.Future<_i7.DompetModel?>.value(),
-            returnValueForMissingStub: _i4.Future<_i7.DompetModel?>.value(),
+            returnValue: _i5.Future<_i8.DompetModel?>.value(),
+            returnValueForMissingStub: _i5.Future<_i8.DompetModel?>.value(),
           )
-          as _i4.Future<_i7.DompetModel?>);
+          as _i5.Future<_i8.DompetModel?>);
 
   @override
-  _i4.Future<void> updateDompet(_i7.DompetModel? dompet) =>
+  _i5.Future<void> updateDompet(_i8.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#updateDompet, [dompet]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> hapusSemuaDompet() =>
+  _i5.Future<void> hapusSemuaDompet() =>
       (super.noSuchMethod(
             Invocation.method(#hapusSemuaDompet, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> arsipkanSatuDompet(String? id) =>
+  _i5.Future<void> arsipkanSatuDompet(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanSatuDompet, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<double> getTotalSaldo() =>
+  _i5.Future<double> getTotalSaldo() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalSaldo, []),
-            returnValue: _i4.Future<double>.value(0.0),
-            returnValueForMissingStub: _i4.Future<double>.value(0.0),
+            returnValue: _i5.Future<double>.value(0.0),
+            returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
-          as _i4.Future<double>);
+          as _i5.Future<double>);
 
   @override
-  _i4.Future<double> getTotalSaldoPositif() =>
+  _i5.Future<double> getTotalSaldoPositif() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalSaldoPositif, []),
-            returnValue: _i4.Future<double>.value(0.0),
-            returnValueForMissingStub: _i4.Future<double>.value(0.0),
+            returnValue: _i5.Future<double>.value(0.0),
+            returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
-          as _i4.Future<double>);
+          as _i5.Future<double>);
 
   @override
-  _i4.Future<double> getTotalSaldoNegatif() =>
+  _i5.Future<double> getTotalSaldoNegatif() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalSaldoNegatif, []),
-            returnValue: _i4.Future<double>.value(0.0),
-            returnValueForMissingStub: _i4.Future<double>.value(0.0),
+            returnValue: _i5.Future<double>.value(0.0),
+            returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
-          as _i4.Future<double>);
+          as _i5.Future<double>);
 
   @override
-  _i4.Future<void> sisipkanAtauPerbaruiBatch(List<_i7.DompetModel>? items) =>
+  _i5.Future<void> sisipkanAtauPerbaruiBatch(List<_i8.DompetModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 }
 
 /// A class which mocks [NavigatorObserver].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigatorObserver extends _i1.Mock implements _i8.NavigatorObserver {
+class MockNavigatorObserver extends _i1.Mock implements _i9.NavigatorObserver {
   @override
-  void didPush(_i8.Route<dynamic>? route, _i8.Route<dynamic>? previousRoute) =>
+  void didPush(_i9.Route<dynamic>? route, _i9.Route<dynamic>? previousRoute) =>
       super.noSuchMethod(
         Invocation.method(#didPush, [route, previousRoute]),
         returnValueForMissingStub: null,
       );
 
   @override
-  void didPop(_i8.Route<dynamic>? route, _i8.Route<dynamic>? previousRoute) =>
+  void didPop(_i9.Route<dynamic>? route, _i9.Route<dynamic>? previousRoute) =>
       super.noSuchMethod(
         Invocation.method(#didPop, [route, previousRoute]),
         returnValueForMissingStub: null,
@@ -266,8 +288,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i8.NavigatorObserver {
 
   @override
   void didRemove(
-    _i8.Route<dynamic>? route,
-    _i8.Route<dynamic>? previousRoute,
+    _i9.Route<dynamic>? route,
+    _i9.Route<dynamic>? previousRoute,
   ) => super.noSuchMethod(
     Invocation.method(#didRemove, [route, previousRoute]),
     returnValueForMissingStub: null,
@@ -275,8 +297,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i8.NavigatorObserver {
 
   @override
   void didReplace({
-    _i8.Route<dynamic>? newRoute,
-    _i8.Route<dynamic>? oldRoute,
+    _i9.Route<dynamic>? newRoute,
+    _i9.Route<dynamic>? oldRoute,
   }) => super.noSuchMethod(
     Invocation.method(#didReplace, [], {
       #newRoute: newRoute,
@@ -287,8 +309,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i8.NavigatorObserver {
 
   @override
   void didChangeTop(
-    _i8.Route<dynamic>? topRoute,
-    _i8.Route<dynamic>? previousTopRoute,
+    _i9.Route<dynamic>? topRoute,
+    _i9.Route<dynamic>? previousTopRoute,
   ) => super.noSuchMethod(
     Invocation.method(#didChangeTop, [topRoute, previousTopRoute]),
     returnValueForMissingStub: null,
@@ -296,8 +318,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i8.NavigatorObserver {
 
   @override
   void didStartUserGesture(
-    _i8.Route<dynamic>? route,
-    _i8.Route<dynamic>? previousRoute,
+    _i9.Route<dynamic>? route,
+    _i9.Route<dynamic>? previousRoute,
   ) => super.noSuchMethod(
     Invocation.method(#didStartUserGesture, [route, previousRoute]),
     returnValueForMissingStub: null,

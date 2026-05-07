@@ -1,7 +1,7 @@
 // path: test/model/status_unggah_model_test.dart
 import 'dart:convert';
 
-import 'package:admin_wifi/model/enum/nama_tabel.dart';
+import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
 import 'package:admin_wifi/model/status_unggah_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 

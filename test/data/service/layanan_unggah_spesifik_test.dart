@@ -1,7 +1,7 @@
 // path: test/data/service/layanan_unggah_spesifik_test.dart
 // ditambah: Unit test komprehensif untuk LayananUnggahSpesifik.
 import 'package:admin_wifi/data/service/layanan_unggah_spesifik.dart';
-import 'package:admin_wifi/model/enum/nama_tabel.dart';
+import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/status_unggah_model.dart';
 import 'package:flutter_test/flutter_test.dart';

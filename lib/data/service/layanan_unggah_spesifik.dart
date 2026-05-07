@@ -3,7 +3,7 @@
 import 'dart:developer' as developer;
 
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/enum/nama_tabel.dart';
+import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/status_unggah_model.dart';

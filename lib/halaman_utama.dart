@@ -1,4 +1,5 @@
 // path: lib/halaman_utama.dart
+import 'package:admin_wifi/halaman/tes/halaman_tes.dart';
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
@@ -27,6 +28,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     const DompetPage(),
     const TransaksiPage(),
     const LainnyaPage(),
+    const HalamanTes(),
   ];
 
   void _onItemTapped(int index) {
@@ -78,6 +80,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
             label: 'Transaksi',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Lainnya'),
+          BottomNavigationBarItem(icon: Icon(Icons.label), label: 'test'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(context).colorScheme.primary,
