@@ -1,6 +1,5 @@
 // path: lib/model/pengaturan_model.dart
-// diubah: Menghapus toMap() dan hanya menyisakan toMapForSqlite() dan toMapForFirebase().
-// ditambah: _parseDateTime helper function untuk konsistensi.
+// diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PengaturanModel {
@@ -11,10 +10,10 @@ class PengaturanModel {
   final DateTime? diperbarui;
 
   PengaturanModel({
-    required this.intervalSinkronisasiOtomatis,
-    required this.hapusOtomatisDataArsip,
-    required this.modePemeliharaan,
-    required this.infoPemeliharaan,
+    this.intervalSinkronisasiOtomatis = 24,
+    this.hapusOtomatisDataArsip = 30,
+    this.modePemeliharaan = false,
+    this.infoPemeliharaan = '',
     this.diperbarui,
   });
 
@@ -25,18 +24,22 @@ class PengaturanModel {
     return null;
   }
 
-  factory PengaturanModel.fromMap(Map<String, dynamic> map) {
+  // =========================
+  // SQLITE
+  // =========================
+
+  factory PengaturanModel.fromSqlite(Map<String, dynamic> map) {
     return PengaturanModel(
-      intervalSinkronisasiOtomatis: map['interval_sinkronisasi_otomatis'] ?? 24,
-      hapusOtomatisDataArsip: map['hapus_otomatis_data_arsip'] ?? 30,
-      modePemeliharaan: (map['mode_pemeliharaan'] ?? 0) == 1,
-      infoPemeliharaan: map['info_pemeliharaan'] ?? '',
+      intervalSinkronisasiOtomatis:
+          map['interval_sinkronisasi_otomatis'] as int? ?? 24,
+      hapusOtomatisDataArsip: map['hapus_otomatis_data_arsip'] as int? ?? 30,
+      modePemeliharaan: (map['mode_pemeliharaan'] as int? ?? 0) == 1,
+      infoPemeliharaan: map['info_pemeliharaan'] as String? ?? '',
       diperbarui: _parseDateTime(map['diperbarui']),
     );
   }
 
-  // diubah: Hanya ada toMapForSqlite dan toMapForFirebase
-  Map<String, dynamic> toMapForSqlite() {
+  Map<String, dynamic> toSqlite() {
     return {
       'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
       'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
@@ -46,13 +49,29 @@ class PengaturanModel {
     };
   }
 
-  Map<String, dynamic> toMapForFirebase() {
+  // =========================
+  // FIREBASE
+  // =========================
+
+  factory PengaturanModel.fromFirebase(Map<String, dynamic> data) {
+    return PengaturanModel(
+      intervalSinkronisasiOtomatis:
+          data['interval_sinkronisasi_otomatis'] as int? ?? 24,
+      hapusOtomatisDataArsip: data['hapus_otomatis_data_arsip'] as int? ?? 30,
+      modePemeliharaan: data['mode_pemeliharaan'] as bool? ?? false,
+      infoPemeliharaan: data['info_pemeliharaan'] as String? ?? '',
+      diperbarui: _parseDateTime(data['diperbarui']),
+    );
+  }
+
+  Map<String, dynamic> toFirebase() {
     return {
+      'id': 'default', // ID statis untuk dokumen pengaturan
       'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
       'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
       'mode_pemeliharaan': modePemeliharaan,
       'info_pemeliharaan': infoPemeliharaan,
-      'diperbarui': DateTime.now().toIso8601String(),
+      'diperbarui': FieldValue.serverTimestamp(),
     };
   }
 }

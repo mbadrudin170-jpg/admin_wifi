@@ -1,4 +1,5 @@
 // path: lib/data/sync/unggah_selektif_service.dart
+// diubah: Menyeragamkan semua pemanggilan metode menjadi toFirebase().
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
@@ -50,22 +51,22 @@ class UnggahSelektifService {
     SubKategoriOperasi? subKategoriOperasi,
     TransaksiOperasi? transaksiOperasi,
     VersiApkUserOperasi? versiApkUserOperasi,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _statusOperasi = statusOperasi ?? StatusUnggahOperasi(),
-       _dompetOperasi = dompetOperasi ?? DompetOperasi(),
-       _kategoriOperasi = kategoriOperasi ?? KategoriOperasi(),
-       _kritikSaranOperasi = kritikSaranOperasi ?? KritikSaranOperasi(),
-       _paketOperasi = paketOperasi ?? PaketOperasi(),
-       _pelangganAktifOperasi =
-           pelangganAktifOperasi ?? PelangganAktifOperasi(),
-       _pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
-       _pengaturanOperasi = pengaturanOperasi ?? PengaturanOperasi(),
-       _pesananOperasi = pesananOperasi ?? PesananOperasi(),
-       _riwayatLanggananOperasi =
-           riwayatLanggananOperasi ?? RiwayatLanggananOperasi(),
-       _subKategoriOperasi = subKategoriOperasi ?? SubKategoriOperasi(),
-       _transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
-       _versiApkUserOperasi = versiApkUserOperasi ?? VersiApkUserOperasi();
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _statusOperasi = statusOperasi ?? StatusUnggahOperasi(),
+        _dompetOperasi = dompetOperasi ?? DompetOperasi(),
+        _kategoriOperasi = kategoriOperasi ?? KategoriOperasi(),
+        _kritikSaranOperasi = kritikSaranOperasi ?? KritikSaranOperasi(),
+        _paketOperasi = paketOperasi ?? PaketOperasi(),
+        _pelangganAktifOperasi =
+            pelangganAktifOperasi ?? PelangganAktifOperasi(),
+        _pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
+        _pengaturanOperasi = pengaturanOperasi ?? PengaturanOperasi(),
+        _pesananOperasi = pesananOperasi ?? PesananOperasi(),
+        _riwayatLanggananOperasi =
+            riwayatLanggananOperasi ?? RiwayatLanggananOperasi(),
+        _subKategoriOperasi = subKategoriOperasi ?? SubKategoriOperasi(),
+        _transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
+        _versiApkUserOperasi = versiApkUserOperasi ?? VersiApkUserOperasi();
 
   Future<void> unggahPerubahanTertunda() async {
     developer.log(
@@ -74,9 +75,8 @@ class UnggahSelektifService {
     );
 
     final daftarStatus = await _statusOperasi.ambilSemuaStatusUnggah();
-    final perluDiunggah = daftarStatus
-        .where((s) => s.status && s.ids.isNotEmpty)
-        .toList();
+    final perluDiunggah =
+        daftarStatus.where((s) => s.status && s.ids.isNotEmpty).toList();
 
     if (perluDiunggah.isEmpty) {
       developer.log(
@@ -195,7 +195,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final transaksi in daftarTransaksi) {
       final docRef = _firestore.collection('transaksi').doc(transaksi.id);
-      batch.set(docRef, transaksi.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, transaksi.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -224,7 +224,7 @@ class UnggahSelektifService {
       final docRef = _firestore.collection('kritik_saran').doc(kritikSaran.id);
       batch.set(
         docRef,
-        kritikSaran.toMapForFirebase(),
+        kritikSaran.toFirebase(),
         SetOptions(merge: true),
       );
     }
@@ -251,7 +251,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('versi_apk_user').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -267,7 +267,7 @@ class UnggahSelektifService {
 
     // diubah: Menggunakan ID "default" untuk dokumen pengaturan di Firestore
     final docRef = _firestore.collection('pengaturan').doc('default');
-    await docRef.set(pengaturan.toMapForFirebase(), SetOptions(merge: true));
+    await docRef.set(pengaturan.toFirebase(), SetOptions(merge: true));
 
     developer.log(
       'Berhasil mengunggah item pengaturan secara selektif.',
@@ -290,7 +290,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('kategori').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -315,7 +315,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('sub_kategori').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -365,7 +365,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('pelanggan').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -390,7 +390,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('pelanggan_aktif').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -417,7 +417,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('riwayat_langganan').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -442,7 +442,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('pesanan').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();

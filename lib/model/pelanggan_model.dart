@@ -1,4 +1,6 @@
 // path: lib/model/pelanggan_model.dart
+// diubah: Logika Firebase disesuaikan dengan standar Timestamp.
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class PelangganModel {
@@ -56,15 +58,14 @@ class PelangganModel {
   // PARSER UTIL
   // =========================
 
+  // diubah: Menambahkan penanganan untuk tipe data Timestamp dari Firebase.
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-
+    if (value is Timestamp) return value.toDate();
     if (value is DateTime) return value;
-
     if (value is String) {
       return DateTime.tryParse(value);
     }
-
     return null;
   }
 
@@ -87,7 +88,6 @@ class PelangganModel {
       alamat: map['alamat'] ?? '',
       password: map['password'] ?? '',
       macAddress: map['mac_address'] ?? '',
-
       isDeleted: _parseBool(map['isDeleted']),
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
@@ -102,7 +102,6 @@ class PelangganModel {
       'alamat': alamat,
       'password': password,
       'mac_address': macAddress,
-
       'isDeleted': isDeleted ? 1 : 0,
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
@@ -121,28 +120,27 @@ class PelangganModel {
       alamat: data['alamat'] ?? '',
       password: data['password'] ?? '',
       macAddress: data['mac_address'] ?? '',
-
       isDeleted: _parseBool(data['isDeleted']),
       diperbarui: _parseDateTime(data['diperbarui']),
       diarsipkan: _parseDateTime(data['diarsipkan']),
     );
   }
 
+  // diubah: Menggunakan FieldValue.serverTimestamp() dan menyertakan ID.
   Map<String, dynamic> toFirebase() {
-    return {
+    final Map<String, dynamic> data = {
+      'id': id,
       'nama': nama,
       'telepon': telepon,
       'alamat': alamat,
       'password': password,
       'mac_address': macAddress,
-
       'isDeleted': isDeleted,
-
-      // full client-time (konsisten dengan keputusan kamu)
-      'diperbarui': DateTime.now().toIso8601String(),
-
-      if (diarsipkan != null)
-        'diarsipkan': diarsipkan!.toIso8601String(),
+      'diperbarui': FieldValue.serverTimestamp(),
     };
+    if (diarsipkan != null) {
+      data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
+    }
+    return data;
   }
 }

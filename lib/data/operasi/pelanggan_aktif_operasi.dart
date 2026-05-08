@@ -34,7 +34,7 @@ class PelangganAktifOperasi {
       id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
       diperbarui: DateTime.now(),
     );
-    final data = pelangganUntukDisimpan.toMapForSqlite();
+    final data = pelangganUntukDisimpan.toSqlite();
     await db.insert(
       'pelanggan_aktif',
       data,
@@ -57,7 +57,7 @@ class PelangganAktifOperasi {
     );
     return List.generate(
       maps.length,
-      (i) => PelangganAktifModel.fromMap(maps[i]),
+      (i) => PelangganAktifModel.fromSqlite(maps[i]),
     );
   }
 
@@ -69,14 +69,14 @@ class PelangganAktifOperasi {
       whereArgs: [id],
     );
     if (maps.isNotEmpty) {
-      return PelangganAktifModel.fromMap(maps.first);
+      return PelangganAktifModel.fromSqlite(maps.first);
     }
     return null;
   }
 
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     final db = await dbHelper.database;
-    final data = pelangganAktif.toMapForSqlite();
+    final data = pelangganAktif.toSqlite();
     await db.update(
       'pelanggan_aktif',
       data,
@@ -133,7 +133,7 @@ class PelangganAktifOperasi {
     for (var item in items) {
       batch.insert(
         'pelanggan_aktif',
-        item.toMapForSqlite(),
+        item.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -156,7 +156,7 @@ class PelangganAktifOperasi {
     );
     await db.update(
       'pelanggan_aktif',
-      pelangganDiarsipkan.toMapForSqlite(),
+      pelangganDiarsipkan.toSqlite(),
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -279,7 +279,7 @@ class PelangganAktifOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return PelangganAktifModel.fromMap(maps[i]);
+      return PelangganAktifModel.fromSqlite(maps[i]);
     });
   }
 }

@@ -1,5 +1,6 @@
 // path: lib/data/operasi/dompet_operasi.dart
 // diubah: Menambahkan pengisian timestamp 'diperbarui' pada operasi create dan update.
+// diubah: Mengganti fromSqlite menjadi fromSqlite untuk konsistensi.
 import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -33,7 +34,7 @@ class DompetOperasi {
       where: 'isDeleted = 0',
     );
     return List.generate(maps.length, (i) {
-      return DompetModel.fromMap(maps[i]);
+      return DompetModel.fromSqlite(maps[i]);
     });
   }
 
@@ -45,7 +46,7 @@ class DompetOperasi {
       whereArgs: [id],
     );
     if (maps.isNotEmpty) {
-      return DompetModel.fromMap(maps.first);
+      return DompetModel.fromSqlite(maps.first);
     }
     return null;
   }
@@ -147,7 +148,7 @@ class DompetOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return DompetModel.fromMap(maps[i]);
+      return DompetModel.fromSqlite(maps[i]);
     });
   }
 }

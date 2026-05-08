@@ -1,4 +1,5 @@
 // path: lib/data/operasi/sub_kategori_operasi.dart
+// diubah: Menyesuaikan pemanggilan metode model menjadi fromSqlite dan toSqlite.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,7 +11,8 @@ class SubKategoriOperasi {
     final db = await dbHelper.database;
     final data = subKategori
         .copyWith(diperbarui: DateTime.now())
-        .toMapForSqlite();
+        // diubah: dari toMapForSqlite ke toSqlite
+        .toSqlite();
     await db.insert(
       'sub_kategori',
       data,
@@ -28,7 +30,8 @@ class SubKategoriOperasi {
       whereArgs: [idKategori, 0],
     );
     return List.generate(maps.length, (i) {
-      return SubKategoriModel.fromMap(maps[i]);
+      // diubah: dari fromMap ke fromSqlite
+      return SubKategoriModel.fromSqlite(maps[i]);
     });
   }
 
@@ -41,7 +44,8 @@ class SubKategoriOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return SubKategoriModel.fromMap(maps.first);
+      // diubah: dari fromMap ke fromSqlite
+      return SubKategoriModel.fromSqlite(maps.first);
     }
     return null;
   }
@@ -50,7 +54,8 @@ class SubKategoriOperasi {
     final db = await dbHelper.database;
     final data = subKategori
         .copyWith(diperbarui: DateTime.now())
-        .toMapForSqlite();
+        // diubah: dari toMapForSqlite ke toSqlite
+        .toSqlite();
     await db.update(
       'sub_kategori',
       data,
@@ -80,7 +85,8 @@ class SubKategoriOperasi {
       final itemToSave = item.copyWith(diperbarui: DateTime.now());
       batch.insert(
         'sub_kategori',
-        itemToSave.toMapForSqlite(),
+        // diubah: dari toMapForSqlite ke toSqlite
+        itemToSave.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -98,7 +104,8 @@ class SubKategoriOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return SubKategoriModel.fromMap(maps[i]);
+      // diubah: dari fromMap ke fromSqlite
+      return SubKategoriModel.fromSqlite(maps[i]);
     });
   }
 }

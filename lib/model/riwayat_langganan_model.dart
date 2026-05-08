@@ -1,5 +1,5 @@
 // Path: lib/model/riwayat_langganan_model.dart
-// diubah: Mengganti toMap() dengan toMapForSqlite() dan toMapForFirebase()
+// diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'enum/status_pembayaran.dart';
 import 'package:uuid/uuid.dart';
@@ -14,15 +14,13 @@ class RiwayatLanggananModel {
   final int hargaPaket;
   final int durasiPaket;
   final String tipeDurasiPaket;
-  final int jumlahPoinDiperoleh; // ditambahkan: sebagai snapshot poin
+  final int jumlahPoinDiperoleh;
 
   final DateTime tanggalMulai;
   final DateTime tanggalBerakhir;
   final StatusPembayaran status;
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
-
-  // tambahan lifecycle
   final bool isDeleted;
 
   RiwayatLanggananModel({
@@ -33,7 +31,7 @@ class RiwayatLanggananModel {
     required this.hargaPaket,
     required this.durasiPaket,
     required this.tipeDurasiPaket,
-    this.jumlahPoinDiperoleh = 0, // ditambahkan: nilai default 0
+    this.jumlahPoinDiperoleh = 0,
     required this.tanggalMulai,
     required this.tanggalBerakhir,
     required this.status,
@@ -84,7 +82,11 @@ class RiwayatLanggananModel {
     return null;
   }
 
-  factory RiwayatLanggananModel.fromMap(Map<String, dynamic> map) {
+  // =========================
+  // SQLITE
+  // =========================
+
+  factory RiwayatLanggananModel.fromSqlite(Map<String, dynamic> map) {
     return RiwayatLanggananModel(
       id: map['id'] ?? const Uuid().v4(),
       idPelanggan: map['id_pelanggan'] ?? '',
@@ -95,22 +97,18 @@ class RiwayatLanggananModel {
       tipeDurasiPaket: map['tipe_durasi_paket'] ?? 'hari',
       jumlahPoinDiperoleh: (map['jumlah_poin_diperoleh'] as num? ?? 0).toInt(),
       tanggalMulai: _parseDateTime(map['tanggal_mulai']) ?? DateTime.now(),
-      tanggalBerakhir:
-          _parseDateTime(map['tanggal_berakhir']) ?? DateTime.now(),
+      tanggalBerakhir: _parseDateTime(map['tanggal_berakhir']) ?? DateTime.now(),
       status: StatusPembayaran.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => StatusPembayaran.lunas,
       ),
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
-
-      // tambahan lifecycle
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+      isDeleted: map['isDeleted'] == 1,
     );
   }
 
-  // diubah: Nama metode menjadi toMapForSqlite
-  Map<String, dynamic> toMapForSqlite() {
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -129,8 +127,34 @@ class RiwayatLanggananModel {
     };
   }
 
-  // ditambahkan: Metode toMapForFirebase
-  Map<String, dynamic> toMapForFirebase() {
+  // =========================
+  // FIREBASE
+  // =========================
+
+  factory RiwayatLanggananModel.fromFirebase(
+      String id, Map<String, dynamic> data) {
+    return RiwayatLanggananModel(
+      id: id,
+      idPelanggan: data['id_pelanggan'] ?? '',
+      idPaket: data['id_paket'] ?? '',
+      namaPaket: data['nama_paket'] ?? 'Tidak Diketahui',
+      hargaPaket: (data['harga_paket'] as num? ?? 0).toInt(),
+      durasiPaket: (data['durasi_paket'] as num? ?? 0).toInt(),
+      tipeDurasiPaket: data['tipe_durasi_paket'] ?? 'hari',
+      jumlahPoinDiperoleh: (data['jumlah_poin_diperoleh'] as num? ?? 0).toInt(),
+      tanggalMulai: _parseDateTime(data['tanggal_mulai']) ?? DateTime.now(),
+      tanggalBerakhir: _parseDateTime(data['tanggal_berakhir']) ?? DateTime.now(),
+      status: StatusPembayaran.values.firstWhere(
+        (e) => e.name == data['status'],
+        orElse: () => StatusPembayaran.lunas,
+      ),
+      diperbarui: _parseDateTime(data['diperbarui']),
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+      isDeleted: data['isDeleted'] == true,
+    );
+  }
+
+  Map<String, dynamic> toFirebase() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -140,12 +164,12 @@ class RiwayatLanggananModel {
       'durasi_paket': durasiPaket,
       'tipe_durasi_paket': tipeDurasiPaket,
       'jumlah_poin_diperoleh': jumlahPoinDiperoleh,
-      'tanggal_mulai': tanggalMulai,
-      'tanggal_berakhir': tanggalBerakhir,
+      'tanggal_mulai': Timestamp.fromDate(tanggalMulai),
+      'tanggal_berakhir': Timestamp.fromDate(tanggalBerakhir),
       'status': status.name,
-      'diperbarui': diperbarui,
-      'diarsipkan': diarsipkan,
+      'diperbarui': FieldValue.serverTimestamp(),
       'isDeleted': isDeleted,
+      if (diarsipkan != null) 'diarsipkan': Timestamp.fromDate(diarsipkan!),
     };
   }
 }

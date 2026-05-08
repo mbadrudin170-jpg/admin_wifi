@@ -1,6 +1,5 @@
 // path: lib/model/transaksi_model.dart
-// diubah: Menambahkan field poin dan mengikuti pola dari RiwayatLanggananModel.
-// diubah: Mengintegrasikan statusPembayaran sepenuhnya.
+// diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'package:admin_wifi/model/enum/status_pembayaran.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
@@ -66,7 +65,8 @@ class TransaksiModel {
     return null;
   }
 
-  factory TransaksiModel.fromMap(Map<String, dynamic> map) {
+  // diubah: Nama metode dari fromMap menjadi fromSqlite
+  factory TransaksiModel.fromSqlite(Map<String, dynamic> map) {
     return TransaksiModel(
       id: map['id'] as String? ?? const Uuid().v4(),
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
@@ -100,8 +100,8 @@ class TransaksiModel {
     );
   }
 
-  // diubah: Nama metode menjadi toMapForSqlite
-  Map<String, dynamic> toMapForSqlite() {
+  // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'tanggal': tanggal.toIso8601String(),
@@ -129,8 +129,43 @@ class TransaksiModel {
     };
   }
 
-  // ditambahkan: Metode toMapForFirebase
-  Map<String, dynamic> toMapForFirebase() {
+  // ditambahkan: Factory fromFirebase
+  factory TransaksiModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return TransaksiModel(
+      id: id,
+      tanggal: _parseDateTime(data['tanggal']) ?? DateTime.now(),
+      keterangan: data['keterangan'] ?? '',
+      jumlah: (data['jumlah'] as num? ?? 0).toDouble(),
+      tipe: TipeTransaksi.values.firstWhere(
+        (e) => e.name == data['tipe'],
+        orElse: () => TipeTransaksi.pengeluaran,
+      ),
+      idDompet: data['id_dompet'] ?? '',
+      namaDompet: data['nama_dompet'] ?? '',
+      idDompetTujuan: data['id_dompet_tujuan'],
+      namaDompetTujuan: data['nama_dompet_tujuan'],
+      idKategori: data['id_kategori'] ?? '',
+      namaKategori: data['nama_kategori'] ?? '',
+      idPelanggan: data['id_pelanggan'],
+      namaPelanggan: data['nama_pelanggan'],
+      idPaket: data['id_paket'],
+      namaPaket: data['nama_paket'],
+      idSubKategori: data['id_sub_kategori'],
+      namaSubKategori: data['nama_sub_kategori'],
+      statusPembayaran: StatusPembayaran.values.firstWhere(
+        (e) => e.name == data['status_pembayaran'],
+        orElse: () => StatusPembayaran.belumLunas,
+      ),
+      poinYangDihasilkan: (data['poin_yang_dihasilkan'] as num? ?? 0).toInt(),
+      poinYangDigunakan: (data['poin_yang_digunakan'] as num? ?? 0).toInt(),
+      diperbarui: _parseDateTime(data['diperbarui']),
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+      isDeleted: data['isDeleted'] ?? false,
+    );
+  }
+
+  // diubah: Nama metode dan logika diperbarui diubah
+  Map<String, dynamic> toFirebase() {
     return {
       'id': id,
       'tanggal': tanggal,
@@ -152,7 +187,7 @@ class TransaksiModel {
       'status_pembayaran': statusPembayaran.name,
       'poin_yang_dihasilkan': poinYangDihasilkan,
       'poin_yang_digunakan': poinYangDigunakan,
-      'diperbarui': diperbarui,
+      'diperbarui': FieldValue.serverTimestamp(), // diubah
       'diarsipkan': diarsipkan,
       'isDeleted': isDeleted,
     };
@@ -201,9 +236,7 @@ class TransaksiModel {
       namaPaket: namaPaket ?? this.namaPaket,
       idSubKategori: idSubKategori ?? this.idSubKategori,
       namaSubKategori: namaSubKategori ?? this.namaSubKategori,
-      // ditambahkan: copyWith untuk status pembayaran.
       statusPembayaran: statusPembayaran ?? this.statusPembayaran,
-      // ditambahkan: copyWith untuk poin.
       poinYangDihasilkan: poinYangDihasilkan ?? this.poinYangDihasilkan,
       poinYangDigunakan: poinYangDigunakan ?? this.poinYangDigunakan,
       diperbarui: diperbarui ?? this.diperbarui,

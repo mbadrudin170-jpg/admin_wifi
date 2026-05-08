@@ -87,7 +87,7 @@ class LayananUnduhData {
           .doc('default')
           .get();
       if (doc.exists && doc.data() != null) {
-        final pengaturan = PengaturanModel.fromMap(doc.data()!);
+        final pengaturan = PengaturanModel.fromFirebase(doc.id, doc.data()!);
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
       }
     } catch (e, s) {
@@ -104,7 +104,7 @@ class LayananUnduhData {
   Future<void> unduhDataDompet() async {
     await sinkronisasiKoleksi<DompetModel>(
       namaKoleksi: 'dompet',
-      fromMap: (map) => DompetModel.fromMap(map),
+      fromFirebase: (id, map) => DompetModel.fromFirebase(id, map),
       operasiBatch: (data) => _dompetOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -112,7 +112,7 @@ class LayananUnduhData {
   Future<void> unduhDataKategori() async {
     await sinkronisasiKoleksi<KategoriModel>(
       namaKoleksi: 'kategori',
-      fromMap: (map) => KategoriModel.fromMap(map),
+      fromFirebase: (id, map) => KategoriModel.fromFirebase(id, map),
       operasiBatch: (data) => _kategoriOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -120,7 +120,7 @@ class LayananUnduhData {
   Future<void> unduhDataPaket() async {
     await sinkronisasiKoleksi<PaketModel>(
       namaKoleksi: 'paket',
-      fromMap: (map) => PaketModel.fromMap(map),
+      fromFirebase: (id, map) => PaketModel.fromFirebase(id, map),
       operasiBatch: (data) => _paketOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -128,7 +128,7 @@ class LayananUnduhData {
   Future<void> unduhDataPelanggan() async {
     await sinkronisasiKoleksi<PelangganModel>(
       namaKoleksi: 'pelanggan',
-      fromMap: (map) => PelangganModel.fromMap(map),
+      fromFirebase: (id, map) => PelangganModel.fromFirebase(id, map),
       operasiBatch: (data) => _pelangganOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -136,7 +136,7 @@ class LayananUnduhData {
   Future<void> unduhDataPelangganAktif() async {
     await sinkronisasiKoleksi<PelangganAktifModel>(
       namaKoleksi: 'pelanggan_aktif',
-      fromMap: (map) => PelangganAktifModel.fromMap(map),
+      fromFirebase: (id, map) => PelangganAktifModel.fromFirebase(id, map),
       operasiBatch: (data) =>
           _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -145,7 +145,7 @@ class LayananUnduhData {
   Future<void> unduhDataTransaksi() async {
     await sinkronisasiKoleksi<TransaksiModel>(
       namaKoleksi: 'transaksi',
-      fromMap: (map) => TransaksiModel.fromMap(map),
+      fromFirebase: (id, map) => TransaksiModel.fromFirebase(id, map),
       operasiBatch: (data) => _transaksiOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -153,7 +153,7 @@ class LayananUnduhData {
   Future<void> unduhDataRiwayatLangganan() async {
     await sinkronisasiKoleksi<RiwayatLanggananModel>(
       namaKoleksi: 'riwayat_langganan',
-      fromMap: (map) => RiwayatLanggananModel.fromMap(map),
+      fromFirebase: (id, map) => RiwayatLanggananModel.fromFirebase(id, map),
       operasiBatch: (data) =>
           _riwayatLanggananOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -162,7 +162,7 @@ class LayananUnduhData {
   Future<void> unduhDataKritikSaran() async {
     await sinkronisasiKoleksi<KritikSaranModel>(
       namaKoleksi: 'kritik_saran',
-      fromMap: (map) => KritikSaranModel.fromMap(map),
+      fromFirebase: (id, map) => KritikSaranModel.fromFirebase(id, map),
       operasiBatch: (data) =>
           _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -171,7 +171,7 @@ class LayananUnduhData {
   Future<void> unduhDataPesanan() async {
     await sinkronisasiKoleksi<PesananModel>(
       namaKoleksi: 'pesan',
-      fromMap: (map) => PesananModel.fromMap(map),
+      fromFirebase: (id, map) => PesananModel.fromFirebase(id, map),
       operasiBatch: (data) => _pesanOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -179,7 +179,7 @@ class LayananUnduhData {
   Future<void> unduhDataSubKategori() async {
     await sinkronisasiKoleksi<SubKategoriModel>(
       namaKoleksi: 'sub_kategori',
-      fromMap: (map) => SubKategoriModel.fromMap(map),
+      fromFirebase: (id, map) => SubKategoriModel.fromFirebase(id, map),
       operasiBatch: (data) =>
           _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -188,7 +188,7 @@ class LayananUnduhData {
   Future<void> unduhDataVersiApkUser() async {
     await sinkronisasiKoleksi<VersiApkUserModel>(
       namaKoleksi: 'versi_apk_user',
-      fromMap: (map) => VersiApkUserModel.fromMap(map),
+      fromFirebase: (id, map) => VersiApkUserModel.fromFirebase(id, map),
       operasiBatch: (data) =>
           _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -198,12 +198,14 @@ class LayananUnduhData {
 
   Future<void> sinkronisasiKoleksi<T>({
     required String namaKoleksi,
-    required T Function(Map<String, dynamic>) fromMap,
+    required T Function(String id, Map<String, dynamic> data) fromFirebase,
     required Future<void> Function(List<T>) operasiBatch,
   }) async {
     final snapshot = await _firestore.collection(namaKoleksi).get();
     if (snapshot.docs.isNotEmpty) {
-      final dataList = snapshot.docs.map((doc) => fromMap(doc.data())).toList();
+      final dataList = snapshot.docs
+          .map((doc) => fromFirebase(doc.id, doc.data()))
+          .toList();
       await operasiBatch(dataList);
     }
   }

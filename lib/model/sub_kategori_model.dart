@@ -1,12 +1,12 @@
 // path: lib/model/sub_kategori_model.dart
-// diubah: Nama field dipertahankan sebagai idKategori, namun key di map tetap id_kategori untuk konsistensi DB.
+// diubah: Penamaan metode diseragamkan (fromSqlite, toSqlite, fromFirebase, toFirebase).
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class SubKategoriModel {
   final String id;
   final String nama;
-  final String idKategori; // dipertahankan sesuai permintaan
+  final String idKategori; 
   final DateTime? diperbarui;
   final bool isDeleted;
   final DateTime? diarsipkan;
@@ -14,7 +14,7 @@ class SubKategoriModel {
   SubKategoriModel({
     String? id,
     required this.nama,
-    required this.idKategori, // dipertahankan
+    required this.idKategori,
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
@@ -23,7 +23,7 @@ class SubKategoriModel {
   SubKategoriModel copyWith({
     String? id,
     String? nama,
-    String? idKategori, // dipertahankan
+    String? idKategori,
     DateTime? diperbarui,
     bool? isDeleted,
     DateTime? diarsipkan,
@@ -31,7 +31,7 @@ class SubKategoriModel {
     return SubKategoriModel(
       id: id ?? this.id,
       nama: nama ?? this.nama,
-      idKategori: idKategori ?? this.idKategori, // dipertahankan
+      idKategori: idKategori ?? this.idKategori,
       diperbarui: diperbarui ?? this.diperbarui,
       isDeleted: isDeleted ?? this.isDeleted,
       diarsipkan: diarsipkan ?? this.diarsipkan,
@@ -45,36 +45,51 @@ class SubKategoriModel {
     return null;
   }
 
-  factory SubKategoriModel.fromMap(Map<String, dynamic> map) {
+  // diubah: Nama metode diubah dari fromMap menjadi fromSqlite
+  factory SubKategoriModel.fromSqlite(Map<String, dynamic> map) {
     return SubKategoriModel(
       id: map['id'] ?? '',
       nama: map['nama'] ?? '',
-      idKategori: map['id_kategori'] ?? '', // diubah: key map tetap snake_case
+      idKategori: map['id_kategori'] ?? '',
       diperbarui: _parseDateTime(map['diperbarui']),
       isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
-  Map<String, dynamic> toMapForSqlite() {
+  // diubah: Nama metode diubah dari toMapForSqlite menjadi toSqlite
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'nama': nama,
-      'id_kategori': idKategori, // diubah: key map tetap snake_case
+      'id_kategori': idKategori,
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 
-  Map<String, dynamic> toMapForFirebase() {
+  // ditambahkan: Factory fromFirebase
+  factory SubKategoriModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return SubKategoriModel(
+      id: id,
+      nama: data['nama'] ?? '',
+      idKategori: data['id_kategori'] ?? '',
+      diperbarui: _parseDateTime(data['diperbarui']),
+      isDeleted: data['isDeleted'] ?? false,
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  // diubah: Nama metode diubah dari toMapForFirebase menjadi toFirebase
+  Map<String, dynamic> toFirebase() {
     return {
       'id': id,
       'nama': nama,
-      'id_kategori': idKategori, // diubah: key map tetap snake_case
-      'diperbarui': diperbarui,
+      'id_kategori': idKategori,
+      'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan,
+      'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 }

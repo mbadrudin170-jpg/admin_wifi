@@ -39,7 +39,7 @@ class ServerLokal {
             try {
               String rawJson = utf8.decode(data);
               Map<String, dynamic> jsonMap = json.decode(rawJson);
-              final pesanan = PesananModel.fromMap(jsonMap);
+              final pesanan = PesananModel.fromSqlite(jsonMap);
 
               await operasi.simpanPesanan(pesanan);
               client.write("OK");

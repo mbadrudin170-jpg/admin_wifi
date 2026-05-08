@@ -1,5 +1,5 @@
 // lib/data/operasi/riwayat_langganan_operasi.dart
-// diubah: Menggunakan toMapForSqlite() yang sudah diperbaiki
+// diubah: Menggunakan toSqlite() yang sudah diperbaiki
 import 'package:sqflite/sqflite.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
@@ -12,7 +12,7 @@ class RiwayatLanggananOperasi {
     final db = await dbHelper.database;
     await db.insert(
       'riwayat_langganan',
-      riwayat.toMapForSqlite(),
+      riwayat.toSqlite(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -22,7 +22,7 @@ class RiwayatLanggananOperasi {
     final db = await dbHelper.database;
     await db.update(
       'riwayat_langganan',
-      riwayat.toMapForSqlite(),
+      riwayat.toSqlite(),
       where: 'id = ?',
       whereArgs: [riwayat.id],
     );
@@ -44,7 +44,7 @@ class RiwayatLanggananOperasi {
   Future<List<RiwayatLanggananModel>> ambilSemuaRiwayat() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('riwayat_langganan');
-    return maps.map((map) => RiwayatLanggananModel.fromMap(map)).toList();
+    return maps.map((map) => RiwayatLanggananModel.fromSqlite(map)).toList();
   }
 
   // ditambah: Fungsi baru untuk mengambil riwayat yang aktif (belum diarsipkan)
@@ -55,7 +55,7 @@ class RiwayatLanggananOperasi {
       where: 'isDeleted = ? OR isDeleted IS NULL',
       whereArgs: [0],
     );
-    return maps.map((map) => RiwayatLanggananModel.fromMap(map)).toList();
+    return maps.map((map) => RiwayatLanggananModel.fromSqlite(map)).toList();
   }
 
   // Hapus riwayat langganan berdasarkan ID
@@ -78,7 +78,7 @@ class RiwayatLanggananOperasi {
       where: 'diperbarui > ?',
       whereArgs: [timestamp.toIso8601String()],
     );
-    return result.map((json) => RiwayatLanggananModel.fromMap(json)).toList();
+    return result.map((json) => RiwayatLanggananModel.fromSqlite(json)).toList();
   }
 
   // Menyisipkan atau memperbarui data secara batch
@@ -90,7 +90,7 @@ class RiwayatLanggananOperasi {
     for (var item in items) {
       batch.insert(
         'riwayat_langganan',
-        item.toMapForSqlite(),
+        item.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -109,7 +109,7 @@ class RiwayatLanggananOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return RiwayatLanggananModel.fromMap(maps[i]);
+      return RiwayatLanggananModel.fromSqlite(maps[i]);
     });
   }
 }

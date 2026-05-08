@@ -1,4 +1,6 @@
 // path: lib/model/paket_model.dart
+// ditambahkan: Import cloud_firestore untuk FieldValue dan Timestamp.
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 enum TipeDurasi {
@@ -91,13 +93,9 @@ class PaketModel {
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-
+    if (value is Timestamp) return value.toDate();
     if (value is DateTime) return value;
-
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
-
+    if (value is String) return DateTime.tryParse(value);
     return null;
   }
 
@@ -126,14 +124,11 @@ class PaketModel {
       harga: map['harga'] ?? 0,
       durasi: map['durasi'] ?? 0,
       tipe: _parseTipe(map['tipe']),
-
       jumlahPoin: map['jumlahPoin'] ?? 0,
       poinHadiah: map['poin_hadiah'] ?? 0,
       poinPenukaran: map['poin_penukaran'] ?? 0,
-
       isPublic: _parseBool(map['isPublic']),
       isDeleted: _parseBool(map['isDeleted']),
-
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
@@ -146,14 +141,11 @@ class PaketModel {
       'harga': harga,
       'durasi': durasi,
       'tipe': tipe.name,
-
       'jumlahPoin': jumlahPoin,
       'poin_hadiah': poinHadiah,
       'poin_penukaran': poinPenukaran,
-
       'isPublic': isPublic ? 1 : 0,
       'isDeleted': isDeleted ? 1 : 0,
-
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
@@ -170,37 +162,34 @@ class PaketModel {
       harga: data['harga'] ?? 0,
       durasi: data['durasi'] ?? 0,
       tipe: _parseTipe(data['tipe']),
-
       jumlahPoin: data['jumlahPoin'] ?? 0,
       poinHadiah: data['poin_hadiah'] ?? 0,
       poinPenukaran: data['poin_penukaran'] ?? 0,
-
       isPublic: _parseBool(data['isPublic']),
       isDeleted: _parseBool(data['isDeleted']),
-
       diperbarui: _parseDateTime(data['diperbarui']),
       diarsipkan: _parseDateTime(data['diarsipkan']),
     );
   }
 
+  // diubah: Menggunakan FieldValue.serverTimestamp() dan Timestamp untuk konsistensi.
   Map<String, dynamic> toFirebase() {
-    return {
+    final Map<String, dynamic> data = {
+      'id': id,
       'nama': nama,
       'harga': harga,
       'durasi': durasi,
       'tipe': tipe.name,
-
       'jumlahPoin': jumlahPoin,
       'poin_hadiah': poinHadiah,
       'poin_penukaran': poinPenukaran,
-
       'isPublic': isPublic,
       'isDeleted': isDeleted,
-
-      // FULL client time (sesuai keputusan kamu)
-      'diperbarui': DateTime.now().toIso8601String(),
-
-      if (diarsipkan != null) 'diarsipkan': diarsipkan!.toIso8601String(),
+      'diperbarui': FieldValue.serverTimestamp(),
     };
+    if (diarsipkan != null) {
+      data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
+    }
+    return data;
   }
 }

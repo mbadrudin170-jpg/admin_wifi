@@ -44,8 +44,8 @@ class LayananUnggahSpesifik {
           namaTabel: 'pelanggan',
           namaKoleksi: 'pelanggan',
           ids: instruksi.ids,
-          fromMap: PelangganModel.fromMap,
-          toMapForFirebase: (m) => m.toMapForFirebase(),
+          fromSqlite: PelangganModel.fromSqlite,
+          toFirebase: (m) => m.toFirebase(),
         );
         break;
       case NamaTabel.paket:
@@ -53,8 +53,8 @@ class LayananUnggahSpesifik {
           namaTabel: 'paket',
           namaKoleksi: 'paket',
           ids: instruksi.ids,
-          fromMap: PaketModel.fromMap,
-          toMapForFirebase: (m) => m.toMapForFirebase(),
+          fromSqlite: PaketModel.fromSqlite,
+          toFirebase: (m) => m.toFirebase(),
         );
         break;
       // PENTING: Tambahkan case untuk tabel lain di sini di masa depan.
@@ -73,8 +73,8 @@ class LayananUnggahSpesifik {
     required String namaTabel,
     required String namaKoleksi,
     required List<String> ids,
-    required T Function(Map<String, dynamic>) fromMap,
-    required Map<String, dynamic> Function(T) toMapForFirebase,
+    required T Function(Map<String, dynamic>) fromSqlite,
+    required Map<String, dynamic> Function(T) toFirebase,
   }) async {
     try {
       final db = await _dbHelper.database;
@@ -107,10 +107,10 @@ class LayananUnggahSpesifik {
       int itemCount = 0;
 
       for (final map in dataLokal) {
-        final T model = fromMap(map);
+        final T model = fromSqlite(map);
         // Asumsi semua model yang relevan memiliki properti `id`
         final String docId = (model as dynamic).id;
-        final dataUnggah = toMapForFirebase(model);
+        final dataUnggah = toFirebase(model);
 
         final docRef = _firestore.collection(namaKoleksi).doc(docId);
         batch.set(docRef, dataUnggah, SetOptions(merge: true));

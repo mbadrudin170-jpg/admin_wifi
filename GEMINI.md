@@ -3,524 +3,163 @@
 
 ------------------------
 
----
-# ATURAN KERJA AI UNTUK PROYEK FLUTTER
-untuk setiap kode wajib menambahkan developer.log dan pesan console yang muncul harus sangat detail mengenai apa yang dilakukan kode itu dan yang berkaitan dengan kode itu.
-## TUJUAN DOKUMEN
-
-Dokumen ini dibuat sebagai standar kerja AI dalam membantu pengembangan proyek Flutter agar seluruh proses pengembangan tetap konsisten, aman, mudah dipahami, mudah dianalisa, hemat resource, dan tidak merusak struktur proyek yang sudah berjalan.
-
-AI wajib mengikuti seluruh aturan yang ada di dokumen ini tanpa pengecualian, kecuali jika pengguna memberikan instruksi langsung yang menggantikan aturan tertentu.
 
 ---
 
-# 1. ATURAN DASAR KOMUNIKASI
+# **DOKUMEN ATURAN PENGEMBANGAN PROYEK (AI COLLABORATION RULES)**
 
-* AI wajib mengikuti instruksi pengguna.
-* AI dilarang membuat keputusan sepihak tanpa konfirmasi pengguna.
-* AI dilarang melawan instruksi pengguna.
-* AI dilarang melakukan asumsi liar terhadap struktur, logika, relasi data, atau tujuan fitur.
-* Jika data, alur, atau kebutuhan masih samar:
-
-  * AI wajib bertanya terlebih dahulu.
-  * AI dilarang menebak-nebak implementasi.
-* AI wajib menjaga konsistensi proyek.
-* AI wajib menjaga sinkronisasi antar file.
-* AI wajib menjaga agar tidak muncul error, warning, atau bug yang tidak diketahui penyebabnya.
-* AI wajib menjelaskan terlebih dahulu pekerjaan yang akan dilakukan sebelum mulai menulis kode.
-* AI hanya boleh mulai mengerjakan setelah pengguna memberikan konfirmasi seperti:
-
-  * `ya`
-  * `yes`
-  * `oke`
-  * `ok`
-  * `setuju`
-* Jika pengguna mengatakan:
-
-  * `jangan`
-  * `tidak`
-  * `nggak`
-  * `nggak usah`
-
-  Maka AI wajib membatalkan pengerjaan.
+**Dokumen ini wajib dipatuhi oleh seluruh anggota tim dan AI dalam setiap tahap pengembangan proyek.**
 
 ---
 
-# 2. STANDAR BAHASA DAN PENAMAAN
+## **BAGIAN 1: ALUR KERJA UTAMA (WORKFLOW)**
 
-## Bahasa Utama
+### 1.1. Sebelum Mengerjakan Tugas
+| No | Aturan | Deskripsi |
+|----|--------|-----------|
+| 1 | **Baca Blueprint** | AI wajib membaca file `blueprint.md` terlebih dahulu untuk memahami alur kerja proyek, fitur yang sudah ada, dan struktur terkini. |
+| 2 | **Jelaskan Rencana Kerja** | Sebelum menulis kode, AI harus menjelaskan secara rinci apa yang akan dikerjakan, baris mana yang akan diubah, dan alasannya. Tunggu konfirmasi dari pengguna. |
+| 3 | **Konfirmasi Pengguna** | Konfirmasi **SETUJU**: `setuju`, `oke`, `ok`, `ya`, `yes` → AI boleh mengerjakan. Konfirmasi **TOLAK**: `jangan`, `tidak`, `nggk`, `nggak` → AI tidak boleh mengerjakan. |
+| 4 | **Tunjukkan Perbandingan Kode** | Sebelum menulis kode final, AI wajib menunjukkan perbandingan baris kode yang salah dan yang benar. Jangan langsung menulis kode. |
+| 5 | **Buat File Salinan untuk Fitur Baru** | Untuk fitur baru atau kode eksperimental, buat file salinan terlebih dahulu. Hanya pindahkan ke file asli setelah dipastikan tidak ada bug. |
 
-* Seluruh proyek wajib menggunakan Bahasa Indonesia.
-* Berlaku untuk:
+### 1.2. Saat Mengerjakan Tugas
+| No | Aturan | Deskripsi |
+|----|--------|-----------|
+| 1 | **Gunakan Bahasa Indonesia** | Semua penamaan (fungsi, variabel, parameter, nama file) dan komunikasi wajib menggunakan Bahasa Indonesia. |
+| 2 | **Tambahkan Komentar Path** | Di bagian paling atas setiap file, tambahkan komentar path: `// path: lib/nama_folder/nama_file.dart` |
+| 3 | **Gunakan `developer.log`** | Semua informasi console wajib menggunakan `developer.log` dengan pesan yang sangat detail menjelaskan apa yang dilakukan kode tersebut dan kaitannya dengan kode lain. |
+| 4 | **Gunakan `const` Sebanyak Mungkin** | Demi performa UI, gunakan `const` pada widget yang tidak berubah. |
+| 5 | **Hindari `late` yang Tidak Perlu** | Jangan gunakan keyword `late` kecuali benar-benar diperlukan. |
+| 6 | **Gunakan `if (!mounted) return;`** | Pada operasi asynchronous di widget, gunakan pengecekan `mounted` sebelum `setState` untuk mencegah error. |
+| 7 | **Gunakan Pola Async/Await** | Setiap fungsi yang melibatkan I/O, network request, atau database wajib menggunakan pola `async/await` dan dibungkus dalam `Future`. Hindari penggunaan `.then()` berantai. |
+| 8 | **DropdownButtonFormField Tanpa `value`** | Untuk `DropdownButtonFormField`, jangan gunakan properti `value`. Gunakan `initialValue` sebagai gantinya. |
+| 9 | **Gunakan UUID untuk ID** | Semua data wajib memiliki ID yang dihasilkan dari UUID. Tidak boleh null. |
+| 10 | **Data Default, Bukan Nullable** | Sebisa mungkin berikan nilai default pada model, jangan gunakan tipe nullable kecuali benar-benar diperlukan. |
+| 11 | **Gunakan `get()` untuk Data Statis** | Untuk pengambilan data dari Firestore yang tidak memerlukan pembaruan real-time, gunakan `get()`. |
+| 12 | **Gunakan `snapshots()` Hanya Jika Perlu** | Hanya gunakan `snapshots()` jika benar-benar membutuhkan pembaruan real-time. |
+| 13 | **Aktifkan Persistence** | Pada konfigurasi Firestore, gunakan `persistenceEnabled: true`. |
 
-  * nama file
-  * nama folder
-  * nama fungsi
-  * nama class
-  * nama variabel
-  * nama parameter
-  * komentar
-  * dokumentasi
-  * penjelasan AI kepada pengguna
-
-## Pengecualian
-
-Istilah teknis umum diperbolehkan tetap menggunakan Bahasa Inggris apabila:
-
-* merupakan standar Flutter/Dart/Firebase
-* lebih umum digunakan developer
-* lebih mudah dipahami secara teknis
-
-Contoh:
-
-* `Future`
-* `Stream`
-* `Widget`
-* `BuildContext`
-
----
-
-# 3. ATURAN SEBELUM MENGERJAKAN TUGAS
-
-Sebelum mengerjakan tugas, AI wajib:
-
-1. Membaca file `blueprint.md`
-2. Memahami:
-
-   * alur proyek
-   * struktur proyek
-   * arsitektur
-   * relasi antar file
-   * pola coding
-   * dokumentasi sebelumnya
-3. Menjelaskan:
-
-   * file mana yang akan diubah
-   * alasan perubahan
-   * dampak perubahan
-   * kemungkinan resiko
-4. Menunjukkan:
-
-   * kode lama yang salah
-   * kode baru yang akan digunakan
-   * bagian baris yang akan diperbarui
-5. Menunggu konfirmasi pengguna sebelum menulis kode.
-
-AI dilarang langsung menulis kode tanpa proses penjelasan terlebih dahulu.
+### 1.3. Setelah Mengerjakan Tugas
+| No | Aturan | Deskripsi |
+|----|--------|-----------|
+| 1 | **Jalankan `analyze_files`** | Setelah selesai mengerjakan, jalankan `analyze_files` untuk memastikan tidak ada error atau warning. Jangan biarkan ada error yang tidak diketahui. |
+| 2 | **Tambahkan Keterangan Perubahan** | Beri komentar di samping atau di atas kode yang diubah dengan format: `// dihapus: karena [alasan]` atau `// diubah/ditambah: karena [alasan]` |
+| 3 | **Dokumentasi Per File** | Buat dokumentasi detail mengenai file yang dikerjakan. Jelaskan setiap kode tanpa ada yang terlewat. |
+| 4 | **Perbarui Blueprint** | Perbarui file `blueprint.md` dengan struktur dan format yang telah ditentukan (lihat Bagian 5). |
+| 5 | **Jalankan `ls -R lib/` dan `ls -R test/`** | Saat memperbarui `blueprint.md`, jalankan perintah `ls -R lib/` dan `ls -R test/` untuk memperbarui struktur direktori. Gunakan ini juga untuk mengetahui file mana yang belum memiliki file test. |
 
 ---
 
-# 4. STANDAR STRUKTUR FILE
+## **BAGIAN 2: ATURAN STRUKTUR DATA (FIREBASE)**
 
-## Path File
+### 2.1. Skema Data Wajib
+Setiap dokumen yang disimpan ke Firebase wajib memiliki field berikut:
 
-Setiap file wajib memiliki komentar path di bagian paling atas file.
+| Field | Tipe Data | Deskripsi |
+|-------|-----------|-----------|
+| `id` | `String` | ID unik dari UUID (wajib, tidak boleh null) |
+| `timestamp` | `Timestamp` | Waktu data dibuat |
+| `diPerbarui` | `Timestamp` | Waktu terakhir data diperbarui |
+| `isDeleted` | `boolean` | Status penghapusan (soft delete) |
+| `saldo` | `int` | Jumlah saldo |
+| `tipe` | `String` | Tipe transaksi/data |
+| `poinYangDihasilkan` | `int` | Total poin yang dihasilkan |
+| `poinYangDigunakan` | `int` | Total poin yang digunakan |
+| `statusPembayaran` | `String` | Status pembayaran |
+| `tanggal` | `Timestamp` | Tanggal transaksi |
+| `jumlah` | `int` | Jumlah nominal |
+| `keterangan` | `String` | Keterangan tambahan |
+| `isPublic` | `boolean` | Status visibilitas publik |
+| `poinHadiah` | `int` | Poin untuk hadiah |
+| `poinPenukaran` | `int` | Poin untuk penukaran |
 
-Contoh:
+### 2.2. Aturan Tambahan Data
+- Jaga agar data tidak terlalu banyak null. Usahakan selalu mengidentifikasi data dengan nilai yang jelas.
+- Gunakan soft delete (`isDeleted: boolean`) untuk penghapusan data, jangan hapus permanen kecuali diperintahkan.
 
-```dart
-// path: lib/main.dart
+---
+
+## **BAGIAN 3: ATURAN PENAMAAN DAN KODE**
+
+### 3.1. Bahasa
+| Elemen | Bahasa |
+|--------|--------|
+| Nama fungsi | Bahasa Indonesia |
+| Nama variabel | Bahasa Indonesia |
+| Nama parameter | Bahasa Indonesia |
+| Nama file | Bahasa Indonesia |
+| Komunikasi dengan pengguna | Bahasa Indonesia |
+| Komentar kode | Bahasa Indonesia |
+
+### 3.2. Komentar Wajib
+| Posisi | Format | Contoh |
+|--------|--------|--------|
+| Paling atas file | `// path: lib/nama_folder/nama_file.dart` | `// path: lib/models/user_model.dart` |
+| Di atas fungsi | `// untuk [tujuan fungsi]` | `// untuk menavigasi ke halaman utama` |
+| Di samping/atas kode yang diubah | `// dihapus/diubah/ditambah: karena [alasan]` | `// ditambah: karena perlu validasi email` |
+| Pada kode penting di dalam file | Komentar singkat penjelasan | `// inisialisasi controller untuk form` |
+
+### 3.3. Pola Kode
+- **RadioGroup**: Usahakan menggunakan widget `RadioGroup` untuk pilihan.
+- **File Operasi**: Kelompokkan fungsi berdasarkan kategori: **Create, Read, Update, Delete, Arsip, Sisipkan Data**.
+
+---
+
+## **BAGIAN 4: ATURAN PENGUJIAN (TESTING)**
+
+### 4.1. Prinsip Dasar
+| No | Aturan |
+|----|--------|
+| 1 | AI tidak boleh mengubah nama atau deskripsi test. Hanya pengguna yang boleh mengubah. |
+| 2 | AI wajib membuat pengujian yang sama persis dengan deskripsi yang diminta. |
+| 3 | AI dilarang menghapus test yang sudah ada. |
+| 4 | Kelompokkan test berdasarkan grup dalam file tersebut. |
+| 5 | Jika ada kode yang masih bisa di-test, AI wajib memberitahukan pengguna bahwa harus dibuatkan kode test-nya. |
+| 6 | Hasil test harus sangat sesuai dengan deskripsi atau nama test. |
+| 7 | Semua file harus diuji, file test harus lengkap. |
+
+### 4.2. Test untuk SQLite
+- Gunakan kelas palsu (mock) untuk `DatabaseHelper` yang menggunakan database di memori.
+- Jangan gunakan database SQLite asli saat pengujian.
+
+---
+
+## **BAGIAN 5: ATURAN PEMBARUAN BLUEPRINT.MD**
+
+### 5.1. Format Dokumentasi File
+Setelah pengerjaan file selesai, edit bagian dokumentasi di `blueprint.md` dengan format berikut (dikelompokkan berdasarkan folder):
+
 ```
-
----
-
-# 5. STANDAR KOMENTAR PERUBAHAN KODE
-
-Setiap perubahan kode wajib diberi penjelasan.
-
-Format wajib:
-
-```dart
-// diubah: karena ...
-// ditambahkan: karena ...
-// dihapus: karena ...
-```
-
-Komentar boleh diletakkan:
-
-* di atas kode
-* atau di samping kode
-
-Tujuan:
-
-* mempermudah analisa perubahan
-* mempermudah debugging
-* mempermudah tracking pekerjaan AI
-
----
-
-# 6. STANDAR DOKUMENTASI FUNGSI
-
-Seluruh fungsi wajib memiliki komentar penjelasan.
-
-Contoh:
-
-```dart
-// untuk menavigasi ke halaman detail pelanggan
-void bukaDetailPelanggan() {}
-```
-
-AI juga diharapkan menambahkan komentar tambahan pada bagian kode yang cukup kompleks agar mudah dipahami.
-
----
-
-# 7. STANDAR MODEL DATA
-
-## Aturan Nullable
-
-* Hindari nullable jika data memang wajib ada.
-* Gunakan nilai default apabila memungkinkan.
-* AI wajib mengusahakan data selalu tervalidasi.
-
-## ID Data
-
-* Seluruh data wajib memiliki ID.
-* ID dilarang `null`.
-* Seluruh ID wajib menggunakan UUID.
-
-Contoh:
-
-```dart
-final String id;
-```
-
----
-
-# 8. STANDAR ASYNCHRONOUS
-
-Untuk seluruh proses:
-
-* database
-* I/O
-* network request
-* Firebase
-* file access
-
-Wajib menggunakan:
-
-```dart
-async / await
-Future
-```
-
-## Larangan
-
-Hindari penggunaan:
-
-```dart
-.then()
-```
-
-berantai.
-
----
-
-# 9. STANDAR FLUTTER UI
-
-## Mounted Check
-
-Pada proses asynchronous yang berkaitan dengan UI wajib menggunakan:
-
-```dart
-if (!mounted) return;
-```
-
-## Const Widget
-
-Gunakan `const` sebanyak mungkin demi efisiensi render UI dan penghematan RAM.
-
-## Dropdown
-
-Gunakan:
-
-```dart
-initialValue
-```
-
-dan hindari penggunaan:
-
-```dart
-value
-```
-
-pada `DropdownButtonFormField`.
-
-## Radio Group
-
-Jika memungkinkan, gunakan `RadioGroup` dibanding implementasi manual.
-
----
-
-# 10. STANDAR PERFORMA
-
-AI wajib:
-
-* mengutamakan performa aplikasi
-* menjaga efisiensi RAM
-* menjaga efisiensi rebuild widget
-* menghindari object yang tidak perlu
-* menghindari `late` yang tidak diperlukan
-* menghindari realtime listener berlebihan
-* menghindari query Firebase berlebihan
-
-## Firebase Rules
-
-### Gunakan `get()`
-
-Untuk data statis.
-
-### Gunakan `snapshots()`
-
-Hanya jika benar-benar membutuhkan realtime update.
-
-### Persistence
-
-Aktifkan:
-
-```dart
-persistenceEnabled: true
-```
-
-jika menggunakan Firestore offline persistence.
-
----
-
-# 11. STANDAR LOGGING
-
-Gunakan:
-
-```dart
-developer.log()
-```
-
-untuk logging console.
-
-Hindari penggunaan:
-
-* `print()`
-* logging tanpa struktur
-
----
-
-# 12. STANDAR OPERASI DATABASE
-
-Pada file operasi/database:
-
-* fungsi wajib dikelompokkan berdasarkan kategori.
-
-Urutan wajib:
-
-1. Create
-2. Read
-3. Update
-4. Delete
-5. Diarsipkan
-6. Sisipkan Data
-
----
-
-# 13. STANDAR TESTING
-
-## Kewajiban Test
-
-* Semua file wajib memiliki test.
-* AI wajib mengecek file test yang belum tersedia.
-* Gunakan:
-
-```bash
-ls -R test/
-```
-
-untuk pengecekan struktur test.
-
-## SQLite Testing
-
-Untuk test SQLite:
-
-* gunakan database in-memory
-* gunakan mock/fake DatabaseHelper
-
-## Validasi Test
-
-* Nama test wajib sesuai perilaku yang diuji.
-* Deskripsi test wajib sangat jelas.
-* Hasil test wajib sesuai ekspektasi.
-
----
-
-# 14. STANDAR ANALISA KODE
-
-Setelah selesai mengerjakan:
-
-AI wajib menjalankan:
-
-```bash
-analyze_files
-```
-
-Tujuan:
-
-* memastikan tidak ada error
-* memastikan tidak ada warning
-* memastikan kode tetap sinkron
-
-AI dilarang meninggalkan warning/error yang belum diketahui penyebabnya.
-
----
-
-# 15. STANDAR CLEAN PROJECT
-
-Jika pengguna meminta `clean`, AI wajib menjalankan:
-
-```bash
-flutter clean && flutter pub get
-```
-
----
-
-# 16. STANDAR BUILD APK
-
-AI dilarang melakukan build tanpa instruksi pengguna.
-
-## Sebelum Build
-
-AI wajib:
-
-1. Membaca `blueprint.md`
-2. Mengecek:
-
-   * fitur baru
-   * bug fix
-   * perubahan versi
-
-## Aturan Versi
-
-Jika hanya bug fix:
-
-* hanya naikkan build number
-
-Jangan menaikkan:
-
-* major
-* minor
-* patch version
-
-## Perintah Build
-
-Gunakan:
-
-```bash
-flutter clean && flutter pub get && flutter build apk --release --split-per-abi
-```
-
----
-
-# 17. STANDAR BLUEPRINT.MD
-
-Setelah pengerjaan selesai, AI wajib memperbarui `blueprint.md`.
-
-## Format Dokumentasi
-
-```md
 File: lib/path/nama_file.dart
-
-Fitur:
-[Nama fitur]
-
-Tujuan file ini dibuat:
-[Penjelasan]
-
-Kode A:
-[Penjelasan]
-
-Kode B:
-[Penjelasan]
+Fitur: [Nama Fitur]
+Tujuan file ini dibuat: [tujuan utama file]
+Kode A: [penjelasan]
+Kode B: [penjelasan]
+Kode C: [penjelasan]
+... (semua kode dalam file harus dijelaskan)
 ```
 
-Seluruh fungsi penting wajib dijelaskan.
+### 5.2. Catatan Pekerjaan
+- Tambahkan catatan mengenai pekerjaan di file `blueprint.md`.
+- Jangan hapus catatan; biarkan pengguna yang menghapus untuk kebutuhan analisis.
+- Kelompokkan catatan berdasarkan versi di `pubspec.yaml`.
+- Catatan ditulis per file.
 
-## Struktur Folder
-
-Sebelum memperbarui `blueprint.md`, jalankan:
-
-```bash
-ls -R lib/
-```
-
-lalu tuliskan struktur terbaru proyek.
+### 5.3. Struktur Direktori
+- Jalankan `ls -R lib/` dan `ls -R test/` untuk memperbarui struktur direktori di `blueprint.md`.
 
 ---
 
-# 18. STANDAR LOG VERSI
+## **BAGIAN 6: ATURAN LOGGING VERSI**
 
-# ATURAN LOGGING VERSI BERDASARKAN PUBSPEC
+### 6.1. Sumber Versi
+- Versi diambil dari file `pubspec.yaml` pada field `version`.
+- Contoh: `version: 1.0.3+4` → versi log: `v1.0.3`
 
-## SUMBER VERSI
-
-AI wajib mengambil versi dari:
-
-```yaml
-pubspec.yaml
+### 6.2. Format Log Wajib
 ```
-
-Field:
-
-```yaml
-version:
-```
-
-Contoh:
-
-```yaml
-version: 1.0.3+4
-```
-
----
-
-## FORMAT VERSI LOG
-
-Gunakan hanya bagian sebelum tanda `+`
-
-Contoh:
-
-* pubspec:
-
-```yaml
-1.0.3+4
-```
-
-* log:
-
-```md
-v1.0.3
-```
-
----
-
-## LARANGAN
-
-AI dilarang:
-
-* membuat versi sendiri
-* menebak versi
-* menggunakan versi berbeda dari pubspec.yaml
-
----
-
-## PROSES WAJIB SEBELUM MEMBUAT LOG
-
-1. Baca `pubspec.yaml`
-2. Ambil nilai `version`
-3. Ekstrak versi utama
-4. Gunakan versi tersebut pada log
-
----
-
-## FORMAT WAJIB LOG
-
-```md
-# Versi: v<versi>
-
+# Versi: v<versi_dari_pubspec>
 Sumber: pubspec.yaml (version: <full_version>)
 Tanggal: <tanggal>
 
@@ -533,729 +172,64 @@ Tanggal: <tanggal>
 ## Analisa:
 ```
 
----
-
-## ATURAN TAMBAHAN
-
-* Jika versi belum berubah:
-
-  * tetap gunakan versi yang sama
-* Jika versi berubah:
-
-  * anggap sebagai fase baru
-* Build number:
-
-  * opsional dianalisa
-* Semua perubahan wajib memiliki log.
+### 6.3. Aturan Tambahan
+- Jika versi pubspec belum berubah, tetap gunakan versi yang sama (log boleh lebih dari satu dalam satu versi).
+- Jika versi berubah, anggap sebagai fase baru dengan analisis lebih detail.
+- Build number (`+x`) opsional dicatat, tidak wajib dianalisis.
+- Setiap perubahan wajib memiliki log.
 
 ---
 
-# 19. STANDAR PENGUJIAN FITUR BARU
+## **BAGIAN 7: ATURAN BUILD**
 
-Jika AI ingin mencoba:
-
-* fitur baru
-* refactor besar
-* eksperimen kode
-
-Maka AI wajib:
-
-1. membuat file salinan terlebih dahulu
-2. melakukan pengujian pada file salinan
-3. memastikan tidak ada bug baru
-4. baru memindahkan ke file utama
-
-AI dilarang langsung merusak file produksi utama.
+### 7.1. Prosedur Build
+1. Baca `blueprint.md` untuk menentukan apakah perubahan adalah fitur baru atau perbaikan bug.
+2. **Jika hanya perbaikan bug**: Naikkan hanya nomor build (`+x`), jangan naikkan versi di `pubspec.yaml`.
+3. **Jika fitur baru**: Naikkan versi sesuai semantik versi.
+4. Jalankan perintah: `flutter clean && flutter pub get && flutter build apk --release --split-per-abi`
+5. **Jangan build sebelum diperintahkan pengguna.**
 
 ---
 
-# 20. STANDAR PENGGUNAAN MCP TOOLS
+## **BAGIAN 8: ATURAN FILE DAN KONSISTENSI**
 
-AI diwajibkan menggunakan tools yang tersedia untuk membantu pekerjaan.
-
-Prioritas tools:
-
-* `analyze_files`
-* `dart_fix`
-* `dart_format`
-* `run_tests`
-* `flutter_driver`
-* `get_runtime_errors`
-* `get_app_logs`
-
-Gunakan tools secara maksimal agar:
-
-* debugging lebih cepat
-* analisa lebih akurat
-* kesalahan lebih kecil
+| No | Aturan |
+|----|--------|
+| 1 | AI tidak boleh berasumsi liar. Jika data samar, tanyakan kepada pengguna. |
+| 2 | AI wajib menjaga konsistensi dan kejelasan proyek. |
+| 3 | AI tidak boleh melawan perintah pengguna. |
+| 4 | Jangan ubah file `GEMINI.md` tanpa perintah langsung. |
+| 5 | Semua file harus saling sinkron, jangan ada asumsi liar. |
+| 6 | Prioritaskan performa, tetapi jangan korbankan fungsi. |
+| 7 | Usahakan aplikasi hemat RAM perangkat pengguna. |
+| 8 | Gunakan MCP tools yang tersedia (dart, firebase) untuk mempermudah pekerjaan. |
 
 ---
 
-# 21. LARANGAN KHUSUS
+## **BAGIAN 9: RINGKASAN ALUR KERJA BERURUTAN**
 
-AI dilarang:
-
-* mengubah `GEMINI.md` tanpa instruksi langsung
-* melakukan build tanpa izin
-* menghapus catatan analisa pengguna
-* mengubah struktur proyek tanpa izin
-* melakukan refactor besar tanpa konfirmasi
-* membuat asumsi terhadap relasi data
-* meninggalkan kode tanpa dokumentasi
-
----
-
-# 22. STANDAR DOKUMEN HASIL PEKERJAAN
-
-Setelah selesai mengerjakan:
-
-* AI wajib membuat dokumentasi detail
-* seluruh file yang diubah wajib dijelaskan
-* seluruh fungsi penting wajib dijelaskan
-* seluruh perubahan wajib dijelaskan
-
-Tujuan:
-
-* mempermudah analisa
-* mempermudah maintenance
-* mempermudah onboarding rekan kerja
-
----
-
-# 23. ALUR KERJA WAJIB AI
-
-## Tahap 1 — Analisa
-
-1. Baca `blueprint.md`
-2. Analisa struktur proyek
-3. Analisa relasi file
-4. Identifikasi kebutuhan pengguna
-
----
-
-## Tahap 2 — Penjelasan
-
-1. Jelaskan pekerjaan
-2. Jelaskan file yang diubah
-3. Tunjukkan kode salah dan benar
-4. Tunggu konfirmasi pengguna
-
----
-
-## Tahap 3 — Implementasi
-
-1. Tulis kode
-2. Tambahkan komentar
-3. Jaga konsistensi
-4. Gunakan async/await
-5. Gunakan UUID
-6. Optimalkan performa
-
----
-
-## Tahap 4 — Validasi
-
-1. Jalankan analyze_files
-2. Jalankan test
-3. Pastikan tidak ada error
-4. Pastikan tidak ada warning
-
----
-
-## Tahap 5 — Dokumentasi
-
-1. Update `blueprint.md`
-2. Update log versi
-3. Tulis catatan perubahan
-4. Jelaskan seluruh file yang diubah
-
----
-
-# PENUTUP
-
-Seluruh aturan ini bersifat wajib selama membantu pengembangan proyek.
-
-Tujuan utama aturan ini adalah:
-
-* menjaga konsistensi proyek
-* menjaga kestabilan aplikasi
-* mempermudah maintenance
-* mempermudah scaling
-* mempermudah debugging
-* mempermudah kerja tim
-* menjaga performa aplikasi
-* menjaga kualitas kode jangka panjang
-
-Aturan Anda sudah sangat kuat untuk level solo developer yang ingin bekerja layaknya tim profesional. Bahkan sudah mencakup:
-
-* workflow engineering
-* code review
-* versioning
-* architecture
-* testing
-* logging
-* performance
-* Firebase
-* AI workflow
-* dokumentasi
-* UI/UX
-* debugging
-* CI mindset
-
-Tetapi masih ada beberapa area penting yang belum diatur secara eksplisit. Ini yang saya sarankan untuk ditambahkan agar proyek Anda naik level menjadi lebih “enterprise-ready” dan lebih aman untuk jangka panjang.
-
----
-
-# TAMBAHAN ATURAN YANG SANGAT DIREKOMENDASIKAN
-
----
-
-# 24. STANDAR KEAMANAN DATA
-
-## Larangan Hardcode
-
-AI dilarang menyimpan:
-
-* API key
-* token
-* password
-* secret key
-* credential Firebase
-* endpoint sensitif
-
-langsung di source code.
-
-## Penyimpanan Rahasia
-
-Gunakan:
-
-* `.env`
-* Remote Config
-* Firebase Functions
-* backend secure storage
-
-untuk data sensitif.
-
-## Logging Sensitif
-
-AI dilarang menampilkan:
-
-* password
-* token login
-* email sensitif
-* nomor telepon penuh
-
-di console log.
-
-## Validasi Input
-
-Semua input wajib:
-
-* divalidasi
-* disanitasi
-* dicek null
-* dicek formatnya
-
-untuk menghindari:
-
-* crash
-* data rusak
-* injection
-* bug logic
-
----
-
-# 25. STANDAR FIREBASE
-
-## Struktur Firestore
-
-AI wajib:
-
-* menjaga konsistensi nama collection
-* menjaga struktur document
-* menghindari nested document berlebihan
-
-## Query Firebase
-
-AI wajib:
-
-* menghindari query tanpa limit
-* menghindari fetch seluruh collection jika tidak diperlukan
-* menggunakan pagination jika data besar
-
-## Timestamp
-
-Gunakan:
-
-```dart
-FieldValue.serverTimestamp()
 ```
-
-untuk sinkronisasi waktu server.
-
-## Sinkronisasi Offline
-
-AI wajib mempertimbangkan:
-
-* konflik data offline
-* duplikasi upload
-* retry mechanism
-* status sync
-
----
-
-# 26. STANDAR MIGRASI DATABASE
-
-Jika database berubah:
-
-AI wajib:
-
-1. membuat migrasi yang aman
-2. menjaga data lama tidak hilang
-3. membuat fallback migration
-4. menjelaskan dampak migrasi
-
-AI dilarang:
-
-* menghapus tabel sembarangan
-* mengubah tipe data tanpa migrasi
-
----
-
-# 27. STANDAR GIT DAN VERSION CONTROL
-
-## Sebelum Perubahan Besar
-
-AI wajib menyarankan:
-
-* commit
-* backup
-* branch baru
-
-## Format Commit
-
-Gunakan format:
-
-```txt
-fix:
-feat:
-refactor:
-test:
-docs:
-perf:
-```
-
-Contoh:
-
-```txt
-feat: menambahkan sistem sinkronisasi transaksi offline
+1. Baca file blueprint.md
+2. Jelaskan rencana kerja kepada pengguna
+3. Tunjukkan perbandingan kode salah dan benar
+4. Tunggu konfirmasi pengguna (setuju/tidak)
+5. Jika fitur baru → buat file salinan terlebih dahulu
+6. Kerjakan tugas dengan mematuhi semua aturan penamaan, komentar, dan pola kode
+7. Jalankan analyze_files setelah selesai
+8. Tambahkan keterangan perubahan pada kode
+9. Buat dokumentasi detail per file
+10. Perbarui blueprint.md (jalankan ls -R lib/ dan ls -R test/)
+11. Tambahkan catatan versi di blueprint.md
+12. Jangan build sebelum diperintahkan
 ```
 
 ---
 
-# 28. STANDAR REFACTOR
+**Dokumen ini bersifat mengikat dan wajib dipatuhi dalam setiap sesi pengembangan proyek. Setiap pelanggaran terhadap aturan di atas harus dilaporkan dan diperbaiki segera.**
 
-AI dilarang melakukan refactor besar tanpa:
+-------------
 
-* penjelasan
-* alasan teknis
-* dampak perubahan
-* persetujuan pengguna
 
-## Refactor Wajib Menjaga:
-
-* kompatibilitas
-* struktur lama
-* alur lama
-* test lama tetap berjalan
-
----
-
-# 29. STANDAR MEMORY LEAK & DISPOSE
-
-Semua:
-
-* controller
-* stream
-* animation controller
-* listener
-
-wajib di-dispose dengan benar.
-
-Contoh:
-
-```dart
-@override
-void dispose() {
-  controller.dispose();
-  super.dispose();
-}
-```
-
-AI wajib mengecek:
-
-* listener bocor
-* stream tidak ditutup
-* rebuild berlebihan
-
----
-
-# 30. STANDAR PISAH TANGGUNG JAWAB
-
-AI wajib memisahkan:
-
-* UI
-* logic
-* database
-* service
-* model
-* helper
-
-AI dilarang:
-
-* menaruh query database langsung di widget UI
-* menaruh business logic berat di halaman
-
----
-
-# 31. STANDAR UKURAN FILE
-
-Jika file terlalu besar:
-
-AI wajib menyarankan pemecahan file.
-
-Rekomendasi:
-
-* maksimal ±300–500 baris per file besar
-* widget dipisah jika terlalu kompleks
-
-Tujuan:
-
-* mudah maintenance
-* mudah testing
-* mudah debugging
-
----
-
-# 32. STANDAR ERROR HANDLING
-
-Semua async wajib menggunakan:
-
-```dart
-try {
-} catch (e, stackTrace) {
-}
-```
-
-AI wajib:
-
-* menangkap error
-* membuat log error
-* memberikan fallback UI jika gagal
-
----
-
-# 33. STANDAR EMPTY STATE DAN LOADING UI
-
-Semua data async wajib memiliki:
-
-* loading state
-* empty state
-* error state
-
-AI dilarang membuat halaman blank tanpa penjelasan.
-
----
-
-# 34. STANDAR RESPONSIVE UI
-
-UI wajib:
-
-* tetap rapi di layar kecil
-* tetap usable di tablet
-* tidak overflow
-
-AI wajib mempertimbangkan:
-
-* MediaQuery
-* LayoutBuilder
-* Wrap
-* Flexible
-* Expanded
-
----
-
-# 35. STANDAR CACHE
-
-AI wajib mempertimbangkan cache untuk:
-
-* gambar
-* query berat
-* data statis
-
-Tujuan:
-
-* menghemat internet
-* mempercepat loading
-* mengurangi request Firebase
-
----
-
-# 36. STANDAR PENAMAAN DATABASE
-
-Nama tabel dan field wajib:
-
-* konsisten
-* mudah dipahami
-* singular/plural konsisten
-
-Contoh:
-
-* `pelanggan`
-* `transaksi`
-* `riwayat_langganan`
-
-Hindari:
-
-* singkatan tidak jelas
-* nama ambigu
-
----
-
-# 37. STANDAR INDEX FIRESTORE
-
-AI wajib mempertimbangkan:
-
-* composite index
-* query performance
-* orderBy + where compatibility
-
-agar query Firestore tidak lambat/error.
-
----
-
-# 38. STANDAR TEST MINIMUM
-
-Minimal wajib ada:
-
-* test model
-* test operasi database
-* test service
-* test widget penting
-
----
-
-# 39. STANDAR DEPENDENSI
-
-AI wajib:
-
-* menghindari package tidak populer
-* menghindari package deprecated
-* mengecek maintenance package
-* mengecek kompatibilitas Flutter terbaru
-
-AI dilarang menambahkan package hanya untuk fitur kecil yang bisa dibuat manual.
-
----
-
-# 40. STANDAR CLEAN CODE
-
-AI wajib menjaga:
-
-* fungsi tidak terlalu panjang
-* nama variabel jelas
-* nested terlalu dalam dihindari
-* magic number dihindari
-
-Gunakan constant jika memungkinkan.
-
----
-
-# 41. STANDAR ANALISA DAMPAK
-
-Sebelum mengubah kode:
-
-AI wajib menjelaskan:
-
-* file terdampak
-* kemungkinan bug
-* kemungkinan conflict
-* kemungkinan perubahan schema
-
----
-
-# 42. STANDAR BACKUP DATA
-
-Jika perubahan beresiko tinggi:
-
-AI wajib menyarankan:
-
-* export database
-* backup firestore
-* backup project
-
----
-
-# 43. STANDAR PRIORITAS
-
-Prioritas AI wajib:
-
-1. Stabilitas aplikasi
-2. Konsistensi proyek
-3. Keamanan data
-4. Performa
-5. Maintainability
-6. UI/UX
-7. Fitur baru
-
-Fitur baru tidak boleh merusak sistem lama.
-
----
-
-# 44. STANDAR REVIEW AKHIR
-
-Sebelum menyatakan pekerjaan selesai:
-
-AI wajib memastikan:
-
-* tidak ada error
-* tidak ada warning
-* tidak ada import tidak terpakai
-* tidak ada kode mati
-* tidak ada debug code tertinggal
-* test berjalan
-* dokumentasi diperbarui
-* blueprint.md diperbarui
-
----
-
-Yang paling penting sekarang sebenarnya bukan menambah aturan lagi, tetapi:
-
-* menjaga aturan tetap konsisten
-* menghindari aturan yang saling bertabrakan
-* membuat AI fokus pada stabilitas
-* membuat workflow tidak terlalu berat
-
-Karena terlalu banyak aturan tanpa prioritas bisa membuat workflow menjadi lambat dan terlalu birokratis 😄
-
-___________________
-Baik, berikut adalah aturan yang telah diformalkan dengan bahasa profesional, lengkap dengan penyelesaian bentrokan, dan siap Anda salin-tempel sekaligus.
-
----
-
-**Pemaparan Aturan Operasional Tim Pengujian**
-
-Selamat pagi/siang, Tim. Saya ingin menetapkan tiga pilar aturan utama yang akan mengatur interaksi kita dengan sistem AI dalam konteks pengelolaan dan pembuatan pengujian. Aturan ini bersifat mengikat, tidak dapat dinegosiasikan, dan harus dipahami oleh setiap anggota tim. Tujuannya adalah menciptakan lingkungan kerja yang presisi, akuntabel, dan bebas dari kesalahan interpretasi.
-
-Berikut adalah ketiga aturan tersebut beserta penjabaran detailnya:
-
----
-
-### Aturan 1: Larangan Mutlak Modifikasi Identitas Pengujian oleh AI
-
-**Pernyataan Formal:**
-Kecerdasan buatan (AI) tidak memiliki otorisasi untuk mengubah, menyunting, memodifikasi, atau menimpa atribut "Nama Pengujian" maupun "Deskripsi Pengujian" dari seluruh test case yang telah terdaftar di dalam sistem, baik yang sudah tereksekusi maupun yang masih dalam status draf.
-
-**Rincian Teknis:**
-- **Cakupan Larangan:** Mencakup segala bentuk perubahan, termasuk namun tidak terbatas pada: penggantian kata, penyesuaian format, penambahan keterangan, penghapusan sebagian teks, atau penulisan ulang secara keseluruhan.
-- **Subjek yang Dilarang:** Hanya dan secara spesifik tertuju pada entitas AI. AI bertindak sebagai asisten yang tidak memiliki hak sunting terhadap kolom Nama dan Deskripsi.
-- **Pemilik Hak Eksklusif:** Hak untuk mengubah Nama Pengujian dan Deskripsi Pengujian secara mutlak dan eksklusif berada di tangan **pengguna manusia (user)** yang berwenang. Tidak ada pengecualian bagi AI dalam kondisi apa pun.
-
-**Rasionalisasi Profesional:**
-Aturan ini diberlakukan untuk menjaga integritas data, memastikan ketertelusuran (traceability), dan menghindari kerusakan tidak disengaja pada dokumentasi pengujian yang telah disusun berdasarkan analisis dan keputusan manusia.
-
----
-
-### Aturan 2: Mandat Replikasi Presisi-Penuh dalam Pembuatan Pengujian Baru
-
-**Pernyataan Formal:**
-Ketika AI menerima instruksi untuk menciptakan atau menghasilkan sebuah pengujian baru, AI wajib memproduksi artefak pengujian yang secara struktural dan konten identik sama persis dengan apa yang dikehendaki atau diinginkan oleh deskripsi yang diberikan. Tidak boleh terdapat penyimpangan, improvisasi, atau interpretasi subjektif dari AI.
-
-**Rincian Teknis:**
-- **Kesamaan Struktur:** Jumlah langkah, urutan eksekusi, dan logika alur yang tertera dalam deskripsi harus direproduksi tanpa perubahan sekecil apa pun.
-- **Kesamaan Konten:** Setiap parameter masukan, data uji spesifik, kondisi awal, dan ekspektasi hasil yang tertulis dalam deskripsi harus menjadi elemen eksak dalam pengujian yang dibangun oleh AI. Generalisasi atau substitusi data tidak diperbolehkan.
-- **Kesamaan Tujuan:** Maksud dan sasaran akhir dari pengujian, sebagaimana diekspresikan dalam deskripsi, harus menjadi target yang dicapai oleh pengujian yang dihasilkan. AI tidak diperkenankan mengubah atau menambahkan tujuan di luar yang tertera.
-
-**Rasionalisasi Profesional:**
-Aturan ini menempatkan AI sebagai instrumen eksekusi presisi, bukan sebagai perancang independen. Hal ini menjamin bahwa setiap pengujian yang tercipta merupakan representasi sempurna dari kehendak eksplisit perancangnya (anggota tim), sehingga menghilangkan risiko misinterpretasi dan menghemat waktu validasi.
-
----
-
-### Aturan 3: Larangan Mutlak Penghapusan Pengujian oleh AI
-
-**Pernyataan Formal:**
-Kecerdasan buatan (AI) dilarang keras melakukan tindakan penghapusan terhadap test case, skenario pengujian, atau artefak pengujian apa pun yang berada di dalam repositori sistem. Perintah menghapus tidak boleh dieksekusi oleh AI, terlepas dari bagaimana perintah tersebut diformulasikan.
-
-**Rincian Teknis:**
-- **Cakupan Larangan:** Mencakup penghapusan permanen, pemindahan ke keranjang sampah, pengarsipan yang bersifat destruktif, atau segala mekanisme yang mengakibatkan hilangnya akses terhadap data pengujian yang ada.
-- **Tidak Ada Pengecualian:** Bahkan jika AI menerima perintah pengguna yang secara eksplisit meminta penghapusan, AI harus menolak eksekusi dan memberikan notifikasi bahwa tindakan tersebut di luar kewenangannya.
-- **Pemilik Hak Eksklusif:** Hak untuk melakukan penghapusan pengujian secara penuh dan eksklusif dimiliki oleh **pengguna manusia (user)** yang berwenang melalui mekanisme sistem yang telah ditentukan.
-
-**Rasionalisasi Profesional:**
-Aturan ini adalah pagar pengaman (safeguard) kritis untuk melindungi aset data pengujian dari kehilangan tidak disengaja, perintah destruktif yang ambigu, atau potensi kesalahan interpretasi AI terhadap maksud pengguna. Setiap penghapusan harus merupakan keputusan sadar dan tindakan langsung dari manusia yang bertanggung jawab.
-
----
-
-### Analisis dan Resolusi Bentrokan Antar-Aturan
-
-Telah dilakukan analisis terhadap potensi konflik operasional antar ketiga aturan di atas. Berikut adalah hasil identifikasi dan keputusan profesional yang diambil:
-
-**Potensi Bentrokan:**
-- **Aturan 2 vs Aturan 1:** Aturan 2 memerintahkan AI untuk membuat pengujian baru yang "sama persis" dengan deskripsi yang diberikan. Ini secara implisit memerintahkan AI untuk menuliskan Nama dan Deskripsi untuk pengujian baru tersebut. Di sisi lain, Aturan 1 melarang AI mengubah Nama dan Deskripsi pengujian. Apakah tindakan penulisan pertama (kreasi) dianggap sebagai "pengubahan"?
-
-**Resolusi Profesional:**
-Kedua aturan ini tidak benar-benar bentrok, melainkan beroperasi pada domain yang berbeda. Aturan 1 berlaku pada pengujian yang **sudah eksis**, sementara Aturan 2 berlaku pada momen **kreasi pengujian baru**. Untuk itu, ditetapkan klarifikasi sebagai berikut:
-
-- Aturan 2 (Replikasi Presisi-Penuh) adalah otoritas **penciptaan awal**. AI diizinkan menulis Nama dan Deskripsi pengujian baru hanya pada saat pertama kali pengujian itu dibuat, dan tulisan itu harus persis seperti deskripsi dari pengguna.
-- Segera setelah artefak pengujian baru itu tersimpan di sistem, Aturan 1 (Larangan Modifikasi) langsung berlaku secara penuh. AI tidak boleh lagi menyentuh Nama dan Deskripsi yang baru saja dituliskannya itu. Setiap perubahan selanjutnya menjadi wewenang eksklusif pengguna manusia.
-
-**Keputusan Final:** Tidak ada aturan yang dihapus atau dikalahkan. Keduanya harmonis dengan batasan temporal yang jelas: **Kreasi oleh AI diperbolehkan; Modifikasi setelah kreasi dilarang.**
-
----
-Tentu, berikut adalah aturan yang telah diformalkan, diperjelas, dan dikelompokkan. Aturan yang bentrok telah diselesaikan dengan memilih opsi yang paling profesional. Anda dapat langsung menyalin (copy) seluruh teks di bawah ini.
-
----
-
-
-# ATURAN UNTUK TEST
-
-
-**Panduan dan Aturan Kerja untuk Pengujian Berbasis AI**
-
-Selamat pagi/siang, Tim. Saya ingin menyampaikan beberapa aturan dan ekspektasi inti dalam proyek ini untuk memastikan kita semua memiliki pemahaman dan standar kualitas yang sama. Aturan ini bersifat mutlak dan dirancang untuk menjaga integritas, konsistensi, serta akuntabilitas pekerjaan kita. Mohon disimak dengan saksama.
-
-### Kelompok Aturan 1: Integritas dan Kepemilikan Data Uji
-
-**1.1. Larangan Mutlak Modifikasi Data Inti oleh AI**
-*   **Aturan:** AI tidak diperkenankan untuk mengubah, memodifikasi, menambah, atau mengurangi elemen inti dari data pengujian, yang meliputi **nama test** dan **deskripsi test**.
-*   **Detail:** Elemen-elemen ini adalah kebenaran dasar (*source of truth*) yang menjadi acuan kita. Setiap perubahan, sekecil apa pun, hanya boleh dilakukan langsung oleh **pengguna (user)** secara manual.
-*   **Tujuan:** Untuk mencegah perubahan yang tidak sah, menjaga ketertelusuran, dan memastikan konsistensi data di seluruh tim.
-
-**1.2. Prinsip "Apa yang Diminta, Itu yang Dibuat"**
-*   **Aturan:** AI wajib membuatkan atau menghasilkan pengujian yang isi dan strukturnya **sama persis** dengan apa yang diminta atau diinginkan oleh deskripsi test.
-*   **Detail:** Jika deskripsi test menyatakan "Lakukan pengujian A dengan parameter B dan validasi output C", maka AI tidak boleh menginterpretasi sendiri, mengurangi langkah, atau menambahkan validasi di luar C. Hasil akhir harus menjadi cerminan 100% dari permintaan yang tertulis dalam deskripsi.
-
-### Kelompok Aturan 2: Manajemen dan Pelestarian Aset Uji
-
-**2.1. Larangan Penghapusan Test**
-*   **Aturan:** AI dilarang keras untuk menghapus test yang sudah ada, dalam kondisi apa pun.
-*   **Detail:** Tidak ada pengecualian. Test yang sudah dibuat adalah aset historis yang mungkin masih relevan untuk audit, regresi, atau referensi di masa depan. Jika sebuah test dianggap usang, proses penonaktifan hanya boleh dilakukan oleh user.
-
-**2.2. Pengelompokan Test Berdasarkan Group dalam File**
-*   **Aturan:** Semua test wajib dikelompokkan dan diorganisasikan secara logis berdasarkan **group** yang terdefinisi di dalam file terkait.
-*   **Detail:** Saat menampilkan atau menyusun test, AI harus menyajikannya dalam struktur hierarkis sesuai dengan "Group" masing-masing. Hal ini untuk memudahkan navigasi, pencarian, dan pemahaman terhadap cakupan pengujian kita.
-
-### Kelompok Aturan 3: Analisis Proaktif dan Pengembangan Kode Test
-
-**3.1. Identifikasi dan Notifikasi Potensi Pengujian Tambahan**
-*   **Aturan:** AI wajib secara proaktif mengidentifikasi dan memberitahukan kepada saya apabila menemukan kode, fungsi, atau modul yang **masih bisa dan relevan untuk di-test**, namun belum memiliki test case.
-*   **Detail:** Ini adalah tugas analisis kode statis secara pasif. AI cukup memberitahukan, contohnya: "Saya melihat fungsi `X` pada modul `Y` belum memiliki test case. Apakah Anda ingin saya buatkan?".
-*   **Resolusi Bentrok (Profesional):** Aturan ini lebih profesional daripada sekadar "memberi tahu jika ada kode yang bisa dites", karena menjadikannya sebuah *kewajiban* analitis, bukan sekadar respons pasif.
-
-**3.2. Mandat Wajib untuk Logika Pembuatan Kode Test**
-*   **Aturan:** Untuk logika atau alur yang akan diuji, AI **wajib memberitahukan** kepada saya bahwa AI harus membuatkan kode test untuk logika tersebut. Ini bukan permintaan, melainkan sebuah pemberitahuan wajib sebelum mengeksekusi.
-*   **Detail:** AI tidak boleh langsung membuat kode test tanpa konfirmasi. Siklusnya adalah: Analisis Logika -> Pemberitahuan Wajib: "Untuk menguji logika [Nama Logika], saya harus membuatkan kode test-nya. Apakah Anda setuju?" -> Persetujuan User -> Eksekusi Pembuatan Kode.
-*   **Pembenaran Profesional:** Ini adalah *bentrok* yang diselesaikan dengan memilih pendekatan paling profesional. Perintah di atas lebih dari sekadar memberi tahu; AI harus **secara eksplisit menyatakan mandatnya** untuk menulis kode test sebelum melanjutkan. Hal ini krusial untuk menjaga kendali penuh di tangan user atas kapan dan apa yang akan dieksekusi oleh AI, mencegah potensi pemborosan sumber daya atau pembuatan kode yang tidak diinginkan.
 ## **Modifikasi Kode & Manajemen Dependensi**
 
 

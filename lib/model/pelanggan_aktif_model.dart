@@ -1,7 +1,8 @@
 // path: lib/model/pelanggan_aktif_model.dart
-// diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
+// diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
+import 'package:admin_wifi/model/enum/status_pembayaran.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
-import 'enum/status_pembayaran.dart';
 
 class PelangganAktifModel {
   final String id;
@@ -15,7 +16,7 @@ class PelangganAktifModel {
   final DateTime? diarsipkan;
 
   PelangganAktifModel({
-    String? id, // diubah: id bisa null saat pembuatan
+    String? id,
     required this.idPelanggan,
     required this.idPaket,
     required this.tanggalMulai,
@@ -24,20 +25,22 @@ class PelangganAktifModel {
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
-  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
+  }) : id = id ?? const Uuid().v4();
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-    try {
-      if (value.runtimeType.toString().contains('Timestamp')) {
-        return value.toDate();
-      }
-    } catch (_) {}
+    if (value is Timestamp) return value.toDate();
     if (value is DateTime) return value;
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
+    if (value is String) return DateTime.tryParse(value);
     return null;
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) return value.toLowerCase() == 'true';
+    return false;
   }
 
   PelangganAktifModel copyWith({
@@ -64,47 +67,30 @@ class PelangganAktifModel {
     );
   }
 
-  factory PelangganAktifModel.fromMap(Map<String, dynamic> map) {
+  // diubah: Nama metode dan validasi diperbaiki
+  factory PelangganAktifModel.fromSqlite(Map<String, dynamic> map) {
     final id = map['id'] as String?;
     if (id == null || id.isEmpty) {
-      throw ArgumentError(
-        'Gagal membuat PelangganAktifModel: ID tidak boleh null atau kosong. Data: $map',
-      );
+      throw ArgumentError('ID tidak boleh null atau kosong', 'id');
     }
-
-    final idPelanggan = map['id_pelanggan'] as String?;
-    if (idPelanggan == null || idPelanggan.isEmpty) {
-      throw ArgumentError(
-        'Gagal membuat PelangganAktifModel: id_pelanggan tidak boleh null atau kosong. Data: $map',
-      );
-    }
-
-    final idPaket = map['id_paket'] as String?;
-    if (idPaket == null || idPaket.isEmpty) {
-      throw ArgumentError(
-        'Gagal membuat PelangganAktifModel: id_paket tidak boleh null atau kosong. Data: $map',
-      );
-    }
-
     return PelangganAktifModel(
       id: id,
-      idPelanggan: idPelanggan,
-      idPaket: idPaket,
-      tanggalMulai: DateTime.parse(map['tanggalMulai']),
-      tanggalBerakhir: DateTime.parse(map['tanggalBerakhir']),
+      idPelanggan: map['id_pelanggan'] ?? '',
+      idPaket: map['id_paket'] ?? '',
+      tanggalMulai: _parseDateTime(map['tanggalMulai']) ?? DateTime.now(),
+      tanggalBerakhir: _parseDateTime(map['tanggalBerakhir']) ?? DateTime.now(),
       status: StatusPembayaran.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => StatusPembayaran.lunas,
       ),
-      diperbarui: map['diperbarui'] != null
-          ? DateTime.parse(map['diperbarui'])
-          : null,
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+      diperbarui: _parseDateTime(map['diperbarui']),
+      isDeleted: _parseBool(map['isDeleted']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
-  Map<String, dynamic> toMapForSqlite() {
+  // diubah: Nama metode
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -118,17 +104,41 @@ class PelangganAktifModel {
     };
   }
 
-  Map<String, dynamic> toMapForFirebase() {
-    return {
+  // ditambahkan: Factory fromFirebase
+  factory PelangganAktifModel.fromFirebase(
+      String id, Map<String, dynamic> data) {
+    return PelangganAktifModel(
+      id: id,
+      idPelanggan: data['id_pelanggan'] ?? '',
+      idPaket: data['id_paket'] ?? '',
+      tanggalMulai: _parseDateTime(data['tanggalMulai']) ?? DateTime.now(),
+      tanggalBerakhir:
+          _parseDateTime(data['tanggalBerakhir']) ?? DateTime.now(),
+      status: StatusPembayaran.values.firstWhere(
+        (e) => e.name == data['status'],
+        orElse: () => StatusPembayaran.lunas,
+      ),
+      diperbarui: _parseDateTime(data['diperbarui']),
+      isDeleted: _parseBool(data['isDeleted']),
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  // diubah: Nama metode dan logika diperbarui diubah
+  Map<String, dynamic> toFirebase() {
+    final Map<String, dynamic> data = {
       'id': id,
       'id_pelanggan': idPelanggan,
       'id_paket': idPaket,
-      'tanggalMulai': tanggalMulai.toIso8601String(),
-      'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
+      'tanggalMulai': Timestamp.fromDate(tanggalMulai),
+      'tanggalBerakhir': Timestamp.fromDate(tanggalBerakhir),
       'status': status.name,
-      'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      'diperbarui': FieldValue.serverTimestamp(),
     };
+    if (diarsipkan != null) {
+      data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
+    }
+    return data;
   }
 }

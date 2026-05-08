@@ -1,5 +1,5 @@
 // path: lib/model/kritik_saran_model.dart
-// diubah: Menambahkan copyWith dan id non-nullable untuk pengujian
+// diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,7 +16,7 @@ class KritikSaranModel {
     required this.tanggal,
     required this.userId,
     this.diperbarui,
-  }) : id = id ?? const Uuid().v4(); // ID akan dibuat jika null (untuk tes)
+  }) : id = id ?? const Uuid().v4();
 
   KritikSaranModel copyWith({
     String? id,
@@ -34,34 +34,27 @@ class KritikSaranModel {
     );
   }
 
-  factory KritikSaranModel.fromMap(Map<String, dynamic> map) {
-    var tanggalValue = map['tanggal'];
-    DateTime parsedDate;
-    if (tanggalValue is Timestamp) {
-      parsedDate = tanggalValue.toDate();
-    } else if (tanggalValue is String) {
-      parsedDate = DateTime.parse(tanggalValue);
-    } else {
-      parsedDate = DateTime.now();
-    }
+  static DateTime? _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return null;
+    if (dateValue is Timestamp) return dateValue.toDate();
+    if (dateValue is DateTime) return dateValue;
+    if (dateValue is String) return DateTime.tryParse(dateValue);
+    return null;
+  }
 
-    var diperbaruiValue = map['diperbarui'];
-    DateTime? parsedDiperbarui;
-    if (diperbaruiValue is Timestamp) {
-      parsedDiperbarui = diperbaruiValue.toDate();
-    } else if (diperbaruiValue is String) {
-      parsedDiperbarui = DateTime.tryParse(diperbaruiValue);
-    }
-
+  // diubah: Nama metode dari fromMap menjadi fromSqlite
+  factory KritikSaranModel.fromSqlite(Map<String, dynamic> map) {
     return KritikSaranModel(
       id: map['id'] as String?,
       isi: map['isi'] ?? '',
       userId: map['userId'] ?? '',
-      tanggal: parsedDate,
-      diperbarui: parsedDiperbarui,
+      tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
+      diperbarui: _parseDateTime(map['diperbarui']),
     );
   }
-  Map<String, dynamic> toMapForSqlite() {
+
+  // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'isi': isi,
@@ -70,14 +63,26 @@ class KritikSaranModel {
       'diperbarui': diperbarui?.toIso8601String(),
     };
   }
+  
+  // ditambahkan: Factory fromFirebase
+  factory KritikSaranModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return KritikSaranModel(
+      id: id,
+      isi: data['isi'] ?? '',
+      userId: data['userId'] ?? '',
+      tanggal: _parseDateTime(data['tanggal']) ?? DateTime.now(),
+      diperbarui: _parseDateTime(data['diperbarui']),
+    );
+  }
 
-  Map<String, dynamic> toMapForFirebase() {
+  // diubah: Nama metode dan logika diperbarui diubah
+  Map<String, dynamic> toFirebase() {
     return {
       'id': id,
       'isi': isi,
-      'tanggal': tanggal.toIso8601String(),
+      'tanggal': Timestamp.fromDate(tanggal),
       'userId': userId,
-      'diperbarui': diperbarui?.toIso8601String(),
+      'diperbarui': FieldValue.serverTimestamp(),
     };
   }
 }

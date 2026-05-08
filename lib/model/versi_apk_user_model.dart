@@ -1,4 +1,5 @@
 // path: lib/model/versi_apk_user_model.dart
+// diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
@@ -29,50 +30,25 @@ class VersiApkUserModel {
     this.diperbarui,
   });
 
-  // Fungsi PENTING: Untuk membuat objek dari berbagai sumber data
-  factory VersiApkUserModel.fromMap(Map<String, dynamic> map) {
+  // =========================
+  // SQLITE
+  // =========================
+  factory VersiApkUserModel.fromSqlite(Map<String, dynamic> map) {
     return VersiApkUserModel(
       id: map['id'] as String? ?? '',
       catatanRilis: map['catatan_rilis'] as String? ?? '',
       versiTerbaru: map['versi_terbaru'] as String? ?? '',
       youtubeTutorial: map['youtube_tutorial'] as String? ?? '',
-
-      // diubah: Logika fleksibel untuk boolean (bisa baca int 1/0 atau bool true/false)
-      wajibUpdate: map['wajib_update'] == 1 || map['wajib_update'] == true,
-      isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
-
-      // diubah: Logika fleksibel untuk Map (bisa baca String JSON atau Map asli)
+      wajibUpdate: map['wajib_update'] == 1,
+      isDeleted: map['isDeleted'] == 1,
       nomorBuildTerbaru: _parseNomorBuild(map['nomor_build_terbaru']),
       tautanUnduhan: _parseTautanUnduhan(map['tautan_unduhan']),
-
       diarsipkan: _parseDateTime(map['diarsipkan']),
       diperbarui: _parseDateTime(map['diperbarui']),
     );
   }
 
-  // --- FUNGSI UNTUK FIREBASE ---
-  Map<String, dynamic> toMapForFirebase() {
-    return {
-      'id': id,
-      'catatan_rilis': catatanRilis,
-      'versi_terbaru': versiTerbaru,
-      'youtube_tutorial': youtubeTutorial,
-      'diarsipkan': diarsipkan,
-      'diperbarui': diperbarui,
-      'nomor_build_terbaru': nomorBuildTerbaru.map(
-        (key, value) => MapEntry(key.name, value),
-      ),
-
-      'tautan_unduhan': tautanUnduhan.map(
-        (key, value) => MapEntry(key.name, value),
-      ),
-      'wajib_update': wajibUpdate, // Dikirim sebagai BOOLEAN
-      'isDeleted': isDeleted, // Dikirim sebagai BOOLEAN
-    };
-  }
-
-  // --- FUNGSI UNTUK SQLITE ---
-  Map<String, dynamic> toMapForSqlite() {
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'catatan_rilis': catatanRilis,
@@ -83,7 +59,6 @@ class VersiApkUserModel {
       'nomor_build_terbaru': jsonEncode(
         nomorBuildTerbaru.map((key, value) => MapEntry(key.name, value)),
       ),
-
       'tautan_unduhan': jsonEncode(
         tautanUnduhan.map((key, value) => MapEntry(key.name, value)),
       ),
@@ -92,7 +67,46 @@ class VersiApkUserModel {
     };
   }
 
-  // --- FUNGSI-FUNGSI BANTU (HELPERS) ---
+  // =========================
+  // FIREBASE
+  // =========================
+  factory VersiApkUserModel.fromFirebase(String id, Map<String, dynamic> map) {
+    return VersiApkUserModel(
+      id: id,
+      catatanRilis: map['catatan_rilis'] as String? ?? '',
+      versiTerbaru: map['versi_terbaru'] as String? ?? '',
+      youtubeTutorial: map['youtube_tutorial'] as String? ?? '',
+      wajibUpdate: map['wajib_update'] == true,
+      isDeleted: map['isDeleted'] == true,
+      nomorBuildTerbaru: _parseNomorBuild(map['nomor_build_terbaru']),
+      tautanUnduhan: _parseTautanUnduhan(map['tautan_unduhan']),
+      diarsipkan: _parseDateTime(map['diarsipkan']),
+      diperbarui: _parseDateTime(map['diperbarui']),
+    );
+  }
+
+  Map<String, dynamic> toFirebase() {
+    return {
+      'id': id,
+      'catatan_rilis': catatanRilis,
+      'versi_terbaru': versiTerbaru,
+      'youtube_tutorial': youtubeTutorial,
+      'diperbarui': FieldValue.serverTimestamp(),
+      if (diarsipkan != null) 'diarsipkan': Timestamp.fromDate(diarsipkan!),
+      'nomor_build_terbaru': nomorBuildTerbaru.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'tautan_unduhan': tautanUnduhan.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'wajib_update': wajibUpdate,
+      'isDeleted': isDeleted,
+    };
+  }
+
+  // =========================
+  // HELPERS
+  // =========================
 
   static DateTime? _parseDateTime(dynamic date) {
     if (date is Timestamp) return date.toDate();
@@ -122,17 +136,13 @@ class VersiApkUserModel {
 
   static Map<ArsitekturApkEnum, int> _parseNomorBuild(dynamic data) {
     final hasil = <ArsitekturApkEnum, int>{};
-
     Map<dynamic, dynamic>? mapData;
 
     if (data is Map) {
       mapData = data;
-    }
-
-    if (data is String) {
+    } else if (data is String) {
       try {
         final decoded = jsonDecode(data);
-
         if (decoded is Map) {
           mapData = decoded;
         }
@@ -146,11 +156,8 @@ class VersiApkUserModel {
     if (mapData != null) {
       for (final item in mapData.entries) {
         final arsitektur = _arsitekturDariString(item.key.toString());
-
         if (arsitektur != null) {
-          hasil[arsitektur] = item.value is num
-              ? (item.value as num).toInt()
-              : 0;
+          hasil[arsitektur] = item.value is num ? (item.value as num).toInt() : 0;
         }
       }
     }
@@ -160,17 +167,13 @@ class VersiApkUserModel {
 
   static Map<ArsitekturApkEnum, String> _parseTautanUnduhan(dynamic data) {
     final hasil = <ArsitekturApkEnum, String>{};
-
     Map<dynamic, dynamic>? mapData;
 
     if (data is Map) {
       mapData = data;
-    }
-
-    if (data is String) {
+    } else if (data is String) {
       try {
         final decoded = jsonDecode(data);
-
         if (decoded is Map) {
           mapData = decoded;
         }
@@ -184,7 +187,6 @@ class VersiApkUserModel {
     if (mapData != null) {
       for (final item in mapData.entries) {
         final arsitektur = _arsitekturDariString(item.key.toString());
-
         if (arsitektur != null) {
           hasil[arsitektur] = item.value?.toString() ?? '';
         }
@@ -192,7 +194,7 @@ class VersiApkUserModel {
     }
 
     return {...defaultTautanUnduhan, ...hasil};
-  } // Fungsi copyWith untuk memudahkan update objek
+  }
 
   VersiApkUserModel copyWith({
     String? id,

@@ -14,7 +14,7 @@ class KritikSaranOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menambahkan timestamp 'diperbarui' sebelum menyimpan.
-    final data = kritikSaran.toMapForSqlite()
+    final data = kritikSaran.toSqlite()
       ..['diperbarui'] = now.toIso8601String();
 
     await db.insert(
@@ -33,7 +33,7 @@ class KritikSaranOperasi {
       orderBy: 'tanggal DESC',
     );
     return List.generate(maps.length, (i) {
-      return KritikSaranModel.fromMap(maps[i]);
+      return KritikSaranModel.fromSqlite(maps[i]);
     });
   }
 
@@ -47,7 +47,7 @@ class KritikSaranOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return KritikSaranModel.fromMap(maps.first);
+      return KritikSaranModel.fromSqlite(maps.first);
     } else {
       throw Exception('ID $id tidak ditemukan');
     }
@@ -62,7 +62,7 @@ class KritikSaranOperasi {
       whereArgs: [lastSync.toIso8601String()],
     );
     return List.generate(maps.length, (i) {
-      return KritikSaranModel.fromMap(maps[i]);
+      return KritikSaranModel.fromSqlite(maps[i]);
     });
   }
 
@@ -75,7 +75,7 @@ class KritikSaranOperasi {
     for (var kritikSaranModel in daftarKritikSaran) {
       batch.insert(
         'kritik_saran',
-        kritikSaranModel.toMapForSqlite(),
+        kritikSaranModel.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -188,7 +188,7 @@ class KritikSaranOperasi {
       final List<KritikSaranModel> data = snapshot.docs
           .map(
             (doc) =>
-                KritikSaranModel.fromMap(doc.data() as Map<String, dynamic>),
+                KritikSaranModel.fromFirebase(doc.id, doc.data() as Map<String, dynamic>),
           )
           .toList();
 
@@ -221,7 +221,7 @@ class KritikSaranOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return KritikSaranModel.fromMap(maps[i]);
+      return KritikSaranModel.fromSqlite(maps[i]);
     });
   }
 }

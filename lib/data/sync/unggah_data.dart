@@ -42,85 +42,85 @@ class LayananUnggahData {
       unggahDataGenerik<DompetModel>(
         'dompet',
         'dompet',
-        DompetModel.fromMap,
+        DompetModel.fromSqlite,
         (m) => m.toFirebase(), // diperbaiki
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<KategoriModel>(
         'kategori',
         'kategori',
-        KategoriModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        KategoriModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<KritikSaranModel>(
         'kritik_saran',
         'kritik_saran',
-        KritikSaranModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        KritikSaranModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PaketModel>(
         'paket',
         'paket',
-        PaketModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        PaketModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PelangganAktifModel>(
         'pelanggan_aktif',
         'pelanggan_aktif',
-        PelangganAktifModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        PelangganAktifModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PelangganModel>(
         'pelanggan',
         'pelanggan',
-        PelangganModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        PelangganModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PesananModel>(
         'pesanan',
         'pesan',
-        PesananModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        PesananModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<RiwayatLanggananModel>(
         'riwayat_langganan',
         'riwayat_langganan',
-        RiwayatLanggananModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        RiwayatLanggananModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<TransaksiModel>(
         'transaksi',
         'transaksi',
-        TransaksiModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        TransaksiModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<SubKategoriModel>(
         'sub_kategori',
         'sub_kategori',
-        SubKategoriModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        SubKategoriModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<VersiApkUserModel>(
         'versi_apk_user',
         'versi_apk_user',
-        VersiApkUserModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        VersiApkUserModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<PengaturanModel>(
         'pengaturan',
         'pengaturan',
-        PengaturanModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        PengaturanModel.fromSqlite,
+        (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
     ];
@@ -149,7 +149,7 @@ class LayananUnggahData {
     await unggahDataGenerik<DompetModel>(
       'dompet',
       'dompet',
-      DompetModel.fromMap,
+      DompetModel.fromSqlite,
       (m) => m.toFirebase(), // diperbaiki
       waktu,
     );
@@ -160,8 +160,8 @@ class LayananUnggahData {
     await unggahDataGenerik<KategoriModel>(
       'kategori',
       'kategori',
-      KategoriModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      KategoriModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -171,8 +171,8 @@ class LayananUnggahData {
     await unggahDataGenerik<KritikSaranModel>(
       'kritik_saran',
       'kritik_saran',
-      KritikSaranModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      KritikSaranModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -182,8 +182,8 @@ class LayananUnggahData {
     await unggahDataGenerik<PaketModel>(
       'paket',
       'paket',
-      PaketModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      PaketModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -193,8 +193,8 @@ class LayananUnggahData {
     await unggahDataGenerik<PelangganAktifModel>(
       'pelanggan_aktif',
       'pelanggan_aktif',
-      PelangganAktifModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      PelangganAktifModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -204,8 +204,8 @@ class LayananUnggahData {
     await unggahDataGenerik<PelangganModel>(
       'pelanggan',
       'pelanggan',
-      PelangganModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      PelangganModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -215,8 +215,8 @@ class LayananUnggahData {
     await unggahDataGenerik<PesananModel>(
       'pesanan',
       'pesan',
-      PesananModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      PesananModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -226,8 +226,8 @@ class LayananUnggahData {
     await unggahDataGenerik<RiwayatLanggananModel>(
       'riwayat_langganan',
       'riwayat_langganan',
-      RiwayatLanggananModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      RiwayatLanggananModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -237,8 +237,8 @@ class LayananUnggahData {
     await unggahDataGenerik<TransaksiModel>(
       'transaksi',
       'transaksi',
-      TransaksiModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      TransaksiModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -248,8 +248,8 @@ class LayananUnggahData {
     await unggahDataGenerik<SubKategoriModel>(
       'sub_kategori',
       'sub_kategori',
-      SubKategoriModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      SubKategoriModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -259,8 +259,8 @@ class LayananUnggahData {
     await unggahDataGenerik<PengaturanModel>(
       'pengaturan',
       'pengaturan',
-      PengaturanModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      PengaturanModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -270,8 +270,8 @@ class LayananUnggahData {
     await unggahDataGenerik<VersiApkUserModel>(
       'versi_apk_user',
       'versi_apk_user',
-      VersiApkUserModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      VersiApkUserModel.fromSqlite,
+      (m) => m.toFirebase(),
       waktu,
     );
   }
@@ -279,8 +279,8 @@ class LayananUnggahData {
   Future<void> unggahDataGenerik<T>(
     String namaTabel,
     String namaKoleksi,
-    T Function(Map<String, dynamic>) fromMap,
-    Map<String, dynamic> Function(T) toMapForFirebase,
+    T Function(Map<String, dynamic>) fromSqlite,
+    Map<String, dynamic> Function(T) toFirebase,
     DateTime waktuSinkronisasiTerakhir,
   ) async {
     try {
@@ -305,7 +305,7 @@ class LayananUnggahData {
       int itemsToCommit = 0;
 
       for (final map in dataUntukDiunggah) {
-        final T data = fromMap(map);
+        final T data = fromSqlite(map);
         final model = data as dynamic;
 
         String idDokumen;
@@ -315,7 +315,7 @@ class LayananUnggahData {
           idDokumen = model.id;
         }
 
-        final dataUnggah = toMapForFirebase(data);
+        final dataUnggah = toFirebase(data);
         final docRef = _firestore.collection(namaKoleksi).doc(idDokumen);
         batchFirestore.set(docRef, dataUnggah, SetOptions(merge: true));
         itemsToCommit++;

@@ -18,7 +18,7 @@ class StatusUnggahOperasi {
     final db = await _dbHelper.database;
     await db.insert(
       'status_unggah',
-      status.toMapForSqlite(),
+      status.toSqlite(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -45,11 +45,11 @@ class StatusUnggahOperasi {
     developer.log('Data mentah dari DB: $maps', name: 'StatusUnggahOperasi');
 
     final hasil = List.generate(maps.length, (i) {
-      return StatusUnggahModel.fromMap(maps[i]);
+      return StatusUnggahModel.fromSqlite(maps[i]);
     });
 
     developer.log(
-      'Hasil setelah diproses: ${hasil.map((e) => e.toMapForFirebase()).toList()}',
+      'Hasil setelah diproses: ${hasil.map((e) => e.toFirebase()).toList()}',
       name: 'StatusUnggahOperasi',
     );
     return hasil;
@@ -66,7 +66,7 @@ class StatusUnggahOperasi {
       whereArgs: [tabel.name],
     );
     if (maps.isNotEmpty) {
-      return StatusUnggahModel.fromMap(maps.first);
+      return StatusUnggahModel.fromSqlite(maps.first);
     }
     return null;
   }
@@ -112,7 +112,7 @@ class StatusUnggahOperasi {
   Future<void> resetStatus(NamaTabel tabel) async {
     final db = await _dbHelper.database;
     await db.update(
-      'status_unggah',
+      'status_ungah',
       {
         'status': 0, // false
         'ids': '[]', // JSON string untuk list kosong

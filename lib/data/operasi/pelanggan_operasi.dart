@@ -16,7 +16,7 @@ class PelangganOperasi {
     final pelangganUntukDisimpan = pelanggan.copyWith(
       diperbarui: DateTime.now(),
     );
-    final data = pelangganUntukDisimpan.toMapForSqlite();
+    final data = pelangganUntukDisimpan.toSqlite();
     await db.insert(
       'pelanggan',
       data,
@@ -38,7 +38,7 @@ class PelangganOperasi {
       whereArgs: [0], // 0 untuk false
     );
     return List.generate(maps.length, (i) {
-      return PelangganModel.fromMap(maps[i]);
+      return PelangganModel.fromSqlite(maps[i]);
     });
   }
 
@@ -47,7 +47,7 @@ class PelangganOperasi {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('pelanggan');
     return List.generate(maps.length, (i) {
-      return PelangganModel.fromMap(maps[i]);
+      return PelangganModel.fromSqlite(maps[i]);
     });
   }
 
@@ -61,7 +61,7 @@ class PelangganOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return PelangganModel.fromMap(maps.first);
+      return PelangganModel.fromSqlite(maps.first);
     }
     return null;
   }
@@ -72,7 +72,7 @@ class PelangganOperasi {
     // ditambah: Menggunakan copyWith untuk konsistensi.
     final data = pelanggan
         .copyWith(diperbarui: DateTime.now())
-        .toMapForSqlite();
+        .toSqlite();
     await db.update(
       'pelanggan',
       data,
@@ -104,7 +104,7 @@ class PelangganOperasi {
       where: 'diperbarui > ?',
       whereArgs: [since.toIso8601String()],
     );
-    return List.generate(maps.length, (i) => PelangganModel.fromMap(maps[i]));
+    return List.generate(maps.length, (i) => PelangganModel.fromSqlite(maps[i]));
   }
 
   Future<void> arsipkanPelanggan(String id) async {
@@ -132,7 +132,7 @@ class PelangganOperasi {
       final itemToSave = item.copyWith(diperbarui: DateTime.now());
       batch.insert(
         'pelanggan',
-        itemToSave.toMapForSqlite(),
+        itemToSave.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -151,7 +151,7 @@ class PelangganOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return PelangganModel.fromMap(maps[i]);
+      return PelangganModel.fromSqlite(maps[i]);
     });
   }
 

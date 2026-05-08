@@ -48,7 +48,8 @@ class DompetModel {
   }
 
   // Konversi dari format database lokal (SQLite)
-  factory DompetModel.fromMap(Map<String, dynamic> map) {
+  // diubah: nama metode dari fromMap menjadi fromSqlite untuk konsistensi
+  factory DompetModel.fromSqlite(Map<String, dynamic> map) {
     return DompetModel(
       id: map['id'],
       namaDompet: map['namaDompet'] ?? '',

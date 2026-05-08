@@ -1,7 +1,5 @@
 // path: lib/model/kategori_model.dart
-// diperbaiki: Menghapus cast yang tidak perlu untuk meningkatkan kebersihan kode.
-// diubah: Logika parsing subkategori yang lebih aman dan ID yang lebih ketat.
-// diubah: Memperbaiki panggilan ke toMap pada subkategori menjadi toMapForSqlite dan toMapForFirebase.
+// diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,11 +54,10 @@ class KategoriModel {
     return null;
   }
 
-  factory KategoriModel.fromMap(Map<String, dynamic> map) {
-    // ditambah: Logika parsing subkategori yang lebih aman dan jelas
+  // diubah: Nama metode dari fromMap menjadi fromSqlite
+  factory KategoriModel.fromSqlite(Map<String, dynamic> map) {
     List<SubKategoriModel> parseSubKategori(dynamic data) {
       if (data == null) return [];
-
       try {
         List<dynamic> list;
         if (data is String && data.isNotEmpty) {
@@ -70,20 +67,18 @@ class KategoriModel {
         } else {
           return [];
         }
-
         return list
             .map(
-              (item) => SubKategoriModel.fromMap(item as Map<String, dynamic>),
+              (item) => SubKategoriModel.fromSqlite(item as Map<String, dynamic>),
             )
             .toList();
       } catch (e) {
-        // Jika terjadi error parsing, kembalikan list kosong untuk mencegah crash
         return [];
       }
     }
 
     return KategoriModel(
-      id: map['id'], // diubah: ID harus berasal dari map, tidak boleh dibuat baru di sini.
+      id: map['id'],
       nama: map['nama'] ?? '',
       tipe: TipeKategori.values.firstWhere(
         (e) => e.name == map['tipe'],
@@ -96,14 +91,14 @@ class KategoriModel {
     );
   }
 
-  Map<String, dynamic> toMapForSqlite() {
+  // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'nama': nama,
       'tipe': tipe.name,
-      // diubah: Memanggil toMapForSqlite() pada subkategori
       'id_sub_kategori': jsonEncode(
-        subKategori.map((sub) => sub.toMapForSqlite()).toList(),
+        subKategori.map((sub) => sub.toSqlite()).toList(),
       ),
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
@@ -111,16 +106,41 @@ class KategoriModel {
     };
   }
 
-  Map<String, dynamic> toMapForFirebase() {
+  // ditambahkan: Factory fromFirebase
+  factory KategoriModel.fromFirebase(String id, Map<String, dynamic> data) {
+    List<SubKategoriModel> parseSubKategori(dynamic subKategoriData) {
+      if (subKategoriData is List) {
+        return subKategoriData
+            .map((item) => SubKategoriModel.fromFirebase(item['id'], item as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
+      }
+    }
+
+    return KategoriModel(
+      id: id,
+      nama: data['nama'] ?? '',
+      tipe: TipeKategori.values.firstWhere(
+        (e) => e.name == data['tipe'],
+        orElse: () => TipeKategori.pemasukan,
+      ),
+      subKategori: parseSubKategori(data['id_sub_kategori']),
+      diperbarui: _parseDateTime(data['diperbarui']),
+      isDeleted: data['isDeleted'] ?? false,
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  // diubah: Nama metode dan logika penyimpanan subkategori diubah
+  Map<String, dynamic> toFirebase() {
     return {
       'id': id,
       'nama': nama,
       'tipe': tipe.name,
-      // diubah: Memanggil toMapForFirebase() pada subkategori
-      'id_sub_kategori': jsonEncode(
-        subKategori.map((sub) => sub.toMapForFirebase()).toList(),
-      ),
-      'diperbarui': diperbarui?.toIso8601String(),
+      // diubah: Menyimpan subkategori sebagai List<Map> asli
+      'id_sub_kategori': subKategori.map((sub) => sub.toFirebase()).toList(),
+      'diperbarui': FieldValue.serverTimestamp(),
       'isDeleted': isDeleted,
       'diarsipkan': diarsipkan?.toIso8601String(),
     };

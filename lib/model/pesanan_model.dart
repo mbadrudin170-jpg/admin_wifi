@@ -1,5 +1,5 @@
 // path: lib/model/pesanan_model.dart
-// diubah: Mengganti toMap() dengan toMapForSqlite() dan toMapForFirebase()
+// diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,8 +53,24 @@ class PesananModel {
     return null;
   }
 
-  // diubah: Nama metode menjadi toMapForSqlite
-  Map<String, dynamic> toMapForSqlite() {
+  // =========================
+  // SQLITE
+  // =========================
+
+  factory PesananModel.fromSqlite(Map<String, dynamic> map) {
+    return PesananModel(
+      id: map['id'] as String? ?? '',
+      idPelanggan: map['id_pelanggan'] ?? '',
+      idPaket: map['id_paket'] ?? '',
+      tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
+      status: map['status'] ?? 'baru',
+      diperbarui: _parseDateTime(map['diperbarui']),
+      isDeleted: map['isDeleted'] == 1,
+      diarsipkan: _parseDateTime(map['diarsipkan']),
+    );
+  }
+
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
@@ -67,30 +83,33 @@ class PesananModel {
     };
   }
 
-  // ditambahkan: Metode toMapForFirebase
-  Map<String, dynamic> toMapForFirebase() {
+  // =========================
+  // FIREBASE
+  // =========================
+
+  factory PesananModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return PesananModel(
+      id: id,
+      idPelanggan: data['id_pelanggan'] ?? '',
+      idPaket: data['id_paket'] ?? '',
+      tanggal: _parseDateTime(data['tanggal']) ?? DateTime.now(),
+      status: data['status'] ?? 'baru',
+      diperbarui: _parseDateTime(data['diperbarui']),
+      isDeleted: data['isDeleted'] == true,
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  Map<String, dynamic> toFirebase() {
     return {
       'id': id,
       'id_pelanggan': idPelanggan,
       'id_paket': idPaket,
-      'tanggal': tanggal,
+      'tanggal': Timestamp.fromDate(tanggal),
       'status': status,
-      'diperbarui': diperbarui,
+      'diperbarui': FieldValue.serverTimestamp(),
       'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan,
+      if (diarsipkan != null) 'diarsipkan': Timestamp.fromDate(diarsipkan!),
     };
-  }
-
-  factory PesananModel.fromMap(Map<String, dynamic> map) {
-    return PesananModel(
-      id: map['id'] as String? ?? '',
-      idPelanggan: map['id_pelanggan'] ?? '',
-      idPaket: map['id_paket'] ?? '',
-      tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
-      status: map['status'] ?? 'baru',
-      diperbarui: _parseDateTime(map['diperbarui']),
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
-      diarsipkan: _parseDateTime(map['diarsipkan']),
-    );
   }
 }

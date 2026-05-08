@@ -34,7 +34,7 @@ class VersiApkUserOperasi {
     try {
       // 1. Simpan ke database lokal terlebih dahulu
       final dataToSave = data.copyWith(diperbarui: DateTime.now());
-      final dataUntukDb = dataToSave.toMapForSqlite();
+      final dataUntukDb = dataToSave.toSqlite();
 
       await db.insert(
         'versi_apk_user',
@@ -106,10 +106,10 @@ class VersiApkUserOperasi {
     final db = await dbHelper.database;
     try {
       final dataToUpdate = data.copyWith(diperbarui: DateTime.now());
-      // diubah: menggunakan toMapForSqlite() untuk konversi ke format SQLite
+      // diubah: menggunakan toSqlite() untuk konversi ke format SQLite
       await db.update(
         'versi_apk_user',
-        dataToUpdate.toMapForSqlite(),
+        dataToUpdate.toSqlite(),
         where: 'id = ?',
         whereArgs: [data.id],
       );
@@ -154,7 +154,7 @@ class VersiApkUserOperasi {
     try {
       final List<Map<String, dynamic>> maps = await db.query('versi_apk_user');
       return List.generate(maps.length, (i) {
-        return VersiApkUserModel.fromMap(maps[i]);
+        return VersiApkUserModel.fromSqlite(maps[i]);
       });
     } catch (e, s) {
       developer.log(
@@ -177,7 +177,7 @@ class VersiApkUserOperasi {
         orderBy: 'diperbarui DESC',
       );
       return List.generate(maps.length, (i) {
-        return VersiApkUserModel.fromMap(maps[i]);
+        return VersiApkUserModel.fromSqlite(maps[i]);
       });
     } catch (e, s) {
       developer.log(
@@ -200,7 +200,7 @@ class VersiApkUserOperasi {
       );
 
       if (maps.isNotEmpty) {
-        return VersiApkUserModel.fromMap(maps.first);
+        return VersiApkUserModel.fromSqlite(maps.first);
       }
       return null;
     } catch (e, s) {
@@ -249,10 +249,10 @@ class VersiApkUserOperasi {
       final batch = db.batch();
       for (var versi in daftarVersi) {
         final dataToSave = versi.copyWith(diperbarui: DateTime.now());
-        // diubah: menggunakan toMapForSqlite() untuk konversi ke format SQLite
+        // diubah: menggunakan toSqlite() untuk konversi ke format SQLite
         batch.insert(
           'versi_apk_user',
-          dataToSave.toMapForSqlite(),
+          dataToSave.toSqlite(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
@@ -279,7 +279,7 @@ class VersiApkUserOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return VersiApkUserModel.fromMap(maps[i]);
+      return VersiApkUserModel.fromSqlite(maps[i]);
     });
   }
 }

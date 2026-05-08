@@ -1,23 +1,18 @@
 // path: lib/data/operasi/transaksi_operasi.dart
-// diubah: Fungsi ambilSemuaTransaksi sekarang hanya mengambil data yang tidak dihapus (isDeleted = 0).
-// ditambahkan: Fungsi getTransaksiByPelanggan.
+// diubah: Menyesuaikan pemanggilan metode model menjadi fromSqlite dan toSqlite.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class TransaksiOperasi {
-  // diubah: dbHelper sekarang tidak final agar bisa diganti untuk testing.
   static DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  // Constructor standar yang digunakan oleh aplikasi.
   TransaksiOperasi();
 
-  // ditambah: metode untuk mengganti instance dbHelper untuk testing.
   static void testSetInstance(DatabaseHelper dbHelper) {
     _dbHelper = dbHelper;
   }
 
-  // diubah: getter ini memastikan kode lain tetap bisa mengakses database dengan cara yang sama.
   Future<Database> get _db async => await _dbHelper.database;
 
   // ===================================================================
@@ -30,7 +25,7 @@ class TransaksiOperasi {
       final dataBaru = transaksi.copyWith(diperbarui: DateTime.now());
       await txn.insert(
         'transaksi',
-        dataBaru.toMapForSqlite(),
+        dataBaru.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
@@ -63,16 +58,15 @@ class TransaksiOperasi {
     final db = await _db;
     final List<Map<String, dynamic>> maps = await db.query(
       'transaksi',
-      where: 'isDeleted = ?', // Hanya ambil data yang belum dihapus
+      where: 'isDeleted = ?',
       whereArgs: [0],
       orderBy: 'tanggal DESC',
     );
     return List.generate(maps.length, (i) {
-      return TransaksiModel.fromMap(maps[i]);
+      return TransaksiModel.fromSqlite(maps[i]);
     });
   }
 
-  // ditambahkan: Fungsi untuk mengambil transaksi berdasarkan ID dompet.
   Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
     final db = await _db;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -82,11 +76,10 @@ class TransaksiOperasi {
       orderBy: 'tanggal DESC',
     );
     return List.generate(maps.length, (i) {
-      return TransaksiModel.fromMap(maps[i]);
+      return TransaksiModel.fromSqlite(maps[i]);
     });
   }
 
-  // ditambahkan: Fungsi untuk mengambil riwayat transaksi berdasarkan ID pelanggan.
   Future<List<TransaksiModel>> getTransaksiByPelanggan(
     String pelangganId,
   ) async {
@@ -98,7 +91,7 @@ class TransaksiOperasi {
       orderBy: 'tanggal DESC',
     );
     return List.generate(maps.length, (i) {
-      return TransaksiModel.fromMap(maps[i]);
+      return TransaksiModel.fromSqlite(maps[i]);
     });
   }
 
@@ -113,7 +106,7 @@ class TransaksiOperasi {
       );
 
       if (maps.isNotEmpty) {
-        final transaksiLama = TransaksiModel.fromMap(maps.first);
+        final transaksiLama = TransaksiModel.fromSqlite(maps.first);
 
         if (transaksiLama.tipe == TipeTransaksi.pemasukan) {
           await txn.rawUpdate(
@@ -164,7 +157,7 @@ class TransaksiOperasi {
 
         await txn.update(
           'transaksi',
-          dataUpdate.toMapForSqlite(),
+          dataUpdate.toSqlite(),
           where: 'id = ?',
           whereArgs: [dataUpdate.id],
         );
@@ -183,7 +176,7 @@ class TransaksiOperasi {
       );
 
       if (maps.isNotEmpty) {
-        final transaksi = TransaksiModel.fromMap(maps.first);
+        final transaksi = TransaksiModel.fromSqlite(maps.first);
 
         if (transaksi.tipe == TipeTransaksi.pemasukan) {
           await txn.rawUpdate(
@@ -272,12 +265,9 @@ class TransaksiOperasi {
     return 0;
   }
 
-  // Fungsi ini bertujuan untuk menghitung total poin akhir pelanggan.
   Future<int> getTotalPoin(String idPelanggan) async {
     final poinDihasilkan = await getPoinYangDihasilkan(idPelanggan);
-
     final poinDigunakan = await getPoinYangDigunakan(idPelanggan);
-
     return poinDihasilkan - poinDigunakan;
   }
 
@@ -287,7 +277,7 @@ class TransaksiOperasi {
     for (var item in items) {
       batch.insert(
         'transaksi',
-        item.copyWith(diperbarui: DateTime.now()).toMapForSqlite(),
+        item.copyWith(diperbarui: DateTime.now()).toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
@@ -329,7 +319,7 @@ class TransaksiOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return TransaksiModel.fromMap(maps[i]);
+      return TransaksiModel.fromSqlite(maps[i]);
     });
   }
 }

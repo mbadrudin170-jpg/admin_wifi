@@ -13,7 +13,7 @@ class PaketOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = paket.copyWith(diperbarui: now).toMapForSqlite();
+    final data = paket.copyWith(diperbarui: now).toSqlite();
     await db.insert(
       'paket',
       data,
@@ -35,7 +35,7 @@ class PaketOperasi {
       ORDER BY urutan ASC
     ''');
     return List.generate(maps.length, (i) {
-      return PaketModel.fromMap(maps[i]);
+      return PaketModel.fromSqlite(maps[i]);
     });
   }
 
@@ -48,7 +48,7 @@ class PaketOperasi {
     );
 
     if (maps.isNotEmpty) {
-      return PaketModel.fromMap(maps.first);
+      return PaketModel.fromSqlite(maps.first);
     }
     return null;
   }
@@ -58,7 +58,7 @@ class PaketOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menggunakan copyWith untuk konsistensi.
-    final data = paket.copyWith(diperbarui: now).toMapForSqlite();
+    final data = paket.copyWith(diperbarui: now).toSqlite();
     await db.update('paket', data, where: 'id = ?', whereArgs: [paket.id]);
   }
 
@@ -79,7 +79,7 @@ class PaketOperasi {
       where: 'diperbarui > ?',
       whereArgs: [since.toIso8601String()],
     );
-    return List.generate(maps.length, (i) => PaketModel.fromMap(maps[i]));
+    return List.generate(maps.length, (i) => PaketModel.fromSqlite(maps[i]));
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(List<PaketModel> items) async {
@@ -88,7 +88,7 @@ class PaketOperasi {
     for (var item in items) {
       batch.insert(
         'paket',
-        item.toMapForSqlite(),
+        item.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -107,7 +107,7 @@ class PaketOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return PaketModel.fromMap(maps[i]);
+      return PaketModel.fromSqlite(maps[i]);
     });
   }
 }
