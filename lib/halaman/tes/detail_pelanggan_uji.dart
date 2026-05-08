@@ -1,4 +1,4 @@
- // path: lib/halaman/tes/detail_pelanggan_uji.dart
+// path: lib/halaman/tes/detail_pelanggan_uji.dart
 
 
 import 'package:flutter/material.dart';
@@ -87,7 +87,8 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                       width: 150,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        // diperbaiki: Mengganti withOpacity dengan withAlpha.
+                        color: Colors.white.withAlpha((255 * 0.05).round()),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -145,9 +146,10 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                             borderRadius: BorderRadius.circular(40),
                             boxShadow: [
                               BoxShadow(
+                                // diperbaiki: Mengganti withOpacity dengan withAlpha.
                                 color: const Color(
                                   0xFF581C87,
-                                ).withOpacity(0.05),
+                                ).withAlpha((255 * 0.05).round()),
                                 blurRadius: 40,
                                 offset: const Offset(0, 20),
                               ),
@@ -182,9 +184,10 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                                     borderRadius: BorderRadius.circular(32),
                                     boxShadow: [
                                       BoxShadow(
+                                        // diperbaiki: Mengganti withOpacity dengan withAlpha.
                                         color: const Color(
                                           0xFFFBBF24,
-                                        ).withOpacity(0.4),
+                                        ).withAlpha((255 * 0.4).round()),
                                         blurRadius: 40,
                                         offset: const Offset(0, 20),
                                       ),
@@ -258,9 +261,10 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                             borderRadius: BorderRadius.circular(40),
                             boxShadow: [
                               BoxShadow(
+                                // diperbaiki: Mengganti withOpacity dengan withAlpha.
                                 color: const Color(
                                   0xFF581C87,
-                                ).withOpacity(0.05),
+                                ).withAlpha((255 * 0.05).round()),
                                 blurRadius: 40,
                                 offset: const Offset(0, 20),
                               ),
@@ -336,9 +340,10 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                               ),
                               boxShadow: [
                                 BoxShadow(
+                                  // diperbaiki: Mengganti withOpacity dengan withAlpha.
                                   color: const Color(
                                     0xFF581C87,
-                                  ).withOpacity(0.05),
+                                  ).withAlpha((255 * 0.05).round()),
                                   blurRadius: 40,
                                   offset: const Offset(0, 10),
                                 ),
@@ -430,7 +435,8 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                     borderRadius: BorderRadius.circular(100),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        // diperbaiki: Mengganti withOpacity dengan withAlpha.
+                        color: Colors.black.withAlpha((255 * 0.3).round()),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -486,7 +492,8 @@ class _ActionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          // diperbaiki: Mengganti withOpacity dengan withAlpha.
+          color: Colors.white.withAlpha((255 * 0.1).round()),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Icon(icon, color: Colors.white, size: 20),

@@ -78,8 +78,6 @@ class DetailPelangganPageState extends State<DetailPelangganPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.pelanggan.nama),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -264,31 +262,34 @@ Password: ${widget.pelanggan.password}
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Total Poin', 
-                    style: TextStyle(color: Colors.white70, fontSize: 16)
+                  const Text(
+                    'Total Poin',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   if (_isLoadingPoin)
                     const SizedBox(
-                      height: 20, 
+                      height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   else
                     Text(
                       '$_totalPoin',
                       style: const TextStyle(
-                        color: Colors.white, 
-                        fontSize: 28, 
-                        fontWeight: FontWeight.bold
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                 ],
-              )
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
 }
