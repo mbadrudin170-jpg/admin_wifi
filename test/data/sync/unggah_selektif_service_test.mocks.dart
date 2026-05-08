@@ -912,6 +912,14 @@ class MockPelangganOperasi extends _i1.Mock implements _i22.PelangganOperasi {
             ),
           )
           as _i12.Future<List<_i23.PelangganModel>>);
+
+  @override
+  _i12.Future<int> getTotalPoin(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTotalPoin, [idPelanggan]),
+            returnValue: _i12.Future<int>.value(0),
+          )
+          as _i12.Future<int>);
 }
 
 /// A class which mocks [PengaturanOperasi].

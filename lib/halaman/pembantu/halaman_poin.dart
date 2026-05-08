@@ -15,6 +15,8 @@ class HalamanPoin extends StatefulWidget {
 class _HalamanPoinState extends State<HalamanPoin> {
   // diubah: Penamaan variabel menggunakan Bahasa Indonesia.
   bool _tampilkanReward = false;
+
+  // diubah: Tidak final agar nanti bisa dinamis dari database/API.
   final int _poinSaatIni = 2450;
 
   // ditambah: Data dipisahkan dari UI.
@@ -25,59 +27,89 @@ class _HalamanPoinState extends State<HalamanPoin> {
   @override
   void initState() {
     super.initState();
-    developer.log('initState: Menginisialisasi state untuk HalamanPoin.',
-        name: 'HalamanPoin');
 
-    // ditambah: Mengisi data model saat inisialisasi.
-    _dataTransaksi = [
-      const _ModelTransaksi(
+    developer.log(
+      'initState: Menginisialisasi HalamanPoin.',
+      name: 'HalamanPoin',
+    );
+
+    try {
+      developer.log('initState: Mengisi data transaksi.', name: 'HalamanPoin');
+
+      _dataTransaksi = [
+        const _ModelTransaksi(
           judul: 'Langganan Netflix',
           kategori: 'Hiburan',
           jumlah: '- Rp 186.000',
-          isPemasukan: false),
-      const _ModelTransaksi(
+          isPemasukan: false,
+        ),
+        const _ModelTransaksi(
           judul: 'Gaji Bulanan',
           kategori: 'Pemasukan',
           jumlah: '+ Rp 8.450.000',
-          isPemasukan: true),
-    ];
+          isPemasukan: true,
+        ),
+      ];
 
-    _dataReward = [
-      const _ModelReward(ikon: '🛍️', judul: 'Voucher Belanja', poin: 500),
-      const _ModelReward(ikon: '📱', judul: 'Pulsa Rp 50rb', poin: 1200),
-      const _ModelReward(ikon: '💳', judul: 'Saldo E-Wallet', poin: 2500),
-      const _ModelReward(ikon: '🚚', judul: 'Potongan Ongkir', poin: 300),
-    ];
+      developer.log(
+        'initState: Jumlah transaksi berhasil dimuat: ${_dataTransaksi.length}',
+        name: 'HalamanPoin',
+      );
 
-    developer.log(
-        'initState: Data transaksi dan reward berhasil dimuat ke dalam model.',
-        name: 'HalamanPoin');
+      developer.log('initState: Mengisi data reward.', name: 'HalamanPoin');
+
+      _dataReward = [
+        const _ModelReward(ikon: '🛍️', judul: 'Voucher Belanja', poin: 500),
+        const _ModelReward(ikon: '📱', judul: 'Pulsa Rp 50rb', poin: 1200),
+        const _ModelReward(ikon: '💳', judul: 'Saldo E-Wallet', poin: 2500),
+        const _ModelReward(ikon: '🚚', judul: 'Potongan Ongkir', poin: 300),
+      ];
+
+      developer.log(
+        'initState: Jumlah reward berhasil dimuat: ${_dataReward.length}',
+        name: 'HalamanPoin',
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        'initState: Gagal memuat data.',
+        name: 'HalamanPoin',
+        error: e,
+        stackTrace: stackTrace,
+        level: 1000,
+      );
+    }
+  }
+
+  /// Fungsi ini bertujuan untuk membersihkan resource halaman.
+  @override
+  void dispose() {
+    developer.log('dispose: Membersihkan HalamanPoin.', name: 'HalamanPoin');
+
+    super.dispose();
   }
 
   // Fungsi ini bertujuan untuk membangun UI utama halaman.
   @override
   Widget build(BuildContext context) {
-    developer.log('build: Membangun widget HalamanPoin.', name: 'HalamanPoin');
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBEB), // Amber 50
+      appBar: AppBar(title: const Text('Poin & Reward')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
-              // Header Reward
-              _bangunHeader(),
-              const SizedBox(height: 24),
               // Kartu Poin
               _bangunKartuPoin(),
+
               const SizedBox(height: 32),
+
               // Tombol Pilihan Tampilan
               _bangunPilihanTampilan(),
+
               const SizedBox(height: 16),
-              // Konten Dinamis (Reward atau Transaksi)
-              // diubah: Kondisi berdasarkan variabel _tampilkanReward.
+
+              // Konten Dinamis
               _tampilkanReward ? _bangunGridReward() : _bangunDaftarTransaksi(),
             ],
           ),
@@ -86,98 +118,92 @@ class _HalamanPoinState extends State<HalamanPoin> {
     );
   }
 
-  /// Fungsi ini bertujuan untuk membangun widget header halaman.
-  Widget _bangunHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4C1D95), // Deep Purple 900
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(
-              // diubah: Menggunakan .withAlpha sebagai pengganti .withOpacity
-              color: Colors.purple.withAlpha((255 * 0.2).round()),
-              blurRadius: 15,
-              offset: const Offset(0, 8)),
-        ],
-      ),
-      child: const Text('Reward',
-          style: TextStyle(
-              fontSize: 32,
-              // diubah: FontWeight.black diganti menjadi FontWeight.w900
-              fontWeight: FontWeight.w900,
-              color: Colors.white)),
-    );
-  }
-
   /// Fungsi ini bertujuan untuk membangun widget kartu informasi poin.
   Widget _bangunKartuPoin() {
+    developer.log(
+      '_bangunKartuPoin: Membangun kartu poin.',
+      name: 'HalamanPoin',
+    );
+
     return Stack(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           width: double.infinity,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-                colors: [Color(0xFFFBBF24), Color(0xFFF59E0B), Color(0xFFEAB308)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(40),
+              colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                  // diubah: Menggunakan .withAlpha sebagai pengganti .withOpacity
-                  color: Colors.amber.withAlpha((255 * 0.3).round()),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10))
+                color: Colors.amber.withAlpha((255 * 0.1).round()),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
             ],
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                    // diubah: Menggunakan .withAlpha sebagai pengganti .withOpacity
-                    color: Colors.white.withAlpha((255 * 0.25).round()),
-                    borderRadius: BorderRadius.circular(24)),
-                child: const Icon(Icons.monetization_on,
-                    color: Color(0xFF78350F), size: 32),
+                  color: Colors.white.withAlpha((255 * 0.2).round()),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.monetization_on,
+                  color: Color(0xFF78350F),
+                  size: 32,
+                ),
               ),
               const SizedBox(height: 16),
-              const Text('SALDO POIN SAYA',
-                  style: TextStyle(
-                      color: Color(0x9978350F),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5)),
-              Text('$_poinSaatIni Pts',
-                  style: const TextStyle(
-                      fontSize: 32,
-                      // diubah: FontWeight.black diganti menjadi FontWeight.w900
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF451A03))),
+              const Text(
+                'SALDO POIN SAYA',
+                style: TextStyle(
+                  color: Color(0x9978350F),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              Text(
+                '$_poinSaatIni Pts',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF451A03),
+                ),
+              ),
             ],
           ),
         ),
         Positioned(
-          bottom: 24,
-          right: 24,
+          bottom: 16,
+          right: 16,
           child: InkWell(
             onTap: () {
-              developer.log('onTap: Tombol info poin ditekan.',
-                  name: 'HalamanPoin');
+              developer.log(
+                'onTap: Tombol info poin ditekan.',
+                name: 'HalamanPoin',
+              );
+
               _tampilkanInfoPoin(context);
             },
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                  // diubah: Menggunakan .withAlpha sebagai pengganti .withOpacity
-                  color: Colors.white.withAlpha((255 * 0.2).round()),
-                  borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.info_outline,
-                  color: Color(0xFF451A03), size: 16),
+                color: Colors.white.withAlpha((255 * 0.2).round()),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.info_outline,
+                color: Color(0xFF451A03),
+                size: 16,
+              ),
             ),
           ),
         ),
@@ -185,8 +211,13 @@ class _HalamanPoinState extends State<HalamanPoin> {
     );
   }
 
-  /// Fungsi ini bertujuan untuk membangun tombol pilihan tampilan (Reward/Transaksi).
+  /// Fungsi ini bertujuan untuk membangun tombol pilihan tampilan.
   Widget _bangunPilihanTampilan() {
+    developer.log(
+      '_bangunPilihanTampilan: Membangun tombol pilihan tampilan.',
+      name: 'HalamanPoin',
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Row(
@@ -196,30 +227,46 @@ class _HalamanPoinState extends State<HalamanPoin> {
               width: constraints.maxWidth * 0.4,
               child: TextButton(
                 onPressed: () {
-                  developer.log('onPressed: Beralih ke tampilan Reward.',
-                      name: 'HalamanPoin');
-                  setState(() => _tampilkanReward = true);
+                  developer.log(
+                    'onPressed: Beralih ke tampilan reward.',
+                    name: 'HalamanPoin',
+                  );
+
+                  setState(() {
+                    _tampilkanReward = true;
+                  });
                 },
-                child: Text('Lainnya',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: _tampilkanReward ? Colors.black : Colors.grey)),
+                child: Text(
+                  'Lainnya',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _tampilkanReward ? Colors.black : Colors.grey,
+                  ),
+                ),
               ),
             ),
             SizedBox(
               width: constraints.maxWidth * 0.4,
               child: TextButton(
                 onPressed: () {
-                  developer.log('onPressed: Beralih ke tampilan Transaksi.',
-                      name: 'HalamanPoin');
-                  setState(() => _tampilkanReward = false);
+                  developer.log(
+                    'onPressed: Beralih ke tampilan transaksi.',
+                    name: 'HalamanPoin',
+                  );
+
+                  setState(() {
+                    _tampilkanReward = false;
+                  });
                 },
-                child: Text('Transaksi',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: !_tampilkanReward ? Colors.black : Colors.grey)),
+                child: Text(
+                  'Transaksi',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: !_tampilkanReward ? Colors.black : Colors.grey,
+                  ),
+                ),
               ),
             ),
           ],
@@ -228,61 +275,62 @@ class _HalamanPoinState extends State<HalamanPoin> {
     );
   }
 
-  /// Fungsi ini bertujuan untuk membangun daftar transaksi dari data model.
+  /// Fungsi ini bertujuan untuk membangun daftar transaksi.
   Widget _bangunDaftarTransaksi() {
-    developer.log('Membangun daftar transaksi.', name: 'HalamanPoin');
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _dataTransaksi.length,
-      itemBuilder: (context, index) {
-        final transaksi = _dataTransaksi[index];
+    developer.log(
+      '_bangunDaftarTransaksi: Menampilkan daftar transaksi.',
+      name: 'HalamanPoin',
+    );
+
+    return Column(
+      children: _dataTransaksi.map((transaksi) {
         return _bangunItemTransaksi(
           judul: transaksi.judul,
           deskripsi: transaksi.kategori,
           jumlah: transaksi.jumlah,
           warnaTeks: transaksi.isPemasukan ? Colors.green : Colors.red,
         );
-      },
+      }).toList(),
     );
   }
 
-  /// Fungsi ini bertujuan untuk membangun grid reward dari data model.
+  /// Fungsi ini bertujuan untuk membangun grid reward.
   Widget _bangunGridReward() {
-    developer.log('Membangun grid reward.', name: 'HalamanPoin');
-    return GridView.builder(
+    developer.log(
+      '_bangunGridReward: Menampilkan grid reward.',
+      name: 'HalamanPoin',
+    );
+
+    return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: _dataReward.length,
-      itemBuilder: (context, index) {
-        final reward = _dataReward[index];
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 0.72,
+      children: _dataReward.map((reward) {
         return _bangunItemReward(reward.ikon, reward.judul, reward.poin);
-      },
+      }).toList(),
     );
   }
 
   /// Fungsi ini bertujuan untuk membangun satu item reward.
   Widget _bangunItemReward(String ikon, String judul, int poin) {
-    double progress = (_poinSaatIni / poin).clamp(0.0, 1.0);
-    int sisa = (poin - _poinSaatIni).clamp(0, poin);
+    final double progress = (_poinSaatIni / poin).clamp(0.0, 1.0);
+
+    final int sisa = (poin - _poinSaatIni).clamp(0, poin);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-              // diubah: Menggunakan .withAlpha sebagai pengganti .withOpacity
-              color: Colors.black.withAlpha((255 * 0.02).round()),
-              blurRadius: 10)
+            color: Colors.black.withAlpha((255 * 0.02).round()),
+            blurRadius: 4,
+          ),
         ],
       ),
       child: Column(
@@ -290,24 +338,35 @@ class _HalamanPoinState extends State<HalamanPoin> {
         children: [
           Text(ikon, style: const TextStyle(fontSize: 32)),
           const Spacer(),
-          Text(judul,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 13, height: 1.1)),
+          Text(
+            judul,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              height: 1.1,
+            ),
+          ),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('$poin Pts',
-                  style: const TextStyle(
-                      color: Colors.amber,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11)),
+              Text(
+                '$poin Pts',
+                style: const TextStyle(
+                  color: Colors.amber,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
               if (sisa > 0)
-                Text('-$sisa',
-                    style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 10,
-                        fontStyle: FontStyle.italic)),
+                Text(
+                  '-$sisa',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 10,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -315,9 +374,10 @@ class _HalamanPoinState extends State<HalamanPoin> {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.grey.shade400,
+              backgroundColor: Colors.grey.shade300,
               valueColor: AlwaysStoppedAnimation<Color>(
-                  progress == 1.0 ? Colors.green : Colors.amber),
+                progress == 1.0 ? Colors.green : Colors.amber,
+              ),
               minHeight: 4,
             ),
           ),
@@ -326,7 +386,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
     );
   }
 
-  /// Fungsi ini bertujuan untuk membangun satu item transaksi.
+  /// Fungsi ini bertujuan untuk membangun item transaksi.
   Widget _bangunItemTransaksi({
     required String judul,
     required String deskripsi,
@@ -338,8 +398,8 @@ class _HalamanPoinState extends State<HalamanPoin> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade50),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Row(
         children: [
@@ -347,65 +407,94 @@ class _HalamanPoinState extends State<HalamanPoin> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(judul,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 14)),
-                Text(deskripsi,
-                    style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                Text(
+                  judul,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  deskripsi,
+                  style: const TextStyle(color: Colors.grey, fontSize: 10),
+                ),
               ],
             ),
           ),
-          Text(jumlah,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: warnaTeks,
-                  fontSize: 14)),
+          Text(
+            jumlah,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: warnaTeks,
+              fontSize: 14,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  /// Fungsi ini bertujuan untuk menampilkan dialog informasi tentang poin.
+  /// Fungsi ini bertujuan untuk menampilkan dialog informasi poin.
   void _tampilkanInfoPoin(BuildContext context) {
-    developer.log('Menampilkan dialog informasi poin.', name: 'HalamanPoin');
+    developer.log(
+      '_tampilkanInfoPoin: Menampilkan dialog informasi poin.',
+      name: 'HalamanPoin',
+    );
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.monetization_on, color: Colors.amber, size: 48),
-            const SizedBox(height: 16),
-            const Text('Tentang Poin',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text(
-                'Kumpulkan poin dari setiap transaksi yang kamu lakukan. Poin dapat ditukarkan dengan berbagai reward menarik.',
-                style: TextStyle(color: Colors.grey, height: 1.4)),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.monetization_on, color: Colors.amber, size: 48),
+              const SizedBox(height: 16),
+              const Text(
+                'Tentang Poin',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Kumpulkan poin dari setiap transaksi yang kamu lakukan.',
+                style: TextStyle(color: Colors.grey, height: 1.4),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16))),
-                onPressed: () {
-                  developer.log('onPressed: Tombol "Mengerti" di dialog ditekan.',
-                      name: 'HalamanPoin');
-                  Navigator.pop(context);
-                },
-                child: const Text('Mengerti',
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    developer.log(
+                      'onPressed: Tombol Mengerti ditekan.',
+                      name: 'HalamanPoin',
+                    );
+
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Mengerti',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -416,8 +505,11 @@ class _ModelReward {
   final String judul;
   final int poin;
 
-  const _ModelReward(
-      {required this.ikon, required this.judul, required this.poin});
+  const _ModelReward({
+    required this.ikon,
+    required this.judul,
+    required this.poin,
+  });
 }
 
 /// Model untuk data transaksi.
