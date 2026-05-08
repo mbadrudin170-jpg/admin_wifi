@@ -12,6 +12,9 @@
 // diubah: Memfilter daftar kategori untuk mengecualikan yang sudah dihapus (isDeleted == true).
 // ditambahkan: filter untuk hanya menampilkan dompet yang isDeleted-nya false.
 // ditambahkan: Key unik untuk setiap DropdownButtonFormField untuk pengujian.
+// diubah: Transaksi sekarang dibuat tanpa pengecekan status pembayaran, dan statusnya dicatat dalam transaksi.
+// ditambahkan: Inisialisasi poinYangDihasilkan dan poinYangDigunakan secara eksplisit.
+// diubah: poinYangDihasilkan sekarang mengambil nilai dari paket yang dipilih.
 
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -74,7 +77,10 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   DompetModel? _selectedDompet;
   KategoriModel? _selectedKategori;
 
-  bool _isLoading = true;
+bool _isLoading = true;
+bool _gunakanPoin = false;
+
+int _totalPoinPelanggan = 0;
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -106,8 +112,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
         // diubah: Memfilter dompet untuk hanya menampilkan yang tidak dihapus.
         final semuaDompet = results[2] as List<DompetModel>;
-        _daftarDompet =
-            semuaDompet.where((dompet) => !dompet.isDeleted).toList();
+        _daftarDompet = semuaDompet
+            .where((dompet) => !dompet.isDeleted)
+            .toList();
 
         _kategoriList = (results[3] as List<KategoriModel>)
             .where(
@@ -265,26 +272,26 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             );
           }
 
-          if (_statusPembayaran == StatusPembayaran.lunas) {
-            final transaksi = TransaksiModel(
-              id: const Uuid().v4(),
-              tanggal: tanggalMulai,
-              keterangan:
-                  'Aktivasi paket: ${selectedPaket.nama} - ${_selectedPelanggan!.nama}',
-              jumlah: selectedPaket.harga.toDouble(),
-              tipe: TipeTransaksi.pemasukan,
-              idDompet: _selectedDompet!.id,
-              namaDompet: _selectedDompet!.namaDompet,
-              idKategori: _selectedKategori!.id,
-              namaKategori: _selectedKategori!.nama,
-              idPelanggan: _selectedPelanggan!.id,
-              namaPelanggan: _selectedPelanggan!.nama,
-              idPaket: selectedPaket.id,
-              namaPaket: selectedPaket.nama,
-              diperbarui: DateTime.now(),
-            );
-            await widget.transaksiOperasi.tambahTransaksi(transaksi);
-          }
+          final transaksi = TransaksiModel(
+            id: const Uuid().v4(),
+            tanggal: tanggalMulai,
+            keterangan: '${selectedPaket.nama} - ${_selectedPelanggan!.nama}',
+            jumlah: selectedPaket.harga.toDouble(),
+            tipe: TipeTransaksi.pemasukan,
+            idDompet: _selectedDompet!.id,
+            namaDompet: _selectedDompet!.namaDompet,
+            idKategori: _selectedKategori!.id,
+            namaKategori: _selectedKategori!.nama,
+            idPelanggan: _selectedPelanggan!.id,
+            namaPelanggan: _selectedPelanggan!.nama,
+            idPaket: selectedPaket.id,
+            namaPaket: selectedPaket.nama,
+            statusPembayaran: _statusPembayaran,
+            poinYangDihasilkan: _selectedPaket!.jumlahPoin,
+            poinYangDigunakan: _gunakanPoin ? _selectedPaket!.jumlahPoin : 0,
+            diperbarui: DateTime.now(),
+          );
+          await widget.transaksiOperasi.tambahTransaksi(transaksi);
 
           if (!mounted) return false;
 
@@ -355,13 +362,22 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             child: Text(pelanggan.nama),
                           );
                         }).toList(),
-                        onChanged: (PelangganModel? newValue) {
-                          setState(() {
-                            _selectedPelanggan = newValue;
-                          });
-                        },
-                        validator: (value) =>
-                            value == null ? 'Pelanggan tidak boleh kosong' : null,
+                       onChanged: (PelangganModel? newValue) async {
+  if (newValue == null) return;
+
+  final totalPoin = await widget.transaksiOperasi
+      .getTotalPoinPelanggan(newValue.id);
+
+  if (!mounted) return;
+
+  setState(() {
+    _selectedPelanggan = newValue;
+    _totalPoinPelanggan = totalPoin;
+  });
+},
+                        validator: (value) => value == null
+                            ? 'Pelanggan tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<PaketModel>(
@@ -426,8 +442,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedKategori = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Kategori tidak boleh kosong' : null,
+                        validator: (value) => value == null
+                            ? 'Kategori tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -468,12 +485,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey[200],
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[200],
                                 foregroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                        ? Colors.white
-                                        : Colors.black,
+                                    ? Colors.white
+                                    : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -487,11 +504,13 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _statusPembayaran ==
+                                backgroundColor:
+                                    _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
-                                foregroundColor: _statusPembayaran ==
+                                foregroundColor:
+                                    _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Colors.white
                                     : Colors.black,
@@ -552,9 +571,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                   );
                                   final DateTime endDate =
                                       _hitungTanggalBerakhir(
-                                    startDate,
-                                    _selectedPaket!,
-                                  );
+                                        startDate,
+                                        _selectedPaket!,
+                                      );
                                   return FormatTanggal.formatTanggalDanJam(
                                     endDate,
                                   );
@@ -563,6 +582,56 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                 }
                               }())),
                             ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Gunakan Poin',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 4),
+
+                                    Text(
+                                      _gunakanPoin
+                                          ? 'Poin akan digunakan'
+                                          : 'Poin tidak digunakan',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                Switch(
+                                  value: _gunakanPoin,
+
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      _gunakanPoin = value;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

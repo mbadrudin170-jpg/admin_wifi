@@ -13,11 +13,8 @@ class PelangganModel {
   final String macAddress;
   final bool isDeleted;
 
-  final DateTime? diperbarui; // diubah: menjadi nullable
+  final DateTime? diperbarui;
   final DateTime? diarsipkan;
-
-  // ditambah: Getter untuk memeriksa apakah pelanggan aktif.
-  bool get isAktif => diarsipkan == null && !isDeleted;
 
   PelangganModel({
     String? id,
@@ -26,7 +23,7 @@ class PelangganModel {
     required this.alamat,
     required this.password,
     this.macAddress = '',
-    this.diperbarui, 
+    this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();

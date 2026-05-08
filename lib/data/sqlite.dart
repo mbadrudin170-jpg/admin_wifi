@@ -1,4 +1,5 @@
 // path: lib/data/sqlite.dart
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
@@ -10,8 +11,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // diubah: Versi database dinaikkan untuk migrasi tabel status_unggah
-  static const int _databaseVersion = 31;
+  // diubah: Versi database dinaikkan untuk migrasi tabel transaksi (penambahan poin).
+  static const int _databaseVersion = 32;
 
   DatabaseHelper._internal();
 
@@ -43,7 +44,7 @@ class DatabaseHelper {
       )
     ''';
 
-  // ditambah: Skema tabel transaksi dipublikasikan.
+  // diubah: Menambahkan kolom poin_yang_dihasilkan dan poin_yang_digunakan.
   static const String tabelTransaksi = '''
       CREATE TABLE transaksi(
         id TEXT PRIMARY KEY,
@@ -65,7 +66,9 @@ class DatabaseHelper {
         diarsipkan TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         id_dompet_tujuan TEXT,
-        nama_dompet_tujuan TEXT
+        nama_dompet_tujuan TEXT,
+        poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0,
+        poin_yang_digunakan INTEGER NOT NULL DEFAULT 0
       )
     ''';
 
@@ -117,9 +120,27 @@ class DatabaseHelper {
     );
   }
 
+  // diubah: Menambahkan logika upgrade untuk tabel transaksi.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // ... (logika upgrade tidak berubah)
+    log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
+    // ... (logika upgrade yang sudah ada)
+
+    if (oldVersion < 32) {
+      try {
+        log('Menjalankan upgrade untuk versi < 32: Menambahkan kolom poin pada tabel transaksi.');
+        await db.execute('ALTER TABLE transaksi ADD COLUMN poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0');
+        await db.execute('ALTER TABLE transaksi ADD COLUMN poin_yang_digunakan INTEGER NOT NULL DEFAULT 0');
+        log('Kolom poin berhasil ditambahkan ke tabel transaksi.');
+      } catch (e) {
+        log('Error saat menambahkan kolom poin ke tabel transaksi: $e');
+        // Pertimbangkan untuk menangani error, misalnya dengan membuat ulang tabel
+        // atau memberikan notifikasi kepada pengguna.
+      }
+    }
+
+    log('Upgrade database selesai.');
   }
+
 
   // diekspos: Metode ini dibuat publik untuk digunakan dalam pengujian
   Future<void> createTables(Database db) async {

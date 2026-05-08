@@ -1,5 +1,6 @@
 // path: lib/data/operasi/transaksi_operasi.dart
 // diubah: Fungsi ambilSemuaTransaksi sekarang hanya mengambil data yang tidak dihapus (isDeleted = 0).
+// ditambahkan: Fungsi getTransaksiByPelanggan.
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -78,6 +79,20 @@ class TransaksiOperasi {
       'transaksi',
       where: 'id_dompet = ? AND isDeleted = ?',
       whereArgs: [dompetId, 0],
+      orderBy: 'tanggal DESC',
+    );
+    return List.generate(maps.length, (i) {
+      return TransaksiModel.fromMap(maps[i]);
+    });
+  }
+  
+  // ditambahkan: Fungsi untuk mengambil riwayat transaksi berdasarkan ID pelanggan.
+  Future<List<TransaksiModel>> getTransaksiByPelanggan(String pelangganId) async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transaksi',
+      where: 'id_pelanggan = ? AND isDeleted = ?',
+      whereArgs: [pelangganId, 0],
       orderBy: 'tanggal DESC',
     );
     return List.generate(maps.length, (i) {

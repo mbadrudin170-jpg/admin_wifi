@@ -1,232 +1,183 @@
-// lib/halaman/detail/detail_pelanggan.dart
+// path: lib/halaman/detail/detail_pelanggan.dart
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/halaman/form/form_pelanggan.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
-import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DetailPelangganPage extends StatefulWidget {
-  final PelangganModel pelanggan;
-  const DetailPelangganPage({super.key, required this.pelanggan});
+  final String idPelanggan;
+
+  const DetailPelangganPage({super.key, required this.idPelanggan});
 
   @override
-  DetailPelangganPageState createState() => DetailPelangganPageState();
+  State<DetailPelangganPage> createState() => _DetailPelangganPageState();
 }
 
-class DetailPelangganPageState extends State<DetailPelangganPage> {
-  bool _isPasswordVisible = false;
-  int _totalPoin = 0;
-  bool _isLoadingPoin = true;
-  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
+class _DetailPelangganPageState extends State<DetailPelangganPage> {
+  final pelangganOperasi = PelangganOperasi();
+
+  PelangganModel? pelanggan;
+  int totalPoin = 0;
+
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadTotalPoin();
+    _loadData();
   }
 
-  Future<void> _loadTotalPoin() async {
-    try {
-      final poin = await _pelangganOperasi.getTotalPoin(widget.pelanggan.id);
-      if (mounted) {
-        setState(() {
-          _totalPoin = poin;
-          _isLoadingPoin = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingPoin = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat poin: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  // Fungsi ini bertujuan untuk memuat data pelanggan dan total poin.
+  Future<void> _loadData() async {
+    final hasilPelanggan = await pelangganOperasi.getPelangganById(
+      widget.idPelanggan,
+    );
+
+    final hasilPoin = await pelangganOperasi.getTotalPoin(widget.idPelanggan);
+
+    if (!mounted) return;
+
+    setState(() {
+      pelanggan = hasilPelanggan;
+      totalPoin = hasilPoin;
+      isLoading = false;
+    });
   }
 
-  Future<void> _launchWhatsApp(String phoneNumber) async {
-    String formattedNumber =
-        '62${phoneNumber.replaceAll(RegExp(r'[^0-9]'), '')}';
-    final Uri whatsappUri = Uri.parse('https://wa.me/$formattedNumber');
+  // Fungsi ini bertujuan untuk menyalin semua info pelanggan.
+  void _salinSemuaInfo(BuildContext context, PelangganModel pelanggan) {
+    final info =
+        '''
+Nama : ${pelanggan.nama}
+No HP : ${pelanggan.telepon}
+Alamat : ${pelanggan.alamat}
+Password : ${pelanggan.password}
+MAC : ${pelanggan.macAddress}
+'''
+            .trim();
 
-    if (await canLaunchUrl(whatsappUri)) {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Tidak dapat membuka WhatsApp. Pastikan sudah terinstal.',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    Clipboard.setData(ClipboardData(text: info));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Semua info berhasil disalin')),
+    );
+  }
+
+  // Fungsi ini bertujuan untuk menyalin data.
+  void _salinData(BuildContext context, String data) {
+    Clipboard.setData(ClipboardData(text: data));
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Data berhasil disalin')));
   }
 
   @override
   Widget build(BuildContext context) {
+    if (pelanggan == null) {
+      return const Scaffold(
+        body: Center(child: Text('Pelanggan tidak ditemukan')),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.pelanggan.nama),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      FormPelanggan(pelanggan: widget.pelanggan),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Detail Pelanggan')),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
+
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildPoinCard(),
-            const SizedBox(height: 20),
-            Text(
-              'Nama: ${widget.pelanggan.nama}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                InkWell(
-                  onTap: () => _launchWhatsApp(widget.pelanggan.telepon),
-                  child: Row(
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          HalamanPoin(idPelanggan: widget.idPelanggan),
+                    ),
+                  );
+                },
+
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+
+                  child: Column(
                     children: [
+                      const Text('Total Poin'),
+
                       Text(
-                        'Telepon: ${widget.pelanggan.telepon}',
+                        '$totalPoin',
                         style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      FaIcon(
-                        FontAwesomeIcons.whatsapp,
-                        color: Colors.green.shade700,
-                        size: 20,
                       ),
                     ],
                   ),
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.content_copy, size: 20.0),
-                  onPressed: () {
-                    Clipboard.setData(
-                      ClipboardData(text: widget.pelanggan.telepon),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Nomor telepon berhasil disalin!'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  tooltip: 'Salin nomor telepon',
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Alamat: ${widget.pelanggan.alamat}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  'MAC Address: ${widget.pelanggan.macAddress}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.content_copy, size: 20.0),
-                  onPressed: () {
-                    Clipboard.setData(
-                      ClipboardData(text: widget.pelanggan.macAddress),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('MAC Address berhasil disalin!'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  tooltip: 'Salin MAC Address',
-                ),
-              ],
+              ),
             ),
 
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  'Password: ${_isPasswordVisible ? widget.pelanggan.password : '********'}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isPasswordVisible = !_isPasswordVisible;
-                    });
-                  },
-                ),
-              ],
+            const SizedBox(height: 16),
+
+            _buildDetailRow(
+              context,
+              'Nama',
+              pelanggan!.nama,
+              () => _salinData(context, pelanggan!.nama),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
+
+            const Divider(),
+
+            _buildDetailRow(
+              context,
+              'Telepon',
+              pelanggan!.telepon,
+              () => _salinData(context, pelanggan!.telepon),
+            ),
+
+            const Divider(),
+
+            _buildDetailRow(
+              context,
+              'Alamat',
+              pelanggan!.alamat,
+              () => _salinData(context, pelanggan!.alamat),
+            ),
+
+            const Divider(),
+
+            _buildDetailRow(
+              context,
+              'Password',
+              pelanggan!.password,
+              () => _salinData(context, pelanggan!.password),
+            ),
+
+            const Divider(),
+
+            _buildDetailRow(
+              context,
+              'MAC Address',
+              pelanggan!.macAddress,
+              () => _salinData(context, pelanggan!.macAddress),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextButton.icon(
               onPressed: () {
-                final allInfo =
-                    '''
-Nama: ${widget.pelanggan.nama}
-Telepon: ${widget.pelanggan.telepon}
-Alamat: ${widget.pelanggan.alamat}
-MAC Address: ${widget.pelanggan.macAddress}
-Password: ${widget.pelanggan.password}
-''';
-                Clipboard.setData(ClipboardData(text: allInfo));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Semua informasi pelanggan berhasil disalin!',
-                    ),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                _salinSemuaInfo(context, pelanggan!);
               },
-              child: const Text('Salin Semua Info'),
+
+              icon: const Icon(Icons.copy),
+
+              label: const Text('Salin Info'),
             ),
           ],
         ),
@@ -234,61 +185,37 @@ Password: ${widget.pelanggan.password}
     );
   }
 
-  Widget _buildPoinCard() {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const HalamanPoin()),
-        );
-      },
-      child: Card(
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade700, Colors.deepPurple.shade900],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+  Widget _buildDetailRow(
+    BuildContext context,
+    String judul,
+    String detail,
+    VoidCallback salinData,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+
+        children: [
+          Text(
+            judul,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          child: Row(
+
+          const SizedBox(height: 8),
+
+          Row(
             children: [
-              const Icon(Icons.star, color: Colors.yellow, size: 40),
-              const SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Total Poin',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  if (_isLoadingPoin)
-                    const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  else
-                    Text(
-                      '$_totalPoin',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                ],
+              Expanded(child: Text(detail.isEmpty ? '-' : detail)),
+
+              IconButton(
+                onPressed: salinData,
+                icon: const Icon(Icons.content_copy),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

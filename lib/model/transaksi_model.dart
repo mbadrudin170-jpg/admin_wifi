@@ -1,5 +1,7 @@
 // path: lib/model/transaksi_model.dart
-// diubah: Standarisasi nama metode toMap, toMapForFirebase, dan copyWith.
+// diubah: Menambahkan field poin dan mengikuti pola dari RiwayatLanggananModel.
+// diubah: Mengintegrasikan statusPembayaran sepenuhnya.
+import 'package:admin_wifi/model/enum/status_pembayaran.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,6 +25,9 @@ class TransaksiModel {
   final String? namaPaket;
   final String? idSubKategori;
   final String? namaSubKategori;
+  final StatusPembayaran statusPembayaran;
+  final int poinYangDihasilkan;
+  final int poinYangDigunakan;
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
   final bool isDeleted;
@@ -45,6 +50,9 @@ class TransaksiModel {
     this.namaPaket,
     this.idSubKategori,
     this.namaSubKategori,
+    this.statusPembayaran = StatusPembayaran.belumLunas,
+    this.poinYangDihasilkan = 0,
+    this.poinYangDigunakan = 0,
     this.diperbarui,
     this.diarsipkan,
     this.isDeleted = false,
@@ -60,7 +68,7 @@ class TransaksiModel {
 
   factory TransaksiModel.fromMap(Map<String, dynamic> map) {
     return TransaksiModel(
-      id: map['id'] as String? ?? '',
+      id: map['id'] as String? ?? const Uuid().v4(),
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
       keterangan: map['keterangan'] ?? '',
       jumlah: (map['jumlah'] as num? ?? 0).toDouble(),
@@ -80,6 +88,12 @@ class TransaksiModel {
       namaPaket: map['nama_paket'],
       idSubKategori: map['id_sub_kategori'],
       namaSubKategori: map['nama_sub_kategori'],
+      statusPembayaran: StatusPembayaran.values.firstWhere(
+        (e) => e.name == map['status_pembayaran'],
+        orElse: () => StatusPembayaran.belumLunas,
+      ),
+      poinYangDihasilkan: (map['poin_yang_dihasilkan'] as num? ?? 0).toInt(),
+      poinYangDigunakan: (map['poin_yang_digunakan'] as num? ?? 0).toInt(),
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
       isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
@@ -106,6 +120,9 @@ class TransaksiModel {
       'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
       'nama_sub_kategori': namaSubKategori,
+      'status_pembayaran': statusPembayaran.name,
+      'poin_yang_dihasilkan': poinYangDihasilkan,
+      'poin_yang_digunakan': poinYangDigunakan,
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
@@ -132,13 +149,15 @@ class TransaksiModel {
       'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
       'nama_sub_kategori': namaSubKategori,
+      'status_pembayaran': statusPembayaran.name,
+      'poin_yang_dihasilkan': poinYangDihasilkan,
+      'poin_yang_digunakan': poinYangDigunakan,
       'diperbarui': diperbarui,
       'diarsipkan': diarsipkan,
       'isDeleted': isDeleted,
     };
   }
 
-  // diubah: Nama metode menjadi copyWith
   TransaksiModel copyWith({
     String? id,
     DateTime? tanggal,
@@ -157,6 +176,9 @@ class TransaksiModel {
     String? namaPaket,
     String? idSubKategori,
     String? namaSubKategori,
+    StatusPembayaran? statusPembayaran,
+    int? poinYangDihasilkan,
+    int? poinYangDigunakan,
     DateTime? diperbarui,
     DateTime? diarsipkan,
     bool? isDeleted,
@@ -179,6 +201,11 @@ class TransaksiModel {
       namaPaket: namaPaket ?? this.namaPaket,
       idSubKategori: idSubKategori ?? this.idSubKategori,
       namaSubKategori: namaSubKategori ?? this.namaSubKategori,
+      // ditambahkan: copyWith untuk status pembayaran.
+      statusPembayaran: statusPembayaran ?? this.statusPembayaran,
+      // ditambahkan: copyWith untuk poin.
+      poinYangDihasilkan: poinYangDihasilkan ?? this.poinYangDihasilkan,
+      poinYangDigunakan: poinYangDigunakan ?? this.poinYangDigunakan,
       diperbarui: diperbarui ?? this.diperbarui,
       diarsipkan: diarsipkan ?? this.diarsipkan,
       isDeleted: isDeleted ?? this.isDeleted,

@@ -88,7 +88,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
       if (mounted) {
         setState(() {
           _pelanggan = results[0] as PelangganModel?;
-          _paket = results[1] as PaketModel?;
+          _paket = results.length > 1 ? results[1] as PaketModel? : null;
           _isLoading = false;
         });
       }
@@ -170,7 +170,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => DetailPelangganPage(
-                                        pelanggan: _pelanggan!,
+                                        idPelanggan: _pelanggan!.id,
                                       ),
                                     ),
                                   );

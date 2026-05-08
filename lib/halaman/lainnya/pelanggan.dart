@@ -217,7 +217,7 @@ class _PelangganPageState extends State<PelangganPage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              DetailPelangganPage(pelanggan: pelanggan),
+                              DetailPelangganPage(idPelanggan: pelanggan.id),
                         ),
                       );
                     },

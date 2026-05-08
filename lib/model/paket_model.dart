@@ -26,42 +26,40 @@ enum TipeDurasi {
   }
 }
 
-// diubah: nama kelas untuk konsistensi penamaan
 class PaketModel {
-  final String id; // PERBAIKAN: ID tidak boleh nullable
+  final String id;
   final String nama;
   final int harga;
   final int durasi;
   final TipeDurasi tipe;
-  final int jumlahPoin; // ditambahkan: untuk menyimpan poin dari paket
-
+  final int jumlahPoin;
+  final int poinHadiah;
+  final int poinPenukaran;
   final DateTime? diperbarui;
-
-  // tambahan: soft delete & arsip
   final bool isDeleted;
   final DateTime? diarsipkan;
 
-  // diubah: nama konstruktor
   PaketModel({
     String? id,
     required this.nama,
     required this.harga,
     required this.durasi,
     required this.tipe,
-    this.jumlahPoin = 0, // ditambahkan: nilai default 0
+    this.jumlahPoin = 0,
+    this.poinHadiah = 0,
+    this.poinPenukaran = 0,
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
-  // ditambah: Metode copyWith untuk membuat salinan objek dengan nilai yang diperbarui.
   PaketModel copyWith({
     String? id,
     String? nama,
     int? harga,
     int? durasi,
     TipeDurasi? tipe,
-    int? jumlahPoin, // ditambahkan: properti baru
+    int? jumlahPoin,
     DateTime? diperbarui,
     bool? isDeleted,
     DateTime? diarsipkan,
@@ -110,12 +108,12 @@ class PaketModel {
         (e) => e.name == map['tipe'],
         orElse: () => TipeDurasi.hari,
       ),
-      jumlahPoin: map['jumlahPoin'] ?? 0, // ditambahkan: properti baru
+      jumlahPoin: map['jumlahPoin'] ?? 0,
+      poinHadiah: map['poin_hadiah'] ?? map['poinHadiah'] ?? 0,
+      poinPenukaran: map['poin_penukaran'] ?? map['poinPenukaran'] ?? 0,
       diperbarui: map['diperbarui'] != null
           ? DateTime.parse(map['diperbarui'])
           : null,
-
-      // tambahan field baru
       isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
@@ -130,6 +128,8 @@ class PaketModel {
       'durasi': durasi,
       'tipe': tipe.name,
       'jumlahPoin': jumlahPoin, // ditambahkan: properti baru
+      'poin_hadiah': poinHadiah,
+      'poin_penukaran': poinPenukaran,
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0, // diubah: Untuk kompatibilitas SQLite
       'diarsipkan': diarsipkan?.toIso8601String(),
@@ -145,6 +145,9 @@ class PaketModel {
       'durasi': durasi,
       'tipe': tipe.name,
       'jumlahPoin': jumlahPoin,
+      'poin_hadiah': poinHadiah,
+      'poin_penukaran': poinPenukaran,
+
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted, // tetap boolean untuk Firebase
       'diarsipkan': diarsipkan?.toIso8601String(),
