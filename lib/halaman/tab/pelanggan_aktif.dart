@@ -2,7 +2,7 @@
 // diubah: Menghapus impor dan field yang tidak terpakai.
 
 import 'package:admin_wifi/data/sync/unggah_data.dart';
-import 'package:admin_wifi/model/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';

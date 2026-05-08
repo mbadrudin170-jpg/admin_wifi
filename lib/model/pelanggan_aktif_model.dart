@@ -1,6 +1,6 @@
 // path: lib/model/pelanggan_aktif_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
-import 'package:admin_wifi/model/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 

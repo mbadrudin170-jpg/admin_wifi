@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/halaman/form/form_edit_riwayat_langganan.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
-import 'package:admin_wifi/model/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';

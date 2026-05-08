@@ -2,7 +2,7 @@
 // diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
+import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class VersiApkUserModel {

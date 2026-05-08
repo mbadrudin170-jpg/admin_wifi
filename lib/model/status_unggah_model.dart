@@ -1,7 +1,7 @@
 // path: lib/model/status_unggah_model.dart
 // diubah: Penamaan metode diseragamkan menjadi fromSqlite, toSqlite, fromFirebase, toFirebase.
 import 'dart:convert';
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
+import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StatusUnggahModel {
@@ -36,8 +36,9 @@ class StatusUnggahModel {
       tabel: NamaTabel.values.firstWhere((e) => e.name == map['tabel']),
       status: map['status'] == 1,
       ids: (jsonDecode(map['ids']) as List).cast<String>().toList(),
-      diperbarui:
-          map['diperbarui'] != null ? DateTime.tryParse(map['diperbarui']) : null,
+      diperbarui: map['diperbarui'] != null
+          ? DateTime.tryParse(map['diperbarui'])
+          : null,
     );
   }
 

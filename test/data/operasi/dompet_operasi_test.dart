@@ -1,3 +1,5 @@
+// path: test/data/operasi/dompet_operasi_test.dart
+// diubah: Menyesuaikan pemanggilan fromMap dan toSqlite
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -48,6 +50,7 @@ void main() {
       
       await dompetOperasi.createDompet(dompetAktif);
       // Sisipkan data arsip secara manual untuk simulasi
+      // diubah: Menggunakan toSqlite
       await db.insert('dompet', dompetArsip.toSqlite());
 
       final hasil = await dompetOperasi.getDompet();
@@ -57,6 +60,7 @@ void main() {
 
     test('4. getDompetById harus mengembalikan null untuk dompet yang diarsip', () async {
       final dompet = DompetModel(namaDompet: 'Arsip', saldo: 1000, isDeleted: true);
+      // diubah: Menggunakan toSqlite
       await db.insert('dompet', dompet.toSqlite());
       
       final hasil = await dompetOperasi.getDompetById(dompet.id);
@@ -85,11 +89,9 @@ void main() {
 
       await dompetOperasi.arsipkanSatuDompet(dompet.id);
       
-      // 1. Verifikasi bahwa metode publik tidak bisa menemukannya lagi
       final hasilPublik = await dompetOperasi.getDompetById(dompet.id);
       expect(hasilPublik, isNull);
       
-      // 2. Lakukan query langsung ke DB untuk memeriksa status arsip
       final db = await DatabaseHelper.instance.database;
       final maps = await db.query(
         'dompet',
@@ -98,7 +100,8 @@ void main() {
       );
       
       expect(maps.isNotEmpty, true);
-      final dataDariDb = DompetModel.fromMap(maps.first);
+      // diubah: Menggunakan fromSqlite
+      final dataDariDb = DompetModel.fromSqlite(maps.first);
 
       expect(dataDariDb.isDeleted, true);
       expect(dataDariDb.diarsipkan, isNotNull);
@@ -117,6 +120,7 @@ void main() {
     );
 
     test('8. Fungsi getTotalSaldo harus mengabaikan dompet yang diarsip', () async {
+      // diubah: Menggunakan toSqlite
       await db.insert('dompet', DompetModel(namaDompet: 'Aktif', saldo: 100).toSqlite());
       await db.insert('dompet', DompetModel(namaDompet: 'Arsip', saldo: 50, isDeleted: true).toSqlite());
       

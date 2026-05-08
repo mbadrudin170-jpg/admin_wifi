@@ -21,7 +21,7 @@ import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart' as _i33;
 import 'package:admin_wifi/data/sqlite.dart' as _i2;
 import 'package:admin_wifi/data/sync/unggah_data.dart' as _i10;
 import 'package:admin_wifi/model/dompet_model.dart' as _i16;
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart' as _i14;
+import 'package:admin_wifi/enum/nama_tabel_enum.dart' as _i14;
 import 'package:admin_wifi/model/kategori_model.dart' as _i4;
 import 'package:admin_wifi/model/kritik_saran_model.dart' as _i5;
 import 'package:admin_wifi/model/paket_model.dart' as _i20;

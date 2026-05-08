@@ -9,7 +9,7 @@ import 'package:admin_wifi/halaman/detail/detail_versi_apk_user.dart';
 import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/halaman/lainnya/versi_apk_user.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
-import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart'; // ✅ Tambahan import
+import 'package:admin_wifi/enum/arsitektur_apk_enum.dart'; // ✅ Tambahan import
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';

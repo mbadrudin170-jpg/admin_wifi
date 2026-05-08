@@ -4,7 +4,7 @@
 import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
+import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DompetOperasi {

@@ -1,4 +1,5 @@
 // path: test/data/operasi/kategori_operasi_test.dart
+// diubah: Menyesuaikan pemanggilan fromMap menjadi fromSqlite
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
@@ -85,7 +86,8 @@ void main() {
         where: 'id = ?',
         whereArgs: [kategoriAwal.id],
       );
-      final kategoriDariDb = KategoriModel.fromMap(hasilDb.first);
+      // diubah: Menggunakan fromSqlite
+      final kategoriDariDb = KategoriModel.fromSqlite(hasilDb.first);
 
       expect(kategoriDariDb.nama, 'Nama Baru');
       // Pastikan timestamp 'diperbarui' juga berubah

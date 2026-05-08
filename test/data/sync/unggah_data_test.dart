@@ -1,5 +1,5 @@
 // path: test/data/sync/unggah_data_test.dart
-// diperbaiki: Mengganti pemanggilan toFirestore menjadi toFirebase untuk DompetModel.
+// diubah: Menyesuaikan seluruh pemanggilan metode dari/ke Map agar sesuai dengan nama baru.
 
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
@@ -68,7 +68,6 @@ void main() {
             mockSyncManager.getLastSyncTimestamp(),
           ).thenAnswer((_) async => lastSyncTime);
 
-          // Data di database lokal disimpan sebagai integer
           final dompet = DompetModel(
             id: 'd1',
             namaDompet: 'Utama',
@@ -77,13 +76,16 @@ void main() {
             isDeleted: false,
           );
           
+          // diubah: Menggunakan toSqlite
           await db.insert('dompet', dompet.toSqlite());
 
           await layananUnggahData.unggahDataGenerik<DompetModel>(
             'dompet',
             'dompet_col',
-            DompetModel.fromMap,
-            (m) => m.toFirebase(), // diperbaiki
+            // diubah: Menggunakan fromSqlite
+            DompetModel.fromSqlite,
+            // diubah: Menggunakan toFirebase
+            (m) => m.toFirebase(), 
             lastSyncTime,
           );
 
@@ -93,14 +95,12 @@ void main() {
               .get();
           expect(snapshot.exists, isTrue);
           expect(snapshot.data()?['namaDompet'], 'Utama');
-          // Verifikasi di Firestore menjadi boolean false
           expect(snapshot.data()?['isDeleted'], isA<bool>());
           expect(snapshot.data()?['isDeleted'], isFalse);
         },
       );
     });
 
-    // ... (sisa pengujian tidak berubah)
     group('Model tanpa filter (`kritik_saran`)', () {
       setUp(() async {
         await db.execute('''
@@ -128,13 +128,16 @@ void main() {
           userId: 'user123',
           diperbarui: newTimestamp,
         );
-        await db.insert('kritik_saran', kritikBaru.toMapForSqlite());
+        // diubah: Menggunakan toSqlite
+        await db.insert('kritik_saran', kritikBaru.toSqlite());
 
         await layananUnggahData.unggahDataGenerik<KritikSaranModel>(
           'kritik_saran',
           'kritik_saran_col',
-          KritikSaranModel.fromMap,
-          (m) => m.toMapForFirebase(),
+          // diubah: Menggunakan fromSqlite
+          KritikSaranModel.fromSqlite,
+          // diubah: Menggunakan toFirebase
+          (m) => m.toFirebase(),
           lastSyncTime,
         );
 
@@ -152,6 +155,7 @@ void main() {
       setUp(() async {
         await db.execute('''
               CREATE TABLE pengaturan (
+                id INTEGER PRIMARY KEY,
                 interval_sinkronisasi_otomatis INTEGER,
                 hapus_otomatis_data_arsip INTEGER,
                 mode_pemeliharaan INTEGER,
@@ -176,19 +180,22 @@ void main() {
             infoPemeliharaan: 'Normal',
             diperbarui: DateTime(2023, 1, 1),
           );
-          await db.insert('pengaturan', pengaturan.toMapForSqlite());
+          // diubah: Menggunakan toSqlite
+          await db.insert('pengaturan', pengaturan.toSqlite()..['id'] = 1);
 
           await layananUnggahData.unggahDataGenerik<PengaturanModel>(
             'pengaturan',
             'pengaturan_col',
-            PengaturanModel.fromMap,
-            (m) => m.toMapForFirebase(),
+            // diubah: Menggunakan fromSqlite
+            PengaturanModel.fromSqlite,
+            // diubah: Menggunakan toFirebase
+            (m) => m.toFirebase(),
             lastSyncTime,
           );
 
           final snapshot = await mockFirestore
               .collection('pengaturan_col')
-              .doc('konfigurasi_global')
+              .doc('default')
               .get();
           expect(snapshot.exists, isTrue);
           expect(snapshot.data()?['info_pemeliharaan'], 'Normal');

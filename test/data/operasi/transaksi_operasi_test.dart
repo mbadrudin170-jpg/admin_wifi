@@ -1,3 +1,6 @@
+// path: test/data/operasi/transaksi_operasi_test.dart
+// diubah: Menyesuaikan semua pemanggilan toMapForSqlite menjadi toSqlite
+
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -416,10 +419,10 @@ void main() {
           namaKategori: '',
         );
 
-        await db.insert('transaksi', tDompetA1.toMapForSqlite());
-        await db.insert('transaksi', tDompetA2.toMapForSqlite());
-        await db.insert('transaksi', tDompetADihapus.toMapForSqlite());
-        await db.insert('transaksi', tDompetB.toMapForSqlite());
+        await db.insert('transaksi', tDompetA1.toSqlite());
+        await db.insert('transaksi', tDompetA2.toSqlite());
+        await db.insert('transaksi', tDompetADihapus.toSqlite());
+        await db.insert('transaksi', tDompetB.toSqlite());
 
         final hasil = await operasi.ambilTransaksiByDompetId(dompetA.id);
 
@@ -585,9 +588,9 @@ void main() {
             isDeleted: true,
           );
 
-          await db.insert('transaksi', tAktifKemarin.toMapForSqlite());
-          await db.insert('transaksi', tAktifSekarang.toMapForSqlite());
-          await db.insert('transaksi', tDihapusLampau.toMapForSqlite());
+          await db.insert('transaksi', tAktifKemarin.toSqlite());
+          await db.insert('transaksi', tAktifSekarang.toSqlite());
+          await db.insert('transaksi', tDihapusLampau.toSqlite());
 
           final hasil = await operasi.ambilSemuaTransaksi();
 

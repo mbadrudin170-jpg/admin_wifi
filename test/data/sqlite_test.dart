@@ -1,8 +1,5 @@
 // path: test/data/sqlite_test.dart
-// diubah: Memperbaiki kesalahan sintaks dengan melengkapi parameter yang hilang
-// di constructor TransaksiModel dan menambahkan id unik pada data insert.
-// diubah: Memperbaiki logika perbandingan skema untuk memberikan pesan error yang lebih jelas.
-// diubah: Menambahkan pembersihan tabel di setUpAll untuk memastikan pengujian bersifat independen.
+// diubah: Menyesuaikan pemanggilan toMapForSqlite menjadi toSqlite
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -62,10 +59,10 @@ void main() {
         'tanggal': DateTime.now().toIso8601String(),
         'tipe': 'pemasukan',
         'isDeleted': 0,
-        'nama_dompet': 'test', // ✅ FIX
-        'nama_kategori': 'test', // ✅ FIX
-        'id_dompet': 'test', // ✅ FIX
-        'id_kategori': 'test', // ✅ FIX
+        'nama_dompet': 'test', 
+        'nama_kategori': 'test', 
+        'id_dompet': 'test', 
+        'id_kategori': 'test', 
         'diperbarui': DateTime.now().toIso8601String(),
       });
       final hasil = await db.query('transaksi');
@@ -104,9 +101,10 @@ void main() {
           namaKategori: 'kategori',
         );
 
-        await db.insert('transaksi', model.toMapForSqlite());
+        // diubah: Menggunakan toSqlite
+        await db.insert('transaksi', model.toSqlite());
 
-        final kolomModel = model.toMapForSqlite().keys.toSet();
+        final kolomModel = model.toSqlite().keys.toSet();
 
         final notInDb = kolomModel.difference(kolomDatabase);
         final notInModel = kolomDatabase.difference(kolomModel);

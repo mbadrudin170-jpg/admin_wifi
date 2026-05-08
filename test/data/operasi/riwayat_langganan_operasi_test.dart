@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';

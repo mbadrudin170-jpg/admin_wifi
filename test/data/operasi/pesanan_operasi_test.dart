@@ -1,6 +1,6 @@
 // path: test/data/operasi/pesanan_operasi_test.dart
-// diubah: Disesuaikan dengan PesananModel terbaru (tanpa namaPelanggan, harga)
-// ditambah: Inisialisasi binding untuk pengujian
+// diubah: Menyesuaikan pemanggilan fromMap menjadi fromSqlite
+
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
@@ -9,7 +9,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
-  // ditambah: Inisialisasi binding untuk pengujian
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
@@ -71,7 +70,7 @@ void main() {
         expect(
           hasil.first.idPelanggan,
           'pelanggan-Baru',
-        ); // Data terbaru harus di atas
+        );
         expect(hasil.last.idPelanggan, 'pelanggan-Lama');
       },
     );
@@ -98,7 +97,8 @@ void main() {
         where: 'id = ?',
         whereArgs: [model.id],
       );
-      final pesananDariDb = PesananModel.fromMap(hasilDb.first);
+      // diubah: Menggunakan fromSqlite
+      final pesananDariDb = PesananModel.fromSqlite(hasilDb.first);
 
       expect(pesananDariDb.status, 'selesai');
     });
@@ -124,8 +124,8 @@ void main() {
         await operasi.simpanPesanan(modelAwal);
 
         final batch = [
-          modelAwal.copyWith(status: 'diupdate'), // Update
-          buatModel('pelanggan-Batch', 'baru', id: 'id-baru'), // Insert
+          modelAwal.copyWith(status: 'diupdate'),
+          buatModel('pelanggan-Batch', 'baru', id: 'id-baru'),
         ];
 
         await operasi.sisipkanAtauPerbaruiBatch(batch);

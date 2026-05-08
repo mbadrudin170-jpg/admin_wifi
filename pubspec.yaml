@@ -46,6 +46,8 @@ dev_dependencies:
   fake_cloud_firestore: ^4.1.0+1
   freezed: ^3.2.5
   json_serializable: ^6.13.2
+  # ditambahkan: Karena dibutuhkan oleh mock exception di form_paket_test.dart
+  sqflite_common: ^2.5.4
 
 # ditambahkan: untuk konfigurasi flutter_launcher_icons
 flutter_launcher_icons:

@@ -1,7 +1,7 @@
 // path: test/data/service/layanan_unggah_spesifik_test.dart
 // ditambah: Unit test komprehensif untuk LayananUnggahSpesifik.
 import 'package:admin_wifi/data/service/layanan_unggah_spesifik.dart';
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
+import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/status_unggah_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,9 +58,10 @@ void main() {
     password: 'password456',
     diperbarui: DateTime.now(),
   );
+  // diubah: Menggunakan toSqlite()
   final List<Map<String, dynamic>> daftarPelangganMap = [
-    pelanggan1.toMapForSqlite(),
-    pelanggan2.toMapForSqlite(),
+    pelanggan1.toSqlite(),
+    pelanggan2.toSqlite(),
   ];
 
   group('LayananUnggahSpesifik', () {

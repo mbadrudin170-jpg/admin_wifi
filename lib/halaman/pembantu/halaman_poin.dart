@@ -44,23 +44,17 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Halaman Poin')),
-
       body: Column(
         children: [
           _infoPoin(context, totalPoin),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-
             children: [
               TextButton(onPressed: () {}, child: const Text('Penukaran')),
-
               TextButton(onPressed: () {}, child: const Text('Riwayat')),
             ],
           ),
-
           Text(widget.idPelanggan),
-
           const Text('data'),
         ],
       ),
@@ -71,11 +65,9 @@ class _HalamanPoinState extends State<HalamanPoin> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-
         child: Column(
           children: [
             const Text('Total Poin'),
-
             Text(
               '$poin',
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
@@ -84,13 +76,5 @@ class _HalamanPoinState extends State<HalamanPoin> {
         ),
       ),
     );
-  }
-
-  Widget _daftarRiwayat() {
-    return Container(child: const Text('data'));
-  }
-
-  Widget _daftarReward() {
-    return Container(child: const Text('data'));
   }
 }

@@ -1,4 +1,4 @@
-// Path: lib/model/enum/status_pembayaran.dart
+ // path: lib/enum/status_pembayaran.dart
 
 // Enum untuk status pembayaran
 enum StatusPembayaran {

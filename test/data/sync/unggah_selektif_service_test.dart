@@ -18,7 +18,7 @@ import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_selektif_service.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
+import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/model/status_unggah_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';

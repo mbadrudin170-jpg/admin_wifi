@@ -1,5 +1,5 @@
 // path: test/data/operasi/pelanggan_operasi_test.dart
-// diubah: Menyesuaikan dengan PelangganModel terbaru (telepon bukan nomorTelepon)
+// diubah: Menyesuaikan dengan PelangganModel terbaru (telepon bukan nomorTelepon) dan fromSqlite
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
@@ -127,7 +127,8 @@ void main() {
           where: 'id = ?',
           whereArgs: [model.id],
         );
-        final pelangganDariDb = PelangganModel.fromMap(dbData.first);
+        // diubah: Menggunakan fromSqlite
+        final pelangganDariDb = PelangganModel.fromSqlite(dbData.first);
         expect(pelangganDariDb.isDeleted, isTrue);
       },
     );

@@ -1,7 +1,11 @@
+// path: test/data/operasi/versi_apk_user_operasi_test.dart
+// diubah: Memperbaiki path import dan nama enum yang salah.
+
 import 'dart:async';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
+// diubah: Menggunakan path dan nama enum yang benar.
+import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -10,10 +14,10 @@ import 'package:uuid/uuid.dart';
 
 import '../../helpers/test_helpers.mocks.dart';
 
-// Helper untuk membuat instance VersiApkUserModel baru untuk tes
 VersiApkUserModel _buatModel({
   String? id,
   String versi = '1.0.0',
+  // diubah: Menggunakan enum yang benar.
   Map<ArsitekturApkEnum, int> nomorBuildTerbaru = const {
     ArsitekturApkEnum.universal: 1
   },
@@ -26,6 +30,7 @@ VersiApkUserModel _buatModel({
     catatanRilis: 'Catatan rilis untuk $versi',
     nomorBuildTerbaru: nomorBuildTerbaru,
     tautanUnduhan: {
+      // diubah: Menggunakan enum yang benar.
       ArsitekturApkEnum.universal: 'http://example.com/$versi.apk'
     },
     youtubeTutorial: 'http://youtube.com/watch?v=$versi',
@@ -37,7 +42,6 @@ VersiApkUserModel _buatModel({
 }
 
 void main() {
-  // Inisialisasi FFI sekali di awal
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
@@ -47,31 +51,25 @@ void main() {
   late MockKoneksiInternetService mockKoneksi;
   late MockSyncManager mockSyncManager;
 
-  // setUp dijalankan sebelum setiap tes
   setUp(() async {
-    // Buka database in-memory baru untuk setiap tes
     db = await databaseFactory.openDatabase(inMemoryDatabasePath);
     await DatabaseHelper.instance.createTables(db);
     DatabaseHelper.instance.stubDb(db);
 
-    // Inisialisasi ulang mock untuk setiap tes
     mockLayananUnggah = MockLayananUnggahData();
     mockKoneksi = MockKoneksiInternetService();
     mockSyncManager = MockSyncManager();
 
-    // Buat instance baru dari operasi dengan mock yang bersih
     operasi = VersiApkUserOperasi(
-      dbHelper: DatabaseHelper.instance, // Gunakan instance singleton yang sudah di-stub
+      dbHelper: DatabaseHelper.instance,
       koneksiService: mockKoneksi,
       unggahService: mockLayananUnggah,
       syncManager: mockSyncManager,
     );
 
-    // Atur kondisi default untuk mock (offline)
     when(mockKoneksi.cekKoneksi()).thenAnswer((_) async => false);
   });
 
-  // tearDown dijalankan setelah setiap tes
   tearDown(() async {
     await db.close();
   });
@@ -210,17 +208,19 @@ void main() {
         test(
           'harus mengambil data yang hanya kolom build nya lebih tinggi dari data yang ada dan tidak diarsip',
           () async {
+            // diubah: Menggunakan enum yang benar.
             final buildRendahTanggalBaru = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 5}, diperbarui: DateTime.now());
             final buildTinggiTanggalLama = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 10}, diperbarui: DateTime.now().subtract(const Duration(days: 2)));
             final buildPalingTinggiDiarsip = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 15}, diperbarui: DateTime.now(), isDeleted: true);
 
-            await db.insert('versi_apk_user', buildRendahTanggalBaru.toMapForSqlite());
-            await db.insert('versi_apk_user', buildTinggiTanggalLama.toMapForSqlite());
-            await db.insert('versi_apk_user', buildPalingTinggiDiarsip.toMapForSqlite());
+            await db.insert('versi_apk_user', buildRendahTanggalBaru.toSqlite());
+            await db.insert('versi_apk_user', buildTinggiTanggalLama.toSqlite());
+            await db.insert('versi_apk_user', buildPalingTinggiDiarsip.toSqlite());
 
             final hasil = await operasi.ambilVersiApkTerbaru();
 
             expect(hasil, isNotNull);
+            // diubah: Menggunakan enum yang benar.
             expect(hasil!.nomorBuildTerbaru[ArsitekturApkEnum.universal], 10);
             expect(hasil.isDeleted, isFalse);
           },

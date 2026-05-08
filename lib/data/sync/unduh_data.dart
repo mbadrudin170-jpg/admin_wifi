@@ -9,7 +9,6 @@ import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
-// ditambahkan: import untuk model dan operasi pengaturan
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
@@ -87,7 +86,7 @@ class LayananUnduhData {
           .doc('default')
           .get();
       if (doc.exists && doc.data() != null) {
-        final pengaturan = PengaturanModel.fromFirebase(doc.id, doc.data()!);
+        final pengaturan = PengaturanModel.fromFirebase(doc.data()!);
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
       }
     } catch (e, s) {

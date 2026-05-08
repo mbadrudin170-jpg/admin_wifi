@@ -14,18 +14,16 @@ class PengaturanOperasi {
   Future<PengaturanModel> getPengaturan() async {
     try {
       final db = await DatabaseHelper.instance.database;
-      final hasil = await db.query(_namaTabel, limit: 1);
+      // diubah: Menambahkan id statis karena hanya ada satu baris
+      final hasil = await db.query(_namaTabel, where: 'id = ?', whereArgs: [1]);
 
       if (hasil.isNotEmpty) {
-        return PengaturanModel.fromMap(hasil.first);
+        return PengaturanModel.fromSqlite(hasil.first);
       } else {
-        // diubah: Mengembalikan model dengan nilai default eksplisit
-        return PengaturanModel(
-          intervalSinkronisasiOtomatis: 24,
-          hapusOtomatisDataArsip: 30,
-          modePemeliharaan: false,
-          infoPemeliharaan: '',
-        );
+        // Jika belum ada, buat pengaturan default
+        final pengaturanDefault = PengaturanModel();
+        await simpanAtauPerbaruiPengaturan(pengaturanDefault);
+        return pengaturanDefault;
       }
     } catch (e, stackTrace) {
       developer.log(
@@ -34,13 +32,8 @@ class PengaturanOperasi {
         error: e,
         stackTrace: stackTrace,
       );
-      // diubah: Mengembalikan model default jika terjadi error
-      return PengaturanModel(
-        intervalSinkronisasiOtomatis: 24,
-        hapusOtomatisDataArsip: 30,
-        modePemeliharaan: false,
-        infoPemeliharaan: '',
-      );
+      // Mengembalikan model default jika terjadi error
+      return PengaturanModel();
     }
   }
 
@@ -48,19 +41,19 @@ class PengaturanOperasi {
   Future<void> simpanAtauPerbaruiPengaturan(PengaturanModel pengaturan) async {
     try {
       final db = await DatabaseHelper.instance.database;
-      final hasil = await db.query(_namaTabel, limit: 1);
+      final data = pengaturan.toSqlite();
+      
+      // Menambahkan ID statis untuk operasi upsert
+      data['id'] = 1;
 
-      if (hasil.isNotEmpty) {
-        await db.update(_namaTabel, pengaturan.toMapForSqlite());
-      } else {
-        await db.insert(
-          _namaTabel,
-          pengaturan.toMapForSqlite(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
+      await db.insert(
+        _namaTabel,
+        data,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
       developer.log(
-        'Pengaturan berhasil disimpan.',
+        'Pengaturan berhasil disimpan/diperbarui.',
         name: 'PengaturanOperasi.save',
       );
     } catch (e, stackTrace) {

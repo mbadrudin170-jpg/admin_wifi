@@ -1,9 +1,5 @@
 // path: test/halaman/form/form_paket_test.dart
-// File test untuk halaman form_paket.dart
-// diubah: Menerapkan Dependency Injection untuk menguji penanganan error.
-// diperbaiki: Menggunakan mock exception class yang benar untuk mensimulasikan error database.
-// diperbaiki: Menambahkan implementasi getResultCode yang hilang pada MockDatabaseException.
-// diperbaiki: Menggunakan alur pump() yang benar untuk menguji SnackBar sebelum navigasi.
+// diubah: Menambahkan anotasi @override yang hilang pada field `result`.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
@@ -12,23 +8,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/sqlite_api.dart' as sqlite_api;
 
 import 'form_paket_test.mocks.dart';
 
-// ditambahkan: Kelas mock untuk mensimulasikan DatabaseException
-class MockDatabaseException implements DatabaseException {
+class MockDatabaseException implements sqlite_api.DatabaseException {
+  final String message;
+  // ditambahkan: Anotasi @override untuk memenuhi kontrak interface.
   @override
-  bool isUniqueConstraintError([String? field]) => true;
+  final dynamic result;
+
+  MockDatabaseException(this.message, {this.result});
+
+  factory MockDatabaseException.uniqueConstraint() {
+    return MockDatabaseException(
+        'DatabaseException(SQLiteException: UNIQUE constraint failed: paket.nama (code 1555))');
+  }
 
   @override
-  int? getResultCode() => null; // ditambahkan: Implementasi yang hilang
-
-  @override
-  dynamic get result => null;
-
-  @override
-  String toString() => 'MockDatabaseException: Unique constraint failed';
+  bool isUniqueConstraintError([String? field]) {
+    return message.contains('UNIQUE constraint failed');
+  }
 
   @override
   bool isDuplicateColumnError([String? field]) => false;
@@ -43,19 +43,16 @@ class MockDatabaseException implements DatabaseException {
   bool isSyntaxError() => false;
 
   @override
-  bool isReadOnlyError() => false;
+  int? getResultCode() => null;
 
   @override
   bool isDatabaseClosedError() => false;
 
   @override
-  bool isCorruptError() => false;
-
-  @override
-  bool isForeignkeyConstraintError([String? field]) => false;
-
-  @override
   bool isOpenFailedError() => false;
+
+  @override
+  bool isReadOnlyError() => false;
 }
 
 @GenerateMocks([PaketOperasi])
@@ -68,8 +65,7 @@ void main() {
     harga: 50000,
     durasi: 7,
     tipe: TipeDurasi.hari,
-    poinHadiah: 100,
-    poinPenukaran: 50,
+    jumlahPoin: 100,
     isPublic: true,
   );
 
@@ -106,7 +102,6 @@ void main() {
         expect(find.text('50000'), findsOneWidget);
         expect(find.text('7'), findsOneWidget);
         expect(find.text('100'), findsOneWidget);
-        expect(find.text('50'), findsOneWidget);
         final switchTile =
             tester.widget<SwitchListTile>(find.byType(SwitchListTile));
         expect(switchTile.value, isTrue);
@@ -130,40 +125,41 @@ void main() {
     testWidgets(
       'Panggil createPaket saat mode tambah dan tampilkan SnackBar',
       (WidgetTester tester) async {
-        when(mockPaketOperasi.createPaket(any)).thenAnswer((_) async => '1');
+        when(mockPaketOperasi.createPaket(any)).thenAnswer((_) async => paketDummy);
 
         await tester.pumpWidget(buildFormPaket());
 
         await tester.enterText(find.byType(TextFormField).at(0), 'Paket Baru');
         await tester.enterText(find.byType(TextFormField).at(1), '10000');
         await tester.enterText(find.byType(TextFormField).at(2), '1');
+        await tester.enterText(find.byType(TextFormField).at(3), '50');
 
         await tester.tap(find.text('Simpan'));
-        await tester.pump(); // Maju 1 frame untuk menampilkan SnackBar
+        await tester.pump(); 
 
         verify(mockPaketOperasi.createPaket(any)).called(1);
         expect(find.text('Data paket berhasil disimpan!'), findsOneWidget);
 
-        await tester.pumpAndSettle(); // Selesaikan animasi navigasi
+        await tester.pumpAndSettle(); 
       },
     );
 
     testWidgets(
       'Panggil updatePaket saat mode edit dan tampilkan SnackBar',
       (WidgetTester tester) async {
-        when(mockPaketOperasi.updatePaket(any)).thenAnswer((_) async {});
+        when(mockPaketOperasi.updatePaket(any)).thenAnswer((_) async => Future.value());
 
         await tester.pumpWidget(buildFormPaket(paket: paketDummy));
 
         await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');
 
         await tester.tap(find.text('Simpan'));
-        await tester.pump(); // Maju 1 frame untuk menampilkan SnackBar
+        await tester.pump();
 
         verify(mockPaketOperasi.updatePaket(any)).called(1);
         expect(find.text('Data paket berhasil diperbarui!'), findsOneWidget);
 
-        await tester.pumpAndSettle(); // Selesaikan animasi navigasi
+        await tester.pumpAndSettle();
       },
     );
   });
@@ -173,13 +169,14 @@ void main() {
       'Menampilkan pesan "Nama paket sudah ada" saat unique constraint error',
       (WidgetTester tester) async {
         when(mockPaketOperasi.createPaket(any))
-            .thenThrow(MockDatabaseException());
+            .thenThrow(MockDatabaseException.uniqueConstraint());
 
         await tester.pumpWidget(buildFormPaket());
 
         await tester.enterText(find.byType(TextFormField).at(0), 'Nama Sama');
         await tester.enterText(find.byType(TextFormField).at(1), '10000');
         await tester.enterText(find.byType(TextFormField).at(2), '1');
+        await tester.enterText(find.byType(TextFormField).at(3), '50');
 
         await tester.tap(find.text('Simpan'));
         await tester.pumpAndSettle();

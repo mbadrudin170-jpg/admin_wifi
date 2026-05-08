@@ -1,7 +1,7 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
 import 'dart:developer' as developer;
-import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
+import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';

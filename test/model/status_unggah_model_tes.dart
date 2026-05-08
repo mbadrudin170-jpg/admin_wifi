@@ -1,7 +1,7 @@
 // path: lib/model/status_unggah_model.dart
 import 'dart:convert';
 
-import 'package:admin_wifi/model/enum/nama_tabel_enum.dart';
+import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 
 class StatusUnggahModel {
   final NamaTabel tabel;

@@ -1,7 +1,7 @@
 // path: lib/halaman/lainnya/versi_apk_user.dart
 
 import 'package:admin_wifi/halaman/detail/detail_versi_apk_user.dart';
-import 'package:admin_wifi/model/enum/arsitektur_apk_enum.dart';
+import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';

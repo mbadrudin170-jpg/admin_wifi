@@ -1,5 +1,5 @@
 // path: test/model/paket_model_test.dart
-// diubah: Menyesuaikan dengan nama metode yang benar (toMapForSqlite, fromMap, toMapForFirebase).
+// diubah: Menyesuaikan dengan nama metode yang benar (toSqlite, fromSqlite, toFirebase).
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:admin_wifi/model/paket_model.dart';
@@ -55,9 +55,9 @@ void main() {
       },
     );
 
-    // 3. Tes Konversi toMapForSqlite
+    // 3. Tes Konversi toSqlite
     test(
-      'Metode toMapForSqlite harus mengonversi objek ke Map dengan benar untuk SQLite',
+      'Metode toSqlite harus mengonversi objek ke Map dengan benar untuk SQLite',
       () {
         // Arrange: Buat objek
         final now = DateTime.now();
@@ -73,7 +73,7 @@ void main() {
         );
 
         // Act: Konversi ke map
-        final map = paket.toMapForSqlite();
+        final map = paket.toSqlite();
 
         // Assert: Periksa setiap field di dalam map
         expect(map['id'], 'id-test');
@@ -90,8 +90,8 @@ void main() {
       },
     );
 
-    // 4. Tes Konversi fromMap
-    test('Metode fromMap harus membuat objek dari Map dengan benar', () {
+    // 4. Tes Konversi fromSqlite
+    test('Metode fromSqlite harus membuat objek dari Map dengan benar', () {
       // Arrange: Buat map yang merepresentasikan data dari database
       final nowString = DateTime.now().toIso8601String();
       final map = {
@@ -102,11 +102,11 @@ void main() {
         'tipe': 'bulan',
         'jumlahPoin': 100, // Properti baru dari DB
         'diperbarui': nowString,
-        'isDeleted': 1, // data dari sqlite/firestore
+        'isDeleted': 1, // data dari sqlite
       };
 
       // Act: Konversi dari map ke objek
-      final paket = PaketModel.fromMap(map);
+      final paket = PaketModel.fromSqlite(map);
 
       // Assert: Periksa properti objek hasil konversi
       expect(paket.id, 'id-dari-db');
@@ -117,8 +117,8 @@ void main() {
       expect(paket.isDeleted, true);
     });
 
-    // 5. Tes Konversi fromMap dengan data lama (tanpa jumlahPoin)
-    test('Metode fromMap harus handle jika field jumlahPoin tidak ada', () {
+    // 5. Tes Konversi fromSqlite dengan data lama (tanpa jumlahPoin)
+    test('Metode fromSqlite harus handle jika field jumlahPoin tidak ada', () {
       // Arrange: Buat map yang tidak memiliki field 'jumlahPoin'
       final map = {
         'id': 'id-data-lama',
@@ -131,7 +131,7 @@ void main() {
       };
 
       // Act: Konversi dari map ke objek
-      final paket = PaketModel.fromMap(map);
+      final paket = PaketModel.fromSqlite(map);
 
       // Assert: Pastikan jumlahPoin diberi nilai default 0
       expect(paket.jumlahPoin, 0);
@@ -149,7 +149,7 @@ void main() {
       );
 
       // Act
-      final hasil = paket.toMapForFirebase();
+      final hasil = paket.toFirebase();
 
       // Assert
       expect(hasil['isDeleted'], isA<bool>());
@@ -168,7 +168,7 @@ void main() {
       );
 
       // Act
-      final hasil = paket.toMapForFirebase();
+      final hasil = paket.toFirebase();
 
       // Assert
       expect(hasil['isDeleted'], isA<bool>());

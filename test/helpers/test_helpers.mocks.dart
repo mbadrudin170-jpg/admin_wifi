@@ -1576,16 +1576,16 @@ class MockLayananUnggahData extends _i1.Mock implements _i9.LayananUnggahData {
   _i3.Future<void> unggahDataGenerik<T>(
     String? namaTabel,
     String? namaKoleksi,
-    T Function(Map<String, dynamic>)? fromMap,
-    Map<String, dynamic> Function(T)? toMapForFirebase,
+    T Function(Map<String, dynamic>)? fromSqlite,
+    Map<String, dynamic> Function(T)? toFirebase,
     DateTime? waktuSinkronisasiTerakhir,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#unggahDataGenerik, [
               namaTabel,
               namaKoleksi,
-              fromMap,
-              toMapForFirebase,
+              fromSqlite,
+              toFirebase,
               waktuSinkronisasiTerakhir,
             ]),
             returnValue: _i3.Future<void>.value(),

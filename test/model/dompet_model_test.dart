@@ -1,5 +1,5 @@
 // path: test/model/dompet_model_test.dart
-// diperbaiki: Menggunakan nama metode fromFirebase dan toFirebase yang benar.
+// diperbaiki: Menggunakan nama metode fromSqlite dan toSqlite yang benar.
 
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,8 +25,8 @@ void main() {
     });
 
     group('SQLite Mapping', () {
-      test('fromMap (SQLite): Harus membuat model dari map dengan benar', () {
-        developer.log('Menjalankan test: fromMap dari data SQLite');
+      test('fromSqlite: Harus membuat model dari map dengan benar', () {
+        developer.log('Menjalankan test: fromSqlite dari data SQLite');
         
         final nowString = DateTime.now().toIso8601String();
         final Map<String, dynamic> dataSqlite = {
@@ -37,7 +37,7 @@ void main() {
           'isDeleted': 1, // SQLite boolean
         };
 
-        final model = DompetModel.fromMap(dataSqlite);
+        final model = DompetModel.fromSqlite(dataSqlite);
 
         expect(model.id, 'uuid-sqlite-123');
         expect(model.namaDompet, 'Tabungan SQLite');
@@ -83,7 +83,6 @@ void main() {
                 'isDeleted': false,
             };
 
-            // diperbaiki: Menggunakan nama metode yang benar
             final model = DompetModel.fromFirebase('firestore-id-123', dataFirestore);
             
             expect(model.id, 'firestore-id-123');
@@ -104,7 +103,6 @@ void main() {
                 isDeleted: false,
             );
 
-            // diperbaiki: Menggunakan nama metode yang benar
             final map = model.toFirebase();
             
             expect(map['namaDompet'], 'Dana Darurat');

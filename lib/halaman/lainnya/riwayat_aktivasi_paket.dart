@@ -4,7 +4,7 @@
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/model/riwayat_langganan_model.dart';
-import 'package:admin_wifi/model/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';

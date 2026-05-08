@@ -12,7 +12,7 @@ class PesananOperasi {
     final db = await dbHelper.database;
     await db.insert(
       'pesanan',
-      pesanan.toMapForSqlite(),
+      pesanan.toSqlite(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -24,7 +24,7 @@ class PesananOperasi {
       'pesanan',
       orderBy: 'tanggal DESC',
     );
-    return maps.map((map) => PesananModel.fromMap(map)).toList();
+    return maps.map((map) => PesananModel.fromSqlite(map)).toList();
   }
 
   // Ambil pesanan berdasarkan status
@@ -36,7 +36,7 @@ class PesananOperasi {
       whereArgs: [status],
       orderBy: 'tanggal DESC',
     );
-    return maps.map((map) => PesananModel.fromMap(map)).toList();
+    return maps.map((map) => PesananModel.fromSqlite(map)).toList();
   }
 
   // Update status pesanan
@@ -63,7 +63,7 @@ class PesananOperasi {
     for (var item in items) {
       batch.insert(
         'pesanan',
-        item.toMapForSqlite(),
+        item.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -82,7 +82,7 @@ class PesananOperasi {
       whereArgs: ids,
     );
     return List.generate(maps.length, (i) {
-      return PesananModel.fromMap(maps[i]);
+      return PesananModel.fromSqlite(maps[i]);
     });
   }
 }
