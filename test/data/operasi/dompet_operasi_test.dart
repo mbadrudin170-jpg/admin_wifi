@@ -48,16 +48,16 @@ void main() {
       
       await dompetOperasi.createDompet(dompetAktif);
       // Sisipkan data arsip secara manual untuk simulasi
-      await db.insert('dompet', dompetArsip.toMapForSqlite());
+      await db.insert('dompet', dompetArsip.toSqlite());
 
       final hasil = await dompetOperasi.getDompet();
-      expect(hasil.length, 1);
+      expect(hasil.length, 1); 
       expect(hasil.first.namaDompet, 'Aktif');
     });
 
     test('4. getDompetById harus mengembalikan null untuk dompet yang diarsip', () async {
       final dompet = DompetModel(namaDompet: 'Arsip', saldo: 1000, isDeleted: true);
-      await db.insert('dompet', dompet.toMapForSqlite());
+      await db.insert('dompet', dompet.toSqlite());
       
       final hasil = await dompetOperasi.getDompetById(dompet.id);
       expect(hasil, isNull);
@@ -117,8 +117,8 @@ void main() {
     );
 
     test('8. Fungsi getTotalSaldo harus mengabaikan dompet yang diarsip', () async {
-      await db.insert('dompet', DompetModel(namaDompet: 'Aktif', saldo: 100).toMapForSqlite());
-      await db.insert('dompet', DompetModel(namaDompet: 'Arsip', saldo: 50, isDeleted: true).toMapForSqlite());
+      await db.insert('dompet', DompetModel(namaDompet: 'Aktif', saldo: 100).toSqlite());
+      await db.insert('dompet', DompetModel(namaDompet: 'Arsip', saldo: 50, isDeleted: true).toSqlite());
       
       final total = await dompetOperasi.getTotalSaldo();
       expect(total, 100.0);

@@ -15,7 +15,7 @@ class DompetOperasi {
     final db = await dbHelper.database;
 
     // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
-    final data = dompet.copyWith(diperbarui: DateTime.now()).toMapForSqlite();
+    final data = dompet.copyWith(diperbarui: DateTime.now()).toSqlite();
     await db.insert(
       'dompet',
       data,
@@ -55,7 +55,7 @@ class DompetOperasi {
     final db = await dbHelper.database;
     final now = DateTime.now();
     // ditambah: Menyisipkan 'diperbarui' dengan waktu saat ini
-    final data = dompet.copyWith(diperbarui: now).toMapForSqlite();
+    final data = dompet.copyWith(diperbarui: now).toSqlite();
     await db.update('dompet', data, where: 'id = ?', whereArgs: [dompet.id]);
     await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [
       dompet.id,
@@ -124,7 +124,7 @@ class DompetOperasi {
       // Pastikan model Anda memiliki ID yang unik untuk proses ini
       batch.insert(
         'dompet',
-        item.toMapForSqlite(),
+        item.toSqlite(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }

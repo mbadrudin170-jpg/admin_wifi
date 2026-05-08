@@ -1,17 +1,12 @@
 // path: lib/model/paket_model.dart
-// diubah: Menambahkan properti jumlahPoin untuk fitur poin.
-// ditambahkan: Metode toMapForFirebase untuk memastikan isDeleted adalah boolean.
-
 import 'package:uuid/uuid.dart';
 
-// Enum untuk tipe durasi paket
 enum TipeDurasi {
   menit,
   jam,
   hari,
   bulan;
 
-  // Getter untuk mendapatkan nama yang ramah pengguna
   String get displayName {
     switch (this) {
       case TipeDurasi.menit:
@@ -32,9 +27,12 @@ class PaketModel {
   final int harga;
   final int durasi;
   final TipeDurasi tipe;
-  final int jumlahPoin;
+
+  final int jumlahPoin; // legacy
   final int poinHadiah;
   final int poinPenukaran;
+
+  final bool isPublic;
   final DateTime? diperbarui;
   final bool isDeleted;
   final DateTime? diarsipkan;
@@ -48,11 +46,15 @@ class PaketModel {
     this.jumlahPoin = 0,
     this.poinHadiah = 0,
     this.poinPenukaran = 0,
+    this.isPublic = true,
     this.diperbarui,
     this.isDeleted = false,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
+  // =========================
+  // COPY WITH
+  // =========================
   PaketModel copyWith({
     String? id,
     String? nama,
@@ -60,6 +62,9 @@ class PaketModel {
     int? durasi,
     TipeDurasi? tipe,
     int? jumlahPoin,
+    int? poinHadiah,
+    int? poinPenukaran,
+    bool? isPublic,
     DateTime? diperbarui,
     bool? isDeleted,
     DateTime? diarsipkan,
@@ -70,23 +75,22 @@ class PaketModel {
       harga: harga ?? this.harga,
       durasi: durasi ?? this.durasi,
       tipe: tipe ?? this.tipe,
-      jumlahPoin: jumlahPoin ?? this.jumlahPoin, // ditambahkan: properti baru
+      jumlahPoin: jumlahPoin ?? this.jumlahPoin,
+      poinHadiah: poinHadiah ?? this.poinHadiah,
+      poinPenukaran: poinPenukaran ?? this.poinPenukaran,
+      isPublic: isPublic ?? this.isPublic,
       diperbarui: diperbarui ?? this.diperbarui,
       isDeleted: isDeleted ?? this.isDeleted,
       diarsipkan: diarsipkan ?? this.diarsipkan,
     );
   }
 
-  // helper parsing datetime aman (Firestore / String / null)
+  // =========================
+  // PARSER UTIL
+  // =========================
+
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-
-    // Firestore Timestamp handling (dynamic-safe)
-    try {
-      if (value.runtimeType.toString().contains('Timestamp')) {
-        return value.toDate();
-      }
-    } catch (_) {}
 
     if (value is DateTime) return value;
 
@@ -97,60 +101,106 @@ class PaketModel {
     return null;
   }
 
-  // Konversi dari Map (dari database) ke objek Paket
-  factory PaketModel.fromMap(Map<String, dynamic> map) {
+  static bool _parseBool(dynamic value) {
+    if (value == true || value == 1) return true;
+    if (value == false || value == 0 || value == null) return false;
+    if (value is String) return value.toLowerCase() == 'true';
+    return false;
+  }
+
+  static TipeDurasi _parseTipe(dynamic value) {
+    return TipeDurasi.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => TipeDurasi.hari,
+    );
+  }
+
+  // =========================
+  // SQLITE
+  // =========================
+
+  factory PaketModel.fromSqlite(Map<String, dynamic> map) {
     return PaketModel(
       id: map['id'],
-      nama: map['nama'],
-      harga: map['harga'],
-      durasi: map['durasi'],
-      tipe: TipeDurasi.values.firstWhere(
-        (e) => e.name == map['tipe'],
-        orElse: () => TipeDurasi.hari,
-      ),
+      nama: map['nama'] ?? '',
+      harga: map['harga'] ?? 0,
+      durasi: map['durasi'] ?? 0,
+      tipe: _parseTipe(map['tipe']),
+
       jumlahPoin: map['jumlahPoin'] ?? 0,
-      poinHadiah: map['poin_hadiah'] ?? map['poinHadiah'] ?? 0,
-      poinPenukaran: map['poin_penukaran'] ?? map['poinPenukaran'] ?? 0,
-      diperbarui: map['diperbarui'] != null
-          ? DateTime.parse(map['diperbarui'])
-          : null,
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+      poinHadiah: map['poin_hadiah'] ?? 0,
+      poinPenukaran: map['poin_penukaran'] ?? 0,
+
+      isPublic: _parseBool(map['isPublic']),
+      isDeleted: _parseBool(map['isDeleted']),
+
+      diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
-  // Konversi dari objek Paket ke Map (untuk database lokal SQLite)
-  Map<String, dynamic> toMapForSqlite() {
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'nama': nama,
       'harga': harga,
       'durasi': durasi,
       'tipe': tipe.name,
-      'jumlahPoin': jumlahPoin, // ditambahkan: properti baru
-      'poin_hadiah': poinHadiah,
-      'poin_penukaran': poinPenukaran,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0, // diubah: Untuk kompatibilitas SQLite
-      'diarsipkan': diarsipkan?.toIso8601String(),
-    };
-  }
 
-  // ditambahkan: Konversi ke Map untuk Firebase (isDeleted sebagai boolean)
-  Map<String, dynamic> toMapForFirebase() {
-    return {
-      'id': id,
-      'nama': nama,
-      'harga': harga,
-      'durasi': durasi,
-      'tipe': tipe.name,
       'jumlahPoin': jumlahPoin,
       'poin_hadiah': poinHadiah,
       'poin_penukaran': poinPenukaran,
 
+      'isPublic': isPublic ? 1 : 0,
+      'isDeleted': isDeleted ? 1 : 0,
+
       'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted, // tetap boolean untuk Firebase
       'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
+
+  // =========================
+  // FIREBASE
+  // =========================
+
+  factory PaketModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return PaketModel(
+      id: id,
+      nama: data['nama'] ?? '',
+      harga: data['harga'] ?? 0,
+      durasi: data['durasi'] ?? 0,
+      tipe: _parseTipe(data['tipe']),
+
+      jumlahPoin: data['jumlahPoin'] ?? 0,
+      poinHadiah: data['poin_hadiah'] ?? 0,
+      poinPenukaran: data['poin_penukaran'] ?? 0,
+
+      isPublic: _parseBool(data['isPublic']),
+      isDeleted: _parseBool(data['isDeleted']),
+
+      diperbarui: _parseDateTime(data['diperbarui']),
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  Map<String, dynamic> toFirebase() {
+    return {
+      'nama': nama,
+      'harga': harga,
+      'durasi': durasi,
+      'tipe': tipe.name,
+
+      'jumlahPoin': jumlahPoin,
+      'poin_hadiah': poinHadiah,
+      'poin_penukaran': poinPenukaran,
+
+      'isPublic': isPublic,
+      'isDeleted': isDeleted,
+
+      // FULL client time (sesuai keputusan kamu)
+      'diperbarui': DateTime.now().toIso8601String(),
+
+      if (diarsipkan != null) 'diarsipkan': diarsipkan!.toIso8601String(),
     };
   }
 }

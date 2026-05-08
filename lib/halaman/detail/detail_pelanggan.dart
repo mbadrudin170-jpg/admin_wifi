@@ -1,5 +1,6 @@
 // path: lib/halaman/detail/detail_pelanggan.dart
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,8 @@ class DetailPelangganPage extends StatefulWidget {
 }
 
 class _DetailPelangganPageState extends State<DetailPelangganPage> {
-  final pelangganOperasi = PelangganOperasi();
+  final PelangganOperasi pelangganOperasi = PelangganOperasi();
+  final TransaksiOperasi transaksiModel = TransaksiOperasi();
 
   PelangganModel? pelanggan;
   int totalPoin = 0;
@@ -34,7 +36,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       widget.idPelanggan,
     );
 
-    final hasilPoin = await pelangganOperasi.getTotalPoin(widget.idPelanggan);
+    final hasilPoin = await transaksiModel.getTotalPoin(widget.idPelanggan);
 
     if (!mounted) return;
 

@@ -1,5 +1,7 @@
 // path: lib/model/dompet_model.dart
 // diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
+// ditambahkan: Metode fromFirestore dan toFirestore untuk interaksi dengan Firebase.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -45,6 +47,7 @@ class DompetModel {
     return null;
   }
 
+  // Konversi dari format database lokal (SQLite)
   factory DompetModel.fromMap(Map<String, dynamic> map) {
     return DompetModel(
       id: map['id'],
@@ -56,7 +59,8 @@ class DompetModel {
     );
   }
 
-  Map<String, dynamic> toMapForSqlite() {
+  // Konversi ke format database lokal (SQLite)
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'namaDompet': namaDompet,
@@ -67,14 +71,30 @@ class DompetModel {
     };
   }
 
-  Map<String, dynamic> toMapForFirebase() {
+  // --- Interaksi Firestore ---
+  // saya ubah ke fromFirebase
+  // ditambahkan: Factory constructor dari data Firestore
+  factory DompetModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return DompetModel(
+      id: id,
+      namaDompet: data['namaDompet'] ?? '',
+      saldo: (data['saldo'] as num?)?.toDouble() ?? 0.0,
+      diperbarui: _parseDateTime(data['diperbarui']),
+      isDeleted: data['isDeleted'] ?? false,
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  // ditambahkan: Metode konversi ke format Firestore
+  Map<String, dynamic> toFirebase() {
+    // saya ubah ke toFirebase
     return {
-      'id': id,
       'namaDompet': namaDompet,
       'saldo': saldo,
-      'diperbarui': diperbarui?.toIso8601String(),
+      'diperbarui':
+          FieldValue.serverTimestamp(), // Praktik terbaik untuk Firestore
       'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      if (diarsipkan != null) 'diarsipkan': Timestamp.fromDate(diarsipkan!),
     };
   }
 }

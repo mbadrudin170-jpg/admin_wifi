@@ -44,8 +44,8 @@ void main() {
       saldo: saldoAwal,
     );
 
-    await db.insert('dompet', dompetA.toMapForSqlite());
-    await db.insert('dompet', dompetB.toMapForSqlite());
+    await db.insert('dompet', dompetA.toSqlite());
+    await db.insert('dompet', dompetB.toSqlite());
   });
 
   // `tearDown` dijalankan setelah SETIAP tes untuk membersihkan.

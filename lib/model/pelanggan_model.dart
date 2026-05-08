@@ -1,7 +1,4 @@
 // path: lib/model/pelanggan_model.dart
-// Model ini merepresentasikan data pelanggan dengan soft delete.
-// diubah: Field 'diperbarui' dijadikan nullable untuk konsistensi.
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class PelangganModel {
@@ -11,8 +8,8 @@ class PelangganModel {
   final String alamat;
   final String password;
   final String macAddress;
-  final bool isDeleted;
 
+  final bool isDeleted;
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
 
@@ -23,11 +20,14 @@ class PelangganModel {
     required this.alamat,
     required this.password,
     this.macAddress = '',
-    this.diperbarui,
     this.isDeleted = false,
+    this.diperbarui,
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
+  // =========================
+  // COPY WITH
+  // =========================
   PelangganModel copyWith({
     String? id,
     String? nama,
@@ -35,8 +35,8 @@ class PelangganModel {
     String? alamat,
     String? password,
     String? macAddress,
-    DateTime? diperbarui,
     bool? isDeleted,
+    DateTime? diperbarui,
     DateTime? diarsipkan,
   }) {
     return PelangganModel(
@@ -46,37 +46,55 @@ class PelangganModel {
       alamat: alamat ?? this.alamat,
       password: password ?? this.password,
       macAddress: macAddress ?? this.macAddress,
-      diperbarui: diperbarui ?? this.diperbarui,
       isDeleted: isDeleted ?? this.isDeleted,
+      diperbarui: diperbarui ?? this.diperbarui,
       diarsipkan: diarsipkan ?? this.diarsipkan,
     );
   }
 
-  // Helper untuk parsing tanggal dari berbagai format (Timestamp, String)
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is String) return DateTime.tryParse(dateValue);
+  // =========================
+  // PARSER UTIL
+  // =========================
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+
+    if (value is DateTime) return value;
+
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
     return null;
   }
 
-  factory PelangganModel.fromMap(Map<String, dynamic> map) {
+  static bool _parseBool(dynamic value) {
+    if (value == true || value == 1) return true;
+    if (value == false || value == 0 || value == null) return false;
+    if (value is String) return value.toLowerCase() == 'true';
+    return false;
+  }
+
+  // =========================
+  // SQLITE
+  // =========================
+
+  factory PelangganModel.fromSqlite(Map<String, dynamic> map) {
     return PelangganModel(
-      id: map['id'] as String? ?? '',
+      id: map['id'] ?? '',
       nama: map['nama'] ?? '',
       telepon: map['telepon'] ?? '',
       alamat: map['alamat'] ?? '',
       password: map['password'] ?? '',
       macAddress: map['mac_address'] ?? '',
-      diperbarui: _parseDateTime(
-        map['diperbarui'],
-      ), // diubah: Tidak perlu nilai default
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
+
+      isDeleted: _parseBool(map['isDeleted']),
+      diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
     );
   }
 
-  Map<String, dynamic> toMapForSqlite() {
+  Map<String, dynamic> toSqlite() {
     return {
       'id': id,
       'nama': nama,
@@ -84,23 +102,47 @@ class PelangganModel {
       'alamat': alamat,
       'password': password,
       'mac_address': macAddress,
-      'diperbarui': diperbarui?.toIso8601String(),
+
       'isDeleted': isDeleted ? 1 : 0,
+      'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
 
-  Map<String, dynamic> toMapForFirebase() {
+  // =========================
+  // FIREBASE
+  // =========================
+
+  factory PelangganModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return PelangganModel(
+      id: id,
+      nama: data['nama'] ?? '',
+      telepon: data['telepon'] ?? '',
+      alamat: data['alamat'] ?? '',
+      password: data['password'] ?? '',
+      macAddress: data['mac_address'] ?? '',
+
+      isDeleted: _parseBool(data['isDeleted']),
+      diperbarui: _parseDateTime(data['diperbarui']),
+      diarsipkan: _parseDateTime(data['diarsipkan']),
+    );
+  }
+
+  Map<String, dynamic> toFirebase() {
     return {
-      'id': id,
       'nama': nama,
       'telepon': telepon,
       'alamat': alamat,
       'password': password,
       'mac_address': macAddress,
-      'diperbarui': diperbarui,
+
       'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan,
+
+      // full client-time (konsisten dengan keputusan kamu)
+      'diperbarui': DateTime.now().toIso8601String(),
+
+      if (diarsipkan != null)
+        'diarsipkan': diarsipkan!.toIso8601String(),
     };
   }
 }

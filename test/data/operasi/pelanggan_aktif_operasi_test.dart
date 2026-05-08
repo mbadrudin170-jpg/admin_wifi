@@ -98,7 +98,7 @@ void main() {
           harga: 1,
           durasi: 1,
           tipe: TipeDurasi.bulan,
-        ).toMapForSqlite(),
+        ).toSqlite(),
       );
       await db.insert(
         'paket',
@@ -108,7 +108,7 @@ void main() {
           harga: 1,
           durasi: 1,
           tipe: TipeDurasi.bulan,
-        ).toMapForSqlite(),
+        ).toSqlite(),
       );
       await db.insert('pelanggan', {
         'id': 'p1',

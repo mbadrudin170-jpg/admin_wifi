@@ -1,5 +1,6 @@
 // path: lib/data/sync/unggah_data.dart
-// diubah: Mengganti semua pemanggilan .toMap() menjadi .toMapForFirebase() untuk konsistensi unggah data.
+// diubah: Mengganti pemanggilan .toFirestore() menjadi .toFirebase() untuk DompetModel.
+
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -37,13 +38,12 @@ class LayananUnggahData {
       name: 'UnggahDataService',
     );
 
-    // diubah: semua pemanggilan m.toMap() diubah ke m.toMapForFirebase()
     final List<Future<void>> daftarUnggah = [
       unggahDataGenerik<DompetModel>(
         'dompet',
         'dompet',
         DompetModel.fromMap,
-        (m) => m.toMapForFirebase(),
+        (m) => m.toFirebase(), // diperbaiki
         waktuSinkronisasiTerakhir,
       ),
       unggahDataGenerik<KategoriModel>(
@@ -143,7 +143,6 @@ class LayananUnggahData {
   }
 
   // --- FUNGSI UNGGAH SPESIFIK ---
-  // diubah: semua pemanggilan m.toMap() diubah ke m.toMapForFirebase()
 
   Future<void> unggahDataDompet() async {
     final waktu = await _syncManager.getLastSyncTimestamp();
@@ -151,7 +150,7 @@ class LayananUnggahData {
       'dompet',
       'dompet',
       DompetModel.fromMap,
-      (m) => m.toMapForFirebase(),
+      (m) => m.toFirebase(), // diperbaiki
       waktu,
     );
   }

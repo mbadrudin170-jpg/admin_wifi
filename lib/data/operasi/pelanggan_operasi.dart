@@ -155,38 +155,4 @@ class PelangganOperasi {
     });
   }
 
-  Future<int> getPoinYangDihasilkan(String idPelanggan) async {
-    final db = await dbHelper.database;
-    final result = await db.rawQuery(
-      'SELECT SUM(poin_yang_dihasilkan) as total FROM transaksi WHERE id_pelanggan = ? AND isDeleted = 0',
-      [idPelanggan],
-    );
-    final total = result.first['total'];
-    if (total is int) {
-      return total;
-    }
-    return 0;
-  }
-
-  Future<int> getPoinYangDigunakan(String idPelanggan) async {
-    final db = await dbHelper.database;
-    final result = await db.rawQuery(
-      'SELECT SUM(poin_yang_digunakan) as total FROM transaksi WHERE id_pelanggan = ? AND isDeleted = 0',
-      [idPelanggan],
-    );
-    final total = result.first['total'];
-    if (total is int) {
-      return total;
-    }
-    return 0;
-  }
-
-  // Fungsi ini bertujuan untuk menghitung total poin akhir pelanggan.
-  Future<int> getTotalPoin(String idPelanggan) async {
-    final poinDihasilkan = await getPoinYangDihasilkan(idPelanggan);
-
-    final poinDigunakan = await getPoinYangDigunakan(idPelanggan);
-
-    return poinDihasilkan - poinDigunakan;
-  }
 }

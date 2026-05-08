@@ -1,5 +1,7 @@
 // lib/halaman/form/form_paket.dart
 // Halaman ini menyediakan formulir untuk menambah atau mengedit paket internet.
+// diperbaiki: Menambahkan SingleChildScrollView untuk mengatasi RenderFlex overflow.
+// diubah: Menerapkan Dependency Injection untuk PaketOperasi agar mudah diuji.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/model/paket_model.dart';
@@ -9,7 +11,9 @@ import 'dart:developer' as developer;
 
 class FormPaket extends StatefulWidget {
   final PaketModel? paket;
-  const FormPaket({super.key, this.paket});
+  final PaketOperasi? paketOperasi; // ditambahkan: untuk dependency injection
+
+  const FormPaket({super.key, this.paket, this.paketOperasi});
 
   @override
   State<FormPaket> createState() => _FormPaketState();
@@ -20,24 +24,30 @@ class _FormPaketState extends State<FormPaket> {
   final _namaController = TextEditingController();
   final _hargaController = TextEditingController();
   final _durasiController = TextEditingController();
-  final _poinController =
-      TextEditingController(); // ditambahkan: controller untuk poin
-  final PaketOperasi _paketOperasi = PaketOperasi();
+  final _poinHadiahController = TextEditingController();
+  final _poinPenukaranController = TextEditingController();
+  late final PaketOperasi _paketOperasi; // diubah: inisialisasi di initState
 
   TipeDurasi _selectedTipe = TipeDurasi.hari;
 
   bool get _isEditMode => widget.paket != null;
-
+  bool _isPublic = true;
   @override
   void initState() {
     super.initState();
+    // diubah: Gunakan paketOperasi dari widget jika ada, jika tidak buat instance baru.
+    _paketOperasi = widget.paketOperasi ?? PaketOperasi();
+
     if (_isEditMode) {
       _namaController.text = widget.paket!.nama;
       _hargaController.text = widget.paket!.harga.toString();
       _durasiController.text = widget.paket!.durasi.toString();
-      _poinController.text = widget.paket!.jumlahPoin
-          .toString(); // ditambahkan: inisialisasi poin
+
+      _poinHadiahController.text = widget.paket!.poinHadiah.toString();
+      _poinPenukaranController.text = widget.paket!.poinPenukaran.toString();
+
       _selectedTipe = widget.paket!.tipe;
+      _isPublic = widget.paket!.isPublic;
     }
   }
 
@@ -48,10 +58,11 @@ class _FormPaketState extends State<FormPaket> {
         nama: _namaController.text,
         harga: int.parse(_hargaController.text),
         durasi: int.parse(_durasiController.text),
-        jumlahPoin:
-            int.tryParse(_poinController.text) ??
-            0, // ditambahkan: menyimpan poin
         tipe: _selectedTipe,
+
+        poinHadiah: int.tryParse(_poinHadiahController.text) ?? 0,
+        poinPenukaran: int.tryParse(_poinPenukaranController.text) ?? 0,
+        isPublic: _isPublic,
       );
       try {
         if (_isEditMode) {
@@ -113,80 +124,104 @@ class _FormPaketState extends State<FormPaket> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _namaController,
-                decoration: const InputDecoration(labelText: 'Nama Paket'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama paket tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _hargaController,
-                decoration: const InputDecoration(labelText: 'Harga'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Harga tidak boleh kosong';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Harga harus berupa angka';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _durasiController,
-                decoration: const InputDecoration(labelText: 'Durasi'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Durasi tidak boleh kosong';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Durasi harus berupa angka';
-                  }
-                  return null;
-                },
-              ),
-              // ditambahkan: TextFormField untuk poin
-              TextFormField(
-                controller: _poinController,
-                decoration: const InputDecoration(labelText: 'Jumlah Poin'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      int.tryParse(value) == null) {
-                    return 'Jumlah Poin harus berupa angka';
-                  }
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<TipeDurasi>(
-                initialValue: _selectedTipe,
-                decoration: const InputDecoration(labelText: 'Tipe Durasi'),
-                items: TipeDurasi.values.map((TipeDurasi tipe) {
-                  return DropdownMenuItem<TipeDurasi>(
-                    value: tipe,
-                    child: Text(
-                      tipe.displayName,
-                    ), // Menggunakan displayName dari extension
-                  );
-                }).toList(),
-                onChanged: (TipeDurasi? newValue) {
-                  setState(() {
-                    _selectedTipe = newValue!;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(onPressed: _saveForm, child: const Text('Simpan')),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _namaController,
+                  decoration: const InputDecoration(labelText: 'Nama Paket'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Nama paket tidak boleh kosong';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _hargaController,
+                  decoration: const InputDecoration(labelText: 'Harga'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Harga tidak boleh kosong';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Harga harus berupa angka';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _durasiController,
+                  decoration: const InputDecoration(labelText: 'Durasi'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Durasi tidak boleh kosong';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Durasi harus berupa angka';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _poinHadiahController,
+                  decoration: const InputDecoration(labelText: 'Poin Hadiah'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return null;
+                    if (int.tryParse(value) == null) {
+                      return 'Poin hadiah harus angka';
+                    }
+                    return null;
+                  },
+                ),
+
+                TextFormField(
+                  controller: _poinPenukaranController,
+                  decoration: const InputDecoration(labelText: 'Poin Penukaran'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return null;
+                    if (int.tryParse(value) == null) {
+                      return 'Poin penukaran harus angka';
+                    }
+                    return null;
+                  },
+                ),
+
+                DropdownButtonFormField<TipeDurasi>(
+                  initialValue: _selectedTipe,
+                  decoration: const InputDecoration(labelText: 'Tipe Durasi'),
+                  items: TipeDurasi.values.map((TipeDurasi tipe) {
+                    return DropdownMenuItem<TipeDurasi>(
+                      value: tipe,
+                      child: Text(
+                        tipe.displayName,
+                      ), // Menggunakan displayName dari extension
+                    );
+                  }).toList(),
+                  onChanged: (TipeDurasi? newValue) {
+                    setState(() {
+                      _selectedTipe = newValue!;
+                    });
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Paket Aktif (Public)'),
+                  subtitle: const Text('Jika OFF, paket tidak tampil ke user'),
+                  value: _isPublic,
+                  onChanged: (value) {
+                    setState(() {
+                      _isPublic = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(onPressed: _saveForm, child: const Text('Simpan')),
+              ],
+            ),
           ),
         ),
       ),
@@ -198,7 +233,8 @@ class _FormPaketState extends State<FormPaket> {
     _namaController.dispose();
     _hargaController.dispose();
     _durasiController.dispose();
-    _poinController.dispose(); // ditambahkan: dispose controller poin
+    _poinHadiahController.dispose();
+    _poinPenukaranController.dispose();
     super.dispose();
   }
 }

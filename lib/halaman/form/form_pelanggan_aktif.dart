@@ -1,20 +1,16 @@
 // path: lib/halaman/form/form_pelanggan_aktif.dart
 // Halaman ini menyediakan formulir untuk mengaktifkan pelanggan dengan paket tertentu.
 // diubah: Melakukan refactoring untuk menerapkan Dependency Injection.
-// Sekarang, semua dependensi operasi (seperti PelangganOperasi) diterima
-// melalui constructor untuk memudahkan pengujian (mocking).
-// diubah: Mengganti ListView dengan SingleChildScrollView dan Column untuk memastikan semua widget dirender.
 // diubah: Memisahkan logika penyimpanan dan navigasi untuk memastikan SnackBar sempat ditampilkan dalam pengujian.
 // diubah: Memperbaiki bug dimana Dompet dan Kategori tidak diinisialisasi dalam mode edit.
-// ditambahkan: Mengembalikan delay setelah menyimpan untuk memastikan SnackBar dapat diuji.
-// diubah: Mengganti `value` dengan `initialValue` pada DropdownButtonFormField dan memperbaiki penggunaan BuildContext secara tidak aman.
-// diubah: Memfilter daftar kategori agar hanya menampilkan tipe pemasukan.
-// diubah: Memfilter daftar kategori untuk mengecualikan yang sudah dihapus (isDeleted == true).
+// diubah: Mengganti `value` dengan `initialValue` pada DropdownButtonFormField.
+// diubah: Memfilter daftar kategori agar hanya menampilkan tipe pemasukan dan yang tidak dihapus.
 // ditambahkan: filter untuk hanya menampilkan dompet yang isDeleted-nya false.
-// ditambahkan: Key unik untuk setiap DropdownButtonFormField untuk pengujian.
-// diubah: Transaksi sekarang dibuat tanpa pengecekan status pembayaran, dan statusnya dicatat dalam transaksi.
-// ditambahkan: Inisialisasi poinYangDihasilkan dan poinYangDigunakan secara eksplisit.
+// diubah: Transaksi sekarang dibuat tanpa pengecekan status pembayaran.
 // diubah: poinYangDihasilkan sekarang mengambil nilai dari paket yang dipilih.
+// diubah: Memperbaiki bug tampilan poin.
+// ditambahkan: Logika `_hitungTanggalBerakhir` diekstrak menjadi fungsi top-level `hitungTanggalBerakhir` untuk kemudahan pengujian.
+// diperbaiki: Kesalahan sintaks pada string multi-baris di SnackBar.
 
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -35,6 +31,22 @@ import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:uuid/uuid.dart';
 
+// ditambahkan: Fungsi ini diekstrak dari state untuk kemudahan pengujian.
+DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
+  switch (paket.tipe) {
+    case TipeDurasi.jam:
+      return startDate.add(Duration(hours: paket.durasi));
+    case TipeDurasi.hari:
+      return startDate.add(Duration(days: paket.durasi));
+    case TipeDurasi.bulan:
+      return Jiffy.parseFromDateTime(
+        startDate,
+      ).add(months: paket.durasi).dateTime;
+    case TipeDurasi.menit:
+      return startDate.add(Duration(minutes: paket.durasi));
+  }
+}
+
 class FormPelangganAktif extends StatefulWidget {
   final PelangganAktifModel? pelangganAktif;
   final PelangganOperasi pelangganOperasi;
@@ -43,7 +55,6 @@ class FormPelangganAktif extends StatefulWidget {
   final TransaksiOperasi transaksiOperasi;
   final DompetOperasi dompetOperasi;
   final KategoriOperasi kategoriOperasi;
-
   FormPelangganAktif({
     super.key,
     this.pelangganAktif,
@@ -53,12 +64,13 @@ class FormPelangganAktif extends StatefulWidget {
     TransaksiOperasi? transaksiOperasi,
     DompetOperasi? dompetOperasi,
     KategoriOperasi? kategoriOperasi,
-  }) : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
-       paketOperasi = paketOperasi ?? PaketOperasi(),
-       pelangganAktifOperasi = pelangganAktifOperasi ?? PelangganAktifOperasi(),
-       transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
-       dompetOperasi = dompetOperasi ?? DompetOperasi(),
-       kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
+  })  : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
+        paketOperasi = paketOperasi ?? PaketOperasi(),
+        pelangganAktifOperasi =
+            pelangganAktifOperasi ?? PelangganAktifOperasi(),
+        transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
+        dompetOperasi = dompetOperasi ?? DompetOperasi(),
+        kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
 
   @override
   State<FormPelangganAktif> createState() => _FormPelangganAktifState();
@@ -77,10 +89,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   DompetModel? _selectedDompet;
   KategoriModel? _selectedKategori;
 
-bool _isLoading = true;
-bool _gunakanPoin = false;
-
-int _totalPoinPelanggan = 0;
+  bool _isLoading = true;
+  bool _gunakanPoin = false;
+  int _saldoPoinPelanggan = 0;
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -88,6 +99,20 @@ int _totalPoinPelanggan = 0;
   StatusPembayaran _statusPembayaran = StatusPembayaran.lunas;
 
   bool get _isEditMode => widget.pelangganAktif != null;
+  int hitungPoinEfektif() {
+    if (_selectedPaket == null) return 0;
+
+    if (_gunakanPoin) {
+      return _selectedPaket!.poinPenukaran;
+    }
+
+    return 0;
+  }
+
+  int hitungSisaPoin() {
+    final pakai = hitungPoinEfektif();
+    return (_saldoPoinPelanggan - pakai).clamp(0, 999999999);
+  }
 
   @override
   void initState() {
@@ -103,6 +128,8 @@ int _totalPoinPelanggan = 0;
         widget.dompetOperasi.getDompet(),
         widget.kategoriOperasi.getKategori(),
       ]);
+      if (!mounted) return;
+      
       setState(() {
         _pelangganList = results[0] as List<PelangganModel>;
         _pelangganList.sort(
@@ -110,11 +137,9 @@ int _totalPoinPelanggan = 0;
         );
         _paketList = results[1] as List<PaketModel>;
 
-        // diubah: Memfilter dompet untuk hanya menampilkan yang tidak dihapus.
         final semuaDompet = results[2] as List<DompetModel>;
-        _daftarDompet = semuaDompet
-            .where((dompet) => !dompet.isDeleted)
-            .toList();
+        _daftarDompet =
+            semuaDompet.where((dompet) => !dompet.isDeleted).toList();
 
         _kategoriList = (results[3] as List<KategoriModel>)
             .where(
@@ -172,10 +197,10 @@ int _totalPoinPelanggan = 0;
         _isLoading = false;
       });
     } catch (e) {
+       if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
-      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
@@ -214,21 +239,6 @@ int _totalPoinPelanggan = 0;
     }
   }
 
-  DateTime _hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
-    switch (paket.tipe) {
-      case TipeDurasi.jam:
-        return startDate.add(Duration(hours: paket.durasi));
-      case TipeDurasi.hari:
-        return startDate.add(Duration(days: paket.durasi));
-      case TipeDurasi.bulan:
-        return Jiffy.parseFromDateTime(
-          startDate,
-        ).add(months: paket.durasi).dateTime;
-      case TipeDurasi.menit:
-        return startDate.add(Duration(minutes: paket.durasi));
-    }
-  }
-
   Future<bool> _saveForm() async {
     if (_formKey.currentState!.validate()) {
       final selectedPaket = _selectedPaket;
@@ -238,6 +248,31 @@ int _totalPoinPelanggan = 0;
           _selectedTime != null &&
           _selectedDompet != null &&
           _selectedKategori != null) {
+        if (_gunakanPoin) {
+          if (selectedPaket.poinPenukaran <= 0) {
+            if (!mounted) return false;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Paket ini tidak mendukung penukaran poin'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return false;
+          }
+
+          if (_saldoPoinPelanggan < selectedPaket.poinPenukaran) {
+            if (!mounted) return false;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Poin tidak cukup. Dibutuhkan: ${selectedPaket.poinPenukaran}, Saldo: $_saldoPoinPelanggan',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return false;
+          }
+        }
         final DateTime tanggalMulai = DateTime(
           _selectedDate!.year,
           _selectedDate!.month,
@@ -246,7 +281,7 @@ int _totalPoinPelanggan = 0;
           _selectedTime!.minute,
         );
 
-        final DateTime tanggalBerakhir = _hitungTanggalBerakhir(
+        final DateTime tanggalBerakhir = hitungTanggalBerakhir(
           tanggalMulai,
           selectedPaket,
         );
@@ -271,7 +306,6 @@ int _totalPoinPelanggan = 0;
               pelangganAktifData,
             );
           }
-
           final transaksi = TransaksiModel(
             id: const Uuid().v4(),
             tanggal: tanggalMulai,
@@ -287,8 +321,8 @@ int _totalPoinPelanggan = 0;
             idPaket: selectedPaket.id,
             namaPaket: selectedPaket.nama,
             statusPembayaran: _statusPembayaran,
-            poinYangDihasilkan: _selectedPaket!.jumlahPoin,
-            poinYangDigunakan: _gunakanPoin ? _selectedPaket!.jumlahPoin : 0,
+            poinYangDihasilkan: _gunakanPoin ? 0 : selectedPaket.poinHadiah,
+            poinYangDigunakan: _gunakanPoin ? selectedPaket.poinPenukaran : 0,
             diperbarui: DateTime.now(),
           );
           await widget.transaksiOperasi.tambahTransaksi(transaksi);
@@ -320,6 +354,7 @@ int _totalPoinPelanggan = 0;
           );
         }
       } else {
+         if (!mounted) return false;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -362,22 +397,21 @@ int _totalPoinPelanggan = 0;
                             child: Text(pelanggan.nama),
                           );
                         }).toList(),
-                       onChanged: (PelangganModel? newValue) async {
-  if (newValue == null) return;
+                        onChanged: (PelangganModel? newValue) async {
+                          if (newValue == null) return;
 
-  final totalPoin = await widget.transaksiOperasi
-      .getTotalPoinPelanggan(newValue.id);
+                          final saldoPoin = await widget.transaksiOperasi
+                              .getTotalPoin(newValue.id);
 
-  if (!mounted) return;
+                          if (!mounted) return;
 
-  setState(() {
-    _selectedPelanggan = newValue;
-    _totalPoinPelanggan = totalPoin;
-  });
-},
-                        validator: (value) => value == null
-                            ? 'Pelanggan tidak boleh kosong'
-                            : null,
+                          setState(() {
+                            _selectedPelanggan = newValue;
+                            _saldoPoinPelanggan = saldoPoin;
+                          });
+                        },
+                        validator: (value) =>
+                            value == null ? 'Pelanggan tidak boleh kosong' : null,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<PaketModel>(
@@ -442,9 +476,8 @@ int _totalPoinPelanggan = 0;
                             _selectedKategori = newValue;
                           });
                         },
-                        validator: (value) => value == null
-                            ? 'Kategori tidak boleh kosong'
-                            : null,
+                        validator: (value) =>
+                            value == null ? 'Kategori tidak boleh kosong' : null,
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -485,12 +518,12 @@ int _totalPoinPelanggan = 0;
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey[200],
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey[200],
                                 foregroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                    ? Colors.white
-                                    : Colors.black,
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -504,13 +537,11 @@ int _totalPoinPelanggan = 0;
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    _statusPembayaran ==
+                                backgroundColor: _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
-                                foregroundColor:
-                                    _statusPembayaran ==
+                                foregroundColor: _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Colors.white
                                     : Colors.black,
@@ -570,10 +601,10 @@ int _totalPoinPelanggan = 0;
                                     _selectedTime?.minute ?? 0,
                                   );
                                   final DateTime endDate =
-                                      _hitungTanggalBerakhir(
-                                        startDate,
-                                        _selectedPaket!,
-                                      );
+                                      hitungTanggalBerakhir(
+                                    startDate,
+                                    _selectedPaket!,
+                                  );
                                   return FormatTanggal.formatTanggalDanJam(
                                     endDate,
                                   );
@@ -584,7 +615,6 @@ int _totalPoinPelanggan = 0;
                             ],
                           ),
                           const SizedBox(height: 16),
-
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -598,7 +628,8 @@ int _totalPoinPelanggan = 0;
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     const Text(
                                       'Gunakan Poin',
@@ -606,13 +637,17 @@ int _totalPoinPelanggan = 0;
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-
                                     const SizedBox(height: 4),
-
+                                    if (_gunakanPoin)
+                                      Text(
+                                        'Poin dipakai: ${hitungPoinEfektif()}',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     Text(
-                                      _gunakanPoin
-                                          ? 'Poin akan digunakan'
-                                          : 'Poin tidak digunakan',
+                                      'Sisa poin: ${hitungSisaPoin()}',
                                       style: TextStyle(
                                         color: Colors.grey[600],
                                         fontSize: 12,
@@ -620,10 +655,8 @@ int _totalPoinPelanggan = 0;
                                     ),
                                   ],
                                 ),
-
                                 Switch(
                                   value: _gunakanPoin,
-
                                   onChanged: (bool value) {
                                     setState(() {
                                       _gunakanPoin = value;
@@ -635,31 +668,30 @@ int _totalPoinPelanggan = 0;
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24), // Spacer
-                      ElevatedButton(
-                        onPressed: () {
-                          final navigator = Navigator.of(context);
-                          () async {
-                            final success = await _saveForm();
-                            if (success) {
-                              await Future.delayed(
-                                const Duration(milliseconds: 500),
-                              );
-                              if (!mounted) return;
-                              navigator.pop(true);
-                            }
-                          }();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                        ),
-                        child: const Text('Simpan'),
-                      ),
                     ],
                   ),
                 ),
               ),
             ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            final success = await _saveForm();
+
+            if (success) {
+              await Future.delayed(const Duration(milliseconds: 500));
+              if (!mounted) return;
+              navigator.pop(true);
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: const Text('Simpan'),
+        ),
+      ),
     );
   }
 }

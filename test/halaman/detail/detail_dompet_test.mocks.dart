@@ -85,6 +85,22 @@ class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
           as _i5.Future<List<_i6.TransaksiModel>>);
 
   @override
+  _i5.Future<List<_i6.TransaksiModel>> getTransaksiByPelanggan(
+    String? pelangganId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiByPelanggan, [pelangganId]),
+            returnValue: _i5.Future<List<_i6.TransaksiModel>>.value(
+              <_i6.TransaksiModel>[],
+            ),
+            returnValueForMissingStub:
+                _i5.Future<List<_i6.TransaksiModel>>.value(
+                  <_i6.TransaksiModel>[],
+                ),
+          )
+          as _i5.Future<List<_i6.TransaksiModel>>);
+
+  @override
   _i5.Future<void> updateTransaksi(_i6.TransaksiModel? transaksiBaru) =>
       (super.noSuchMethod(
             Invocation.method(#updateTransaksi, [transaksiBaru]),
@@ -128,6 +144,33 @@ class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
             returnValueForMissingStub: _i5.Future<double>.value(0.0),
           )
           as _i5.Future<double>);
+
+  @override
+  _i5.Future<int> getPoinYangDihasilkan(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPoinYangDihasilkan, [idPelanggan]),
+            returnValue: _i5.Future<int>.value(0),
+            returnValueForMissingStub: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
+  _i5.Future<int> getPoinYangDigunakan(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPoinYangDigunakan, [idPelanggan]),
+            returnValue: _i5.Future<int>.value(0),
+            returnValueForMissingStub: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
+  _i5.Future<int> getTotalPoin(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTotalPoin, [idPelanggan]),
+            returnValue: _i5.Future<int>.value(0),
+            returnValueForMissingStub: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
 
   @override
   _i5.Future<void> sisipkanAtauPerbaruiBatch(List<_i6.TransaksiModel>? items) =>

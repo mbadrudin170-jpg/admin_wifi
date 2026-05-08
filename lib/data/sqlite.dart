@@ -1,4 +1,6 @@
 // path: lib/data/sqlite.dart
+// diubah: Menambahkan kolom status_pembayaran pada tabel transaksi dan menaikkan versi database.
+
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -11,8 +13,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // diubah: Versi database dinaikkan untuk migrasi tabel transaksi (penambahan poin).
-  static const int _databaseVersion = 32;
+  // diubah: Versi dinaikkan untuk migrasi tabel transaksi (penambahan kolom status_pembayaran).
+  static const int _databaseVersion = 34;
 
   DatabaseHelper._internal();
 
@@ -44,7 +46,7 @@ class DatabaseHelper {
       )
     ''';
 
-  // diubah: Menambahkan kolom poin_yang_dihasilkan dan poin_yang_digunakan.
+  // diubah: Menambahkan kolom status_pembayaran.
   static const String tabelTransaksi = '''
       CREATE TABLE transaksi(
         id TEXT PRIMARY KEY,
@@ -68,7 +70,8 @@ class DatabaseHelper {
         id_dompet_tujuan TEXT,
         nama_dompet_tujuan TEXT,
         poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0,
-        poin_yang_digunakan INTEGER NOT NULL DEFAULT 0
+        poin_yang_digunakan INTEGER NOT NULL DEFAULT 0,
+        status_pembayaran TEXT
       )
     ''';
 
@@ -125,16 +128,13 @@ class DatabaseHelper {
     log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
     // ... (logika upgrade yang sudah ada)
 
-    if (oldVersion < 32) {
+    if (oldVersion < 34) {
       try {
-        log('Menjalankan upgrade untuk versi < 32: Menambahkan kolom poin pada tabel transaksi.');
-        await db.execute('ALTER TABLE transaksi ADD COLUMN poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0');
-        await db.execute('ALTER TABLE transaksi ADD COLUMN poin_yang_digunakan INTEGER NOT NULL DEFAULT 0');
-        log('Kolom poin berhasil ditambahkan ke tabel transaksi.');
+        log('Menjalankan upgrade untuk versi < 34: Menambahkan kolom status_pembayaran pada tabel transaksi.');
+        await db.execute('ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT');
+        log('Kolom status_pembayaran berhasil ditambahkan ke tabel transaksi.');
       } catch (e) {
-        log('Error saat menambahkan kolom poin ke tabel transaksi: $e');
-        // Pertimbangkan untuk menangani error, misalnya dengan membuat ulang tabel
-        // atau memberikan notifikasi kepada pengguna.
+        log('Error saat menambahkan kolom status_pembayaran ke tabel transaksi: $e');
       }
     }
 
@@ -193,6 +193,7 @@ class DatabaseHelper {
       )
     ''';
 
+  // diubah: Menambahkan kolom poin_hadiah, poin_penukaran, dan isPublic.
   static const String _tabelPaket = '''
       CREATE TABLE paket(
         id TEXT PRIMARY KEY,
@@ -203,7 +204,10 @@ class DatabaseHelper {
         jumlahPoin INTEGER NOT NULL DEFAULT 0,
         diperbarui TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
-        diarsipkan TEXT
+        diarsipkan TEXT,
+        poin_hadiah INTEGER NOT NULL DEFAULT 0,
+        poin_penukaran INTEGER NOT NULL DEFAULT 0,
+        isPublic INTEGER NOT NULL DEFAULT 1
       )
     ''';
 

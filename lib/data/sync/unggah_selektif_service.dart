@@ -170,7 +170,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final dompet in daftarDompet) {
       final docRef = _firestore.collection('dompet').doc(dompet.id);
-      batch.set(docRef, dompet.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, dompet.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -340,7 +340,7 @@ class UnggahSelektifService {
     final batch = _firestore.batch();
     for (final data in daftarData) {
       final docRef = _firestore.collection('paket').doc(data.id);
-      batch.set(docRef, data.toMapForFirebase(), SetOptions(merge: true));
+      batch.set(docRef, data.toFirebase(), SetOptions(merge: true));
     }
 
     await batch.commit();

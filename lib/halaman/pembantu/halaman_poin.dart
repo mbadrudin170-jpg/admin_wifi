@@ -1,5 +1,5 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:flutter/material.dart';
 
 class HalamanPoin extends StatefulWidget {
@@ -12,7 +12,7 @@ class HalamanPoin extends StatefulWidget {
 }
 
 class _HalamanPoinState extends State<HalamanPoin> {
-  final pelangganOperasi = PelangganOperasi();
+  final transaksiOperasi = TransaksiOperasi();
 
   int totalPoin = 0;
 
@@ -26,7 +26,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   // Fungsi ini bertujuan untuk memuat total poin pelanggan.
   Future<void> _loadPoin() async {
-    final hasil = await pelangganOperasi.getTotalPoin(widget.idPelanggan);
+    final hasil = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
 
     if (!mounted) return;
 

@@ -1,7 +1,9 @@
 // path: test/model/paket_model_test.dart
-// diubah: Mengganti paket.toMap() menjadi paket.toMapForSqlite() di dalam test.
+// diubah: Menyesuaikan dengan nama metode yang benar (toMapForSqlite, fromMap, toMapForFirebase).
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:admin_wifi/model/paket_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   group('PaketModel', () {
@@ -72,8 +74,7 @@ void main() {
         );
 
         // Act: Konversi ke map
-        final map = paket
-            .toMapForSqlite(); // diubah: dari toMap() ke toMapForSqlite()
+        final map = paket.toMapForSqlite();
 
         // Assert: Periksa setiap field di dalam map
         expect(map['id'], 'id-test');

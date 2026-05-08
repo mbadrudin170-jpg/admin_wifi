@@ -912,14 +912,6 @@ class MockPelangganOperasi extends _i1.Mock implements _i22.PelangganOperasi {
             ),
           )
           as _i12.Future<List<_i23.PelangganModel>>);
-
-  @override
-  _i12.Future<int> getTotalPoin(String? idPelanggan) =>
-      (super.noSuchMethod(
-            Invocation.method(#getTotalPoin, [idPelanggan]),
-            returnValue: _i12.Future<int>.value(0),
-          )
-          as _i12.Future<int>);
 }
 
 /// A class which mocks [PengaturanOperasi].
@@ -1299,6 +1291,18 @@ class MockTransaksiOperasi extends _i1.Mock implements _i31.TransaksiOperasi {
           as _i12.Future<List<_i32.TransaksiModel>>);
 
   @override
+  _i12.Future<List<_i32.TransaksiModel>> getTransaksiByPelanggan(
+    String? pelangganId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiByPelanggan, [pelangganId]),
+            returnValue: _i12.Future<List<_i32.TransaksiModel>>.value(
+              <_i32.TransaksiModel>[],
+            ),
+          )
+          as _i12.Future<List<_i32.TransaksiModel>>);
+
+  @override
   _i12.Future<void> updateTransaksi(_i32.TransaksiModel? transaksiBaru) =>
       (super.noSuchMethod(
             Invocation.method(#updateTransaksi, [transaksiBaru]),
@@ -1339,6 +1343,30 @@ class MockTransaksiOperasi extends _i1.Mock implements _i31.TransaksiOperasi {
             returnValue: _i12.Future<double>.value(0.0),
           )
           as _i12.Future<double>);
+
+  @override
+  _i12.Future<int> getPoinYangDihasilkan(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPoinYangDihasilkan, [idPelanggan]),
+            returnValue: _i12.Future<int>.value(0),
+          )
+          as _i12.Future<int>);
+
+  @override
+  _i12.Future<int> getPoinYangDigunakan(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPoinYangDigunakan, [idPelanggan]),
+            returnValue: _i12.Future<int>.value(0),
+          )
+          as _i12.Future<int>);
+
+  @override
+  _i12.Future<int> getTotalPoin(String? idPelanggan) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTotalPoin, [idPelanggan]),
+            returnValue: _i12.Future<int>.value(0),
+          )
+          as _i12.Future<int>);
 
   @override
   _i12.Future<void> sisipkanAtauPerbaruiBatch(

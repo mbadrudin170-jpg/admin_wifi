@@ -1,5 +1,6 @@
 // path: test/data/sync/unggah_data_test.dart
-// diubah: Menghapus pengujian yang tidak relevan setelah perbaikan logika.
+// diperbaiki: Mengganti pemanggilan toFirestore menjadi toFirebase untuk DompetModel.
+
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -75,13 +76,14 @@ void main() {
             diperbarui: DateTime(2023, 1, 2),
             isDeleted: false,
           );
-          await db.insert('dompet', dompet.toMapForSqlite());
+          
+          await db.insert('dompet', dompet.toSqlite());
 
           await layananUnggahData.unggahDataGenerik<DompetModel>(
             'dompet',
             'dompet_col',
             DompetModel.fromMap,
-            (m) => m.toMapForFirebase(),
+            (m) => m.toFirebase(), // diperbaiki
             lastSyncTime,
           );
 

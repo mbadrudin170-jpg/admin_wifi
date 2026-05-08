@@ -1139,8 +1139,123 @@ Yang paling penting sekarang sebenarnya bukan menambah aturan lagi, tetapi:
 Karena terlalu banyak aturan tanpa prioritas bisa membuat workflow menjadi lambat dan terlalu birokratis 😄
 
 ___________________
+Baik, berikut adalah aturan yang telah diformalkan dengan bahasa profesional, lengkap dengan penyelesaian bentrokan, dan siap Anda salin-tempel sekaligus.
+
+---
+
+**Pemaparan Aturan Operasional Tim Pengujian**
+
+Selamat pagi/siang, Tim. Saya ingin menetapkan tiga pilar aturan utama yang akan mengatur interaksi kita dengan sistem AI dalam konteks pengelolaan dan pembuatan pengujian. Aturan ini bersifat mengikat, tidak dapat dinegosiasikan, dan harus dipahami oleh setiap anggota tim. Tujuannya adalah menciptakan lingkungan kerja yang presisi, akuntabel, dan bebas dari kesalahan interpretasi.
+
+Berikut adalah ketiga aturan tersebut beserta penjabaran detailnya:
+
+---
+
+### Aturan 1: Larangan Mutlak Modifikasi Identitas Pengujian oleh AI
+
+**Pernyataan Formal:**
+Kecerdasan buatan (AI) tidak memiliki otorisasi untuk mengubah, menyunting, memodifikasi, atau menimpa atribut "Nama Pengujian" maupun "Deskripsi Pengujian" dari seluruh test case yang telah terdaftar di dalam sistem, baik yang sudah tereksekusi maupun yang masih dalam status draf.
+
+**Rincian Teknis:**
+- **Cakupan Larangan:** Mencakup segala bentuk perubahan, termasuk namun tidak terbatas pada: penggantian kata, penyesuaian format, penambahan keterangan, penghapusan sebagian teks, atau penulisan ulang secara keseluruhan.
+- **Subjek yang Dilarang:** Hanya dan secara spesifik tertuju pada entitas AI. AI bertindak sebagai asisten yang tidak memiliki hak sunting terhadap kolom Nama dan Deskripsi.
+- **Pemilik Hak Eksklusif:** Hak untuk mengubah Nama Pengujian dan Deskripsi Pengujian secara mutlak dan eksklusif berada di tangan **pengguna manusia (user)** yang berwenang. Tidak ada pengecualian bagi AI dalam kondisi apa pun.
+
+**Rasionalisasi Profesional:**
+Aturan ini diberlakukan untuk menjaga integritas data, memastikan ketertelusuran (traceability), dan menghindari kerusakan tidak disengaja pada dokumentasi pengujian yang telah disusun berdasarkan analisis dan keputusan manusia.
+
+---
+
+### Aturan 2: Mandat Replikasi Presisi-Penuh dalam Pembuatan Pengujian Baru
+
+**Pernyataan Formal:**
+Ketika AI menerima instruksi untuk menciptakan atau menghasilkan sebuah pengujian baru, AI wajib memproduksi artefak pengujian yang secara struktural dan konten identik sama persis dengan apa yang dikehendaki atau diinginkan oleh deskripsi yang diberikan. Tidak boleh terdapat penyimpangan, improvisasi, atau interpretasi subjektif dari AI.
+
+**Rincian Teknis:**
+- **Kesamaan Struktur:** Jumlah langkah, urutan eksekusi, dan logika alur yang tertera dalam deskripsi harus direproduksi tanpa perubahan sekecil apa pun.
+- **Kesamaan Konten:** Setiap parameter masukan, data uji spesifik, kondisi awal, dan ekspektasi hasil yang tertulis dalam deskripsi harus menjadi elemen eksak dalam pengujian yang dibangun oleh AI. Generalisasi atau substitusi data tidak diperbolehkan.
+- **Kesamaan Tujuan:** Maksud dan sasaran akhir dari pengujian, sebagaimana diekspresikan dalam deskripsi, harus menjadi target yang dicapai oleh pengujian yang dihasilkan. AI tidak diperkenankan mengubah atau menambahkan tujuan di luar yang tertera.
+
+**Rasionalisasi Profesional:**
+Aturan ini menempatkan AI sebagai instrumen eksekusi presisi, bukan sebagai perancang independen. Hal ini menjamin bahwa setiap pengujian yang tercipta merupakan representasi sempurna dari kehendak eksplisit perancangnya (anggota tim), sehingga menghilangkan risiko misinterpretasi dan menghemat waktu validasi.
+
+---
+
+### Aturan 3: Larangan Mutlak Penghapusan Pengujian oleh AI
+
+**Pernyataan Formal:**
+Kecerdasan buatan (AI) dilarang keras melakukan tindakan penghapusan terhadap test case, skenario pengujian, atau artefak pengujian apa pun yang berada di dalam repositori sistem. Perintah menghapus tidak boleh dieksekusi oleh AI, terlepas dari bagaimana perintah tersebut diformulasikan.
+
+**Rincian Teknis:**
+- **Cakupan Larangan:** Mencakup penghapusan permanen, pemindahan ke keranjang sampah, pengarsipan yang bersifat destruktif, atau segala mekanisme yang mengakibatkan hilangnya akses terhadap data pengujian yang ada.
+- **Tidak Ada Pengecualian:** Bahkan jika AI menerima perintah pengguna yang secara eksplisit meminta penghapusan, AI harus menolak eksekusi dan memberikan notifikasi bahwa tindakan tersebut di luar kewenangannya.
+- **Pemilik Hak Eksklusif:** Hak untuk melakukan penghapusan pengujian secara penuh dan eksklusif dimiliki oleh **pengguna manusia (user)** yang berwenang melalui mekanisme sistem yang telah ditentukan.
+
+**Rasionalisasi Profesional:**
+Aturan ini adalah pagar pengaman (safeguard) kritis untuk melindungi aset data pengujian dari kehilangan tidak disengaja, perintah destruktif yang ambigu, atau potensi kesalahan interpretasi AI terhadap maksud pengguna. Setiap penghapusan harus merupakan keputusan sadar dan tindakan langsung dari manusia yang bertanggung jawab.
+
+---
+
+### Analisis dan Resolusi Bentrokan Antar-Aturan
+
+Telah dilakukan analisis terhadap potensi konflik operasional antar ketiga aturan di atas. Berikut adalah hasil identifikasi dan keputusan profesional yang diambil:
+
+**Potensi Bentrokan:**
+- **Aturan 2 vs Aturan 1:** Aturan 2 memerintahkan AI untuk membuat pengujian baru yang "sama persis" dengan deskripsi yang diberikan. Ini secara implisit memerintahkan AI untuk menuliskan Nama dan Deskripsi untuk pengujian baru tersebut. Di sisi lain, Aturan 1 melarang AI mengubah Nama dan Deskripsi pengujian. Apakah tindakan penulisan pertama (kreasi) dianggap sebagai "pengubahan"?
+
+**Resolusi Profesional:**
+Kedua aturan ini tidak benar-benar bentrok, melainkan beroperasi pada domain yang berbeda. Aturan 1 berlaku pada pengujian yang **sudah eksis**, sementara Aturan 2 berlaku pada momen **kreasi pengujian baru**. Untuk itu, ditetapkan klarifikasi sebagai berikut:
+
+- Aturan 2 (Replikasi Presisi-Penuh) adalah otoritas **penciptaan awal**. AI diizinkan menulis Nama dan Deskripsi pengujian baru hanya pada saat pertama kali pengujian itu dibuat, dan tulisan itu harus persis seperti deskripsi dari pengguna.
+- Segera setelah artefak pengujian baru itu tersimpan di sistem, Aturan 1 (Larangan Modifikasi) langsung berlaku secara penuh. AI tidak boleh lagi menyentuh Nama dan Deskripsi yang baru saja dituliskannya itu. Setiap perubahan selanjutnya menjadi wewenang eksklusif pengguna manusia.
+
+**Keputusan Final:** Tidak ada aturan yang dihapus atau dikalahkan. Keduanya harmonis dengan batasan temporal yang jelas: **Kreasi oleh AI diperbolehkan; Modifikasi setelah kreasi dilarang.**
+
+---
+Tentu, berikut adalah aturan yang telah diformalkan, diperjelas, dan dikelompokkan. Aturan yang bentrok telah diselesaikan dengan memilih opsi yang paling profesional. Anda dapat langsung menyalin (copy) seluruh teks di bawah ini.
+
+---
 
 
+# ATURAN UNTUK TEST
+
+
+**Panduan dan Aturan Kerja untuk Pengujian Berbasis AI**
+
+Selamat pagi/siang, Tim. Saya ingin menyampaikan beberapa aturan dan ekspektasi inti dalam proyek ini untuk memastikan kita semua memiliki pemahaman dan standar kualitas yang sama. Aturan ini bersifat mutlak dan dirancang untuk menjaga integritas, konsistensi, serta akuntabilitas pekerjaan kita. Mohon disimak dengan saksama.
+
+### Kelompok Aturan 1: Integritas dan Kepemilikan Data Uji
+
+**1.1. Larangan Mutlak Modifikasi Data Inti oleh AI**
+*   **Aturan:** AI tidak diperkenankan untuk mengubah, memodifikasi, menambah, atau mengurangi elemen inti dari data pengujian, yang meliputi **nama test** dan **deskripsi test**.
+*   **Detail:** Elemen-elemen ini adalah kebenaran dasar (*source of truth*) yang menjadi acuan kita. Setiap perubahan, sekecil apa pun, hanya boleh dilakukan langsung oleh **pengguna (user)** secara manual.
+*   **Tujuan:** Untuk mencegah perubahan yang tidak sah, menjaga ketertelusuran, dan memastikan konsistensi data di seluruh tim.
+
+**1.2. Prinsip "Apa yang Diminta, Itu yang Dibuat"**
+*   **Aturan:** AI wajib membuatkan atau menghasilkan pengujian yang isi dan strukturnya **sama persis** dengan apa yang diminta atau diinginkan oleh deskripsi test.
+*   **Detail:** Jika deskripsi test menyatakan "Lakukan pengujian A dengan parameter B dan validasi output C", maka AI tidak boleh menginterpretasi sendiri, mengurangi langkah, atau menambahkan validasi di luar C. Hasil akhir harus menjadi cerminan 100% dari permintaan yang tertulis dalam deskripsi.
+
+### Kelompok Aturan 2: Manajemen dan Pelestarian Aset Uji
+
+**2.1. Larangan Penghapusan Test**
+*   **Aturan:** AI dilarang keras untuk menghapus test yang sudah ada, dalam kondisi apa pun.
+*   **Detail:** Tidak ada pengecualian. Test yang sudah dibuat adalah aset historis yang mungkin masih relevan untuk audit, regresi, atau referensi di masa depan. Jika sebuah test dianggap usang, proses penonaktifan hanya boleh dilakukan oleh user.
+
+**2.2. Pengelompokan Test Berdasarkan Group dalam File**
+*   **Aturan:** Semua test wajib dikelompokkan dan diorganisasikan secara logis berdasarkan **group** yang terdefinisi di dalam file terkait.
+*   **Detail:** Saat menampilkan atau menyusun test, AI harus menyajikannya dalam struktur hierarkis sesuai dengan "Group" masing-masing. Hal ini untuk memudahkan navigasi, pencarian, dan pemahaman terhadap cakupan pengujian kita.
+
+### Kelompok Aturan 3: Analisis Proaktif dan Pengembangan Kode Test
+
+**3.1. Identifikasi dan Notifikasi Potensi Pengujian Tambahan**
+*   **Aturan:** AI wajib secara proaktif mengidentifikasi dan memberitahukan kepada saya apabila menemukan kode, fungsi, atau modul yang **masih bisa dan relevan untuk di-test**, namun belum memiliki test case.
+*   **Detail:** Ini adalah tugas analisis kode statis secara pasif. AI cukup memberitahukan, contohnya: "Saya melihat fungsi `X` pada modul `Y` belum memiliki test case. Apakah Anda ingin saya buatkan?".
+*   **Resolusi Bentrok (Profesional):** Aturan ini lebih profesional daripada sekadar "memberi tahu jika ada kode yang bisa dites", karena menjadikannya sebuah *kewajiban* analitis, bukan sekadar respons pasif.
+
+**3.2. Mandat Wajib untuk Logika Pembuatan Kode Test**
+*   **Aturan:** Untuk logika atau alur yang akan diuji, AI **wajib memberitahukan** kepada saya bahwa AI harus membuatkan kode test untuk logika tersebut. Ini bukan permintaan, melainkan sebuah pemberitahuan wajib sebelum mengeksekusi.
+*   **Detail:** AI tidak boleh langsung membuat kode test tanpa konfirmasi. Siklusnya adalah: Analisis Logika -> Pemberitahuan Wajib: "Untuk menguji logika [Nama Logika], saya harus membuatkan kode test-nya. Apakah Anda setuju?" -> Persetujuan User -> Eksekusi Pembuatan Kode.
+*   **Pembenaran Profesional:** Ini adalah *bentrok* yang diselesaikan dengan memilih pendekatan paling profesional. Perintah di atas lebih dari sekadar memberi tahu; AI harus **secara eksplisit menyatakan mandatnya** untuk menulis kode test sebelum melanjutkan. Hal ini krusial untuk menjaga kendali penuh di tangan user atas kapan dan apa yang akan dieksekusi oleh AI, mencegah potensi pemborosan sumber daya atau pembuatan kode yang tidak diinginkan.
 ## **Modifikasi Kode & Manajemen Dependensi**
 
 
