@@ -3,9 +3,11 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
-import 'package:admin_wifi/services/notifikasi_servis.dart' as _i2;
+import 'package:admin_wifi/services/notifikasi_servis.dart' as _i3;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -23,55 +25,77 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeFlutterLocalNotificationsPlugin_0 extends _i1.SmartFake
+    implements _i2.FlutterLocalNotificationsPlugin {
+  _FakeFlutterLocalNotificationsPlugin_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(parent, parentInvocation);
+}
+
 /// A class which mocks [NotifikasiServis].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNotifikasiServis extends _i1.Mock implements _i2.NotifikasiServis {
+class MockNotifikasiServis extends _i1.Mock implements _i3.NotifikasiServis {
   MockNotifikasiServis() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> inisialisasi() =>
+  _i2.FlutterLocalNotificationsPlugin get plugin =>
+      (super.noSuchMethod(
+            Invocation.getter(#plugin),
+            returnValue: _FakeFlutterLocalNotificationsPlugin_0(
+              this,
+              Invocation.getter(#plugin),
+            ),
+          )
+          as _i2.FlutterLocalNotificationsPlugin);
+
+  @override
+  _i4.Future<void> inisialisasi() =>
       (super.noSuchMethod(
             Invocation.method(#inisialisasi, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> requestPermissions() =>
+  _i4.Future<_i2.NotificationAppLaunchDetails?>
+  getDetailPeluncuranNotifikasi() =>
       (super.noSuchMethod(
-            Invocation.method(#requestPermissions, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#getDetailPeluncuranNotifikasi, []),
+            returnValue: _i4.Future<_i2.NotificationAppLaunchDetails?>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<_i2.NotificationAppLaunchDetails?>);
 
   @override
-  _i3.Future<void> tampilkanNotifikasiLangsung({
+  _i4.Future<void> tampilkanNotifikasiLangsung({
     required int? id,
     required String? title,
     required String? body,
+    String? payload,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#tampilkanNotifikasiLangsung, [], {
               #id: id,
               #title: title,
               #body: body,
+              #payload: payload,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> jadwalNotifikasi({
+  _i4.Future<void> jadwalNotifikasi({
     required int? id,
     required String? title,
     required String? body,
     required DateTime? jadwal,
+    String? payload,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#jadwalNotifikasi, [], {
@@ -79,27 +103,20 @@ class MockNotifikasiServis extends _i1.Mock implements _i2.NotifikasiServis {
               #title: title,
               #body: body,
               #jadwal: jadwal,
+              #payload: payload,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> batalNotifikasi(int? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#batalNotifikasi, [id]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> perbaruiJadwalNotifikasi({
+  _i4.Future<void> perbaruiJadwalNotifikasi({
     required int? id,
     required String? title,
     required String? body,
     required DateTime? jadwal,
+    String? payload,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#perbaruiJadwalNotifikasi, [], {
@@ -107,9 +124,28 @@ class MockNotifikasiServis extends _i1.Mock implements _i2.NotifikasiServis {
               #title: title,
               #body: body,
               #jadwal: jadwal,
+              #payload: payload,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> batalNotifikasi(int? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#batalNotifikasi, [id]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> batalSemuaNotifikasi() =>
+      (super.noSuchMethod(
+            Invocation.method(#batalSemuaNotifikasi, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }

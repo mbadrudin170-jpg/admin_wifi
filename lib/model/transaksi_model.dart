@@ -1,8 +1,8 @@
 // path: lib/model/transaksi_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
+// diubah: ID sekarang wajib dan tidak dibuat secara otomatis di dalam model.
 import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
 
 enum TipeTransaksi { pemasukan, pengeluaran, transfer }
 
@@ -32,7 +32,7 @@ class TransaksiModel {
   final bool isDeleted;
 
   TransaksiModel({
-    String? id,
+    required this.id,
     required this.tanggal,
     required this.keterangan,
     required this.jumlah,
@@ -55,7 +55,7 @@ class TransaksiModel {
     this.diperbarui,
     this.diarsipkan,
     this.isDeleted = false,
-  }) : id = id ?? const Uuid().v4();
+  });
 
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
@@ -67,8 +67,12 @@ class TransaksiModel {
 
   // diubah: Nama metode dari fromMap menjadi fromSqlite
   factory TransaksiModel.fromSqlite(Map<String, dynamic> map) {
+    final id = map['id'] as String?;
+    if (id == null) {
+      throw ArgumentError('ID tidak boleh null dari SQLite');
+    }
     return TransaksiModel(
-      id: map['id'] as String? ?? const Uuid().v4(),
+      id: id,
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
       keterangan: map['keterangan'] ?? '',
       jumlah: (map['jumlah'] as num? ?? 0).toDouble(),

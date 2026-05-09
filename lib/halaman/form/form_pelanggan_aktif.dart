@@ -11,6 +11,7 @@
 // diubah: Memperbaiki bug tampilan poin.
 // ditambahkan: Logika `_hitungTanggalBerakhir` diekstrak menjadi fungsi top-level `hitungTanggalBerakhir` untuk kemudahan pengujian.
 // diperbaiki: Kesalahan sintaks pada string multi-baris di SnackBar.
+// diperbaiki: Logika pembuatan dan pembaruan PelangganAktif dan Transaksi yang terkoordinasi.
 
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -64,13 +65,12 @@ class FormPelangganAktif extends StatefulWidget {
     TransaksiOperasi? transaksiOperasi,
     DompetOperasi? dompetOperasi,
     KategoriOperasi? kategoriOperasi,
-  })  : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
-        paketOperasi = paketOperasi ?? PaketOperasi(),
-        pelangganAktifOperasi =
-            pelangganAktifOperasi ?? PelangganAktifOperasi(),
-        transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
-        dompetOperasi = dompetOperasi ?? DompetOperasi(),
-        kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
+  }) : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
+       paketOperasi = paketOperasi ?? PaketOperasi(),
+       pelangganAktifOperasi = pelangganAktifOperasi ?? PelangganAktifOperasi(),
+       transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
+       dompetOperasi = dompetOperasi ?? DompetOperasi(),
+       kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
 
   @override
   State<FormPelangganAktif> createState() => _FormPelangganAktifState();
@@ -129,7 +129,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         widget.kategoriOperasi.getKategori(),
       ]);
       if (!mounted) return;
-      
+
       setState(() {
         _pelangganList = results[0] as List<PelangganModel>;
         _pelangganList.sort(
@@ -138,8 +138,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _paketList = results[1] as List<PaketModel>;
 
         final semuaDompet = results[2] as List<DompetModel>;
-        _daftarDompet =
-            semuaDompet.where((dompet) => !dompet.isDeleted).toList();
+        _daftarDompet = semuaDompet
+            .where((dompet) => !dompet.isDeleted)
+            .toList();
 
         _kategoriList = (results[3] as List<KategoriModel>)
             .where(
@@ -197,7 +198,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _isLoading = false;
       });
     } catch (e) {
-       if (!mounted) return;
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -286,47 +287,60 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           selectedPaket,
         );
 
+        // ditambahkan: Tentukan ID di awal untuk konsistensi
+        final String pelangganAktifId = _isEditMode
+            ? widget.pelangganAktif!.id
+            : const Uuid().v4();
+        final String transaksiId =
+            _isEditMode && widget.pelangganAktif?.idTransaksi != null
+            ? widget.pelangganAktif!.idTransaksi!
+            : const Uuid().v4();
+
         final pelangganAktifData = PelangganAktifModel(
-          id: _isEditMode ? widget.pelangganAktif!.id : '',
+          id: pelangganAktifId,
           idPelanggan: _selectedPelanggan!.id,
           idPaket: selectedPaket.id,
+          idTransaksi: transaksiId, // ditambahkan: isi idTransaksi
           tanggalMulai: tanggalMulai,
           tanggalBerakhir: tanggalBerakhir,
           status: _statusPembayaran,
           diperbarui: DateTime.now(),
         );
 
+        final transaksi = TransaksiModel(
+          id: transaksiId, // diubah: Gunakan ID yang sudah ditentukan
+          tanggal: tanggalMulai,
+          keterangan: '${selectedPaket.nama} - ${_selectedPelanggan!.nama}',
+          jumlah: selectedPaket.harga.toDouble(),
+          tipe: TipeTransaksi.pemasukan,
+          idDompet: _selectedDompet!.id,
+          namaDompet: _selectedDompet!.namaDompet,
+          idKategori: _selectedKategori!.id,
+          namaKategori: _selectedKategori!.nama,
+          idPelanggan: _selectedPelanggan!.id,
+          namaPelanggan: _selectedPelanggan!.nama,
+          idPaket: selectedPaket.id,
+          namaPaket: selectedPaket.nama,
+          statusPembayaran: _statusPembayaran,
+          poinYangDihasilkan: _gunakanPoin ? 0 : selectedPaket.poinHadiah,
+          poinYangDigunakan: _gunakanPoin ? selectedPaket.poinPenukaran : 0,
+          diperbarui: DateTime.now(),
+        );
+
         try {
           if (_isEditMode) {
+            // diubah: Urutan diubah untuk konsistensi
+            await widget.transaksiOperasi.updateTransaksi(transaksi);
             await widget.pelangganAktifOperasi.updatePelangganAktif(
               pelangganAktifData,
             );
           } else {
+            // diubah: Urutan diubah, transaksi dulu baru pelanggan aktif
+            await widget.transaksiOperasi.tambahTransaksi(transaksi);
             await widget.pelangganAktifOperasi.createPelangganAktif(
               pelangganAktifData,
             );
           }
-          final transaksi = TransaksiModel(
-            id: const Uuid().v4(),
-            tanggal: tanggalMulai,
-            keterangan: '${selectedPaket.nama} - ${_selectedPelanggan!.nama}',
-            jumlah: selectedPaket.harga.toDouble(),
-            tipe: TipeTransaksi.pemasukan,
-            idDompet: _selectedDompet!.id,
-            namaDompet: _selectedDompet!.namaDompet,
-            idKategori: _selectedKategori!.id,
-            namaKategori: _selectedKategori!.nama,
-            idPelanggan: _selectedPelanggan!.id,
-            namaPelanggan: _selectedPelanggan!.nama,
-            idPaket: selectedPaket.id,
-            namaPaket: selectedPaket.nama,
-            statusPembayaran: _statusPembayaran,
-            poinYangDihasilkan: _gunakanPoin ? 0 : selectedPaket.poinHadiah,
-            poinYangDigunakan: _gunakanPoin ? selectedPaket.poinPenukaran : 0,
-            diperbarui: DateTime.now(),
-          );
-          await widget.transaksiOperasi.tambahTransaksi(transaksi);
-
           if (!mounted) return false;
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -354,7 +368,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           );
         }
       } else {
-         if (!mounted) return false;
+        if (!mounted) return false;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -410,8 +424,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _saldoPoinPelanggan = saldoPoin;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Pelanggan tidak boleh kosong' : null,
+                        validator: (value) => value == null
+                            ? 'Pelanggan tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<PaketModel>(
@@ -476,8 +491,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedKategori = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Kategori tidak boleh kosong' : null,
+                        validator: (value) => value == null
+                            ? 'Kategori tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -518,12 +534,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey[200],
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[200],
                                 foregroundColor:
                                     _statusPembayaran == StatusPembayaran.lunas
-                                        ? Colors.white
-                                        : Colors.black,
+                                    ? Colors.white
+                                    : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -537,11 +553,13 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _statusPembayaran ==
+                                backgroundColor:
+                                    _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
-                                foregroundColor: _statusPembayaran ==
+                                foregroundColor:
+                                    _statusPembayaran ==
                                         StatusPembayaran.belumLunas
                                     ? Colors.white
                                     : Colors.black,
@@ -602,9 +620,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                   );
                                   final DateTime endDate =
                                       hitungTanggalBerakhir(
-                                    startDate,
-                                    _selectedPaket!,
-                                  );
+                                        startDate,
+                                        _selectedPaket!,
+                                      );
                                   return FormatTanggal.formatTanggalDanJam(
                                     endDate,
                                   );
@@ -628,8 +646,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Text(
                                       'Gunakan Poin',

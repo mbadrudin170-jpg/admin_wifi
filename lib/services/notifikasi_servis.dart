@@ -1,152 +1,59 @@
 // path: lib/services/notifikasi_servis.dart
-// diubah: Memperbaiki pemanggilan fungsi batalNotifikasi.
-import 'package:flutter/material.dart';
+// diubah: Memperbaiki semua pemanggilan metode ke plugin untuk menggunakan argumen bernama yang benar.
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-@pragma('vm:entry-point')
-void onDidReceiveNotificationResponse(
-  NotificationResponse notificationResponse,
-) async {
-  debugPrint('🔔 Notifikasi di-tap: ID=${notificationResponse.id}');
-}
-
 class NotifikasiServis {
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin plugin;
 
-  static const String channelId = 'admin_wifi_channel';
-  static const String channelName = 'Admin WiFi Notifications';
+  NotifikasiServis() : plugin = FlutterLocalNotificationsPlugin();
+
+  @visibleForTesting
+  NotifikasiServis.internal(this.plugin);
 
   Future<void> inisialisasi() async {
-    try {
-      const AndroidInitializationSettings androidSettings =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const ios = DarwinInitializationSettings();
+    const settings = InitializationSettings(android: android, iOS: ios);
 
-      const DarwinInitializationSettings iosSettings =
-          DarwinInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
-            defaultPresentAlert: true,
-            defaultPresentBadge: true,
-            defaultPresentSound: true,
-          );
-
-      const InitializationSettings initSettings = InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-        macOS: iosSettings,
-      );
-
-      await _flutterLocalNotificationsPlugin.initialize(
-        settings: initSettings,
-        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
-        onDidReceiveBackgroundNotificationResponse:
-            onDidReceiveNotificationResponse,
-      );
-
-      const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        channelId,
-        channelName,
-        description: 'Notifikasi untuk aplikasi Admin WiFi',
-        importance: Importance.max,
-        playSound: true,
-        enableVibration: true,
-        enableLights: true,
-        ledColor: Colors.blue,
-        showBadge: true,
-      );
-
-      final androidPlugin = _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-
-      await androidPlugin?.createNotificationChannel(channel);
-
-      tz.initializeTimeZones();
-      tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-
-      debugPrint('✅ INISIALISASI BERHASIL');
-    } catch (e) {
-      debugPrint('❌ ERROR INISIALISASI: $e');
-      rethrow;
-    }
+    await plugin.initialize(
+      settings: settings, // diubah: menggunakan argumen bernama
+      onDidReceiveNotificationResponse: (response) {
+        developer.log(
+          'Notifikasi diterima dengan payload: \${response.payload}',
+        );
+      },
+    );
+    developer.log('Layanan Notifikasi berhasil diinisialisasi.');
   }
 
-  Future<void> requestPermissions() async {
-    try {
-      final AndroidFlutterLocalNotificationsPlugin? androidImpl =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
-
-      if (androidImpl != null) {
-        final bool? granted = await androidImpl
-            .requestNotificationsPermission();
-        debugPrint('🔔 IZIN NOTIFIKASI: ${granted == true ? "✅ YES" : "❌ NO"}');
-      }
-
-      final IOSFlutterLocalNotificationsPlugin? iosImpl =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin
-              >();
-      if (iosImpl != null) {
-        await iosImpl.requestPermissions(alert: true, badge: true, sound: true);
-      }
-
-      debugPrint('✅ IZIN SELESAI');
-    } catch (e) {
-      debugPrint('❌ ERROR IZIN: $e');
-    }
+  Future<NotificationAppLaunchDetails?> getDetailPeluncuranNotifikasi() async {
+    return await plugin.getNotificationAppLaunchDetails();
   }
 
   Future<void> tampilkanNotifikasiLangsung({
     required int id,
     required String title,
     required String body,
+    String? payload,
   }) async {
-    try {
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            channelId,
-            channelName,
-            channelDescription: 'Notifikasi Admin WiFi',
-            importance: Importance.max,
-            priority: Priority.high,
-            showWhen: true,
-            icon: '@mipmap/ic_launcher',
-            playSound: true,
-            enableVibration: true,
-          );
-
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
-
-      const NotificationDetails details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
-
-      await _flutterLocalNotificationsPlugin.show(
-        id: id,
-        title: title,
-        body: body,
-        notificationDetails: details,
-      );
-
-      debugPrint('✅ NOTIFIKASI TERKIRIM: $id - $title');
-    } catch (e) {
-      debugPrint('❌ GAGAL: $e');
-      rethrow;
-    }
+    const androidDetails = AndroidNotificationDetails(
+      'notifikasi_langsung',
+      'Notifikasi Langsung',
+      channelDescription: 'Channel untuk notifikasi yang ditampilkan segera.',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    await plugin.show(
+      id: id, // diubah: menggunakan argumen bernama
+      title: title,
+      body: body,
+      notificationDetails: notificationDetails,
+      payload: payload,
+    );
   }
 
   Future<void> jadwalNotifikasi({
@@ -154,50 +61,27 @@ class NotifikasiServis {
     required String title,
     required String body,
     required DateTime jadwal,
+    String? payload,
   }) async {
-    try {
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            channelId,
-            channelName,
-            channelDescription: 'Notifikasi Admin WiFi',
-            importance: Importance.max,
-            priority: Priority.high,
-            showWhen: true,
-            icon: '@mipmap/ic_launcher',
-            playSound: true,
-            enableVibration: true,
-          );
+    const androidDetails = AndroidNotificationDetails(
+      'notifikasi_terjadwal',
+      'Notifikasi Terjadwal',
+      channelDescription: 'Channel untuk notifikasi yang dijadwalkan.',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const notificationDetails = NotificationDetails(android: androidDetails);
 
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
-
-      const NotificationDetails details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
-
-      await _flutterLocalNotificationsPlugin.zonedSchedule(
-        id: id,
-        title: title,
-        body: body,
-        scheduledDate: tz.TZDateTime.from(jadwal, tz.local),
-        notificationDetails: details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      );
-
-      debugPrint('✅ TERJADWAL: $id pada $jadwal');
-    } catch (e) {
-      debugPrint('❌ GAGAL JADWAL: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> batalNotifikasi(int id) async {
-    await _flutterLocalNotificationsPlugin.cancel(id: id);
+    await plugin.zonedSchedule(
+      id: id, // diubah: menggunakan argumen bernama
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(jadwal, tz.local),
+      notificationDetails: notificationDetails,
+      payload: payload,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      // dihapus: uiLocalNotificationDateInterpretation karena tidak ada di signature utama
+    );
   }
 
   Future<void> perbaruiJadwalNotifikasi({
@@ -205,13 +89,23 @@ class NotifikasiServis {
     required String title,
     required String body,
     required DateTime jadwal,
+    String? payload,
   }) async {
-    try {
-      await jadwalNotifikasi(id: id, title: title, body: body, jadwal: jadwal);
-      debugPrint('✅ JADWAL DIPERBARUI: $id pada $jadwal');
-    } catch (e) {
-      debugPrint('❌ GAGAL PERBARUI JADWAL: $e');
-      rethrow;
-    }
+    await batalNotifikasi(id);
+    await jadwalNotifikasi(
+      id: id,
+      title: title,
+      body: body,
+      jadwal: jadwal,
+      payload: payload,
+    );
+  }
+
+  Future<void> batalNotifikasi(int id) async {
+    await plugin.cancel(id: id); // diubah: menggunakan argumen bernama
+  }
+
+  Future<void> batalSemuaNotifikasi() async {
+    await plugin.cancelAll();
   }
 }

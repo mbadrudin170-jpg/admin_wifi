@@ -3,6 +3,7 @@
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:sqflite/sqflite.dart';
+import 'dart:developer' as developer;
 
 class TransaksiOperasi {
   static DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -67,6 +68,21 @@ class TransaksiOperasi {
     });
   }
 
+  Future<List<TransaksiModel>> ambilTransaksiByPelangganId(
+    String pelangganId,
+  ) async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transaksi',
+      where: 'id_pelanggan = ? AND isDeleted = ?',
+      whereArgs: [pelangganId, 0],
+      orderBy: 'tanggal DESC',
+    );
+    return List.generate(maps.length, (i) {
+      return TransaksiModel.fromSqlite(maps[i]);
+    });
+  }
+
   Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
     final db = await _db;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -75,6 +91,8 @@ class TransaksiOperasi {
       whereArgs: [dompetId, 0],
       orderBy: 'tanggal DESC',
     );
+    developer.log('Data mentah dari tabel paket: $maps', name: 'PaketOperasi');
+
     return List.generate(maps.length, (i) {
       return TransaksiModel.fromSqlite(maps[i]);
     });
@@ -89,6 +107,10 @@ class TransaksiOperasi {
       where: 'id_pelanggan = ? AND isDeleted = ?',
       whereArgs: [pelangganId, 0],
       orderBy: 'tanggal DESC',
+    );
+    developer.log(
+      'ambil semua transaksi berdasarkan idpelanggan : $maps',
+      name: 'TransaksiOperasi',
     );
     return List.generate(maps.length, (i) {
       return TransaksiModel.fromSqlite(maps[i]);

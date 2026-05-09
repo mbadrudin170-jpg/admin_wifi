@@ -8,6 +8,7 @@ class PelangganAktifModel {
   final String id;
   final String idPelanggan;
   final String idPaket;
+  final String? idTransaksi;
   final DateTime tanggalMulai;
   final DateTime tanggalBerakhir;
   final StatusPembayaran status;
@@ -19,6 +20,7 @@ class PelangganAktifModel {
     String? id,
     required this.idPelanggan,
     required this.idPaket,
+    this.idTransaksi,
     required this.tanggalMulai,
     required this.tanggalBerakhir,
     required this.status,
@@ -47,6 +49,7 @@ class PelangganAktifModel {
     String? id,
     String? idPelanggan,
     String? idPaket,
+    String? idTransaksi,
     DateTime? tanggalMulai,
     DateTime? tanggalBerakhir,
     StatusPembayaran? status,
@@ -58,6 +61,7 @@ class PelangganAktifModel {
       id: id ?? this.id,
       idPelanggan: idPelanggan ?? this.idPelanggan,
       idPaket: idPaket ?? this.idPaket,
+      idTransaksi: idTransaksi ?? this.idTransaksi,
       tanggalMulai: tanggalMulai ?? this.tanggalMulai,
       tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
       status: status ?? this.status,
@@ -77,6 +81,7 @@ class PelangganAktifModel {
       id: id,
       idPelanggan: map['id_pelanggan'] ?? '',
       idPaket: map['id_paket'] ?? '',
+      idTransaksi: map['id_transaksi'],
       tanggalMulai: _parseDateTime(map['tanggalMulai']) ?? DateTime.now(),
       tanggalBerakhir: _parseDateTime(map['tanggalBerakhir']) ?? DateTime.now(),
       status: StatusPembayaran.values.firstWhere(
@@ -95,6 +100,7 @@ class PelangganAktifModel {
       'id': id,
       'id_pelanggan': idPelanggan,
       'id_paket': idPaket,
+      'id_transaksi': idTransaksi,
       'tanggalMulai': tanggalMulai.toIso8601String(),
       'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
       'status': status.name,
@@ -111,6 +117,7 @@ class PelangganAktifModel {
       id: id,
       idPelanggan: data['id_pelanggan'] ?? '',
       idPaket: data['id_paket'] ?? '',
+      idTransaksi: data['id_transaksi'],
       tanggalMulai: _parseDateTime(data['tanggalMulai']) ?? DateTime.now(),
       tanggalBerakhir:
           _parseDateTime(data['tanggalBerakhir']) ?? DateTime.now(),
@@ -130,6 +137,7 @@ class PelangganAktifModel {
       'id': id,
       'id_pelanggan': idPelanggan,
       'id_paket': idPaket,
+      'id_transaksi': idTransaksi,
       'tanggalMulai': Timestamp.fromDate(tanggalMulai),
       'tanggalBerakhir': Timestamp.fromDate(tanggalBerakhir),
       'status': status.name,

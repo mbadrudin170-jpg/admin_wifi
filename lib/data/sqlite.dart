@@ -1,5 +1,6 @@
 // path: lib/data/sqlite.dart
 // diubah: Menambahkan kolom 'diperbarui' ke tabel 'status_unggah' dan menaikkan versi database.
+// diubah: Menambahkan kolom id_transaksi ke tabel pelanggan_aktif dan menaikkan versi database.
 
 import 'dart:developer';
 import 'dart:io';
@@ -13,8 +14,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // diubah: Versi dinaikkan dari 34 ke 35 untuk migrasi tabel status_unggah.
-  static const int _databaseVersion = 35;
+  // diubah: Versi dinaikkan dari 35 ke 36 untuk migrasi tabel pelanggan_aktif.
+  static const int _databaseVersion = 36;
 
   DatabaseHelper._internal();
 
@@ -121,10 +122,10 @@ class DatabaseHelper {
     );
   }
 
-  // diubah: Menambahkan logika upgrade untuk tabel status_unggah.
+  // diubah: Menambahkan logika upgrade untuk tabel pelanggan_aktif.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
-    
+
     if (oldVersion < 34) {
       try {
         log('Menjalankan upgrade untuk versi < 34: Menambahkan kolom status_pembayaran pada tabel transaksi.');
@@ -145,9 +146,18 @@ class DatabaseHelper {
       }
     }
 
+    if (oldVersion < 36) {
+      try {
+        log('Menjalankan upgrade untuk versi < 36: Menambahkan kolom id_transaksi pada tabel pelanggan_aktif.');
+        await db.execute('ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT');
+        log('Kolom id_transaksi berhasil ditambahkan ke tabel pelanggan_aktif.');
+      } catch (e) {
+        log('Error saat menambahkan kolom id_transaksi ke tabel pelanggan_aktif: $e');
+      }
+    }
+
     log('Upgrade database selesai.');
   }
-
 
   Future<void> createTables(Database db) async {
     await db.execute(_tabelKategori);
@@ -231,11 +241,13 @@ class DatabaseHelper {
       )
     ''';
 
+  // diubah: Menambahkan kolom id_transaksi dan foreign key
   static const String _tabelPelangganAktif = '''
       CREATE TABLE pelanggan_aktif(
         id TEXT PRIMARY KEY,
         id_pelanggan TEXT NOT NULL,
         id_paket TEXT NOT NULL,
+        id_transaksi TEXT,
         tanggalMulai TEXT NOT NULL,
         tanggalBerakhir TEXT NOT NULL,
         status TEXT NOT NULL,
@@ -243,7 +255,8 @@ class DatabaseHelper {
         isDeleted INTEGER NOT NULL DEFAULT 0,
         diarsipkan TEXT,
         FOREIGN KEY (id_pelanggan) REFERENCES pelanggan (id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (id_paket) REFERENCES paket (id) ON DELETE CASCADE ON UPDATE CASCADE
+        FOREIGN KEY (id_paket) REFERENCES paket (id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (id_transaksi) REFERENCES transaksi (id) ON DELETE SET NULL
       )
     ''';
 

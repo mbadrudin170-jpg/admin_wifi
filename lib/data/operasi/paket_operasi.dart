@@ -1,6 +1,6 @@
 // path: lib/data/operasi/paket_operasi.dart
 // diubah: Logika create dan update disederhanakan dan distandarkan menggunakan copyWith.
-
+import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -34,6 +34,8 @@ class PaketOperasi {
       FROM paket
       ORDER BY urutan ASC
     ''');
+    developer.log('Data mentah dari tabel paket: $maps', name: 'PaketOperasi');
+
     return List.generate(maps.length, (i) {
       return PaketModel.fromSqlite(maps[i]);
     });

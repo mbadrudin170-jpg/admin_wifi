@@ -1,5 +1,6 @@
 // path: test/data/sqlite_test.dart
 // diubah: Menyesuaikan pemanggilan toMapForSqlite menjadi toSqlite
+// diubah: Menambahkan id pada pembuatan TransaksiModel untuk tes
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -91,6 +92,7 @@ void main() {
         final kolomDatabase = hasil.map((e) => e['name'] as String).toSet();
 
         final model = TransaksiModel(
+          id: const Uuid().v4(),
           tanggal: DateTime.now(),
           keterangan: 'Test transaksi',
           jumlah: 10000,

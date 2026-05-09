@@ -30,7 +30,7 @@ class PaketModel {
   final int durasi;
   final TipeDurasi tipe;
 
-  final int jumlahPoin; // legacy
+  final int jumlahPoin;
   final int poinHadiah;
   final int poinPenukaran;
 

@@ -69,6 +69,22 @@ class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
           as _i5.Future<List<_i6.TransaksiModel>>);
 
   @override
+  _i5.Future<List<_i6.TransaksiModel>> ambilTransaksiByPelangganId(
+    String? pelangganId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#ambilTransaksiByPelangganId, [pelangganId]),
+            returnValue: _i5.Future<List<_i6.TransaksiModel>>.value(
+              <_i6.TransaksiModel>[],
+            ),
+            returnValueForMissingStub:
+                _i5.Future<List<_i6.TransaksiModel>>.value(
+                  <_i6.TransaksiModel>[],
+                ),
+          )
+          as _i5.Future<List<_i6.TransaksiModel>>);
+
+  @override
   _i5.Future<List<_i6.TransaksiModel>> ambilTransaksiByDompetId(
     String? dompetId,
   ) =>

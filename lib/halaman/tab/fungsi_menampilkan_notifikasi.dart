@@ -1,23 +1,30 @@
 // Path: lib/halaman/tab/fungsi_menampilkan_notifikasi.dart
+// diubah: Menghapus print statement untuk debugging.
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'dart:developer' as developer;
 
 @pragma('vm:entry-point')
 void onDidReceiveNotificationResponse(
   NotificationResponse notificationResponse,
 ) async {
-  debugPrint(
+  developer.log(
     'Notifikasi di-tap: ID=${notificationResponse.id}, '
     'Payload=${notificationResponse.payload}',
+    name: 'NotifikasiServis',
   );
   // TODO: Implementasikan logika navigasi atau aksi lainnya
 }
 
 class NotifikasiServis {
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin plugin;
+
+  NotifikasiServis() : plugin = FlutterLocalNotificationsPlugin();
+
+  @visibleForTesting
+  NotifikasiServis.internal(this.plugin);
 
   Future<void> inisialisasi() async {
     try {
@@ -33,7 +40,7 @@ class NotifikasiServis {
             iOS: darwinInitializationSettings,
           );
 
-      await _flutterLocalNotificationsPlugin.initialize(
+      await plugin.initialize(
         settings: initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
         onDidReceiveBackgroundNotificationResponse:
@@ -42,39 +49,41 @@ class NotifikasiServis {
 
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-      debugPrint('NotifikasiServis: Timezone lokal diatur ke Asia/Jakarta.');
-      debugPrint('NotifikasiServis: Inisialisasi berhasil');
-    } catch (e) {
-      debugPrint('NotifikasiServis: Error inisialisasi - $e');
+      developer.log('Timezone lokal diatur ke Asia/Jakarta.', name: 'NotifikasiServis');
+      developer.log('Inisialisasi berhasil', name: 'NotifikasiServis');
+    } catch (e, s) {
+      developer.log('Error inisialisasi', name: 'NotifikasiServis', error: e, stackTrace: s);
     }
   }
 
-  Future<void> requestPermissions() async {
+  Future<bool> requestPermissions() async {
     try {
+      bool? androidResult;
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
+          plugin.resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin
               >();
       if (androidImplementation != null) {
-        await androidImplementation.requestNotificationsPermission();
+        androidResult = await androidImplementation.requestNotificationsPermission();
       }
 
+      bool? iosResult;
       final IOSFlutterLocalNotificationsPlugin? iOSImplementation =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
+          plugin.resolvePlatformSpecificImplementation<
                 IOSFlutterLocalNotificationsPlugin
               >();
       if (iOSImplementation != null) {
-        await iOSImplementation.requestPermissions(
+        iosResult = await iOSImplementation.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
         );
       }
-      debugPrint('NotifikasiServis: Permintaan izin selesai.');
-    } catch (e) {
-      debugPrint('NotifikasiServis: Gagal meminta izin notifikasi - $e');
+      developer.log('Permintaan izin selesai.', name: 'NotifikasiServis');
+      return (androidResult ?? false) || (iosResult ?? false);
+    } catch (e, s) {
+      developer.log('Gagal meminta izin notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);
+      return false;
     }
   }
 
@@ -100,31 +109,27 @@ class NotifikasiServis {
         android: androidNotificationDetails,
       );
 
-      await _flutterLocalNotificationsPlugin.zonedSchedule(
+      await plugin.zonedSchedule(
         id: id,
         title: title,
         body: body,
         scheduledDate: tz.TZDateTime.from(jadwal, tz.local),
         notificationDetails: notificationDetails,
-        // ✅ UBAH DARI exactAllowWhileIdle KE inexact
         androidScheduleMode: AndroidScheduleMode.inexact,
       );
 
-      debugPrint(
-        'NotifikasiServis: Notifikasi dijadwalkan - ID: $id, Waktu: $jadwal',
-      );
-    } catch (e) {
-      debugPrint('NotifikasiServis: Error jadwal notifikasi - $e');
+      developer.log('Notifikasi dijadwalkan - ID: $id, Waktu: $jadwal', name: 'NotifikasiServis');
+    } catch (e, s) {
+      developer.log('Error jadwal notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);
     }
   }
 
   Future<void> batalNotifikasi(int id) async {
     try {
-      // ✅ PERBAIKAN: gunakan named parameter id:
-      await _flutterLocalNotificationsPlugin.cancel(id: id);
-      debugPrint('NotifikasiServis: Notifikasi dibatalkan - ID: $id');
-    } catch (e) {
-      debugPrint('NotifikasiServis: Error membatalkan notifikasi - $e');
+      await plugin.cancel(id: id);
+      developer.log('Notifikasi dibatalkan - ID: $id', name: 'NotifikasiServis');
+    } catch (e, s) {
+      developer.log('Error membatalkan notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);
     }
   }
 
@@ -149,19 +154,16 @@ class NotifikasiServis {
         android: androidNotificationDetails,
       );
 
-      // ✅ PERBAIKAN: gunakan notificationDetails bukan details
-      await _flutterLocalNotificationsPlugin.show(
+      await plugin.show(
         id: id,
         title: title,
         body: body,
         notificationDetails: notificationDetails,
       );
 
-      debugPrint('NotifikasiServis: Notifikasi langsung ditampilkan - ID: $id');
-    } catch (e) {
-      debugPrint(
-        'NotifikasiServis: Error menampilkan notifikasi langsung - $e',
-      );
+      developer.log('Notifikasi langsung ditampilkan - ID: $id', name: 'NotifikasiServis');
+    } catch (e, s) {
+      developer.log('Error menampilkan notifikasi langsung', name: 'NotifikasiServis', error: e, stackTrace: s);
     }
   }
 }

@@ -1,9 +1,8 @@
 // path: lib/model/pengaturan_model.dart
-// diubah: Menambahkan properti 'id' dan menyesuaikan semua metode untuk konsistensi.
+// diubah: Memperbaiki casting tipe di fromSqlite untuk menangani ID integer.
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PengaturanModel {
-  // ditambahkan: Properti ID untuk konsistensi.
   final String id;
   final int intervalSinkronisasiOtomatis;
   final int hapusOtomatisDataArsip;
@@ -11,7 +10,6 @@ class PengaturanModel {
   final String infoPemeliharaan;
   final DateTime? diperbarui;
 
-  // diubah: Konstruktor diperbaiki untuk menerima dan menginisialisasi ID, dengan nilai default 'default'.
   PengaturanModel({
     String? id,
     this.intervalSinkronisasiOtomatis = 24,
@@ -32,10 +30,10 @@ class PengaturanModel {
   // SQLITE
   // =========================
 
-  // diubah: Factory fromSqlite diperbarui untuk membaca ID dari map.
   factory PengaturanModel.fromSqlite(Map<String, dynamic> map) {
     return PengaturanModel(
-      id: map['id'] as String? ?? 'default',
+      // diubah: Menggunakan .toString() untuk keamanan tipe dari database.
+      id: map['id']?.toString() ?? 'default',
       intervalSinkronisasiOtomatis:
           map['interval_sinkronisasi_otomatis'] as int? ?? 24,
       hapusOtomatisDataArsip: map['hapus_otomatis_data_arsip'] as int? ?? 30,
@@ -45,7 +43,6 @@ class PengaturanModel {
     );
   }
 
-  // diubah: Metode toSqlite diperbarui untuk menyertakan ID.
   Map<String, dynamic> toSqlite() {
     return {
       'id': id,
@@ -61,7 +58,6 @@ class PengaturanModel {
   // FIREBASE
   // =========================
 
-  // diubah: Factory fromFirebase sekarang juga membaca 'id'.
   factory PengaturanModel.fromFirebase(Map<String, dynamic> data) {
     return PengaturanModel(
       id: data['id'] as String? ?? 'default',
@@ -74,7 +70,6 @@ class PengaturanModel {
     );
   }
 
-  // diubah: Metode toFirebase sekarang juga menyertakan 'id'.
   Map<String, dynamic> toFirebase() {
     return {
       'id': id,

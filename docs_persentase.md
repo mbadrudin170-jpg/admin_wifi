@@ -218,3 +218,87 @@ class PembersihanDataService {
   }
 }
 ```
+
+---
+
+### **File: `lib/halaman/pembantu/halaman_poin.dart`**
+
+**Fitur:** Manajemen Poin Pelanggan
+
+**Tujuan file ini dibuat:**
+File ini bertujuan untuk menyediakan antarmuka (UI) yang lengkap bagi admin untuk mengelola dan memantau poin loyalitas dari seorang pelanggan spesifik. Halaman ini memungkinkan admin untuk melihat total poin yang dimiliki pelanggan, meninjau riwayat transaksi yang menghasilkan atau menggunakan poin, serta melihat daftar hadiah (paket) yang dapat ditukarkan beserta progres pencapaian untuk setiap hadiah.
+
+---
+
+### **Analisis Kode Rinci**
+
+#### **1. `enum MenuPoin`**
+*   **Tujuan:** Enumerasi ini digunakan sebagai saklar untuk mengontrol konten utama yang ditampilkan di halaman. Ini adalah cara yang bersih dan mudah dibaca untuk mengelola state tampilan antara dua mode yang berbeda.
+*   **Nilai:**
+    *   `penukaran`: Menandakan bahwa UI harus menampilkan widget `_listPaket`, yang berisi daftar hadiah/paket yang bisa ditukar.
+    *   `riwayat`: Menandakan bahwa UI harus menampilkan widget `_riwayatTransaksi`, yang berisi histori perolehan poin pelanggan.
+
+#### **2. `HalamanPoin` (StatefulWidget)**
+*   **Tujuan:** Ini adalah widget utama yang membentuk kerangka halaman. Dideklarasikan sebagai `StatefulWidget` karena kontennya (seperti total poin, daftar paket, dan tab menu yang aktif) bersifat dinamis dan akan berubah selama interaksi pengguna atau setelah data dari database selesai dimuat.
+*   **Properti:**
+    *   `final String idPelanggan`: Properti ini wajib diisi (`required`) dan dikirim dari halaman sebelumnya (misalnya, dari halaman detail pelanggan). `idPelanggan` adalah kunci untuk mengambil data spesifik (total poin dan riwayat transaksi) untuk pelanggan yang bersangkutan.
+
+#### **3. `_HalamanPoinState` (State Class)**
+*   **Tujuan:** Kelas ini memegang semua data (state) dan logika bisnis untuk `HalamanPoin`. Semua perubahan data dan pembaruan UI diatur di dalam kelas ini.
+*   **Properti State:**
+    *   `final transaksiOperasi = TransaksiOperasi()`: Sebuah instance dari kelas `TransaksiOperasi` untuk berinteraksi dengan tabel transaksi di database, terutama untuk menghitung total poin dan mengambil riwayat transaksi.
+    *   `final paketOperasi = PaketOperasi()`: Sebuah instance dari kelas `PaketOperasi` untuk mengambil data paket dari database, yang akan ditampilkan sebagai daftar hadiah yang bisa ditukar.
+    *   `int totalPoin = 0`: Variabel untuk menyimpan jumlah total poin yang dimiliki pelanggan. Nilai awalnya adalah `0` dan akan diperbarui setelah data dari database berhasil diambil.
+    *   `bool isLoading = true`: Sebuah flag boolean untuk mengontrol state pemuatan (loading). Saat `true`, UI akan menampilkan `CircularProgressIndicator`. Setelah data berhasil dimuat, nilainya diubah menjadi `false` untuk menampilkan konten utama.
+    *   `List<PaketModel> daftarPaket = []`: Variabel untuk menampung daftar objek `PaketModel` yang diambil dari database. Daftar ini digunakan oleh widget `_listPaket`.
+    *   `MenuPoin menuAktif = MenuPoin.riwayat`: Variabel yang menentukan tab mana (`penukaran` atau `riwayat`) yang sedang aktif. Secara default, halaman akan menampilkan tab `riwayat` terlebih dahulu.
+*   **Metode:**
+    *   `initState()`: Metode ini dipanggil secara otomatis oleh Flutter saat widget pertama kali dibuat dan dimasukkan ke dalam pohon widget. Di dalamnya, ia memanggil `_loadData()` untuk memulai proses pengambilan data dari database.
+    *   `_loadData()`:
+        *   **Tujuan:** Fungsi asinkron untuk mengambil semua data yang diperlukan untuk halaman ini.
+        *   **Proses:**
+            1.  `await transaksiOperasi.getTotalPoin(widget.idPelanggan)`: Memanggil database untuk menghitung dan mengembalikan total poin dari pelanggan yang `id`-nya sesuai.
+            2.  `await paketOperasi.getPaket()`: Memanggil database untuk mengambil semua daftar paket yang ada.
+            3.  `if (!mounted) return;`: Pemeriksaan keamanan yang sangat penting. Ini memastikan bahwa jika pengguna meninggalkan halaman ini sebelum proses `await` selesai, `setState()` tidak akan dipanggil pada widget yang sudah tidak ada, sehingga mencegah error.
+            4.  `setState(() { ... })`: Setelah kedua data di atas berhasil diambil, `setState` dipanggil untuk memperbarui nilai `totalPoin`, `daftarPaket`, dan mengubah `isLoading` menjadi `false`. Panggilan ini memberitahu Flutter untuk membangun ulang (rebuild) UI dengan data yang baru.
+    *   `build(BuildContext context)`:
+        *   **Tujuan:** Metode inti yang membangun antarmuka pengguna.
+        *   **Logika Kondisional:** Pertama, ia memeriksa nilai `isLoading`. Jika `true`, ia hanya akan menampilkan `Scaffold` dengan indikator loading di tengah.
+        *   **Struktur Utama (jika `isLoading` false):**
+            *   `Scaffold`: Kerangka dasar halaman.
+            *   `AppBar`: Judul halaman.
+            *   `Column`: Layout utama yang menyusun widget secara vertikal.
+                *   `_infoPoin(...)`: Memanggil widget untuk menampilkan kartu total poin.
+                *   `Row`: Berisi dua `TextButton` ("Penukaran" dan "Riwayat"). Saat ditekan, `setState` dipanggil untuk mengubah nilai `menuAktif`, yang kemudian akan mengganti konten di bawahnya.
+                *   `Expanded`: Memastikan widget di dalamnya (`_riwayatTransaksi` atau `_listPaket`) mengisi sisa ruang yang tersedia di layar. Kontennya ditentukan secara dinamis oleh nilai `menuAktif`.
+    *   `_infoPoin(BuildContext context, int poin)`:
+        *   **Tujuan:** Sebuah widget sederhana dan terisolasi yang hanya bertanggung jawab untuk menampilkan total poin dalam sebuah `Card` agar terlihat menonjol. Menerima `poin` sebagai parameter untuk ditampilkan.
+
+#### **4. Fungsi dan Widget Top-Level**
+
+*   `_hitungProgressPencapaian(int poinDimiliki, int poinDibutuhkan)`:
+    *   **Tujuan:** Fungsi utilitas murni (pure function) untuk menghitung progres.
+    *   **Logika:**
+        1.  Ia melakukan pembagian antara `poinDimiliki` dengan `poinDibutuhkan`.
+        2.  Terdapat pengaman `if (poinDibutuhkan <= 0)` untuk menghindari error pembagian dengan nol.
+        3.  Menggunakan `.clamp(0.0, 1.0)` untuk memastikan outputnya selalu berada dalam rentang `0.0` hingga `1.0`, karena ini adalah rentang nilai yang diterima oleh properti `value` dari `LinearProgressIndicator`.
+*   `_listPaket(...)`:
+    *   **Tujuan:** Menampilkan daftar semua paket hadiah dalam bentuk `ListView`.
+    *   **Logika:**
+        1.  Jika `daftarPaket` kosong, tampilkan pesan informatif.
+        2.  Menggunakan `ListView.builder` untuk performa yang efisien, terutama jika daftar paket sangat banyak.
+        3.  Untuk setiap item `paket` dalam daftar:
+            *   Ia membuat `Card` yang berisi `ListTile`.
+            *   `bool bisaDitukar`: Logika untuk menentukan apakah poin pelanggan mencukupi untuk menukar paket.
+            *   `LinearProgressIndicator`: Digunakan untuk memberikan visualisasi progres poin pelanggan terhadap poin yang dibutuhkan. Warnanya akan berubah menjadi hijau jika poin sudah mencukupi.
+            *   Menampilkan pesan khusus jika `paket.isPublic` bernilai `false`, menandakan paket tersebut tidak tersedia untuk penukaran umum.
+*   `_riwayatTransaksi(...)`:
+    *   **Tujuan:** Menampilkan riwayat transaksi yang terkait dengan poin untuk pelanggan yang dipilih.
+    *   **Logika:**
+        1.  Menggunakan `FutureBuilder` karena proses pengambilan data dari database bersifat asinkron (`Future`). Ini adalah pola standar di Flutter untuk menangani UI yang bergantung pada data dari operasi yang memakan waktu.
+        2.  `future`: Properti ini diisi dengan hasil panggilan ke `transaksiOperasi.ambilTransaksiByPelangganId(idPelanggan)`.
+        3.  `builder`: Fungsi ini dipanggil setiap kali state dari `Future` berubah (misalnya, `waiting`, `done`, `error`).
+            *   Saat `ConnectionState.waiting`, tampilkan `CircularProgressIndicator`.
+            *   Jika `snapshot.hasError`, tampilkan pesan error.
+            *   Jika data kosong (`snapshot.data ?? []`), tampilkan pesan informatif.
+            *   Jika data tersedia, bangun `ListView.builder` untuk menampilkan setiap `transaksi` dalam `ListTile`, menunjukkan informasi seperti keterangan, ID, dan poin yang terlibat.
