@@ -1,15 +1,12 @@
 // path: lib/halaman/form/form_dompet.dart
 // Halaman ini menyediakan formulir untuk menambah atau mengedit dompet.
+// diubah: Menghapus input saldo manual untuk konsistensi arsitektur baru.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
-// diubah: Menggunakan formatter baru yang mendukung angka negatif.
-import 'package:admin_wifi/widget/thousands_input_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:developer' as developer;
-import 'package:intl/intl.dart';
 
 class FormDompet extends StatefulWidget {
   final DompetModel? dompet;
@@ -23,11 +20,9 @@ class FormDompet extends StatefulWidget {
 class _FormDompetState extends State<FormDompet> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
-  final _saldoController = TextEditingController();
   final DompetOperasi _dompetOperasi = DompetOperasi();
 
   late FocusNode _namaFocusNode;
-  late FocusNode _saldoFocusNode;
 
   bool get _isEditMode => widget.dompet != null;
 
@@ -35,41 +30,31 @@ class _FormDompetState extends State<FormDompet> {
   void initState() {
     super.initState();
     _namaFocusNode = FocusNode();
-    _saldoFocusNode = FocusNode();
 
     if (_isEditMode) {
       _namaController.text = widget.dompet!.namaDompet;
-      _saldoController.text = NumberFormat(
-        '#,##0',
-        'id_ID',
-      ).format(widget.dompet!.saldo);
+      // dihapus: Pengisian saldo manual dihapus.
     }
   }
 
   @override
   void dispose() {
     _namaController.dispose();
-    _saldoController.dispose();
     _namaFocusNode.dispose();
-    _saldoFocusNode.dispose();
     super.dispose();
   }
 
   void _simpanForm() async {
     _namaFocusNode.unfocus();
-    _saldoFocusNode.unfocus();
 
     if (_formKey.currentState!.validate()) {
       try {
-        final saldo = double.parse(
-          _saldoController.text.replaceAll('.', '').replaceAll(',', ''),
-        );
-
         if (_isEditMode) {
+          // diubah: Logika update hanya untuk nama dompet. Saldo tidak diubah.
           final updatedDompet = DompetModel(
             id: widget.dompet!.id,
             namaDompet: _namaController.text,
-            saldo: saldo,
+            saldo: widget.dompet!.saldo, // Saldo lama tetap dipertahankan
             diperbarui: DateTime.now(),
           );
           await _dompetOperasi.updateDompet(updatedDompet);
@@ -79,15 +64,16 @@ class _FormDompetState extends State<FormDompet> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Dompet berhasil diperbarui!'),
+              content: Text('Nama dompet berhasil diperbarui!'),
               backgroundColor: Colors.blue,
             ),
           );
         } else {
+          // diubah: Logika buat baru dengan saldo awal 0.
           final nuevoDompet = DompetModel(
             id: const Uuid().v4(),
             namaDompet: _namaController.text,
-            saldo: saldo,
+            saldo: 0.0, // Saldo awal selalu 0
             diperbarui: DateTime.now(),
           );
           await _dompetOperasi.createDompet(nuevoDompet);
@@ -96,7 +82,7 @@ class _FormDompetState extends State<FormDompet> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Dompet berhasil ditambahkan!'),
+              content: Text('Dompet baru berhasil ditambahkan!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -123,7 +109,7 @@ class _FormDompetState extends State<FormDompet> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditMode ? 'Edit Dompet' : 'Tambah Dompet'),
+        title: Text(_isEditMode ? 'Edit Nama Dompet' : 'Tambah Dompet Baru'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -139,10 +125,8 @@ class _FormDompetState extends State<FormDompet> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.account_balance_wallet),
                 ),
-                textInputAction: TextInputAction.next,
-                onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_saldoFocusNode);
-                },
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _simpanForm(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Nama dompet tidak boleh kosong';
@@ -150,39 +134,7 @@ class _FormDompetState extends State<FormDompet> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _saldoController,
-                focusNode: _saldoFocusNode,
-                decoration: InputDecoration(
-                  labelText: _isEditMode ? 'Saldo' : 'Saldo Awal',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.attach_money),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  signed: true,
-                ),
-                inputFormatters: <TextInputFormatter>[
-                  // diubah: Menggunakan formatter baru yang mendukung angka negatif.
-                  ThousandsAndNegativeInputFormatter(),
-                ],
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _simpanForm(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Saldo tidak boleh kosong';
-                  }
-                  // diubah: Penambahan logika untuk menangani tanda '-' saat validasi.
-                  if (double.tryParse(
-                            value.replaceAll('.', '').replaceAll(',', ''),
-                          ) ==
-                          null &&
-                      value != '-') {
-                    return 'Format saldo tidak valid';
-                  }
-                  return null;
-                },
-              ),
+              // dihapus: TextFormField untuk saldo dihapus dari UI.
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _simpanForm,

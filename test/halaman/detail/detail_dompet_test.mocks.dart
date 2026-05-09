@@ -46,13 +46,13 @@ class _FakeStatusUnggahOperasi_1 extends _i1.SmartFake
 /// See the documentation for Mockito's code generation for more information.
 class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
   @override
-  _i5.Future<void> tambahTransaksi(_i6.TransaksiModel? transaksi) =>
+  _i5.Future<int> tambahTransaksi(_i6.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i5.Future<int>.value(0),
+            returnValueForMissingStub: _i5.Future<int>.value(0),
           )
-          as _i5.Future<void>);
+          as _i5.Future<int>);
 
   @override
   _i5.Future<List<_i6.TransaksiModel>> ambilSemuaTransaksi() =>
@@ -117,9 +117,12 @@ class MockTransaksiOperasi extends _i1.Mock implements _i4.TransaksiOperasi {
           as _i5.Future<List<_i6.TransaksiModel>>);
 
   @override
-  _i5.Future<void> updateTransaksi(_i6.TransaksiModel? transaksiBaru) =>
+  _i5.Future<void> updateTransaksi(
+    String? id,
+    _i6.TransaksiModel? transaksiBaru,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#updateTransaksi, [transaksiBaru]),
+            Invocation.method(#updateTransaksi, [id, transaksiBaru]),
             returnValue: _i5.Future<void>.value(),
             returnValueForMissingStub: _i5.Future<void>.value(),
           )

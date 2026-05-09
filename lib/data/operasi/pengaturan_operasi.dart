@@ -1,10 +1,9 @@
 // path: lib/data/operasi/pengaturan_operasi.dart
+// diubah: Memperbaiki logika pengambilan dan penyimpanan data karena tabel pengaturan tidak memiliki ID.
 
 import 'dart:developer' as developer;
-import 'package:sqflite/sqflite.dart';
-
-import '../sqlite.dart';
-import '../../model/pengaturan_model.dart';
+import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
 
 // Kelas untuk operasi database terkait tabel `pengaturan`.
 class PengaturanOperasi {
@@ -14,8 +13,8 @@ class PengaturanOperasi {
   Future<PengaturanModel> getPengaturan() async {
     try {
       final db = await DatabaseHelper.instance.database;
-      // diubah: Menambahkan id statis karena hanya ada satu baris
-      final hasil = await db.query(_namaTabel, where: 'id = ?', whereArgs: [1]);
+      // diubah: Mengambil baris pertama karena hanya ada satu baris konfigurasi.
+      final hasil = await db.query(_namaTabel, limit: 1);
 
       if (hasil.isNotEmpty) {
         return PengaturanModel.fromSqlite(hasil.first);
@@ -42,15 +41,12 @@ class PengaturanOperasi {
     try {
       final db = await DatabaseHelper.instance.database;
       final data = pengaturan.toSqlite();
-      
-      // Menambahkan ID statis untuk operasi upsert
-      data['id'] = 1;
 
-      await db.insert(
-        _namaTabel,
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      // diubah: Hapus data lama, lalu masukkan data baru untuk memastikan hanya ada 1 baris.
+      await db.transaction((txn) async {
+        await txn.delete(_namaTabel);
+        await txn.insert(_namaTabel, data);
+      });
 
       developer.log(
         'Pengaturan berhasil disimpan/diperbarui.',

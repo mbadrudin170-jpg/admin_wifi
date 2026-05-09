@@ -60,7 +60,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         final trx = widget.transaksi!;
         _tipe = trx.tipe;
         _keteranganController.text = trx.keterangan;
-        _jumlahController.text = trx.jumlah.toString();
+        _jumlahController.text = trx.jumlah.abs().toString();
         _tanggal = trx.tanggal;
 
         _selectedDompet = _dompetList.firstWhere(
@@ -160,11 +160,13 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       });
 
       final isEditMode = widget.transaksi != null;
+      // diubah: Jumlah sekarang selalu positif, logika (+/-) dipusatkan di fungsi hitung ulang.
+      final double jumlah = double.parse(_jumlahController.text).abs();
 
       final transaksi = TransaksiModel(
         id: isEditMode ? widget.transaksi!.id : const Uuid().v4(),
         keterangan: _keteranganController.text,
-        jumlah: double.parse(_jumlahController.text),
+        jumlah: jumlah,
         tanggal: _tanggal,
         tipe: _tipe,
         idDompet: _selectedDompet!.id,
@@ -184,7 +186,10 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
 
       try {
         if (isEditMode) {
-          await _transaksiOperasi.updateTransaksi(transaksi);
+          await _transaksiOperasi.updateTransaksi(
+            widget.transaksi!.id,
+            transaksi,
+          );
         } else {
           await _transaksiOperasi.tambahTransaksi(transaksi);
         }

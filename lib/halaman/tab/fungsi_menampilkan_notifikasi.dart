@@ -1,5 +1,5 @@
 // Path: lib/halaman/tab/fungsi_menampilkan_notifikasi.dart
-// diubah: Menghapus print statement untuk debugging.
+// diubah: Mengganti operator logika dari && menjadi || untuk izin.
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -80,6 +80,7 @@ class NotifikasiServis {
         );
       }
       developer.log('Permintaan izin selesai.', name: 'NotifikasiServis');
+      // diubah: Logika diubah dari && ke ||
       return (androidResult ?? false) || (iosResult ?? false);
     } catch (e, s) {
       developer.log('Gagal meminta izin notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);

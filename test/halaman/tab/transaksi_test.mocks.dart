@@ -30,13 +30,13 @@ import 'package:mockito/mockito.dart' as _i1;
 /// See the documentation for Mockito's code generation for more information.
 class MockTransaksiOperasi extends _i1.Mock implements _i2.TransaksiOperasi {
   @override
-  _i3.Future<void> tambahTransaksi(_i4.TransaksiModel? transaksi) =>
+  _i3.Future<int> tambahTransaksi(_i4.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i3.Future<int>.value(0),
+            returnValueForMissingStub: _i3.Future<int>.value(0),
           )
-          as _i3.Future<void>);
+          as _i3.Future<int>);
 
   @override
   _i3.Future<List<_i4.TransaksiModel>> ambilSemuaTransaksi() =>
@@ -101,9 +101,12 @@ class MockTransaksiOperasi extends _i1.Mock implements _i2.TransaksiOperasi {
           as _i3.Future<List<_i4.TransaksiModel>>);
 
   @override
-  _i3.Future<void> updateTransaksi(_i4.TransaksiModel? transaksiBaru) =>
+  _i3.Future<void> updateTransaksi(
+    String? id,
+    _i4.TransaksiModel? transaksiBaru,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#updateTransaksi, [transaksiBaru]),
+            Invocation.method(#updateTransaksi, [id, transaksiBaru]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

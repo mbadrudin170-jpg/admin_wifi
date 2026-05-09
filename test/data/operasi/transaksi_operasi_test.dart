@@ -1,5 +1,6 @@
 // path: test/data/operasi/transaksi_operasi_test.dart
 // diubah: Menyesuaikan semua pemanggilan toMapForSqlite menjadi toSqlite
+// diubah: Memperbaiki pemanggilan updateTransaksi pada file test agar sesuai dengan signature metode yang baru.
 
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
@@ -233,7 +234,8 @@ void main() {
         expect(await getSaldo(dompetA.id), saldoAwal + 100);
 
         final transaksiUpdate = transaksiAwal.copyWith(jumlah: 250);
-        await operasi.updateTransaksi(transaksiUpdate);
+        // diubah: Memperbaiki pemanggilan agar sesuai dengan signature baru (id, model).
+        await operasi.updateTransaksi(transaksiAwal.id, transaksiUpdate);
 
         final saldoAkhir = await getSaldo(dompetA.id);
         expect(saldoAkhir, saldoAwal + 250);
@@ -262,7 +264,8 @@ void main() {
           tipe: TipeTransaksi.pengeluaran,
           jumlah: 50,
         );
-        await operasi.updateTransaksi(transaksiUpdate);
+        // diubah: Memperbaiki pemanggilan agar sesuai dengan signature baru (id, model).
+        await operasi.updateTransaksi(transaksiAwal.id, transaksiUpdate);
 
         final saldoAkhir = await getSaldo(dompetA.id);
         expect(saldoAkhir, saldoAwal - 50);
@@ -295,7 +298,8 @@ void main() {
           idDompetTujuan: null,
           namaDompetTujuan: null,
         );
-        await operasi.updateTransaksi(transaksiUpdate);
+        // diubah: Memperbaiki pemanggilan agar sesuai dengan signature baru (id, model).
+        await operasi.updateTransaksi(transaksiAwal.id, transaksiUpdate);
 
         final saldoAkhirA = await getSaldo(dompetA.id);
         final saldoAkhirB = await getSaldo(dompetB.id);

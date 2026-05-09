@@ -1,4 +1,4 @@
-// path: lib/enum/index.dart
+// path: lib/enum/enum.dart
 
 export './arsitektur_apk_enum.dart';
 export './nama_tabel_enum.dart';

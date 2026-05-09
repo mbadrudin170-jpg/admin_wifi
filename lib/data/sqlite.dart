@@ -1,6 +1,7 @@
 // path: lib/data/sqlite.dart
 // diubah: Menambahkan kolom 'diperbarui' ke tabel 'status_unggah' dan menaikkan versi database.
 // diubah: Menambahkan kolom id_transaksi ke tabel pelanggan_aktif dan menaikkan versi database.
+// diubah: Menambahkan indeks pada tabel transaksi untuk performa query dan menaikkan versi database.
 
 import 'dart:developer';
 import 'dart:io';
@@ -14,8 +15,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // diubah: Versi dinaikkan dari 35 ke 36 untuk migrasi tabel pelanggan_aktif.
-  static const int _databaseVersion = 36;
+  // diubah: Versi dinaikkan dari 36 ke 37 untuk menambahkan indeks pada tabel transaksi.
+  static const int _databaseVersion = 37;
 
   DatabaseHelper._internal();
 
@@ -122,7 +123,7 @@ class DatabaseHelper {
     );
   }
 
-  // diubah: Menambahkan logika upgrade untuk tabel pelanggan_aktif.
+  // diubah: Menambahkan logika upgrade untuk membuat indeks pada tabel transaksi.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
 
@@ -155,10 +156,24 @@ class DatabaseHelper {
         log('Error saat menambahkan kolom id_transaksi ke tabel pelanggan_aktif: $e');
       }
     }
+    
+    // ditambah: Logika untuk membuat indeks pada tabel transaksi untuk meningkatkan performa query.
+    if (oldVersion < 37) {
+      try {
+        log('Menjalankan upgrade untuk versi < 37: Membuat indeks pada tabel transaksi.');
+        await db.execute('CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);');
+        await db.execute('CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);');
+        await db.execute('CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);');
+        log('Indeks berhasil dibuat pada tabel transaksi.');
+      } catch (e) {
+        log('Error saat membuat indeks pada tabel transaksi: $e');
+      }
+    }
 
     log('Upgrade database selesai.');
   }
 
+  // ditambah: Menambahkan perintah pembuatan indeks setelah tabel transaksi dibuat.
   Future<void> createTables(Database db) async {
     await db.execute(_tabelKategori);
     await db.execute(_tabelSubKategori);
@@ -166,6 +181,10 @@ class DatabaseHelper {
     await db.execute(_tabelPelanggan);
     await db.execute(_tabelPelangganAktif);
     await db.execute(tabelTransaksi);
+    // Membuat indeks untuk performa query yang lebih cepat pada tabel transaksi.
+    await db.execute('CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);');
+    await db.execute('CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);');
+    await db.execute('CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);');
     await db.execute(tabelDompet);
     await db.execute(_tabelKritikSaran);
     await db.execute(_tabelRiwayatLangganan);

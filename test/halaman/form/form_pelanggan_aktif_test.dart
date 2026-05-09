@@ -1,6 +1,7 @@
 // path: test/halaman/form/form_pelanggan_aktif_test.dart
 // diubah: Mengelompokkan semua tes ke dalam grup yang logis untuk meningkatkan keterbacaan.
 // diubah: Memperbarui tes untuk menguji fungsi top-level `hitungTanggalBerakhir` secara langsung.
+// diubah: Memperbaiki tipe data yang dikembalikan oleh mock tambahTransaksi.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -143,9 +144,10 @@ void main() {
         mockPelangganAktifOperasi.updatePelangganAktif(any),
       ).thenAnswer((_) async => pelangganAktifDummy);
 
+      // diubah: Mengubah tipe kembalian menjadi Future<int> agar sesuai dengan signature baru.
       when(
         mockTransaksiOperasi.tambahTransaksi(any),
-      ).thenAnswer((_) async => 'tx-1');
+      ).thenAnswer((_) async => 1);
     });
 
     group('Inisialisasi & Tampilan Awal', () {

@@ -112,7 +112,9 @@ class PelangganAktifModel {
 
   // ditambahkan: Factory fromFirebase
   factory PelangganAktifModel.fromFirebase(
-      String id, Map<String, dynamic> data) {
+    String id,
+    Map<String, dynamic> data,
+  ) {
     return PelangganAktifModel(
       id: id,
       idPelanggan: data['id_pelanggan'] ?? '',

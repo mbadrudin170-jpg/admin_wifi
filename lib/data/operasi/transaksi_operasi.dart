@@ -1,9 +1,12 @@
 // path: lib/data/operasi/transaksi_operasi.dart
 // diubah: Menyesuaikan pemanggilan metode model menjadi fromSqlite dan toSqlite.
-import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/transaksi_model.dart';
-import 'package:sqflite/sqflite.dart';
+// diubah: Mengganti logika update saldo bertahap dengan metode hitung ulang (SUM) untuk menjamin akurasi data.
 import 'dart:developer' as developer;
+
+import 'package:sqflite/sqflite.dart';
+
+import 'package:admin_wifi/model/transaksi_model.dart'; // diubah: path absolut
+import 'package:admin_wifi/data/sqlite.dart'; // diubah: path absolut
 
 class TransaksiOperasi {
   static DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -19,53 +22,117 @@ class TransaksiOperasi {
   // ===================================================================
   // -- OPERASI DASAR CRUD (Create, Read, Update, Delete) --
   // ===================================================================
+  // diubah: Logika perhitungan saldo diperbarui total untuk mendukung arsitektur baru.
+  Future<void> _recalculateAndUpdateDompetSaldo(
+    String idDompet,
+    DatabaseExecutor txn,
+  ) async {
+    // Query ini adalah inti dari sistem saldo yang baru dan kuat.
+    // Query ini menangani semua kasus: pemasukan, pengeluaran, dan transfer (baik sebagai sumber maupun tujuan).
+    final totalResult = await txn.rawQuery(
+      '''
+      SELECT
+        COALESCE(SUM(
+          CASE
+            -- pemasukan menambah saldo
+            WHEN tipe = 'pemasukan'
+              AND id_dompet = ?
+            THEN jumlah
 
-  Future<void> tambahTransaksi(TransaksiModel transaksi) async {
+            -- pengeluaran mengurangi saldo
+            WHEN tipe = 'pengeluaran'
+              AND id_dompet = ?
+            THEN -jumlah
+
+            -- transfer dari dompet asal mengurangi saldo
+            WHEN tipe = 'transfer'
+              AND id_dompet = ?
+            THEN -jumlah
+
+            -- transfer ke dompet tujuan menambah saldo
+            WHEN tipe = 'transfer'
+              AND id_dompet_tujuan = ?
+            THEN jumlah
+
+            ELSE 0
+          END
+        ), 0) as total
+      FROM transaksi
+      WHERE isDeleted = 0 AND (id_dompet = ? OR id_dompet_tujuan = ?)
+      ''',
+      [idDompet, idDompet, idDompet, idDompet, idDompet, idDompet],
+    );
+
+    // Casting ke double untuk mendukung nilai desimal di masa depan.
+    final totalSaldo = (totalResult.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    await txn.update(
+      'dompet',
+      {'saldo': totalSaldo},
+      where: 'id = ?',
+      whereArgs: [idDompet],
+    );
+  }
+
+  Future<int> tambahTransaksi(TransaksiModel transaksi) async {
     final db = await _db;
-    await db.transaction((txn) async {
-      final dataBaru = transaksi.copyWith(diperbarui: DateTime.now());
-      await txn.insert(
-        'transaksi',
-        dataBaru.toSqlite(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+    int id = 0;
+    try {
+      await db.transaction((txn) async {
+        final data = transaksi.copyWith(diperbarui: DateTime.now());
 
-      if (transaksi.tipe == TipeTransaksi.pemasukan) {
-        await txn.rawUpdate(
-          'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-          [transaksi.jumlah, transaksi.idDompet],
+        id = await txn.insert(
+          'transaksi',
+          data.toSqlite(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
         );
-      } else if (transaksi.tipe == TipeTransaksi.pengeluaran) {
-        await txn.rawUpdate(
-          'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-          [transaksi.jumlah, transaksi.idDompet],
-        );
-      } else if (transaksi.tipe == TipeTransaksi.transfer) {
-        await txn.rawUpdate(
-          'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-          [transaksi.jumlah, transaksi.idDompet],
-        );
-        if (transaksi.idDompetTujuan != null) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [transaksi.jumlah, transaksi.idDompetTujuan],
-          );
+
+        // diubah: Panggil fungsi hitung ulang untuk dompet yang terpengaruh.
+        await _recalculateAndUpdateDompetSaldo(data.idDompet, txn);
+        if (data.tipe == TipeTransaksi.transfer &&
+            data.idDompetTujuan != null) {
+          await _recalculateAndUpdateDompetSaldo(data.idDompetTujuan!, txn);
         }
-      }
-    });
+      });
+      developer.log(
+        'Transaksi berhasil disimpan, saldo dompet dihitung ulang.',
+        name: 'TransaksiOperasi.simpan',
+      );
+      return id;
+    } catch (e) {
+      developer.log(
+        'Error saat menyimpan transaksi di SQLite: $e',
+        name: 'TransaksiOperasi.simpan',
+        error: e,
+      );
+      rethrow;
+    }
   }
 
   Future<List<TransaksiModel>> ambilSemuaTransaksi() async {
-    final db = await _db;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'transaksi',
-      where: 'isDeleted = ?',
-      whereArgs: [0],
-      orderBy: 'tanggal DESC',
-    );
-    return List.generate(maps.length, (i) {
-      return TransaksiModel.fromSqlite(maps[i]);
-    });
+    final db = await _dbHelper.database;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        'transaksi',
+        where: 'isDeleted = ?',
+        whereArgs: [0],
+        orderBy: 'tanggal DESC',
+      );
+      developer.log(
+        'Mengambil semua transaksi dari SQLite',
+        name: 'TransaksiOperasi.semua',
+      );
+      return List.generate(maps.length, (i) {
+        return TransaksiModel.fromSqlite(maps[i]);
+      });
+    } catch (e) {
+      developer.log(
+        'Error saat mengambil semua transaksi dari SQLite: $e',
+        name: 'TransaksiOperasi.semua',
+        error: e,
+      );
+      return [];
+    }
   }
 
   Future<List<TransaksiModel>> ambilTransaksiByPelangganId(
@@ -83,15 +150,19 @@ class TransaksiOperasi {
     });
   }
 
+  // diubah: Query diperbaiki untuk menyertakan transaksi di mana dompet adalah tujuan (transfer masuk).
   Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
     final db = await _db;
     final List<Map<String, dynamic>> maps = await db.query(
       'transaksi',
-      where: 'id_dompet = ? AND isDeleted = ?',
-      whereArgs: [dompetId, 0],
+      where: '(id_dompet = ? OR id_dompet_tujuan = ?) AND isDeleted = ?',
+      whereArgs: [dompetId, dompetId, 0],
       orderBy: 'tanggal DESC',
     );
-    developer.log('Data mentah dari tabel paket: $maps', name: 'PaketOperasi');
+    developer.log(
+      'Mengambil transaksi untuk dompet $dompetId: $maps',
+      name: 'TransaksiOperasi',
+    );
 
     return List.generate(maps.length, (i) {
       return TransaksiModel.fromSqlite(maps[i]);
@@ -117,120 +188,104 @@ class TransaksiOperasi {
     });
   }
 
-  Future<void> updateTransaksi(TransaksiModel transaksiBaru) async {
-    final db = await _db;
+  // diubah: Perhitungan ulang ganda dihapus untuk efisiensi.
+  Future<void> updateTransaksi(String id, TransaksiModel transaksiBaru) async {
+    final db = await _dbHelper.database;
 
-    await db.transaction((txn) async {
-      final List<Map<String, dynamic>> maps = await txn.query(
-        'transaksi',
-        where: 'id = ?',
-        whereArgs: [transaksiBaru.id],
-      );
-
-      if (maps.isNotEmpty) {
-        final transaksiLama = TransaksiModel.fromSqlite(maps.first);
-
-        if (transaksiLama.tipe == TipeTransaksi.pemasukan) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-            [transaksiLama.jumlah, transaksiLama.idDompet],
-          );
-        } else if (transaksiLama.tipe == TipeTransaksi.pengeluaran) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [transaksiLama.jumlah, transaksiLama.idDompet],
-          );
-        } else if (transaksiLama.tipe == TipeTransaksi.transfer) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [transaksiLama.jumlah, transaksiLama.idDompet],
-          );
-          if (transaksiLama.idDompetTujuan != null) {
-            await txn.rawUpdate(
-              'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-              [transaksiLama.jumlah, transaksiLama.idDompetTujuan],
-            );
-          }
-        }
-
-        final dataUpdate = transaksiBaru.copyWith(diperbarui: DateTime.now());
-        if (dataUpdate.tipe == TipeTransaksi.pemasukan) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [dataUpdate.jumlah, dataUpdate.idDompet],
-          );
-        } else if (dataUpdate.tipe == TipeTransaksi.pengeluaran) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-            [dataUpdate.jumlah, dataUpdate.idDompet],
-          );
-        } else if (dataUpdate.tipe == TipeTransaksi.transfer) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-            [dataUpdate.jumlah, dataUpdate.idDompet],
-          );
-          if (dataUpdate.idDompetTujuan != null) {
-            await txn.rawUpdate(
-              'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-              [dataUpdate.jumlah, dataUpdate.idDompetTujuan],
-            );
-          }
-        }
-
-        await txn.update(
+    try {
+      await db.transaction((txn) async {
+        final maps = await txn.query(
           'transaksi',
-          dataUpdate.toSqlite(),
           where: 'id = ?',
-          whereArgs: [dataUpdate.id],
+          whereArgs: [id],
         );
-      }
-    });
+
+        if (maps.isNotEmpty) {
+          final transaksiLama = TransaksiModel.fromSqlite(maps.first);
+          final dataUpdate = transaksiBaru.copyWith(diperbarui: DateTime.now());
+
+          // 1. Update data transaksi itu sendiri
+          await txn.update(
+            'transaksi',
+            dataUpdate.toSqlite(),
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+
+          // 2. Kumpulkan semua dompet yang terpengaruh (lama dan baru) dan hitung ulang saldonya sekali saja.
+          final affectedWallets = <String>{};
+          affectedWallets.add(transaksiLama.idDompet);
+          affectedWallets.add(dataUpdate.idDompet);
+          if (transaksiLama.idDompetTujuan != null) {
+            affectedWallets.add(transaksiLama.idDompetTujuan!);
+          }
+          if (dataUpdate.idDompetTujuan != null) {
+            affectedWallets.add(dataUpdate.idDompetTujuan!);
+          }
+
+          for (final dompetId in affectedWallets) {
+            await _recalculateAndUpdateDompetSaldo(dompetId, txn);
+          }
+        }
+      });
+      developer.log(
+        'Transaksi berhasil diperbarui, saldo dompet dihitung ulang.',
+        name: 'TransaksiOperasi.update',
+      );
+    } catch (e) {
+      developer.log(
+        'Error saat memperbarui transaksi di SQLite: $e',
+        name: 'TransaksiOperasi.update',
+        error: e,
+      );
+      rethrow;
+    }
   }
 
   Future<void> arsipkanTransaksi(String id) async {
     final db = await _db;
-
-    await db.transaction((txn) async {
-      final List<Map<String, dynamic>> maps = await txn.query(
-        'transaksi',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-
-      if (maps.isNotEmpty) {
-        final transaksi = TransaksiModel.fromSqlite(maps.first);
-
-        if (transaksi.tipe == TipeTransaksi.pemasukan) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-            [transaksi.jumlah, transaksi.idDompet],
-          );
-        } else if (transaksi.tipe == TipeTransaksi.pengeluaran) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [transaksi.jumlah, transaksi.idDompet],
-          );
-        } else if (transaksi.tipe == TipeTransaksi.transfer) {
-          await txn.rawUpdate(
-            'UPDATE dompet SET saldo = saldo + ? WHERE id = ?',
-            [transaksi.jumlah, transaksi.idDompet],
-          );
-          if (transaksi.idDompetTujuan != null) {
-            await txn.rawUpdate(
-              'UPDATE dompet SET saldo = saldo - ? WHERE id = ?',
-              [transaksi.jumlah, transaksi.idDompetTujuan],
-            );
-          }
-        }
-
-        await txn.update(
+    try {
+      await db.transaction((txn) async {
+        final maps = await txn.query(
           'transaksi',
-          {'isDeleted': 1, 'diarsipkan': DateTime.now().toIso8601String()},
           where: 'id = ?',
           whereArgs: [id],
         );
-      }
-    });
+
+        if (maps.isNotEmpty) {
+          final transaksiLama = TransaksiModel.fromSqlite(maps.first);
+
+          // 1. Hapus transaksi (soft delete)
+          await txn.update(
+            'transaksi',
+            {'isDeleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+
+          // 2. Hitung ulang saldo dompet yang terpengaruh.
+          await _recalculateAndUpdateDompetSaldo(transaksiLama.idDompet, txn);
+          if (transaksiLama.tipe == TipeTransaksi.transfer &&
+              transaksiLama.idDompetTujuan != null) {
+            await _recalculateAndUpdateDompetSaldo(
+              transaksiLama.idDompetTujuan!,
+              txn,
+            );
+          }
+        }
+      });
+      developer.log(
+        'Transaksi berhasil dihapus, saldo dompet dihitung ulang.',
+        name: 'TransaksiOperasi.hapus',
+      );
+    } catch (e) {
+      developer.log(
+        'Error saat menghapus transaksi di SQLite: $e',
+        name: 'TransaksiOperasi.hapus',
+        error: e,
+      );
+      rethrow;
+    }
   }
 
   Future<double> getTotalPemasukan() async {
@@ -244,6 +299,7 @@ class TransaksiOperasi {
     return 0.0;
   }
 
+  // diubah: Komentar yang salah telah dihapus. Fungsi ini mengembalikan nilai positif.
   Future<double> getTotalPengeluaran() async {
     final db = await _db;
     final result = await db.rawQuery(
@@ -293,40 +349,33 @@ class TransaksiOperasi {
     return poinDihasilkan - poinDigunakan;
   }
 
+  // diubah: Logika batch disederhanakan dan dibuat lebih aman.
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
     final db = await _db;
-    final batch = db.batch();
-    for (var item in items) {
-      batch.insert(
-        'transaksi',
-        item.copyWith(diperbarui: DateTime.now()).toSqlite(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+    Set<String> affectedWallets = {};
 
-      if (item.tipe == TipeTransaksi.pemasukan) {
-        batch.rawUpdate('UPDATE dompet SET saldo = saldo + ? WHERE id = ?', [
-          item.jumlah,
-          item.idDompet,
-        ]);
-      } else if (item.tipe == TipeTransaksi.pengeluaran) {
-        batch.rawUpdate('UPDATE dompet SET saldo = saldo - ? WHERE id = ?', [
-          item.jumlah,
-          item.idDompet,
-        ]);
-      } else if (item.tipe == TipeTransaksi.transfer) {
-        batch.rawUpdate('UPDATE dompet SET saldo = saldo - ? WHERE id = ?', [
-          item.jumlah,
-          item.idDompet,
-        ]);
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (var item in items) {
+        batch.insert(
+          'transaksi',
+          item.copyWith(diperbarui: DateTime.now()).toSqlite(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        // Kumpulkan semua ID dompet yang terpengaruh
+        affectedWallets.add(item.idDompet);
         if (item.idDompetTujuan != null) {
-          batch.rawUpdate('UPDATE dompet SET saldo = saldo + ? WHERE id = ?', [
-            item.jumlah,
-            item.idDompetTujuan,
-          ]);
+          affectedWallets.add(item.idDompetTujuan!);
         }
       }
-    }
-    await batch.commit(noResult: true);
+      await batch.commit(noResult: true);
+
+      // Setelah semua transaksi di-commit, hitung ulang saldo untuk setiap dompet yang terpengaruh.
+      for (String dompetId in affectedWallets) {
+        await _recalculateAndUpdateDompetSaldo(dompetId, txn);
+      }
+    });
   }
 
   Future<List<TransaksiModel>> getTransaksiByIds(List<String> ids) async {

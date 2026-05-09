@@ -443,13 +443,12 @@ class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
   }
 
   @override
-  _i8.Future<void> tambahTransaksi(_i14.TransaksiModel? transaksi) =>
+  _i8.Future<int> tambahTransaksi(_i14.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i8.Future<void>);
+          as _i8.Future<int>);
 
   @override
   _i8.Future<List<_i14.TransaksiModel>> ambilSemuaTransaksi() =>
@@ -498,9 +497,12 @@ class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
           as _i8.Future<List<_i14.TransaksiModel>>);
 
   @override
-  _i8.Future<void> updateTransaksi(_i14.TransaksiModel? transaksiBaru) =>
+  _i8.Future<void> updateTransaksi(
+    String? id,
+    _i14.TransaksiModel? transaksiBaru,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#updateTransaksi, [transaksiBaru]),
+            Invocation.method(#updateTransaksi, [id, transaksiBaru]),
             returnValue: _i8.Future<void>.value(),
             returnValueForMissingStub: _i8.Future<void>.value(),
           )

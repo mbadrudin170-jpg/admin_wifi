@@ -11,7 +11,7 @@
 // diubah: Memperbaiki bug tampilan poin.
 // ditambahkan: Logika `_hitungTanggalBerakhir` diekstrak menjadi fungsi top-level `hitungTanggalBerakhir` untuk kemudahan pengujian.
 // diperbaiki: Kesalahan sintaks pada string multi-baris di SnackBar.
-// diperbaiki: Logika pembuatan dan pembaruan PelangganAktif dan Transaksi yang terkoordinasi.
+// diperbaiki: Memperbaiki bug dimana edit pelanggan aktif tidak mengupdate transaksi yang ada.
 
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -287,28 +287,26 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           selectedPaket,
         );
 
-        // ditambahkan: Tentukan ID di awal untuk konsistensi
-        final String pelangganAktifId = _isEditMode
-            ? widget.pelangganAktif!.id
-            : const Uuid().v4();
+        // diubah: Tentukan ID transaksi di awal untuk menjaga konsistensi.
         final String transaksiId =
             _isEditMode && widget.pelangganAktif?.idTransaksi != null
             ? widget.pelangganAktif!.idTransaksi!
             : const Uuid().v4();
 
         final pelangganAktifData = PelangganAktifModel(
-          id: pelangganAktifId,
+          id: _isEditMode ? widget.pelangganAktif!.id : '',
           idPelanggan: _selectedPelanggan!.id,
           idPaket: selectedPaket.id,
-          idTransaksi: transaksiId, // ditambahkan: isi idTransaksi
           tanggalMulai: tanggalMulai,
           tanggalBerakhir: tanggalBerakhir,
           status: _statusPembayaran,
           diperbarui: DateTime.now(),
+          idTransaksi:
+              transaksiId, // ditambahkan: Menyimpan referensi ID transaksi
         );
 
-        final transaksi = TransaksiModel(
-          id: transaksiId, // diubah: Gunakan ID yang sudah ditentukan
+        final transaksiData = TransaksiModel(
+          id: transaksiId, // diubah: Menggunakan ID yang sudah ditentukan
           tanggal: tanggalMulai,
           keterangan: '${selectedPaket.nama} - ${_selectedPelanggan!.nama}',
           jumlah: selectedPaket.harga.toDouble(),
@@ -328,19 +326,22 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         );
 
         try {
+          // diubah: Logika penyimpanan digabung untuk memastikan atomicity
           if (_isEditMode) {
-            // diubah: Urutan diubah untuk konsistensi
-            await widget.transaksiOperasi.updateTransaksi(transaksi);
             await widget.pelangganAktifOperasi.updatePelangganAktif(
               pelangganAktifData,
             );
+            await widget.transaksiOperasi.updateTransaksi(
+              transaksiId,
+              transaksiData,
+            );
           } else {
-            // diubah: Urutan diubah, transaksi dulu baru pelanggan aktif
-            await widget.transaksiOperasi.tambahTransaksi(transaksi);
             await widget.pelangganAktifOperasi.createPelangganAktif(
               pelangganAktifData,
             );
+            await widget.transaksiOperasi.tambahTransaksi(transaksiData);
           }
+
           if (!mounted) return false;
 
           ScaffoldMessenger.of(context).showSnackBar(
