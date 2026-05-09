@@ -461,6 +461,14 @@ class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
           as _i8.Future<List<_i14.TransaksiModel>>);
 
   @override
+  _i8.Future<_i14.TransaksiModel?> getTransaksiById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiById, [id]),
+            returnValue: _i8.Future<_i14.TransaksiModel?>.value(),
+          )
+          as _i8.Future<_i14.TransaksiModel?>);
+
+  @override
   _i8.Future<List<_i14.TransaksiModel>> ambilTransaksiByPelangganId(
     String? pelangganId,
   ) =>
@@ -478,18 +486,6 @@ class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByDompetId, [dompetId]),
-            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
-              <_i14.TransaksiModel>[],
-            ),
-          )
-          as _i8.Future<List<_i14.TransaksiModel>>);
-
-  @override
-  _i8.Future<List<_i14.TransaksiModel>> getTransaksiByPelanggan(
-    String? pelangganId,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#getTransaksiByPelanggan, [pelangganId]),
             returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
               <_i14.TransaksiModel>[],
             ),

@@ -53,6 +53,15 @@ class MockTransaksiOperasi extends _i1.Mock implements _i2.TransaksiOperasi {
           as _i3.Future<List<_i4.TransaksiModel>>);
 
   @override
+  _i3.Future<_i4.TransaksiModel?> getTransaksiById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiById, [id]),
+            returnValue: _i3.Future<_i4.TransaksiModel?>.value(),
+            returnValueForMissingStub: _i3.Future<_i4.TransaksiModel?>.value(),
+          )
+          as _i3.Future<_i4.TransaksiModel?>);
+
+  @override
   _i3.Future<List<_i4.TransaksiModel>> ambilTransaksiByPelangganId(
     String? pelangganId,
   ) =>
@@ -74,22 +83,6 @@ class MockTransaksiOperasi extends _i1.Mock implements _i2.TransaksiOperasi {
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByDompetId, [dompetId]),
-            returnValue: _i3.Future<List<_i4.TransaksiModel>>.value(
-              <_i4.TransaksiModel>[],
-            ),
-            returnValueForMissingStub:
-                _i3.Future<List<_i4.TransaksiModel>>.value(
-                  <_i4.TransaksiModel>[],
-                ),
-          )
-          as _i3.Future<List<_i4.TransaksiModel>>);
-
-  @override
-  _i3.Future<List<_i4.TransaksiModel>> getTransaksiByPelanggan(
-    String? pelangganId,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#getTransaksiByPelanggan, [pelangganId]),
             returnValue: _i3.Future<List<_i4.TransaksiModel>>.value(
               <_i4.TransaksiModel>[],
             ),

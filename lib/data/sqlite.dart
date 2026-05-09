@@ -1,6 +1,7 @@
 // path: lib/data/sqlite.dart
 // diubah: Menghapus tabel riwayat_langganan yang sudah tidak digunakan.
 // diubah: Memastikan kolom aktivasi_paket ada di definisi tabel utama.
+// diperbaiki: Menghapus kolom denormalisasi dari tabel transaksi.
 
 import 'dart:developer';
 import 'dart:io';
@@ -51,20 +52,14 @@ class DatabaseHelper {
         tanggal TEXT NOT NULL,
         tipe TEXT NOT NULL,
         id_dompet TEXT,
-        nama_dompet TEXT,
         id_kategori TEXT,
-        nama_kategori TEXT,
         id_sub_kategori TEXT,
-        nama_sub_kategori TEXT,
         id_pelanggan TEXT,
-        nama_pelanggan TEXT,
         id_paket TEXT,
-        nama_paket TEXT,
         diperbarui TEXT,
         diarsipkan TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         id_dompet_tujuan TEXT,
-        nama_dompet_tujuan TEXT,
         poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0,
         poin_yang_digunakan INTEGER NOT NULL DEFAULT 0,
         status_pembayaran TEXT,
@@ -127,88 +122,49 @@ class DatabaseHelper {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
 
+    // Hapus blok if yang relevan jika versi basis data sudah jauh
+    // melewati versi-versi ini untuk mencegah eksekusi kode yang tidak perlu
+    // pada instalasi baru atau upgrade besar.
+    final batch = db.batch();
+
+    // Contoh migrasi skema yang lebih tangguh
     if (oldVersion < 34) {
       try {
-        await db.execute(
-          'ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT',
-        );
+        batch.execute('ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT');
       } catch (e) {
-        log('Gagal upgrade v34: $e');
+        log('Peringatan: Gagal menambahkan status_pembayaran. Mungkin sudah ada. Error: $e');
       }
     }
 
-    if (oldVersion < 35) {
-      try {
-        await db.execute(
-          'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT',
-        );
-      } catch (e) {
-        log('Gagal upgrade v35: $e');
-      }
-    }
-
-    if (oldVersion < 36) {
-      try {
-        await db.execute(
-          'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT',
-        );
-      } catch (e) {
-        log('Gagal upgrade v36: $e');
-      }
-    }
-
-    if (oldVersion < 37) {
-      try {
-        await db.execute(
-          'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);',
-        );
-        await db.execute(
-          'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);',
-        );
-        await db.execute(
-          'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);',
-        );
-      } catch (e) {
-        log('Gagal upgrade v37: $e');
-      }
-    }
-
-    if (oldVersion < 38) {
-      try {
-        log(
-          'Menjalankan upgrade untuk versi < 38: Menambahkan kolom langganan ke tabel transaksi.',
-        );
-        await db.execute(
-          'ALTER TABLE transaksi ADD COLUMN durasi_paket INTEGER',
-        );
-        await db.execute(
-          'ALTER TABLE transaksi ADD COLUMN tipe_durasi_paket TEXT',
-        );
-        await db.execute('ALTER TABLE transaksi ADD COLUMN tanggal_mulai TEXT');
-        await db.execute(
-          'ALTER TABLE transaksi ADD COLUMN tanggal_berakhir TEXT',
-        );
-        log('Kolom langganan berhasil ditambahkan ke tabel transaksi.');
-      } catch (e) {
-        log('Error saat menambahkan kolom langganan ke tabel transaksi: $e');
-      }
-    }
     if (oldVersion < 39) {
       try {
-        log(
-          'Menjalankan upgrade untuk versi < 39: Menambahkan kolom aktivasi_paket ke tabel transaksi.',
-        );
-        await db.execute(
-          'ALTER TABLE transaksi ADD COLUMN aktivasi_paket INTEGER DEFAULT 0',
-        );
-        log('Kolom aktivasi_paket berhasil ditambahkan ke tabel transaksi.');
+        // Jalankan semua migrasi yang hilang dalam sekali jalan
+        final List<String> migrations = [
+          'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT', // v35
+          'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT', // v36
+          'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet ON transaksi(id_dompet)', // v37
+          'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)', // v37
+          'CREATE INDEX IF NOT EXISTS idx_transaksi_isDeleted ON transaksi(isDeleted)', // v37
+          'ALTER TABLE transaksi ADD COLUMN durasi_paket INTEGER', // v38
+          'ALTER TABLE transaksi ADD COLUMN tipe_durasi_paket TEXT', // v38
+          'ALTER TABLE transaksi ADD COLUMN tanggal_mulai TEXT', // v38
+          'ALTER TABLE transaksi ADD COLUMN tanggal_berakhir TEXT', // v38
+          'ALTER TABLE transaksi ADD COLUMN aktivasi_paket INTEGER DEFAULT 0', // v39
+        ];
+
+        for (final migration in migrations) {
+          try {
+            batch.execute(migration);
+          } catch (e) {
+            log('Peringatan: Gagal menjalankan migrasi "$migration". Error: $e');
+          }
+        }
       } catch (e) {
-        log(
-          'Error saat menambahkan kolom aktivasi_paket ke tabel transaksi: $e',
-        );
+        log('Gagal upgrade v35-39: $e');
       }
     }
-
+    
+    await batch.commit(noResult: true);
     log('Upgrade database selesai.');
   }
 
@@ -230,8 +186,6 @@ class DatabaseHelper {
     );
     await db.execute(tabelDompet);
     await db.execute(_tabelKritikSaran);
-    // diubah: Menghapus pembuatan tabel riwayat_langganan
-    // await db.execute(_tabelRiwayatLangganan);
     await db.execute(_tabelPesanan);
     await db.execute(tabelVersiApkUser);
     await db.execute(_tabelPengaturan);
@@ -332,8 +286,6 @@ class DatabaseHelper {
         FOREIGN KEY (userId) REFERENCES pelanggan (id) ON DELETE CASCADE
       )
     ''';
-
-  // diubah: Menghapus definisi tabel riwayat_langganan
 
   static const String _tabelPesanan = '''
       CREATE TABLE pesanan(

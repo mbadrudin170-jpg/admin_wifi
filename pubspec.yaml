@@ -48,6 +48,7 @@ dev_dependencies:
   json_serializable: ^6.13.2
   # ditambahkan: Karena dibutuhkan oleh mock exception di form_paket_test.dart
   sqflite_common: ^2.5.4
+  fake_async: ^1.3.3
 
 # ditambahkan: untuk konfigurasi flutter_launcher_icons
 flutter_launcher_icons:

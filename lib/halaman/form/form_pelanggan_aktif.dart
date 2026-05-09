@@ -13,7 +13,6 @@
 // diperbaiki: Kesalahan sintaks pada string multi-baris di SnackBar.
 // diperbaiki: Memperbaiki bug dimana edit pelanggan aktif tidak mengupdate transaksi yang ada.
 
-import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
@@ -21,6 +20,7 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/model/hasil_simpan_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
@@ -250,144 +250,110 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     }
   }
 
-  Future<bool> _saveForm() async {
-    if (_formKey.currentState!.validate()) {
-      final selectedPaket = _selectedPaket;
-      if (_selectedPelanggan != null &&
-          selectedPaket != null &&
-          _selectedDate != null &&
-          _selectedTime != null &&
-          _selectedDompet != null &&
-          _selectedKategori != null) {
-        if (_gunakanPoin) {
-          if (selectedPaket.poinPenukaran <= 0) {
-            if (!mounted) return false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Paket ini tidak mendukung penukaran poin'),
-                backgroundColor: Colors.red,
-              ),
-            );
-            return false;
-          }
+  Future<HasilSimpanModel> _saveForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return HasilSimpanModel(sukses: false, pesan: 'Data belum lengkap');
+    }
 
-          if (_saldoPoinPelanggan < selectedPaket.poinPenukaran) {
-            if (!mounted) return false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Poin tidak cukup'),
-                backgroundColor: Colors.red,
-              ),
-            );
-            return false;
-          }
-        }
-        final DateTime tanggalMulai = DateTime(
-          _selectedDate!.year,
-          _selectedDate!.month,
-          _selectedDate!.day,
-          _selectedTime!.hour,
-          _selectedTime!.minute,
-        );
+    final selectedPaket = _selectedPaket;
 
-        final DateTime tanggalBerakhir = hitungTanggalBerakhir(
-          tanggalMulai,
-          selectedPaket,
-        );
+    if (_selectedPelanggan == null ||
+        selectedPaket == null ||
+        _selectedDate == null ||
+        _selectedTime == null ||
+        _selectedDompet == null ||
+        _selectedKategori == null) {
+      return HasilSimpanModel(
+        sukses: false,
+        pesan: 'Harap lengkapi semua data',
+      );
+    }
 
-        final String transaksiId =
-            _isEditMode && widget.pelangganAktif?.idTransaksi != null
-            ? widget.pelangganAktif!.idTransaksi!
-            : const Uuid().v4();
-
-        final pelangganAktifData = PelangganAktifModel(
-          id: _isEditMode ? widget.pelangganAktif!.id : '',
-          idPelanggan: _selectedPelanggan!.id,
-          idPaket: selectedPaket.id,
-          tanggalMulai: tanggalMulai,
-          tanggalBerakhir: tanggalBerakhir,
-          status: _statusPembayaran,
-          diperbarui: DateTime.now(),
-          idTransaksi: transaksiId,
-        );
-
-        final transaksiData = TransaksiModel(
-          id: transaksiId,
-          tanggal: tanggalMulai,
-          keterangan: 'Aktivasi Paket: ${selectedPaket.nama}',
-          jumlah: _gunakanPoin ? 0 : selectedPaket.harga.toDouble(),
-          tipe: _gunakanPoin
-              ? TipeTransaksi.pengeluaran
-              : TipeTransaksi.pemasukan,
-          idDompet: _selectedDompet!.id,
-          idKategori: _selectedKategori!.id,
-          idPelanggan: _selectedPelanggan!.id,
-          idPaket: selectedPaket.id,
-          statusPembayaran: _statusPembayaran,
-          poinYangDihasilkan: _gunakanPoin ? 0 : selectedPaket.poinHadiah,
-          poinYangDigunakan: _gunakanPoin ? selectedPaket.poinPenukaran : 0,
-          diperbarui: DateTime.now(),
-          durasiPaket: selectedPaket.durasi,
-          tipeDurasiPaket: selectedPaket.tipe,
-          tanggalMulai: tanggalMulai,
-          tanggalBerakhir: tanggalBerakhir,
-          aktivasiPaket: true,
-        );
-
-        try {
-          if (_isEditMode) {
-            await widget.pelangganAktifOperasi.updatePelangganAktif(
-              pelangganAktifData,
-            );
-            await widget.transaksiOperasi.updateTransaksi(
-              transaksiId,
-              transaksiData,
-            );
-          } else {
-            await widget.pelangganAktifOperasi.createPelangganAktif(
-              pelangganAktifData,
-            );
-            await widget.transaksiOperasi.tambahTransaksi(transaksiData);
-          }
-
-          if (!mounted) return false;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Pelanggan berhasil ${_isEditMode ? 'diperbarui' : 'diaktifkan'}!',
-              ),
-            ),
-          );
-          return true;
-        } catch (e, s) {
-          developer.log(
-            'Terjadi kesalahan saat menyimpan',
-            name: 'admin_wifi.form.pelanggan_aktif',
-            error: e,
-            stackTrace: s,
-          );
-
-          if (!mounted) return false;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal menyimpan: $e. Cek log untuk detail.'),
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-      } else {
-        if (!mounted) return false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Harap lengkapi semua data, termasuk Pelanggan, Paket, Dompet, dan Kategori.',
-            ),
-          ),
+    if (_gunakanPoin) {
+      if (selectedPaket.poinPenukaran <= 0) {
+        return HasilSimpanModel(
+          sukses: false,
+          pesan: 'Paket ini tidak mendukung penukaran poin',
         );
       }
+
+      if (_saldoPoinPelanggan < selectedPaket.poinPenukaran) {
+        return HasilSimpanModel(sukses: false, pesan: 'Poin tidak cukup');
+      }
     }
-    return false;
+
+    try {
+      final DateTime tanggalMulai = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+
+      final DateTime tanggalBerakhir = hitungTanggalBerakhir(
+        tanggalMulai,
+        selectedPaket,
+      );
+
+      final String transaksiId =
+          _isEditMode && widget.pelangganAktif?.idTransaksi != null
+          ? widget.pelangganAktif!.idTransaksi!
+          : const Uuid().v4();
+
+      final pelangganAktifData = PelangganAktifModel(
+        id: _isEditMode ? widget.pelangganAktif!.id : '',
+        idPelanggan: _selectedPelanggan!.id,
+        idPaket: selectedPaket.id,
+        tanggalMulai: tanggalMulai,
+        tanggalBerakhir: tanggalBerakhir,
+        status: _statusPembayaran,
+        diperbarui: DateTime.now(),
+        idTransaksi: transaksiId,
+      );
+
+      final transaksiData = TransaksiModel(
+        id: transaksiId,
+        tanggal: tanggalMulai,
+        keterangan: 'Aktivasi Paket: ${selectedPaket.nama}',
+        jumlah: _gunakanPoin ? 0 : selectedPaket.harga.toDouble(),
+        tipe: _gunakanPoin
+            ? TipeTransaksi.pengeluaran
+            : TipeTransaksi.pemasukan,
+        idDompet: _selectedDompet!.id,
+        idKategori: _selectedKategori!.id,
+        idPelanggan: _selectedPelanggan!.id,
+        idPaket: selectedPaket.id,
+        statusPembayaran: _statusPembayaran,
+        poinYangDihasilkan: _gunakanPoin ? 0 : selectedPaket.poinHadiah,
+        poinYangDigunakan: _gunakanPoin ? selectedPaket.poinPenukaran : 0,
+        diperbarui: DateTime.now(),
+        durasiPaket: selectedPaket.durasi,
+        tipeDurasiPaket: selectedPaket.tipe,
+        tanggalMulai: tanggalMulai,
+        tanggalBerakhir: tanggalBerakhir,
+        aktivasiPaket: true,
+      );
+
+      if (_isEditMode) {
+        await widget.pelangganAktifOperasi.updatePelangganAktif(
+          pelangganAktifData,
+        );
+        await widget.transaksiOperasi.updateTransaksi(
+          transaksiId,
+          transaksiData,
+        );
+      } else {
+        await widget.pelangganAktifOperasi.createPelangganAktif(
+          pelangganAktifData,
+        );
+        await widget.transaksiOperasi.tambahTransaksi(transaksiData);
+      }
+
+      return HasilSimpanModel(sukses: true, pesan: 'Berhasil disimpan');
+    } catch (e) {
+      return HasilSimpanModel(sukses: false, pesan: 'Gagal menyimpan: $e');
+    }
   }
 
   @override
@@ -711,10 +677,22 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         child: ElevatedButton(
           onPressed: () async {
             final navigator = Navigator.of(context);
-            final success = await _saveForm();
+            final messenger = ScaffoldMessenger.of(context);
 
-            if (success) {
-              await Future.delayed(const Duration(milliseconds: 500));
+            final hasil = await _saveForm();
+
+            if (!mounted) return;
+
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(hasil.pesan),
+                backgroundColor: hasil.sukses ? Colors.green : Colors.red,
+              ),
+            );
+
+            if (hasil.sukses) {
+              await Future.delayed(const Duration(milliseconds: 300));
+
               if (!mounted) return;
               navigator.pop(true);
             }

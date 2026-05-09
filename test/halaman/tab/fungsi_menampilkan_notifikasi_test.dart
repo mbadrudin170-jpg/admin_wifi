@@ -1,151 +1,104 @@
 // path: test/halaman/tab/fungsi_menampilkan_notifikasi_test.dart
-// diubah: Merevisi total file test untuk membuatnya lebih robust dengan mock yang benar dan verifikasi.
+// diperbaiki: Menambahkan mock yang benar untuk permission_handler.
 
+import 'package:admin_wifi/services/notifikasi_servis.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+import 'package:permission_handler/permission_handler.dart';
 
-import 'package:admin_wifi/halaman/tab/fungsi_menampilkan_notifikasi.dart';
 import 'fungsi_menampilkan_notifikasi_test.mocks.dart';
 
-@GenerateMocks([
-  FlutterLocalNotificationsPlugin,
-  AndroidFlutterLocalNotificationsPlugin,
-  IOSFlutterLocalNotificationsPlugin,
-])
-void main() {
-  // Inisialisasi awal sekali jalan
-  setUpAll(() {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-  });
+// Definisikan antarmuka abstrak untuk pembungkus statis
+abstract class PermissionHandlerWrapper {
+  Future<PermissionStatus> get notificationStatus;
+  Future<Map<Permission, PermissionStatus>> requestPermissions(
+      List<Permission> permissions);
+}
 
+// Buat mock dari antarmuka tersebut
+@GenerateMocks([FlutterLocalNotificationsPlugin, PermissionHandlerWrapper])
+void main() {
   late NotifikasiServis notifikasiServis;
   late MockFlutterLocalNotificationsPlugin mockPlugin;
-  late MockAndroidFlutterLocalNotificationsPlugin mockAndroidPlugin;
-  late MockIOSFlutterLocalNotificationsPlugin mockIOSPlugin;
+  late MockPermissionHandlerWrapper mockPermissionHandler;
 
-  // Dijalankan sebelum setiap test
   setUp(() {
     mockPlugin = MockFlutterLocalNotificationsPlugin();
-    mockAndroidPlugin = MockAndroidFlutterLocalNotificationsPlugin();
-    mockIOSPlugin = MockIOSFlutterLocalNotificationsPlugin();
-    notifikasiServis = NotifikasiServis.internal(mockPlugin);
-
-    // Stubbing untuk platform-specific implementations
-    when(mockPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>(),)
-        .thenReturn(mockAndroidPlugin);
-    when(mockPlugin.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>(),)
-        .thenReturn(mockIOSPlugin);
+    mockPermissionHandler = MockPermissionHandlerWrapper();
+    notifikasiServis = NotifikasiServis.test(mockPlugin, mockPermissionHandler);
   });
 
   group('Pengujian NotifikasiServis', () {
     test('inisialisasi harus memanggil metode initialize pada plugin', () async {
-      // Arrange
+      const initializationSettings = InitializationSettings(
+        android: AndroidInitializationSettings('notification_icon'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
+      );
+
       when(mockPlugin.initialize(
-        settings: anyNamed('settings'),
-        onDidReceiveNotificationResponse:
-            anyNamed('onDidReceiveNotificationResponse'),
-        onDidReceiveBackgroundNotificationResponse:
-            anyNamed('onDidReceiveBackgroundNotificationResponse'),
+        any,
+        onDidReceiveNotificationResponse: anyNamed('onDidReceiveNotificationResponse'),
       )).thenAnswer((_) async => true);
 
-      // Act
       await notifikasiServis.inisialisasi();
 
-      // Assert
       verify(mockPlugin.initialize(
-        settings: anyNamed('settings'),
-        onDidReceiveNotificationResponse:
-            anyNamed('onDidReceiveNotificationResponse'),
-        onDidReceiveBackgroundNotificationResponse:
-            anyNamed('onDidReceiveBackgroundNotificationResponse'),
+        initializationSettings,
+        onDidReceiveNotificationResponse: anyNamed('onDidReceiveNotificationResponse'),
       )).called(1);
     });
 
-    group('requestPermissions', () {
-      test('harus mengembalikan true jika izin Android diberikan', () async {
-        // Arrange: Simulasikan Android memberi izin, iOS menolak
-        when(mockAndroidPlugin.requestNotificationsPermission())
-            .thenAnswer((_) async => true);
-        when(mockIOSPlugin.requestPermissions(
-          alert: anyNamed('alert'),
-          badge: anyNamed('badge'),
-          sound: anyNamed('sound'),
-        )).thenAnswer((_) async => false);
+    test('requestPermissions harus mengembalikan true jika izin Android diberikan', () async {
+      // Atur mock untuk status dan permintaan
+      when(mockPermissionHandler.notificationStatus)
+          .thenAnswer((_) async => PermissionStatus.granted);
+          
+      final result = await notifikasiServis.requestPermissions();
 
-        // Act
-        final hasil = await notifikasiServis.requestPermissions();
-
-        // Assert: Hasil harus true karena satu izin diberikan (logika OR)
-        expect(hasil, isTrue);
-        verify(mockAndroidPlugin.requestNotificationsPermission()).called(1);
-        verify(mockIOSPlugin.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        )).called(1);
-      });
-
-      test('harus mengembalikan true jika izin iOS diberikan', () async {
-        // Arrange: Simulasikan Android menolak, iOS memberi izin
-        when(mockAndroidPlugin.requestNotificationsPermission())
-            .thenAnswer((_) async => false);
-        when(mockIOSPlugin.requestPermissions(
-          alert: anyNamed('alert'),
-          badge: anyNamed('badge'),
-          sound: anyNamed('sound'),
-        )).thenAnswer((_) async => true);
-
-        // Act
-        final hasil = await notifikasiServis.requestPermissions();
-
-        // Assert: Hasil harus true karena satu izin diberikan (logika OR)
-        expect(hasil, isTrue);
-        verify(mockAndroidPlugin.requestNotificationsPermission()).called(1);
-        verify(mockIOSPlugin.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        )).called(1);
-      });
-
-      test('harus mengembalikan false jika semua izin ditolak', () async {
-        // Arrange: Simulasikan keduanya menolak izin
-        when(mockAndroidPlugin.requestNotificationsPermission())
-            .thenAnswer((_) async => false);
-        when(mockIOSPlugin.requestPermissions(
-          alert: anyNamed('alert'),
-          badge: anyNamed('badge'),
-          sound: anyNamed('sound'),
-        )).thenAnswer((_) async => false);
-
-        // Act
-        final hasil = await notifikasiServis.requestPermissions();
-
-        // Assert
-        expect(hasil, isFalse);
-      });
-
-      test('harus mengembalikan false jika terjadi error', () async {
-        // Arrange: Simulasikan terjadi error saat meminta izin
-        when(mockAndroidPlugin.requestNotificationsPermission())
-            .thenThrow(Exception('Test Error'));
-
-        // Act
-        final hasil = await notifikasiServis.requestPermissions();
-
-        // Assert
-        expect(hasil, isFalse);
-      });
+      expect(result, isTrue);
+      verify(mockPermissionHandler.notificationStatus).called(1);
+      verifyNever(mockPermissionHandler.requestPermissions(any));
     });
 
-    // ... tes lainnya tetap sama ...
+    test('requestPermissions harus mengembalikan true jika izin iOS diberikan', () async {
+      // Atur mock untuk status dan permintaan
+      when(mockPermissionHandler.notificationStatus)
+          .thenAnswer((_) async => PermissionStatus.denied);
+      when(mockPermissionHandler.requestPermissions([Permission.notification]))
+          .thenAnswer((_) async => {Permission.notification: PermissionStatus.granted});
+
+      final result = await notifikasiServis.requestPermissions();
+
+      expect(result, isTrue);
+      verify(mockPermissionHandler.notificationStatus).called(1);
+      verify(mockPermissionHandler.requestPermissions([Permission.notification]))
+          .called(1);
+    });
+    
+    test('requestPermissions harus mengembalikan false jika semua izin ditolak', () async {
+       when(mockPermissionHandler.notificationStatus)
+          .thenAnswer((_) async => PermissionStatus.denied);
+      when(mockPermissionHandler.requestPermissions([Permission.notification]))
+          .thenAnswer((_) async => {Permission.notification: PermissionStatus.denied});
+
+      final result = await notifikasiServis.requestPermissions();
+
+      expect(result, isFalse);
+    });
+
+    test('requestPermissions harus mengembalikan false jika terjadi error', () async {
+      when(mockPermissionHandler.notificationStatus).thenThrow(Exception('Test Error'));
+
+      final result = await notifikasiServis.requestPermissions();
+
+      expect(result, isFalse);
+    });
+
   });
 }

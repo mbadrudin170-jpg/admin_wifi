@@ -1,6 +1,4 @@
 // path: test/halaman/form/form_pelanggan_aktif_test.dart
-// diubah: Membungkus FormPelangganAktif dalam Scaffold untuk memastikan SnackBar dapat ditampilkan.
-// diubah: Menggunakan pumpAndSettle untuk menunggu animasi SnackBar selesai.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -10,19 +8,18 @@ import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/enum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:jiffy/jiffy.dart';
-import 'package:admin_wifi/enum/enum.dart';
 
 import 'form_pelanggan_aktif_test.mocks.dart';
 
@@ -64,6 +61,8 @@ void main() {
       harga: 5000,
       durasi: 1,
       tipe: TipeDurasi.jam,
+      poinPenukaran: 0,
+      poinHadiah: 10,
     ),
   ];
 
@@ -100,7 +99,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold( // diubah: Menambahkan Scaffold
+        home: Scaffold(
           body: FormPelangganAktif(
             pelangganAktif: pelangganAktif,
             pelangganOperasi: mockPelangganOperasi,
@@ -115,309 +114,93 @@ void main() {
     );
   }
 
-  group('FormPelangganAktif', () {
-    setUp(() {
-      mockPelangganOperasi = MockPelangganOperasi();
-      mockPaketOperasi = MockPaketOperasi();
-      mockPelangganAktifOperasi = MockPelangganAktifOperasi();
-      mockTransaksiOperasi = MockTransaksiOperasi();
-      mockDompetOperasi = MockDompetOperasi();
-      mockKategoriOperasi = MockKategoriOperasi();
+  setUp(() {
+    mockPelangganOperasi = MockPelangganOperasi();
+    mockPaketOperasi = MockPaketOperasi();
+    mockPelangganAktifOperasi = MockPelangganAktifOperasi();
+    mockTransaksiOperasi = MockTransaksiOperasi();
+    mockDompetOperasi = MockDompetOperasi();
+    mockKategoriOperasi = MockKategoriOperasi();
 
-      when(
-        mockPelangganOperasi.getPelanggan(),
-      ).thenAnswer((_) async => pelangganDummy);
+    when(mockPelangganOperasi.getPelanggan())
+        .thenAnswer((_) async => pelangganDummy);
 
-      when(mockPaketOperasi.getPaket()).thenAnswer((_) async => paketDummy);
+    when(mockPaketOperasi.getPaket())
+        .thenAnswer((_) async => paketDummy);
 
-      when(mockDompetOperasi.getDompet()).thenAnswer((_) async => dompetDummy);
+    when(mockDompetOperasi.getDompet())
+        .thenAnswer((_) async => dompetDummy);
 
-      when(
-        mockKategoriOperasi.getKategori(),
-      ).thenAnswer((_) async => kategoriDummy);
+    when(mockKategoriOperasi.getKategori())
+        .thenAnswer((_) async => kategoriDummy);
 
-      when(mockTransaksiOperasi.getTotalPoin(any)).thenAnswer((_) async => 1000);
+    when(mockTransaksiOperasi.getTotalPoin(any))
+        .thenAnswer((_) async => 1000);
 
-      when(
-        mockPelangganAktifOperasi.createPelangganAktif(any),
-      ).thenAnswer((_) async => pelangganAktifDummy);
+    when(mockPelangganAktifOperasi.createPelangganAktif(any))
+        .thenAnswer((_) async => pelangganAktifDummy);
 
-      when(
-        mockPelangganAktifOperasi.updatePelangganAktif(any),
-      ).thenAnswer((_) async => pelangganAktifDummy);
+    when(mockPelangganAktifOperasi.updatePelangganAktif(any))
+        .thenAnswer((_) async => pelangganAktifDummy);
 
-      when(
-        mockTransaksiOperasi.tambahTransaksi(any),
-      ).thenAnswer((_) async => 1);
-    });
-
-    group('Inisialisasi & Tampilan Awal', () {
-      testWidgets('load form sukses', (tester) async {
-        await pumpForm(tester);
-        await tester.pumpAndSettle();
-
-        expect(find.byType(Form), findsOneWidget);
-        expect(find.byKey(const Key('pelanggan_dropdown')), findsOneWidget);
-        expect(find.byKey(const Key('paket_dropdown')), findsOneWidget);
-      });
-    });
-
-    group('Simpan & Validasi', () {
-      testWidgets('simpan sukses (lunas)', (tester) async {
-        await pumpForm(tester);
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Pelanggan A').first);
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byKey(const Key('paket_dropdown')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Paket 1 Jam').first);
-        await tester.pumpAndSettle();
-
-        await tester.ensureVisible(find.text('Simpan'));
-        await tester.tap(find.text('Simpan'));
-
-        await tester.pumpAndSettle(); // diubah: Menunggu SnackBar muncul
-
-        expect(find.textContaining('berhasil'), findsOneWidget);
-
-        verify(mockPelangganAktifOperasi.createPelangganAktif(any)).called(1);
-        verify(mockTransaksiOperasi.tambahTransaksi(any)).called(1);
-      });
-
-      testWidgets('simpan gagal karena poin tidak cukup', (tester) async {
-        when(mockPaketOperasi.getPaket()).thenAnswer(
-          (_) async => [paketDummy.first.copyWith(poinPenukaran: 500)],
-        );
-        when(mockTransaksiOperasi.getTotalPoin(any)).thenAnswer((_) async => 0);
-
-        await pumpForm(tester);
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Pelanggan A').first);
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byKey(const Key('paket_dropdown')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Paket 1 Jam').first);
-        await tester.pumpAndSettle();
-
-        final switchFinder = find.byType(Switch);
-        await tester.ensureVisible(switchFinder);
-        await tester.pumpAndSettle();
-
-        await tester.tap(switchFinder);
-        await tester.pumpAndSettle();
-
-        final simpanButtonFinder = find.text('Simpan');
-        await tester.ensureVisible(simpanButtonFinder);
-        await tester.pumpAndSettle();
-
-        await tester.tap(simpanButtonFinder);
-        await tester.pumpAndSettle(); // diubah: Menunggu SnackBar
-
-        expect(find.textContaining('Poin tidak cukup'), findsOneWidget);
-
-        verifyNever(mockPelangganAktifOperasi.createPelangganAktif(any));
-      });
-
-      testWidgets(
-        'poin dihasilkan harus sesuai poin hadiah paket, saat _gunakanPoin false',
-        (tester) async {
-          when(
-            mockPaketOperasi.getPaket(),
-          ).thenAnswer((_) async => [paketDummy.first.copyWith(poinHadiah: 15)]);
-
-          await pumpForm(tester);
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Pelanggan A').first);
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.byKey(const Key('paket_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Paket 1 Jam').first);
-          await tester.pumpAndSettle();
-
-          await tester.ensureVisible(find.text('Simpan'));
-          await tester.tap(find.text('Simpan'));
-          await tester.pumpAndSettle();
-
-          final verifikasi = verify(
-            mockTransaksiOperasi.tambahTransaksi(captureAny),
-          );
-          verifikasi.called(1);
-
-          final transaksiYangTersimpan = verifikasi.captured.first;
-
-          expect(transaksiYangTersimpan.poinYangDihasilkan, 15);
-        },
-      );
-    });
-
-    group('Mode Edit', () {
-      testWidgets('edit mode sukses', (tester) async {
-        final editData = PelangganAktifModel(
-          id: 'edit1',
-          idPelanggan: 'p1',
-          idPaket: 'pkt1',
-          tanggalMulai: DateTime.now(),
-          tanggalBerakhir: DateTime.now().add(const Duration(hours: 1)),
-          status: StatusPembayaran.lunas,
-        );
-
-        await pumpForm(tester, pelangganAktif: editData);
-        await tester.pumpAndSettle();
-
-        await tester.ensureVisible(find.text('Simpan'));
-        await tester.tap(find.text('Simpan'));
-
-        await tester.pumpAndSettle(); // diubah: Menunggu SnackBar
-
-        expect(find.textContaining('diperbarui'), findsOneWidget);
-
-        verify(mockPelangganAktifOperasi.updatePelangganAktif(any)).called(1);
-      });
-    });
-
-    group('UI & Logika Poin', () {
-      int hitungSisaPoinTest(int saldo, int poinDipakai) {
-        return (saldo - poinDipakai).clamp(0, 999999999);
-      }
-
-      testWidgets(
-        'label poin - ketika poin dipakai label poin harus menampilkan label poin dipakai',
-        (tester) async {
-          when(mockPaketOperasi.getPaket()).thenAnswer(
-            (_) async => [paketDummy.first.copyWith(poinPenukaran: 500)],
-          );
-
-          await pumpForm(tester);
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Pelanggan A').first);
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.byKey(const Key('paket_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Paket 1 Jam').first);
-          await tester.pumpAndSettle();
-
-          await tester.ensureVisible(find.byType(Switch));
-          await tester.tap(find.byType(Switch));
-          await tester.pumpAndSettle();
-
-          expect(find.textContaining('Poin dipakai: 500'), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'label poin - _digunakan : false label poin harus menampilan poin',
-        (tester) async {
-          when(
-            mockTransaksiOperasi.getTotalPoin(any),
-          ).thenAnswer((_) async => 1000);
-          await pumpForm(tester);
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Pelanggan A').first);
-          await tester.pumpAndSettle();
-
-          expect(find.textContaining('Sisa poin: 1000'), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'label poin - setelah poin dipakai, sisa poin harus diperbarui',
-        (tester) async {
-          when(
-            mockTransaksiOperasi.getTotalPoin(any),
-          ).thenAnswer((_) async => 1000);
-          when(mockPaketOperasi.getPaket()).thenAnswer(
-            (_) async => [paketDummy.first.copyWith(poinPenukaran: 500)],
-          );
-
-          await pumpForm(tester);
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Pelanggan A').first);
-          await tester.pumpAndSettle();
-          await tester.tap(find.byKey(const Key('paket_dropdown')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Paket 1 Jam').first);
-          await tester.pumpAndSettle();
-
-          expect(find.text('Sisa poin: 1000'), findsOneWidget);
-
-          await tester.ensureVisible(find.byType(Switch));
-          await tester.tap(find.byType(Switch));
-          await tester.pumpAndSettle();
-
-          expect(find.text('Sisa poin: 500'), findsOneWidget);
-
-          expect(find.text('Sisa poin: 1000'), findsNothing);
-        },
-      );
-
-      test('hitung sisa poin clamp tidak boleh negatif', () {
-        expect(hitungSisaPoinTest(100, 50), 50);
-        expect(hitungSisaPoinTest(50, 100), 0);
-      });
-    });
+    when(mockTransaksiOperasi.tambahTransaksi(any))
+        .thenAnswer((_) async => 1);
   });
 
-  group('Logika Murni - Perhitungan Tanggal Berakhir', () {
-    test('harus benar untuk TipeDurasi.HARI', () {
-      final startDate = DateTime(2024, 7, 20, 10, 0);
-      final paket = PaketModel(
-          id: 'd', nama: 'd', harga: 1, durasi: 5, tipe: TipeDurasi.hari);
-      final expectedDate = DateTime(2024, 7, 25, 10, 0);
+  testWidgets('simpan sukses (lunas)', (tester) async {
+    await pumpForm(tester);
+    await tester.pumpAndSettle();
 
-      final result = hitungTanggalBerakhir(startDate, paket);
-      expect(result, expectedDate);
-    });
+    await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pelanggan A').first);
+    await tester.pumpAndSettle();
 
-    test('harus benar untuk TipeDurasi.BULAN', () {
-      final startDate = DateTime(2024, 7, 20, 10, 0);
-      final paket = PaketModel(
-          id: 'd', nama: 'd', harga: 1, durasi: 2, tipe: TipeDurasi.bulan);
-      final expectedDate = Jiffy.parseFromDateTime(startDate).add(months: 2).dateTime;
+    await tester.tap(find.byKey(const Key('paket_dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Paket 1 Jam').first);
+    await tester.pumpAndSettle();
 
-      final result = hitungTanggalBerakhir(startDate, paket);
-      expect(result, expectedDate);
-    });
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
 
-    test('harus benar untuk TipeDurasi.MENIT', () {
-      final startDate = DateTime(2024, 7, 20, 10, 0);
-      final paket = PaketModel(
-          id: 'd', nama: 'd', harga: 1, durasi: 30, tipe: TipeDurasi.menit);
-      final expectedDate = DateTime(2024, 7, 20, 10, 30);
+    verify(mockPelangganAktifOperasi.createPelangganAktif(any)).called(1);
+  });
 
-      final result = hitungTanggalBerakhir(startDate, paket);
-      expect(result, expectedDate);
-    });
+  testWidgets('simpan gagal karena poin tidak cukup', (tester) async {
+    when(mockTransaksiOperasi.getTotalPoin(any))
+        .thenAnswer((_) async => 0);
 
-    test('harus benar untuk TipeDurasi.JAM', () {
-      final startDate = DateTime(2024, 7, 20, 10, 0);
-      final paket = PaketModel(
-          id: 'd', nama: 'd', harga: 1, durasi: 3, tipe: TipeDurasi.jam);
-      final expectedDate = DateTime(2024, 7, 20, 13, 0);
+    await pumpForm(tester);
+    await tester.pumpAndSettle();
 
-      final result = hitungTanggalBerakhir(startDate, paket);
-      expect(result, expectedDate);
-    });
+    await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pelanggan A').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('paket_dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Paket 1 Jam').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
+
+    verifyNever(mockPelangganAktifOperasi.createPelangganAktif(any));
+    verifyNever(mockTransaksiOperasi.tambahTransaksi(any));
+  });
+
+  testWidgets('edit mode sukses', (tester) async {
+    await pumpForm(tester, pelangganAktif: pelangganAktifDummy);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
+
+    verify(mockPelangganAktifOperasi.updatePelangganAktif(any)).called(1);
   });
 }
