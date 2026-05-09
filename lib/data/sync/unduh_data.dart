@@ -45,7 +45,10 @@ class LayananUnduhData {
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
   Future<void> unduhSemuaData() async {
-    developer.log('🚀 Memulai sinkronisasi massal data dari Firebase...', name: 'SYNC.Full');
+    developer.log(
+      '🚀 Memulai sinkronisasi massal data dari Firebase...',
+      name: 'SYNC.Full',
+    );
     final stopwatch = Stopwatch()..start();
 
     try {
@@ -63,9 +66,12 @@ class LayananUnduhData {
         unduhDataVersiApkUser(),
         unduhDataPengaturan(),
       ]);
-      
+
       stopwatch.stop();
-      developer.log('✅ Sinkronisasi selesai dalam ${stopwatch.elapsed.inSeconds} detik', name: 'SYNC.Full');
+      developer.log(
+        '✅ Sinkronisasi selesai dalam ${stopwatch.elapsed.inSeconds} detik',
+        name: 'SYNC.Full',
+      );
     } catch (e, s) {
       developer.log(
         '❌ Gagal melakukan sinkronisasi awal',
@@ -81,17 +87,31 @@ class LayananUnduhData {
   Future<void> unduhDataPengaturan() async {
     try {
       developer.log('📡 Mengunduh: Pengaturan', name: 'SYNC.Pengaturan');
-      final doc = await _firestore.collection('pengaturan').doc('default').get();
-      
+      final doc = await _firestore
+          .collection('pengaturan')
+          .doc('default')
+          .get();
+
       if (doc.exists && doc.data() != null) {
         final pengaturan = PengaturanModel.fromFirebase(doc.data()!);
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
-        developer.log('✅ Pengaturan default berhasil diperbarui', name: 'SYNC.Pengaturan');
+        developer.log(
+          '✅ Pengaturan default berhasil diperbarui',
+          name: 'SYNC.Pengaturan',
+        );
       } else {
-        developer.log('⚠️ Dokumen pengaturan tidak ditemukan di Firebase', name: 'SYNC.Pengaturan');
+        developer.log(
+          '⚠️ Dokumen pengaturan tidak ditemukan di Firebase',
+          name: 'SYNC.Pengaturan',
+        );
       }
     } catch (e, s) {
-      developer.log('❌ Gagal unduh data pengaturan', name: 'SYNC.Pengaturan', error: e, stackTrace: s);
+      developer.log(
+        '❌ Gagal unduh data pengaturan',
+        name: 'SYNC.Pengaturan',
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -131,7 +151,8 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<PelangganAktifModel>(
       namaKoleksi: 'pelanggan_aktif',
       fromFirebase: (id, map) => PelangganAktifModel.fromFirebase(id, map),
-      operasiBatch: (data) => _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -155,7 +176,8 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<KritikSaranModel>(
       namaKoleksi: 'kritik_saran',
       fromFirebase: (id, map) => KritikSaranModel.fromFirebase(id, map),
-      operasiBatch: (data) => _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -171,7 +193,8 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<SubKategoriModel>(
       namaKoleksi: 'sub_kategori',
       fromFirebase: (id, map) => SubKategoriModel.fromFirebase(id, map),
-      operasiBatch: (data) => _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -179,7 +202,8 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<VersiApkUserModel>(
       namaKoleksi: 'versi_apk_user',
       fromFirebase: (id, map) => VersiApkUserModel.fromFirebase(id, map),
-      operasiBatch: (data) => _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -189,19 +213,31 @@ class LayananUnduhData {
     required Future<void> Function(List<T>) operasiBatch,
   }) async {
     try {
-      developer.log('📡 Mengunduh koleksi: [$namaKoleksi]', name: 'SYNC.Koleksi');
+      developer.log(
+        '📡 Mengunduh koleksi: [$namaKoleksi]',
+        name: 'SYNC.Koleksi',
+      );
       final snapshot = await _firestore.collection(namaKoleksi).get();
-      
+
       if (snapshot.docs.isNotEmpty) {
         final dataList = snapshot.docs
             .map((doc) => fromFirebase(doc.id, doc.data()))
             .toList();
-        
-        developer.log('💾 Menyimpan ${dataList.length} item ke database lokal untuk [$namaKoleksi]', name: 'SYNC.Koleksi');
+
+        developer.log(
+          '💾 Menyimpan ${dataList.length} item ke database lokal untuk [$namaKoleksi]',
+          name: 'SYNC.Koleksi',
+        );
         await operasiBatch(dataList);
-        developer.log('✅ Koleksi [$namaKoleksi] sinkron.', name: 'SYNC.Koleksi');
+        developer.log(
+          '✅ Koleksi [$namaKoleksi] sinkron.',
+          name: 'SYNC.Koleksi',
+        );
       } else {
-        developer.log('📭 Koleksi [$namaKoleksi] kosong di Firebase.', name: 'SYNC.Koleksi');
+        developer.log(
+          '📭 Koleksi [$namaKoleksi] kosong di Firebase.',
+          name: 'SYNC.Koleksi',
+        );
       }
     } catch (e, s) {
       developer.log(

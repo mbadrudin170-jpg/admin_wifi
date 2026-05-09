@@ -192,7 +192,7 @@ class _DetailDompetState extends State<DetailDompet> {
           return Column(
             children: [
               Container(
-                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                color: Theme.of(context).primaryColor.withAlpha(13), // diubah: karena withOpacity sudah usang
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
