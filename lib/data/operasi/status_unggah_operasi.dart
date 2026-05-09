@@ -111,8 +111,9 @@ class StatusUnggahOperasi {
   /// Biasanya dipanggil setelah proses unggah ke Firebase berhasil.
   Future<void> resetStatus(NamaTabel tabel) async {
     final db = await _dbHelper.database;
+    // diperbaiki: Nama tabel 'status_ungah' menjadi 'status_unggah'.
     await db.update(
-      'status_ungah',
+      'status_unggah',
       {
         'status': 0, // false
         'ids': '[]', // JSON string untuk list kosong
@@ -120,6 +121,9 @@ class StatusUnggahOperasi {
       where: 'tabel = ?',
       whereArgs: [tabel.name],
     );
-    developer.log('Status unggah untuk tabel ${tabel.name} telah di-reset.', name: 'StatusUnggahOperasi');
+    developer.log(
+      'Status unggah untuk tabel ${tabel.name} telah di-reset.',
+      name: 'StatusUnggahOperasi',
+    );
   }
 }

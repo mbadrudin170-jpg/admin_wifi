@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-// diubah: Mengganti impor ke layanan unduhan awal yang benar dan lengkap.
 import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/services/servis_sinkronisasi.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -73,7 +72,6 @@ class _SplashScreenState extends State<SplashScreen> {
       await DatabaseHelper.instance.database;
       if (!mounted) return;
 
-      // diubah: Memanggil layanan unduhan awal yang benar dan lengkap.
       _updateLoading("Memeriksa data awal...");
       await UnduhanAwalService().jalankanUnduhanAwal();
       if (!mounted) return;
@@ -83,27 +81,43 @@ class _SplashScreenState extends State<SplashScreen> {
       isOnline = await _koneksiService.cekKoneksi();
       if (!mounted) return;
 
-      final sinkronisasiService = Provider.of<SinkronisasiService>(context, listen: false);
+      final sinkronisasiService = Provider.of<SinkronisasiService>(
+        context,
+        listen: false,
+      );
 
       if (isOnline) {
-        _updateLoading("Memeriksa & sinkronisasi data...");
+        _updateLoading(
+          "Memeriksa & mengunduh data...",
+        ); // diubah: Pesan disesuaikan
         try {
-          await sinkronisasiService.sinkronkan();
-          _updateLoading("Sinkronisasi data selesai.");
+          // diubah: Memanggil metode yang benar untuk proses unduh.
+          await sinkronisasiService.jalankanProsesUnduh();
+          _updateLoading("Unduh data selesai."); // diubah: Pesan disesuaikan
         } catch (e, s) {
-          developer.log('Gagal sinkronisasi', error: e, stackTrace: s);
-          _updateLoading("Gagal sinkronisasi, melanjutkan offline...");
+          developer.log(
+            'Gagal mengunduh data',
+            error: e,
+            stackTrace: s,
+          ); // diubah: Pesan disesuaikan
+          _updateLoading(
+            "Gagal mengunduh data, melanjutkan offline...",
+          ); // diubah: Pesan disesuaikan
         }
       }
 
       try {
         final pengaturan = await PengaturanOperasi().getPengaturan();
-        sinkronisasiService.mulaiSinkronisasiOtomatis(
+        // diubah: Memanggil metode yang benar untuk unduh otomatis.
+        sinkronisasiService.mulaiUnduhOtomatis(
           interval: Duration(hours: pengaturan.intervalSinkronisasiOtomatis),
         );
       } catch (e) {
-        developer.log('Gagal memulai sinkronisasi otomatis: $e');
-        sinkronisasiService.mulaiSinkronisasiOtomatis(interval: const Duration(hours: 24));
+        developer.log('Gagal memulai unduh otomatis: $e', error: e);
+        // diubah: Memanggil metode yang benar untuk unduh otomatis.
+        sinkronisasiService.mulaiUnduhOtomatis(
+          interval: const Duration(hours: 24),
+        );
       }
 
       _updateLoading("Selesai, membuka aplikasi...");

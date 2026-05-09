@@ -1,94 +1,104 @@
 // path: lib/services/servis_sinkronisasi.dart
-
+// diubah: Mengalihkan fungsi layanan ini untuk fokus hanya pada proses unduh data.
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:admin_wifi/data/sync/unggah_selektif_service.dart';
-// ditambah: Mengimpor layanan koneksi internet yang terpusat.
+import 'package:admin_wifi/data/sync/unduh_data.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
 
-/// [SinkronisasiService] bertanggung jawab untuk mengelola proses sinkronisasi
-/// data secara keseluruhan, baik mengunggah perubahan lokal maupun mengunduh
-/// pembaruan dari server.
+/// [SinkronisasiService] bertanggung jawab untuk mengelola proses MENGUNDUH
+/// pembaruan dari server, baik secara manual maupun otomatis.
 class SinkronisasiService {
-  final UnggahSelektifService _unggahService;
-  // diubah: Menggunakan KoneksiInternetService sebagai sumber tunggal pengecekan koneksi.
   final KoneksiInternetService _koneksiInternetService;
-  // final UnduhSinkronisasiService _unduhService; // Akan ditambahkan nanti
+  // dihapus: Dependensi ke layanan unggah data telah dihapus.
+  final LayananUnduhData _unduhData;
+  final SyncManager _syncManager;
 
-  // Timer untuk sinkronisasi otomatis
   Timer? _syncTimer;
-
-  // StreamController untuk memberi tahu status sinkronisasi
   final _syncStatusController = StreamController<bool>.broadcast();
-  Stream<bool> get isSyncing => _syncStatusController.stream;
 
-  // diubah: Konstruktor diperbarui untuk menggunakan KoneksiInternetService.
+  /// Stream yang menandakan apakah proses unduh sedang berlangsung.
+  Stream<bool> get isDownloading => _syncStatusController.stream;
+
   SinkronisasiService({
-    UnggahSelektifService? unggahService,
     KoneksiInternetService? koneksiInternetService,
-    // UnduhSinkronisasiService? unduhService,
-  })  : _unggahService = unggahService ?? UnggahSelektifService(),
-        _koneksiInternetService = koneksiInternetService ?? KoneksiInternetService();
-        // _unduhService = unduhService ?? UnduhSinkronisasiService(),
+    LayananUnduhData? unduhData,
+    SyncManager? syncManager,
+  })  : _koneksiInternetService =
+            koneksiInternetService ?? KoneksiInternetService(),
+        _unduhData = unduhData ?? LayananUnduhData(),
+        _syncManager = syncManager ?? SyncManager();
 
-  /// Memulai proses sinkronisasi manual.
-  ///
-  /// Akan memeriksa konektivitas internet sebelum menjalankan proses unggah dan unduh.
-  Future<void> sinkronkan() async {
+  /// Memulai proses unduh data dari server.
+  Future<void> jalankanProsesUnduh() async {
+    // diubah: Menambahkan kurung kurawal untuk mematuhi aturan lint.
+    if (_syncStatusController.isClosed || _syncStatusController.isPaused) {
+      return;
+    }
     _syncStatusController.add(true);
-    developer.log('Memulai sinkronisasi manual.', name: 'SinkronisasiService');
+    developer.log('Memulai proses unduh data...', name: 'SinkronisasiService');
 
-    // diubah: Pengecekan koneksi sekarang memanggil layanan terpusat.
     final isConnected = await _koneksiInternetService.cekKoneksi();
     if (!isConnected) {
-      developer.log('Sinkronisasi gagal: Tidak ada koneksi internet.', name: 'SinkronisasiService');
+      developer.log(
+        'Proses unduh gagal: Tidak ada koneksi internet.',
+        name: 'SinkronisasiService',
+      );
       _syncStatusController.add(false);
       return;
     }
 
     try {
-      // 1. Unggah perubahan lokal terlebih dahulu
-      await _unggahService.unggahPerubahanTertunda();
+      // diubah: Hanya logika unduh yang dijalankan.
+      await _unduhData.unduhSemuaData();
 
-      // 2. Unduh perubahan dari server (akan diimplementasikan)
-      // await _unduhService.unduhSemuaPerubahan();
-
-      developer.log('Sinkronisasi manual berhasil diselesaikan.', name: 'SinkronisasiService');
+      final newSyncTime = DateTime.now();
+      await _syncManager.setLastSyncTimestamp(newSyncTime);
+      developer.log(
+        'Proses unduh berhasil. Waktu sinkronisasi terakhir diperbarui ke: $newSyncTime',
+        name: 'SinkronisasiService',
+      );
     } catch (e, stackTrace) {
       developer.log(
-        'Terjadi kesalahan selama sinkronisasi manual.',
-        name: 'SinkronisasiService',
+        'Terjadi kesalahan selama proses unduh data.',
+        name: 'SinkronisasiService.Error',
         error: e,
         stackTrace: stackTrace,
       );
     } finally {
-      _syncStatusController.add(false);
+      if (!_syncStatusController.isClosed) {
+        _syncStatusController.add(false);
+      }
     }
   }
 
-  /// Memulai sinkronisasi otomatis berdasarkan interval yang ditentukan.
-  void mulaiSinkronisasiOtomatis({required Duration interval}) {
-    // Hentikan timer yang ada jika ada
+  /// Memulai unduh otomatis berdasarkan interval yang ditentukan.
+  void mulaiUnduhOtomatis({required Duration interval}) {
     _syncTimer?.cancel();
-
-    // Mulai timer baru
     _syncTimer = Timer.periodic(interval, (timer) async {
-      developer.log('Memulai sinkronisasi otomatis terjadwal.', name: 'SinkronisasiService');
-      await sinkronkan();
+      developer.log(
+        'Memulai unduh otomatis terjadwal.',
+        name: 'SinkronisasiService',
+      );
+      // diubah: Memanggil metode proses unduh yang baru.
+      await jalankanProsesUnduh();
     });
-
-    developer.log('Sinkronisasi otomatis dijadwalkan setiap ${interval.inMinutes} menit.', name: 'SinkronisasiService');
+    developer.log(
+      'Unduh data otomatis dijadwalkan setiap ${interval.inMinutes} menit.',
+      name: 'SinkronisasiService',
+    );
   }
 
-  /// Menghentikan sinkronisasi otomatis.
-  void hentikanSinkronisasiOtomatis() {
+  /// Menghentikan unduh otomatis.
+  void hentikanUnduhOtomatis() {
     _syncTimer?.cancel();
     _syncTimer = null;
-    developer.log('Sinkronisasi otomatis dihentikan.', name: 'SinkronisasiService');
+    developer.log(
+      'Unduh data otomatis dihentikan.',
+      name: 'SinkronisasiService',
+    );
   }
-
-  // dihapus: Metode _isConnected() telah dihapus karena fungsinya digantikan oleh KoneksiInternetService.
 
   /// Membersihkan resource saat service tidak lagi digunakan.
   void dispose() {

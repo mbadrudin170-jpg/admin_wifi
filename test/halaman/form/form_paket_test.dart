@@ -1,5 +1,5 @@
 // path: test/halaman/form/form_paket_test.dart
-// diubah: Menambahkan anotasi @override yang hilang pada field `result`.
+// diubah: Menghapus pengujian untuk field `jumlahPoin` yang sudah tidak ada dan menambahkan pengujian untuk `poinHadiah` dan `poinPenukaran`.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
@@ -12,9 +12,9 @@ import 'package:sqflite_common/sqlite_api.dart' as sqlite_api;
 
 import 'form_paket_test.mocks.dart';
 
+// [Mocks and helper classes remain the same]
 class MockDatabaseException implements sqlite_api.DatabaseException {
   final String message;
-  // ditambahkan: Anotasi @override untuk memenuhi kontrak interface.
   @override
   final dynamic result;
 
@@ -55,17 +55,20 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
   bool isReadOnlyError() => false;
 }
 
+
 @GenerateMocks([PaketOperasi])
 void main() {
   late MockPaketOperasi mockPaketOperasi;
 
+  // diubah: paketDummy diperbarui untuk menggunakan field poin yang relevan.
   final paketDummy = PaketModel(
     id: 'paket-123',
     nama: 'Paket Hemat',
     harga: 50000,
     durasi: 7,
     tipe: TipeDurasi.hari,
-    jumlahPoin: 100,
+    poinHadiah: 150,
+    poinPenukaran: 20,
     isPublic: true,
   );
 
@@ -101,7 +104,11 @@ void main() {
         expect(find.text('Paket Hemat'), findsOneWidget);
         expect(find.text('50000'), findsOneWidget);
         expect(find.text('7'), findsOneWidget);
-        expect(find.text('100'), findsOneWidget);
+        // diubah: Pengujian untuk `jumlahPoin` yang sudah legacy dihapus.
+        // ditambahkan: Pengujian untuk field `poinHadiah` dan `poinPenukaran`.
+        expect(find.text('150'), findsOneWidget);
+        expect(find.text('20'), findsOneWidget);
+
         final switchTile =
             tester.widget<SwitchListTile>(find.byType(SwitchListTile));
         expect(switchTile.value, isTrue);
@@ -132,7 +139,8 @@ void main() {
         await tester.enterText(find.byType(TextFormField).at(0), 'Paket Baru');
         await tester.enterText(find.byType(TextFormField).at(1), '10000');
         await tester.enterText(find.byType(TextFormField).at(2), '1');
-        await tester.enterText(find.byType(TextFormField).at(3), '50');
+        await tester.enterText(find.byType(TextFormField).at(3), '50'); // Poin Hadiah
+        await tester.enterText(find.byType(TextFormField).at(4), '10'); // Poin Penukaran
 
         await tester.tap(find.text('Simpan'));
         await tester.pump(); 
@@ -177,6 +185,7 @@ void main() {
         await tester.enterText(find.byType(TextFormField).at(1), '10000');
         await tester.enterText(find.byType(TextFormField).at(2), '1');
         await tester.enterText(find.byType(TextFormField).at(3), '50');
+        await tester.enterText(find.byType(TextFormField).at(4), '10');
 
         await tester.tap(find.text('Simpan'));
         await tester.pumpAndSettle();

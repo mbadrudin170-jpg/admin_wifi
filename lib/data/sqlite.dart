@@ -1,5 +1,5 @@
 // path: lib/data/sqlite.dart
-// diubah: Menambahkan kolom status_pembayaran pada tabel transaksi dan menaikkan versi database.
+// diubah: Menambahkan kolom 'diperbarui' ke tabel 'status_unggah' dan menaikkan versi database.
 
 import 'dart:developer';
 import 'dart:io';
@@ -13,12 +13,11 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // diubah: Versi dinaikkan untuk migrasi tabel transaksi (penambahan kolom status_pembayaran).
-  static const int _databaseVersion = 34;
+  // diubah: Versi dinaikkan dari 34 ke 35 untuk migrasi tabel status_unggah.
+  static const int _databaseVersion = 35;
 
   DatabaseHelper._internal();
 
-  // ditambah: Definisi skema tabel menjadi publik agar bisa diakses dari file test.
   static const String tabelVersiApkUser = '''
       CREATE TABLE versi_apk_user(
         id TEXT PRIMARY KEY,
@@ -34,7 +33,6 @@ class DatabaseHelper {
       )
     ''';
 
-  // ditambah: Skema tabel dompet dipublikasikan.
   static const String tabelDompet = '''
       CREATE TABLE dompet(
         id TEXT PRIMARY KEY,
@@ -46,7 +44,6 @@ class DatabaseHelper {
       )
     ''';
 
-  // diubah: Menambahkan kolom status_pembayaran.
   static const String tabelTransaksi = '''
       CREATE TABLE transaksi(
         id TEXT PRIMARY KEY,
@@ -75,12 +72,13 @@ class DatabaseHelper {
       )
     ''';
 
-  // ditambah: Skema tabel status unggah dipublikasikan.
+  // diubah: Menambahkan kolom 'diperbarui'.
   static const String tabelStatusUnggah = '''
     CREATE TABLE status_unggah(
       tabel TEXT PRIMARY KEY,
       status INTEGER NOT NULL,
-      ids TEXT NOT NULL
+      ids TEXT NOT NULL,
+      diperbarui TEXT
     )
   ''';
 
@@ -123,11 +121,10 @@ class DatabaseHelper {
     );
   }
 
-  // diubah: Menambahkan logika upgrade untuk tabel transaksi.
+  // diubah: Menambahkan logika upgrade untuk tabel status_unggah.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
-    // ... (logika upgrade yang sudah ada)
-
+    
     if (oldVersion < 34) {
       try {
         log('Menjalankan upgrade untuk versi < 34: Menambahkan kolom status_pembayaran pada tabel transaksi.');
@@ -138,11 +135,20 @@ class DatabaseHelper {
       }
     }
 
+    if (oldVersion < 35) {
+      try {
+        log('Menjalankan upgrade untuk versi < 35: Menambahkan kolom diperbarui pada tabel status_unggah.');
+        await db.execute('ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT');
+        log('Kolom diperbarui berhasil ditambahkan ke tabel status_unggah.');
+      } catch (e) {
+        log('Error saat menambahkan kolom diperbarui ke tabel status_unggah: $e');
+      }
+    }
+
     log('Upgrade database selesai.');
   }
 
 
-  // diekspos: Metode ini dibuat publik untuk digunakan dalam pengujian
   Future<void> createTables(Database db) async {
     await db.execute(_tabelKategori);
     await db.execute(_tabelSubKategori);
@@ -193,7 +199,6 @@ class DatabaseHelper {
       )
     ''';
 
-  // diubah: Menambahkan kolom poin_hadiah, poin_penukaran, dan isPublic.
   static const String _tabelPaket = '''
       CREATE TABLE paket(
         id TEXT PRIMARY KEY,

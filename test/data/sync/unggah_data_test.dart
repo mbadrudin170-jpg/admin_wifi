@@ -1,5 +1,5 @@
 // path: test/data/sync/unggah_data_test.dart
-// diubah: Menyesuaikan seluruh pemanggilan metode dari/ke Map agar sesuai dengan nama baru.
+// diubah: Menyesuaikan ID dokumen yang dicari untuk 'pengaturan' menjadi 'konfigurasi_global'.
 
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
@@ -76,15 +76,12 @@ void main() {
             isDeleted: false,
           );
           
-          // diubah: Menggunakan toSqlite
           await db.insert('dompet', dompet.toSqlite());
 
           await layananUnggahData.unggahDataGenerik<DompetModel>(
             'dompet',
             'dompet_col',
-            // diubah: Menggunakan fromSqlite
             DompetModel.fromSqlite,
-            // diubah: Menggunakan toFirebase
             (m) => m.toFirebase(), 
             lastSyncTime,
           );
@@ -128,15 +125,12 @@ void main() {
           userId: 'user123',
           diperbarui: newTimestamp,
         );
-        // diubah: Menggunakan toSqlite
         await db.insert('kritik_saran', kritikBaru.toSqlite());
 
         await layananUnggahData.unggahDataGenerik<KritikSaranModel>(
           'kritik_saran',
           'kritik_saran_col',
-          // diubah: Menggunakan fromSqlite
           KritikSaranModel.fromSqlite,
-          // diubah: Menggunakan toFirebase
           (m) => m.toFirebase(),
           lastSyncTime,
         );
@@ -180,22 +174,20 @@ void main() {
             infoPemeliharaan: 'Normal',
             diperbarui: DateTime(2023, 1, 1),
           );
-          // diubah: Menggunakan toSqlite
           await db.insert('pengaturan', pengaturan.toSqlite()..['id'] = 1);
 
           await layananUnggahData.unggahDataGenerik<PengaturanModel>(
             'pengaturan',
             'pengaturan_col',
-            // diubah: Menggunakan fromSqlite
             PengaturanModel.fromSqlite,
-            // diubah: Menggunakan toFirebase
             (m) => m.toFirebase(),
             lastSyncTime,
           );
 
+          // diubah: Menggunakan ID dokumen 'konfigurasi_global' yang benar.
           final snapshot = await mockFirestore
               .collection('pengaturan_col')
-              .doc('default')
+              .doc('konfigurasi_global')
               .get();
           expect(snapshot.exists, isTrue);
           expect(snapshot.data()?['info_pemeliharaan'], 'Normal');

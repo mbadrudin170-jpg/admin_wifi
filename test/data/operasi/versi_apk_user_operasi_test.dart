@@ -1,10 +1,10 @@
 // path: test/data/operasi/versi_apk_user_operasi_test.dart
-// diubah: Memperbaiki path import dan nama enum yang salah.
+// diubah: Memperbaiki path import yang salah.
 
 import 'dart:async';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-// diubah: Menggunakan path dan nama enum yang benar.
+// diubah: Menggunakan path yang benar.
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,7 +17,6 @@ import '../../helpers/test_helpers.mocks.dart';
 VersiApkUserModel _buatModel({
   String? id,
   String versi = '1.0.0',
-  // diubah: Menggunakan enum yang benar.
   Map<ArsitekturApkEnum, int> nomorBuildTerbaru = const {
     ArsitekturApkEnum.universal: 1
   },
@@ -30,7 +29,6 @@ VersiApkUserModel _buatModel({
     catatanRilis: 'Catatan rilis untuk $versi',
     nomorBuildTerbaru: nomorBuildTerbaru,
     tautanUnduhan: {
-      // diubah: Menggunakan enum yang benar.
       ArsitekturApkEnum.universal: 'http://example.com/$versi.apk'
     },
     youtubeTutorial: 'http://youtube.com/watch?v=$versi',
@@ -208,7 +206,6 @@ void main() {
         test(
           'harus mengambil data yang hanya kolom build nya lebih tinggi dari data yang ada dan tidak diarsip',
           () async {
-            // diubah: Menggunakan enum yang benar.
             final buildRendahTanggalBaru = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 5}, diperbarui: DateTime.now());
             final buildTinggiTanggalLama = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 10}, diperbarui: DateTime.now().subtract(const Duration(days: 2)));
             final buildPalingTinggiDiarsip = _buatModel(versi: '2.0.0', nomorBuildTerbaru: {ArsitekturApkEnum.universal: 15}, diperbarui: DateTime.now(), isDeleted: true);
@@ -220,7 +217,6 @@ void main() {
             final hasil = await operasi.ambilVersiApkTerbaru();
 
             expect(hasil, isNotNull);
-            // diubah: Menggunakan enum yang benar.
             expect(hasil!.nomorBuildTerbaru[ArsitekturApkEnum.universal], 10);
             expect(hasil.isDeleted, isFalse);
           },

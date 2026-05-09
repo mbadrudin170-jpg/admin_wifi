@@ -1,5 +1,5 @@
 // path: lib/model/status_unggah_model.dart
-// diubah: Penamaan metode diseragamkan menjadi fromSqlite, toSqlite, fromFirebase, toFirebase.
+// diubah: Menambahkan penanganan fallback untuk enum dan menyertakan nama tabel di toFirebase.
 import 'dart:convert';
 import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,7 +33,10 @@ class StatusUnggahModel {
 
   factory StatusUnggahModel.fromSqlite(Map<String, dynamic> map) {
     return StatusUnggahModel(
-      tabel: NamaTabel.values.firstWhere((e) => e.name == map['tabel']),
+      tabel: NamaTabel.values.firstWhere(
+        (e) => e.name == map['tabel'],
+        orElse: () => NamaTabel.unknown, // ditambahkan: fallback
+      ),
       status: map['status'] == 1,
       ids: (jsonDecode(map['ids']) as List).cast<String>().toList(),
       diperbarui: map['diperbarui'] != null
@@ -53,15 +56,20 @@ class StatusUnggahModel {
 
   factory StatusUnggahModel.fromFirebase(String id, Map<String, dynamic> data) {
     return StatusUnggahModel(
-      tabel: NamaTabel.values.firstWhere((e) => e.name == id),
+      tabel: NamaTabel.values.firstWhere(
+        (e) => e.name == id,
+        orElse: () => NamaTabel.unknown, // ditambahkan: fallback
+      ),
       status: data['status'] as bool? ?? false,
       ids: (data['ids'] as List<dynamic>?)?.cast<String>().toList() ?? [],
       diperbarui: (data['diperbarui'] as Timestamp?)?.toDate(),
     );
   }
 
+  // diubah: Menyertakan nama tabel untuk konsistensi dan perbaikan pengujian.
   Map<String, dynamic> toFirebase() {
     return {
+      'tabel': tabel.name, // ditambahkan
       'status': status,
       'ids': ids,
       'diperbarui': FieldValue.serverTimestamp(),

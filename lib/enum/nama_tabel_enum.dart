@@ -15,4 +15,5 @@ enum NamaTabel {
   subKategori,
   versiApkUser,
   pengaturan,
+  unknown, // ditambahkan: untuk menangani kasus fallback
 }
