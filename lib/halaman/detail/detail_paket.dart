@@ -1,5 +1,7 @@
 // path: lib/halaman/detail/detail_paket.dart
 // File ini bertanggung jawab untuk menampilkan detail dari sebuah paket layanan.
+// diubah: Menampilkan lebih banyak detail seperti poin dan status publik.
+// dihapus: Menghapus tampilan `jumlahPoin` yang sudah tidak ada di model.
 
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/paket_model.dart';
@@ -87,8 +89,8 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
                 Text(
                   'Detail Paket',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 20),
                 // diubah: Menggunakan _paket yang ada di state.
@@ -98,7 +100,12 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
                   'Durasi',
                   '${_paket.durasi} ${_paket.tipe.name}',
                 ),
-                _buildDetailRow('Jumlah Poin', _paket.jumlahPoin.toString()),
+                // dihapus: 'Jumlah Poin' tidak lagi digunakan.
+                // ditambah: Menampilkan detail poin dan status publik.
+                const Divider(height: 20, thickness: 1),
+                _buildDetailRow('Poin Hadiah', _paket.poinHadiah.toString()),
+                _buildDetailRow('Poin Penukaran', _paket.poinPenukaran.toString()),
+                _buildDetailRow('Publik', _paket.isPublic ? 'Ya' : 'Tidak'),
               ],
             ),
           ),

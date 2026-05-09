@@ -1,4 +1,5 @@
 // path: lib/halaman/detail/detail_pelanggan_aktif.dart
+// diubah: Mengganti `jumlahPoin` yang sudah dihapus menjadi `poinHadiah`.
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
@@ -216,7 +217,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
                           if (_paket != null)
                             _buildInfoRow(
                               'Poin Diperoleh',
-                              '${_paket!.jumlahPoin} Poin',
+                              '${_paket!.poinHadiah} Poin', //diubah: dari jumlahPoin
                             ),
 
                           _buildInfoRow(

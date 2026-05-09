@@ -1,5 +1,6 @@
 // path: lib/model/paket_model.dart
 // ditambahkan: Import cloud_firestore untuk FieldValue dan Timestamp.
+// diubah: Menghapus field `jumlahPoin` yang tidak lagi digunakan.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,7 +31,6 @@ class PaketModel {
   final int durasi;
   final TipeDurasi tipe;
 
-  final int jumlahPoin;
   final int poinHadiah;
   final int poinPenukaran;
 
@@ -45,7 +45,6 @@ class PaketModel {
     required this.harga,
     required this.durasi,
     required this.tipe,
-    this.jumlahPoin = 0,
     this.poinHadiah = 0,
     this.poinPenukaran = 0,
     this.isPublic = true,
@@ -63,7 +62,6 @@ class PaketModel {
     int? harga,
     int? durasi,
     TipeDurasi? tipe,
-    int? jumlahPoin,
     int? poinHadiah,
     int? poinPenukaran,
     bool? isPublic,
@@ -77,7 +75,6 @@ class PaketModel {
       harga: harga ?? this.harga,
       durasi: durasi ?? this.durasi,
       tipe: tipe ?? this.tipe,
-      jumlahPoin: jumlahPoin ?? this.jumlahPoin,
       poinHadiah: poinHadiah ?? this.poinHadiah,
       poinPenukaran: poinPenukaran ?? this.poinPenukaran,
       isPublic: isPublic ?? this.isPublic,
@@ -124,7 +121,6 @@ class PaketModel {
       harga: map['harga'] ?? 0,
       durasi: map['durasi'] ?? 0,
       tipe: _parseTipe(map['tipe']),
-      jumlahPoin: map['jumlahPoin'] ?? 0,
       poinHadiah: map['poin_hadiah'] ?? 0,
       poinPenukaran: map['poin_penukaran'] ?? 0,
       isPublic: _parseBool(map['isPublic']),
@@ -141,7 +137,6 @@ class PaketModel {
       'harga': harga,
       'durasi': durasi,
       'tipe': tipe.name,
-      'jumlahPoin': jumlahPoin,
       'poin_hadiah': poinHadiah,
       'poin_penukaran': poinPenukaran,
       'isPublic': isPublic ? 1 : 0,
@@ -162,7 +157,6 @@ class PaketModel {
       harga: data['harga'] ?? 0,
       durasi: data['durasi'] ?? 0,
       tipe: _parseTipe(data['tipe']),
-      jumlahPoin: data['jumlahPoin'] ?? 0,
       poinHadiah: data['poin_hadiah'] ?? 0,
       poinPenukaran: data['poin_penukaran'] ?? 0,
       isPublic: _parseBool(data['isPublic']),
@@ -180,7 +174,6 @@ class PaketModel {
       'harga': harga,
       'durasi': durasi,
       'tipe': tipe.name,
-      'jumlahPoin': jumlahPoin,
       'poin_hadiah': poinHadiah,
       'poin_penukaran': poinPenukaran,
       'isPublic': isPublic,

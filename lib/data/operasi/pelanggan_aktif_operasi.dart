@@ -1,5 +1,6 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
 // diubah: Direfactor untuk dependency injection NotifikasiServis agar mudah di-test.
+// diubah: Mengganti `jumlahPoin` yang sudah dihapus dengan `poinHadiah`.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
@@ -206,7 +207,7 @@ class PelangganAktifOperasi {
     );
   }
 
-  // diubah: Menambahkan snapshot jumlahPoin saat membuat riwayat.
+  // diubah: Menambahkan snapshot poinHadiah saat membuat riwayat.
   Future<int> arsipkanPelangganKadaluarsa() async {
     final riwayatOperasi = RiwayatLanggananOperasi();
     final paketOperasi = PaketOperasi();
@@ -230,7 +231,7 @@ class PelangganAktifOperasi {
           durasiPaket: paket.durasi,
           tipeDurasiPaket: paket.tipe.name,
           jumlahPoinDiperoleh:
-              paket.jumlahPoin, // ditambahkan: snapshot poin dari paket
+              paket.poinHadiah, // diubah: snapshot poin dari paket
           tanggalMulai: pelanggan.tanggalMulai,
           tanggalBerakhir: pelanggan.tanggalBerakhir,
           status: pelanggan.status,
@@ -267,7 +268,9 @@ class PelangganAktifOperasi {
     return semuaPelanggan.length;
   }
 
-  Future<List<PelangganAktifModel>> getPelangganAktifByIds(List<String> ids) async {
+  Future<List<PelangganAktifModel>> getPelangganAktifByIds(
+    List<String> ids,
+  ) async {
     if (ids.isEmpty) {
       return [];
     }

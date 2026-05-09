@@ -1,5 +1,5 @@
 // path: test/model/paket_model_test.dart
-// diubah: Menyesuaikan dengan nama metode yang benar (toSqlite, fromSqlite, toFirebase).
+// diubah: Menyesuaikan file test dengan menghapus `jumlahPoin` dan menambahkan `poinHadiah` serta `poinPenukaran`.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:admin_wifi/model/paket_model.dart';
@@ -19,8 +19,12 @@ void main() {
       // Assert: Periksa nilai-nilai defaultnya
       expect(paket.id, isNotNull); // ID harus dibuat secara otomatis
       expect(paket.id, isA<String>());
-      expect(paket.jumlahPoin, 0); // Jumlah poin harus default ke 0
-      expect(paket.isDeleted, false); // isDeleted harus default ke false
+      // dihapus: expect(paket.jumlahPoin, 0);
+      // ditambah: Memeriksa nilai default untuk field poin yang baru.
+      expect(paket.poinHadiah, 0);
+      expect(paket.poinPenukaran, 0);
+      expect(paket.isPublic, true);
+      expect(paket.isDeleted, false);
       expect(paket.diarsipkan, isNull);
     });
 
@@ -35,13 +39,14 @@ void main() {
           harga: 5000,
           durasi: 2,
           tipe: TipeDurasi.jam,
-          jumlahPoin: 10,
+          poinHadiah: 10, // diubah: dari jumlahPoin
+          poinPenukaran: 5,
         );
 
         // Act: Buat salinan dengan beberapa properti yang diubah
         final paketDiperbarui = paketAwal.copyWith(
           nama: 'Paket Baru',
-          jumlahPoin: 25,
+          poinHadiah: 25, // diubah: dari jumlahPoin
         );
 
         // Assert: Periksa apakah properti yang diubah sudah benar
@@ -51,7 +56,8 @@ void main() {
           paketDiperbarui.harga,
           paketAwal.harga,
         ); // Harga tidak boleh berubah
-        expect(paketDiperbarui.jumlahPoin, 25);
+        expect(paketDiperbarui.poinHadiah, 25); // diubah: dari jumlahPoin
+        expect(paketDiperbarui.poinPenukaran, paketAwal.poinPenukaran); // Pastikan yang lain tidak berubah
       },
     );
 
@@ -67,7 +73,9 @@ void main() {
           harga: 25000,
           durasi: 7,
           tipe: TipeDurasi.hari,
-          jumlahPoin: 50,
+          poinHadiah: 50,
+          poinPenukaran: 20,
+          isPublic: false,
           diperbarui: now,
           isDeleted: true,
         );
@@ -80,13 +88,14 @@ void main() {
         expect(map['nama'], 'Paket Promo');
         expect(map['harga'], 25000);
         expect(map['durasi'], 7);
-        expect(map['tipe'], 'hari'); // Enum harus menjadi string
-        expect(map['jumlahPoin'], 50); // Properti baru harus ada
+        expect(map['tipe'], 'hari');
+        // dihapus: expect(map['jumlahPoin'], 50);
+        // ditambah: Memeriksa field poin yang baru.
+        expect(map['poin_hadiah'], 50);
+        expect(map['poin_penukaran'], 20);
+        expect(map['isPublic'], 0);
         expect(map['diperbarui'], now.toIso8601String());
-        expect(
-          map['isDeleted'],
-          1,
-        ); // Boolean harus menjadi integer untuk SQLite
+        expect(map['isDeleted'], 1);
       },
     );
 
@@ -100,9 +109,13 @@ void main() {
         'harga': 50000,
         'durasi': 30,
         'tipe': 'bulan',
-        'jumlahPoin': 100, // Properti baru dari DB
+        // dihapus: 'jumlahPoin': 100,
+        // ditambah: field poin yang baru.
+        'poin_hadiah': 100,
+        'poin_penukaran': 50,
+        'isPublic': 1,
         'diperbarui': nowString,
-        'isDeleted': 1, // data dari sqlite
+        'isDeleted': 1,
       };
 
       // Act: Konversi dari map ke objek
@@ -112,14 +125,18 @@ void main() {
       expect(paket.id, 'id-dari-db');
       expect(paket.nama, 'Paket Premium');
       expect(paket.tipe, TipeDurasi.bulan);
-      expect(paket.jumlahPoin, 100);
+      // dihapus: expect(paket.jumlahPoin, 100);
+      // ditambah: Memeriksa field poin yang baru.
+      expect(paket.poinHadiah, 100);
+      expect(paket.poinPenukaran, 50);
+      expect(paket.isPublic, true);
       expect(paket.diperbarui, DateTime.parse(nowString));
       expect(paket.isDeleted, true);
     });
 
-    // 5. Tes Konversi fromSqlite dengan data lama (tanpa jumlahPoin)
-    test('Metode fromSqlite harus handle jika field jumlahPoin tidak ada', () {
-      // Arrange: Buat map yang tidak memiliki field 'jumlahPoin'
+    // 5. Tes Konversi fromSqlite dengan data lama (tanpa field poin)
+    test('Metode fromSqlite harus handle jika field poin tidak ada', () {
+      // Arrange: Buat map yang tidak memiliki field poin
       final map = {
         'id': 'id-data-lama',
         'nama': 'Paket Old',
@@ -133,11 +150,14 @@ void main() {
       // Act: Konversi dari map ke objek
       final paket = PaketModel.fromSqlite(map);
 
-      // Assert: Pastikan jumlahPoin diberi nilai default 0
-      expect(paket.jumlahPoin, 0);
+      // Assert: Pastikan field poin diberi nilai default 0
+      // dihapus: expect(paket.jumlahPoin, 0);
+      // ditambah: Memeriksa field poin yang baru.
+      expect(paket.poinHadiah, 0);
+      expect(paket.poinPenukaran, 0);
     });
 
-    // ditambahkan: tes untuk memastikan isDeleted adalah boolean untuk Firebase
+    // Tes ini tetap relevan
     test('saat unggah data ke firebase isDeleted harus boolean (true)', () {
       // Arrange
       final paket = PaketModel(
@@ -156,7 +176,7 @@ void main() {
       expect(hasil['isDeleted'], true);
     });
 
-    // ditambahkan: tes untuk memastikan isDeleted adalah boolean untuk Firebase
+    // Tes ini juga tetap relevan
     test('saat unggah data ke firebase isDeleted harus boolean (false)', () {
       // Arrange
       final paket = PaketModel(
