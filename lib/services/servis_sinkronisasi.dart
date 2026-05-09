@@ -32,17 +32,35 @@ class SinkronisasiService {
 
   /// Memulai proses unduh data dari server.
   Future<void> jalankanProsesUnduh() async {
+    developer.log(
+      '[SinkronisasiService]-[jalankanProsesUnduh] 🚀 : Memicu proses pengunduhan data dari server...',
+      name: 'SinkronisasiService',
+    );
+
     // diubah: Menambahkan kurung kurawal untuk mematuhi aturan lint.
     if (_syncStatusController.isClosed || _syncStatusController.isPaused) {
+      developer.log(
+        '[SinkronisasiService]-[jalankanProsesUnduh] 🛑 : Gagal memulai. StreamController sudah tertutup atau sedang dalam kondisi pause.',
+        name: 'SinkronisasiService',
+      );
       return;
     }
-    _syncStatusController.add(true);
-    developer.log('Memulai proses unduh data...', name: 'SinkronisasiService');
 
+    _syncStatusController.add(true);
+    developer.log(
+      '[SinkronisasiService]-[jalankanProsesUnduh] 🔄 : Mengirim status "Sedang Mengunduh" ke Stream...',
+      name: 'SinkronisasiService',
+    );
+
+    developer.log(
+      '[SinkronisasiService]-[jalankanProsesUnduh] 🌐 : Melakukan verifikasi konektivitas internet...',
+      name: 'SinkronisasiService',
+    );
     final isConnected = await _koneksiInternetService.cekKoneksi();
+    
     if (!isConnected) {
       developer.log(
-        'Proses unduh gagal: Tidak ada koneksi internet.',
+        '[SinkronisasiService]-[jalankanProsesUnduh] ⚠️ : Proses unduh dibatalkan: Perangkat tidak memiliki akses internet.',
         name: 'SinkronisasiService',
       );
       _syncStatusController.add(false);
@@ -50,24 +68,37 @@ class SinkronisasiService {
     }
 
     try {
+      developer.log(
+        '[SinkronisasiService]-[jalankanProsesUnduh] 📥 : Mengeksekusi LayananUnduhData.unduhSemuaData()...',
+        name: 'SinkronisasiService',
+      );
       // diubah: Hanya logika unduh yang dijalankan.
       await _unduhData.unduhSemuaData();
 
       final newSyncTime = DateTime.now();
-      await _syncManager.setLastSyncTimestamp(newSyncTime);
       developer.log(
-        'Proses unduh berhasil. Waktu sinkronisasi terakhir diperbarui ke: $newSyncTime',
+        '[SinkronisasiService]-[jalankanProsesUnduh] 💾 : Memperbarui timestamp sinkronisasi terakhir di SyncManager...',
+        name: 'SinkronisasiService',
+      );
+      await _syncManager.setLastSyncTimestamp(newSyncTime);
+      
+      developer.log(
+        '[SinkronisasiService]-[jalankanProsesUnduh] ✅ : Proses unduh berhasil total. Sinkronisasi terakhir: $newSyncTime',
         name: 'SinkronisasiService',
       );
     } catch (e, stackTrace) {
       developer.log(
-        'Terjadi kesalahan selama proses unduh data.',
+        '[SinkronisasiService]-[jalankanProsesUnduh] ❌ : Terjadi kesalahan fatal selama siklus pengunduhan data.',
         name: 'SinkronisasiService.Error',
         error: e,
         stackTrace: stackTrace,
       );
     } finally {
       if (!_syncStatusController.isClosed) {
+        developer.log(
+          '[SinkronisasiService]-[jalankanProsesUnduh] 🏁 : Siklus selesai. Mengatur status pengunduhan kembali ke "Idle" (false).',
+          name: 'SinkronisasiService',
+        );
         _syncStatusController.add(false);
       }
     }
@@ -75,34 +106,52 @@ class SinkronisasiService {
 
   /// Memulai unduh otomatis berdasarkan interval yang ditentukan.
   void mulaiUnduhOtomatis({required Duration interval}) {
+    developer.log(
+      '[SinkronisasiService]-[mulaiUnduhOtomatis] ⏰ : Mengaktifkan penjadwal otomatis dengan interval ${interval.inMinutes} menit.',
+      name: 'SinkronisasiService',
+    );
+    
     _syncTimer?.cancel();
     _syncTimer = Timer.periodic(interval, (timer) async {
       developer.log(
-        'Memulai unduh otomatis terjadwal.',
+        '[SinkronisasiService]-[TimerPeriodic] 📟 : Timer berdetak. Memicu jalankanProsesUnduh() secara otomatis.',
         name: 'SinkronisasiService',
       );
       // diubah: Memanggil metode proses unduh yang baru.
       await jalankanProsesUnduh();
     });
+    
     developer.log(
-      'Unduh data otomatis dijadwalkan setiap ${interval.inMinutes} menit.',
+      '[SinkronisasiService]-[mulaiUnduhOtomatis] 📅 : Unduh data otomatis telah dijadwalkan dengan sukses.',
       name: 'SinkronisasiService',
     );
   }
 
   /// Menghentikan unduh otomatis.
   void hentikanUnduhOtomatis() {
+    developer.log(
+      '[SinkronisasiService]-[hentikanUnduhOtomatis] ⏹️ : Mematikan timer penjadwal otomatis...',
+      name: 'SinkronisasiService',
+    );
     _syncTimer?.cancel();
     _syncTimer = null;
     developer.log(
-      'Unduh data otomatis dihentikan.',
+      '[SinkronisasiService]-[hentikanUnduhOtomatis] ✅ : Unduh data otomatis telah dinonaktifkan.',
       name: 'SinkronisasiService',
     );
   }
 
   /// Membersihkan resource saat service tidak lagi digunakan.
   void dispose() {
+    developer.log(
+      '[SinkronisasiService]-[dispose] 🧹 : Membersihkan resource service. Menutup timer dan stream controller...',
+      name: 'SinkronisasiService',
+    );
     _syncTimer?.cancel();
     _syncStatusController.close();
+    developer.log(
+      '[SinkronisasiService]-[dispose] ✨ : Service berhasil dibersihkan (Disposed).',
+      name: 'SinkronisasiService',
+    );
   }
 }

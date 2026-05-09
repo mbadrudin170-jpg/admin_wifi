@@ -1,6 +1,4 @@
 // path: lib/splash_screen.dart
-// diubah: Menambahkan fungsionalitas toast jika izin notifikasi ditolak.
-// diubah: Mengganti withOpacity dengan withValue untuk menghindari deprecation.
 
 import 'dart:async';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
@@ -28,13 +26,11 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-// diubah: Menambahkan SingleTickerProviderStateMixin untuk animasi
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   String _loadingMessage = "Memulai aplikasi...";
   final KoneksiInternetService _koneksiService = KoneksiInternetService();
 
-  // ditambah: Variabel untuk state dan animasi toast
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   bool _showToast = false;
@@ -43,7 +39,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    // ditambah: Inisialisasi controller animasi
+    developer.log(
+      '🚀 [SplashScreen] -> [initState] -> Memulai siklus hidup SplashScreen',
+      name: 'SplashScreen.Lifecycle',
+    );
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -57,9 +57,12 @@ class _SplashScreenState extends State<SplashScreen>
     });
   }
 
-  // ditambah: Metode untuk menampilkan toast
   void _tampilkanToast(String message) {
     if (!mounted || _showToast) return;
+    developer.log(
+      '🍞 [SplashScreen] -> [_tampilkanToast] -> Menampilkan pesan: $message',
+      name: 'SplashScreen.UI',
+    );
     setState(() {
       _toastMessage = message;
       _showToast = true;
@@ -78,6 +81,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _updateLoading(String message) {
     if (!mounted) return;
+    developer.log(
+      '🔄 [SplashScreen] -> [_updateLoading] -> $message',
+      name: 'SplashScreen.Progress',
+    );
     setState(() {
       _loadingMessage = message;
     });
@@ -90,6 +97,10 @@ class _SplashScreenState extends State<SplashScreen>
       _updateLoading("Menghubungkan ke layanan Google...");
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
+      );
+      developer.log(
+        '🔥 [SplashScreen] -> [_initializeAndNavigate] -> Firebase Berhasil Terhubung',
+        name: 'SplashScreen.Firebase',
       );
       if (!mounted) return;
 
@@ -104,9 +115,12 @@ class _SplashScreenState extends State<SplashScreen>
       await notifikasiServis.inisialisasi();
       if (!mounted) return;
 
-      // diubah: Memeriksa izin dan menampilkan toast jika ditolak
       final bool izinDiberikan = await notifikasiServis.requestPermissions();
       if (!izinDiberikan) {
+        developer.log(
+          '⚠️ [SplashScreen] -> [_initializeAndNavigate] -> Izin notifikasi ditolak oleh user',
+          name: 'SplashScreen.Alert',
+        );
         _tampilkanToast(
           'Izin notifikasi ditolak. Beberapa fitur mungkin tidak akan berfungsi.',
         );
@@ -137,7 +151,12 @@ class _SplashScreenState extends State<SplashScreen>
           await sinkronisasiService.jalankanProsesUnduh();
           _updateLoading("Unduh data selesai.");
         } catch (e, s) {
-          developer.log('Gagal mengunduh data', error: e, stackTrace: s);
+          developer.log(
+            '❌ [SplashScreen] -> [_initializeAndNavigate] -> Gagal mengunduh data cloud',
+            name: 'SplashScreen.Error',
+            error: e,
+            stackTrace: s,
+          );
           _updateLoading("Gagal mengunduh data, melanjutkan offline...");
         }
       }
@@ -148,7 +167,10 @@ class _SplashScreenState extends State<SplashScreen>
           interval: Duration(hours: pengaturan.intervalSinkronisasiOtomatis),
         );
       } catch (e) {
-        developer.log('Gagal memulai unduh otomatis: $e', error: e);
+        developer.log(
+          '⚠️ [SplashScreen] -> [_initializeAndNavigate] -> Gagal memuat interval custom, gunakan default 24 jam',
+          name: 'SplashScreen.Alert',
+        );
         sinkronisasiService.mulaiUnduhOtomatis(
           interval: const Duration(hours: 24),
         );
@@ -157,12 +179,21 @@ class _SplashScreenState extends State<SplashScreen>
       _updateLoading("Selesai, membuka aplikasi...");
       await Future.delayed(const Duration(milliseconds: 500));
     } catch (e, s) {
-      developer.log('Inisialisasi gagal total', error: e, stackTrace: s);
+      developer.log(
+        '🚨 [SplashScreen] -> [_initializeAndNavigate] -> Inisialisasi Gagal Total',
+        name: 'SplashScreen.Critical',
+        error: e,
+        stackTrace: s,
+      );
       _updateLoading("Terjadi error, silakan mulai ulang aplikasi.");
       await Future.delayed(const Duration(seconds: 5));
     }
 
     if (!mounted) return;
+    developer.log(
+      '🏁 [SplashScreen] -> [_initializeAndNavigate] -> Navigasi ke HalamanUtama (Offline: ${!isOnline})',
+      name: 'SplashScreen.Navigation',
+    );
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -173,14 +204,17 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _animationController.dispose(); // ditambah: dispose controller
+    developer.log(
+      '🗑️ [SplashScreen] -> [dispose] -> Membersihkan AnimationController',
+      name: 'SplashScreen.Lifecycle',
+    );
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // diubah: Dibungkus dengan Stack untuk menampilkan toast di atasnya
       body: Stack(
         children: [
           Center(
@@ -191,7 +225,7 @@ class _SplashScreenState extends State<SplashScreen>
                   builder: (context) {
                     final isDarkMode =
                         MediaQuery.of(context).platformBrightness ==
-                            Brightness.dark;
+                        Brightness.dark;
                     final logoAsset = isDarkMode
                         ? 'assets/logo/splash_screen/logo_splash_screen_terang.png'
                         : 'assets/logo/splash_screen/logo_splash_screen_gelap.png';
@@ -217,7 +251,6 @@ class _SplashScreenState extends State<SplashScreen>
               ],
             ),
           ),
-          // ditambah: Widget untuk menampilkan toast
           if (_showToast)
             Positioned(
               bottom: 50,
@@ -230,16 +263,21 @@ class _SplashScreenState extends State<SplashScreen>
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.grey[800]?.withAlpha(242), // diubah: Menggunakan withAlpha
+                      // Menggunakan withAlpha (0-255) sebagai pengganti withOpacity (0.0-1.0)
+                      color: Colors.grey[800]?.withAlpha(242),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       _toastMessage,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                          color: Colors.white, fontFamily: 'Open Sans'),
+                        color: Colors.white,
+                        fontFamily: 'Open Sans',
+                      ),
                     ),
                   ),
                 ),

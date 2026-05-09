@@ -1,6 +1,6 @@
 // path: lib/services/cek_langganan_kadaluarsa_service.dart
 // diubah: Menyederhanakan logika dengan memanggil fungsi arsipkan yang sudah ada.
-import 'dart:developer';
+import 'dart:developer' as developer;
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 
@@ -12,10 +12,13 @@ class CekLanggananKadaluarsaService {
   /// Memproses semua pelanggan aktif, menemukan yang kedaluwarsa,
   /// dan memanggil operasi untuk mengarsipkan mereka.
   Future<void> prosesLanggananKadaluarsa() async {
+    developer.log(
+      '[CekLanggananKadaluarsaService]-[prosesLanggananKadaluarsa] 🚀 : Memulai siklus pengecekan dan pengarsipan langganan yang telah kedaluwarsa...',
+    );
+
     try {
-      log(
-        'Memulai pengecekan dan pengarsipan langganan kedaluwarsa...',
-        name: 'CekLangganan',
+      developer.log(
+        '[CekLanggananKadaluarsaService]-[prosesLanggananKadaluarsa] 📡 : Menghubungi PelangganAktifOperasi untuk mengeksekusi batch pengarsipan otomatis...',
       );
 
       // Memanggil satu fungsi yang sudah menangani seluruh logika
@@ -23,24 +26,21 @@ class CekLanggananKadaluarsaService {
           .arsipkanPelangganKadaluarsa();
 
       if (jumlahDiarsipkan > 0) {
-        log(
-          'Berhasil mengarsipkan $jumlahDiarsipkan langganan kedaluwarsa.',
-          name: 'CekLangganan',
+        developer.log(
+          '[CekLanggananKadaluarsaService]-[prosesLanggananKadaluarsa] ✨ : Operasi berhasil! Sebanyak $jumlahDiarsipkan data pelanggan kedaluwarsa telah dipindahkan ke tabel arsip.',
         );
       } else {
-        log(
-          'Tidak ada langganan kedaluwarsa yang ditemukan untuk diarsipkan.',
-          name: 'CekLangganan',
+        developer.log(
+          '[CekLanggananKadaluarsaService]-[prosesLanggananKadaluarsa] 📥 : Hasil pengecekan bersih. Tidak ditemukan data pelanggan yang memenuhi kriteria kedaluwarsa saat ini.',
         );
       }
 
-      log(
-        'Proses pengecekan langganan kedaluwarsa selesai.',
-        name: 'CekLangganan',
+      developer.log(
+        '[CekLanggananKadaluarsaService]-[prosesLanggananKadaluarsa] ✅ : Seluruh rangkaian proses pengecekan langganan kedaluwarsa telah diselesaikan dengan sukses.',
       );
     } catch (e, s) {
-      log(
-        'Terjadi error saat memproses langganan kedaluwarsa',
+      developer.log(
+        '[CekLanggananKadaluarsaService]-[prosesLanggananKadaluarsa] ❌ : Terjadi kesalahan fatal selama proses pengolahan data kedaluwarsa!',
         name: 'CekLanggananError',
         error: e,
         stackTrace: s,

@@ -1,11 +1,11 @@
 // path: lib/halaman/lainnya/pelanggan.dart
-// Halaman ini menampilkan daftar semua pelanggan yang terdaftar.
 
 import 'package:admin_wifi/halaman/form/form_pelanggan.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_pelanggan.dart';
+import 'dart:developer' as developer;
 
 class PelangganPage extends StatefulWidget {
   const PelangganPage({super.key});
@@ -26,12 +26,14 @@ class _PelangganPageState extends State<PelangganPage> {
   @override
   void initState() {
     super.initState();
+    developer.log('[PelangganPage]-[initState] 🏁 : Menginisialisasi halaman Pelanggan', name: 'Pelanggan');
     _refreshPelangganList();
     _searchController.addListener(_filterPelanggan);
   }
 
   @override
   void dispose() {
+    developer.log('[PelangganPage]-[dispose] 🚮 : Menghapus controller dan membersihkan resource', name: 'Pelanggan');
     _searchController.dispose();
     super.dispose();
   }
@@ -54,6 +56,7 @@ class _PelangganPageState extends State<PelangganPage> {
         IconButton(
           icon: Icon(_isSearching ? Icons.close : Icons.search),
           onPressed: () {
+            developer.log('[PelangganPage]-[AppBar] 🔍 : Toggle search mode -> ${_isSearching ? 'Nonaktif' : 'Aktif'}', name: 'Pelanggan');
             setState(() {
               _isSearching = !_isSearching;
               if (!_isSearching) {
@@ -67,46 +70,59 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   Future<void> _refreshPelangganList() async {
+    developer.log('[PelangganPage]-[_refreshPelangganList] 🔄 : Memuat ulang daftar pelanggan', name: 'Pelanggan');
     setState(() => _isLoading = true);
-    final list = await _pelangganOperasi.getPelanggan();
-    list.sort((a, b) => a.nama.compareTo(b.nama));
-    if (mounted) {
-      setState(() {
-        _allPelanggan = list;
-        _filteredPelanggan = list;
-        _isLoading = false;
-      });
+    
+    try {
+      final list = await _pelangganOperasi.getPelanggan();
+      list.sort((a, b) => a.nama.compareTo(b.nama));
+      
+      developer.log('[PelangganPage]-[_refreshPelangganList] 📥 : Berhasil mengambil ${list.length} pelanggan', name: 'Pelanggan');
+      
+      if (mounted) {
+        setState(() {
+          _allPelanggan = list;
+          _filteredPelanggan = list;
+          _isLoading = false;
+        });
+      }
+    } catch (e, s) {
+      developer.log('[PelangganPage]-[_refreshPelangganList] ❌ : Error saat memuat data', error: e, stackTrace: s, name: 'Pelanggan');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _filterPelanggan() {
     final query = _searchController.text.toLowerCase();
+    developer.log('[PelangganPage]-[_filterPelanggan] ⌨️ : Mencari dengan keyword: "$query"', name: 'Pelanggan');
+    
     setState(() {
       _filteredPelanggan = _allPelanggan
           .where((p) => p.nama.toLowerCase().contains(query))
           .toList();
+      developer.log('[PelangganPage]-[_filterPelanggan] 🎯 : Hasil filter -> ${_filteredPelanggan.length} item', name: 'Pelanggan');
     });
   }
 
   void _tambahPelanggan() async {
+    developer.log('[PelangganPage]-[_tambahPelanggan] ➕ : Menuju form tambah pelanggan', name: 'Pelanggan');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormPelanggan()),
     );
     if (result == true) {
+      developer.log('[PelangganPage]-[_tambahPelanggan] ✅ : Pelanggan baru ditambahkan, menyegarkan list', name: 'Pelanggan');
       _refreshPelangganList();
     }
   }
 
-  // ditambah: Fungsi untuk menampilkan dialog opsi saat item ditekan lama
   void _showDialogOpsi(PelangganModel pelanggan) {
+    developer.log('[PelangganPage]-[_showDialogOpsi] 📂 : Menampilkan opsi untuk pelanggan: ${pelanggan.nama}', name: 'Pelanggan');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(
-            pelanggan.nama,
-          ), // Menampilkan nama pelanggan sebagai judul
+          title: Text(pelanggan.nama),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -114,7 +130,8 @@ class _PelangganPageState extends State<PelangganPage> {
                 leading: const Icon(Icons.edit),
                 title: const Text('Edit Pelanggan'),
                 onTap: () {
-                  Navigator.of(dialogContext).pop(); // Tutup dialog opsi
+                  developer.log('[PelangganPage]-[_showDialogOpsi] ✏️ : Memilih edit pelanggan', name: 'Pelanggan');
+                  Navigator.of(dialogContext).pop();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -127,10 +144,9 @@ class _PelangganPageState extends State<PelangganPage> {
                 leading: const Icon(Icons.archive_outlined),
                 title: const Text('Arsipkan Pelanggan'),
                 onTap: () {
-                  Navigator.of(dialogContext).pop(); // Tutup dialog opsi
-                  _showDialogArsipkan(
-                    pelanggan,
-                  ); // Tampilkan dialog konfirmasi arsip
+                  developer.log('[PelangganPage]-[_showDialogOpsi] 📦 : Memilih arsipkan pelanggan', name: 'Pelanggan');
+                  Navigator.of(dialogContext).pop();
+                  _showDialogArsipkan(pelanggan);
                 },
               ),
             ],
@@ -141,6 +157,7 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   void _showDialogArsipkan(PelangganModel pelanggan) {
+    developer.log('[PelangganPage]-[_showDialogArsipkan] ❓ : Menampilkan konfirmasi arsip untuk ${pelanggan.id}', name: 'Pelanggan');
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -153,12 +170,14 @@ class _PelangganPageState extends State<PelangganPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
+                developer.log('[PelangganPage]-[_showDialogArsipkan] 🔙 : Pengarsipan dibatalkan', name: 'Pelanggan');
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Arsipkan'),
               onPressed: () {
+                developer.log('[PelangganPage]-[_showDialogArsipkan] 🆗 : Konfirmasi arsip diterima', name: 'Pelanggan');
                 Navigator.of(context).pop();
                 _arsipkanPelanggan(pelanggan.id);
               },
@@ -170,20 +189,27 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   void _arsipkanPelanggan(String id) async {
-    await _pelangganOperasi.arsipkanPelanggan(id);
-    _refreshPelangganList();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pelanggan berhasil diarsipkan.'),
-          backgroundColor: Colors.green,
-        ),
-      );
+    developer.log('[PelangganPage]-[_arsipkanPelanggan] 🔨 : Memulai proses pengarsipan di database', name: 'Pelanggan');
+    try {
+      await _pelangganOperasi.arsipkanPelanggan(id);
+      developer.log('[PelangganPage]-[_arsipkanPelanggan] ✅ : Berhasil mengarsipkan ID: $id', name: 'Pelanggan');
+      _refreshPelangganList();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pelanggan berhasil diarsipkan.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e, s) {
+      developer.log('[PelangganPage]-[_arsipkanPelanggan] ❌ : Gagal mengarsipkan', error: e, stackTrace: s, name: 'Pelanggan');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    developer.log('[PelangganPage]-[build] 🏗️ : Membangun UI PelangganPage', name: 'Pelanggan');
     return Scaffold(
       appBar: _buildAppBar(),
       body: _isLoading
@@ -211,8 +237,8 @@ class _PelangganPageState extends State<PelangganPage> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(pelanggan.macAddress),
-                    // dihapus: PopupMenuButton telah diganti dengan onLongPress
                     onTap: () {
+                      developer.log('[PelangganPage]-[ListView] 👆 : Menuju detail pelanggan: ${pelanggan.nama}', name: 'Pelanggan');
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -222,7 +248,7 @@ class _PelangganPageState extends State<PelangganPage> {
                       );
                     },
                     onLongPress: () {
-                      // ditambah: Memanggil dialog opsi saat ditekan lama
+                      developer.log('[PelangganPage]-[ListView] 🖐️ : Long press pada pelanggan: ${pelanggan.nama}', name: 'Pelanggan');
                       _showDialogOpsi(pelanggan);
                     },
                   ),
@@ -231,6 +257,7 @@ class _PelangganPageState extends State<PelangganPage> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahPelanggan,
+        tooltip: 'Tambah Pelanggan',
         child: const Icon(Icons.add),
       ),
     );

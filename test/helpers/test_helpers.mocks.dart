@@ -171,15 +171,9 @@ class MockDatabaseHelper extends _i1.Mock implements _i7.DatabaseHelper {
           as _i3.Future<_i2.Database>);
 
   @override
-  void stubDb(_i2.Database? db) => super.noSuchMethod(
-    Invocation.method(#stubDb, [db]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  _i3.Future<void> createTables(_i2.Database? db) =>
+  _i3.Future<void> createTables(_i2.Database? db, int? version) =>
       (super.noSuchMethod(
-            Invocation.method(#createTables, [db]),
+            Invocation.method(#createTables, [db, version]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

@@ -1,7 +1,7 @@
 // path: lib/data/operasi/versi_apk_user_operasi.dart
 
 import 'dart:async';
-import 'dart:convert'; // ditambahkan: untuk konversi ke JSON
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
@@ -13,12 +13,10 @@ import 'package:sqflite/sqflite.dart';
 
 class VersiApkUserOperasi {
   final DatabaseHelper dbHelper;
-  // ditambah: dependensi untuk koneksi, unggah, dan sync manager
   final KoneksiInternetService koneksiService;
   final LayananUnggahData unggahService;
   final SyncManager syncManager;
 
-  // diubah: konstruktor untuk menerima dependensi (dependency injection)
   VersiApkUserOperasi({
     DatabaseHelper? dbHelper,
     KoneksiInternetService? koneksiService,
@@ -32,7 +30,6 @@ class VersiApkUserOperasi {
   Future<void> tambahVersiApkUser(VersiApkUserModel data) async {
     final db = await dbHelper.database;
     try {
-      // 1. Simpan ke database lokal terlebih dahulu
       final dataToSave = data.copyWith(diperbarui: DateTime.now());
       final dataUntukDb = dataToSave.toSqlite();
 
@@ -42,63 +39,55 @@ class VersiApkUserOperasi {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      // ditambahkan: konversi map ke string JSON yang rapi
       const jsonEncoder = JsonEncoder.withIndent('  ');
       final dataJson = jsonEncoder.convert(dataUntukDb);
 
-      // diubah: mencetak string JSON
       developer.log(
-        'Berhasil menyimpan data ke lokal. Data yang disimpan:\n$dataJson',
-        name: 'tambahVersiApkUser',
+        '✅ [versi_apk_user_operasi.dart] -> [tambahVersiApkUser] -> Berhasil menyimpan data ke lokal. Data:\n$dataJson',
+        name: 'tambahVersiApkUser.Success',
       );
 
-      // 2. Coba sinkronisasi jika online
-      // diubah: menggunakan instance koneksiService yang disuntikkan
       if (await koneksiService.cekKoneksi()) {
         developer.log(
-          'Online, mencoba sinkronisasi data.',
-          name: 'tambahVersiApkUser',
+          '🌐 [versi_apk_user_operasi.dart] -> [tambahVersiApkUser] -> Online, mencoba sinkronisasi data.',
+          name: 'tambahVersiApkUser.Info',
         );
         try {
           final syncTime = DateTime.now();
-          // Memanggil unggah data dengan timeout
-          // diubah: menggunakan instance unggahService yang disuntikkan
           await unggahService.unggahDataVersiApkUser().timeout(
             const Duration(seconds: 15),
             onTimeout: () =>
                 throw TimeoutException('Batas waktu unggah terlampaui.'),
           );
 
-          // diubah: menggunakan instance syncManager yang disuntikkan
           await syncManager.setLastSyncTimestamp(syncTime);
 
           developer.log(
-            'Sinkronisasi berhasil, timestamp diperbarui.',
-            name: 'tambahVersiApkUser',
+            '🚀 [versi_apk_user_operasi.dart] -> [tambahVersiApkUser] -> Sinkronisasi berhasil, timestamp diperbarui.',
+            name: 'tambahVersiApkUser.SyncSuccess',
           );
         } catch (e, s) {
           developer.log(
-            'Sinkronisasi gagal, timestamp tidak diperbarui.',
-            name: 'tambahVersiApkUser.Warning',
+            '⚠️ [versi_apk_user_operasi.dart] -> [tambahVersiApkUser] -> Sinkronisasi gagal, timestamp tidak diperbarui.',
+            name: 'tambahVersiApkUser.SyncWarning',
             error: e,
             stackTrace: s,
           );
-          // Error tidak dilempar ulang karena penyimpanan lokal sudah sukses
         }
       } else {
         developer.log(
-          'Offline, unggah data ditunda.',
-          name: 'tambahVersiApkUser',
+          '📴 [versi_apk_user_operasi.dart] -> [tambahVersiApkUser] -> Offline, unggah data ditunda.',
+          name: 'tambahVersiApkUser.Offline',
         );
       }
     } catch (e, s) {
       developer.log(
-        'Gagal menyimpan data ke LOKAL.',
+        '❌ [versi_apk_user_operasi.dart] -> [tambahVersiApkUser] -> Gagal menyimpan data ke LOKAL.',
         name: 'tambahVersiApkUser.Error',
         error: e,
         stackTrace: s,
       );
-      rethrow; // Lempar ulang jika penyimpanan LOKAL itu sendiri gagal
+      rethrow;
     }
   }
 
@@ -106,17 +95,20 @@ class VersiApkUserOperasi {
     final db = await dbHelper.database;
     try {
       final dataToUpdate = data.copyWith(diperbarui: DateTime.now());
-      // diubah: menggunakan toSqlite() untuk konversi ke format SQLite
       await db.update(
         'versi_apk_user',
         dataToUpdate.toSqlite(),
         where: 'id = ?',
         whereArgs: [data.id],
       );
+      developer.log(
+        '✅ [versi_apk_user_operasi.dart] -> [perbaruiVersiApkUser] -> Berhasil memperbarui data ID: ${data.id}',
+        name: 'perbaruiVersiApkUser.Success',
+      );
     } catch (e, s) {
       developer.log(
-        'Gagal memperbarui versi apk user',
-        name: 'perbaruiVersiApkUser',
+        '❌ [versi_apk_user_operasi.dart] -> [perbaruiVersiApkUser] -> Gagal memperbarui versi apk user',
+        name: 'perbaruiVersiApkUser.Error',
         error: e,
         stackTrace: s,
       );
@@ -138,10 +130,14 @@ class VersiApkUserOperasi {
         where: 'id = ?',
         whereArgs: [id],
       );
+      developer.log(
+        '📦 [versi_apk_user_operasi.dart] -> [arsipkanVersiApkUser] -> Berhasil mengarsipkan data ID: $id',
+        name: 'arsipkanVersiApkUser.Success',
+      );
     } catch (e, s) {
       developer.log(
-        'Gagal mengarsipkan versi apk user',
-        name: 'arsipkanVersiApkUser',
+        '❌ [versi_apk_user_operasi.dart] -> [arsipkanVersiApkUser] -> Gagal mengarsipkan versi apk user',
+        name: 'arsipkanVersiApkUser.Error',
         error: e,
         stackTrace: s,
       );
@@ -153,13 +149,18 @@ class VersiApkUserOperasi {
     final db = await dbHelper.database;
     try {
       final List<Map<String, dynamic>> maps = await db.query('versi_apk_user');
-      return List.generate(maps.length, (i) {
+      final hasil = List.generate(maps.length, (i) {
         return VersiApkUserModel.fromSqlite(maps[i]);
       });
+      developer.log(
+        '📊 [versi_apk_user_operasi.dart] -> [ambilSemuaVersiApk] -> Berhasil mengambil ${hasil.length} data',
+        name: 'ambilSemuaVersiApk.Success',
+      );
+      return hasil;
     } catch (e, s) {
       developer.log(
-        'Gagal mengambil semua versi apk',
-        name: 'ambilSemuaVersiApk',
+        '❌ [versi_apk_user_operasi.dart] -> [ambilSemuaVersiApk] -> Gagal mengambil semua versi apk',
+        name: 'ambilSemuaVersiApk.Error',
         error: e,
         stackTrace: s,
       );
@@ -176,13 +177,18 @@ class VersiApkUserOperasi {
         whereArgs: [0],
         orderBy: 'diperbarui DESC',
       );
-      return List.generate(maps.length, (i) {
+      final hasil = List.generate(maps.length, (i) {
         return VersiApkUserModel.fromSqlite(maps[i]);
       });
+      developer.log(
+        '✅ [versi_apk_user_operasi.dart] -> [ambilSemuaVersiApkAktif] -> Berhasil mengambil ${hasil.length} data aktif',
+        name: 'ambilSemuaVersiApkAktif.Success',
+      );
+      return hasil;
     } catch (e, s) {
       developer.log(
-        'Gagal mengambil semua versi apk aktif',
-        name: 'ambilSemuaVersiApkAktif',
+        '❌ [versi_apk_user_operasi.dart] -> [ambilSemuaVersiApkAktif] -> Gagal mengambil semua versi apk aktif',
+        name: 'ambilSemuaVersiApkAktif.Error',
         error: e,
         stackTrace: s,
       );
@@ -200,13 +206,21 @@ class VersiApkUserOperasi {
       );
 
       if (maps.isNotEmpty) {
+        developer.log(
+          '🔍 [versi_apk_user_operasi.dart] -> [ambilVersiApkById] -> Data ID: $id ditemukan',
+          name: 'ambilVersiApkById.Success',
+        );
         return VersiApkUserModel.fromSqlite(maps.first);
       }
+      developer.log(
+        '⚠️ [versi_apk_user_operasi.dart] -> [ambilVersiApkById] -> Data ID: $id tidak ditemukan',
+        name: 'ambilVersiApkById.NotFound',
+      );
       return null;
     } catch (e, s) {
       developer.log(
-        'Gagal mengambil versi apk by id',
-        name: 'ambilVersiApkById',
+        '❌ [versi_apk_user_operasi.dart] -> [ambilVersiApkById] -> Gagal mengambil versi apk by id',
+        name: 'ambilVersiApkById.Error',
         error: e,
         stackTrace: s,
       );
@@ -220,6 +234,10 @@ class VersiApkUserOperasi {
           await ambilSemuaVersiApkAktif();
 
       if (semuaVersiAktif.isEmpty) {
+        developer.log(
+          'ℹ️ [versi_apk_user_operasi.dart] -> [ambilVersiApkTerbaru] -> Tidak ada data versi aktif',
+          name: 'ambilVersiApkTerbaru.Info',
+        );
         return null;
       }
 
@@ -229,11 +247,15 @@ class VersiApkUserOperasi {
         return buildA.compareTo(buildB);
       });
 
+      developer.log(
+        '🔝 [versi_apk_user_operasi.dart] -> [ambilVersiApkTerbaru] -> Berhasil memproses versi terbaru',
+        name: 'ambilVersiApkTerbaru.Success',
+      );
       return semuaVersiAktif.last;
     } catch (e, s) {
       developer.log(
-        'Gagal mengambil dan memproses versi APK terbaru',
-        name: 'VersiApkUserOperasi.Error',
+        '❌ [versi_apk_user_operasi.dart] -> [ambilVersiApkTerbaru] -> Gagal mengambil dan memproses versi APK terbaru',
+        name: 'ambilVersiApkTerbaru.Error',
         error: e,
         stackTrace: s,
       );
@@ -249,7 +271,6 @@ class VersiApkUserOperasi {
       final batch = db.batch();
       for (var versi in daftarVersi) {
         final dataToSave = versi.copyWith(diperbarui: DateTime.now());
-        // diubah: menggunakan toSqlite() untuk konversi ke format SQLite
         batch.insert(
           'versi_apk_user',
           dataToSave.toSqlite(),
@@ -257,29 +278,49 @@ class VersiApkUserOperasi {
         );
       }
       await batch.commit(noResult: true);
+      developer.log(
+        '📚 [versi_apk_user_operasi.dart] -> [sisipkanAtauPerbaruiBatch] -> Berhasil memproses ${daftarVersi.length} data dalam batch',
+        name: 'sisipkanAtauPerbaruiBatch.Success',
+      );
     } catch (e, s) {
       developer.log(
-        'Gagal melakukan sisip atau perbarui batch',
-        name: 'sisipkanAtauPerbaruiBatch',
+        '❌ [versi_apk_user_operasi.dart] -> [sisipkanAtauPerbaruiBatch] -> Gagal melakukan sisip atau perbarui batch',
+        name: 'sisipkanAtauPerbaruiBatch.Error',
         error: e,
         stackTrace: s,
       );
       rethrow;
     }
   }
+
   Future<List<VersiApkUserModel>> getVersiApkUserByIds(List<String> ids) async {
     if (ids.isEmpty) {
       return [];
     }
     final db = await dbHelper.database;
-    final placeholders = List.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> maps = await db.query(
-      'versi_apk_user',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids,
-    );
-    return List.generate(maps.length, (i) {
-      return VersiApkUserModel.fromSqlite(maps[i]);
-    });
+    try {
+      final placeholders = List.filled(ids.length, '?').join(',');
+      final List<Map<String, dynamic>> maps = await db.query(
+        'versi_apk_user',
+        where: 'id IN ($placeholders)',
+        whereArgs: ids,
+      );
+      final hasil = List.generate(maps.length, (i) {
+        return VersiApkUserModel.fromSqlite(maps[i]);
+      });
+      developer.log(
+        '🔗 [versi_apk_user_operasi.dart] -> [getVersiApkUserByIds] -> Berhasil mengambil ${hasil.length} data berdasarkan IDs',
+        name: 'getVersiApkUserByIds.Success',
+      );
+      return hasil;
+    } catch (e, s) {
+      developer.log(
+        '❌ [versi_apk_user_operasi.dart] -> [getVersiApkUserByIds] -> Gagal mengambil data berdasarkan IDs',
+        name: 'getVersiApkUserByIds.Error',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
   }
 }

@@ -1,11 +1,7 @@
 // path: lib/halaman/detail/detail_paket.dart
-// File ini bertanggung jawab untuk menampilkan detail dari sebuah paket layanan.
-// diubah: Menampilkan lebih banyak detail seperti poin dan status publik.
-// dihapus: Menghapus tampilan `jumlahPoin` yang sudah tidak ada di model.
-
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/paket_model.dart';
-// ditambah: Impor halaman form untuk navigasi edit.
 import 'package:admin_wifi/halaman/form/form_paket.dart';
 
 class DetailPaketPage extends StatefulWidget {
@@ -17,38 +13,36 @@ class DetailPaketPage extends StatefulWidget {
   State<DetailPaketPage> createState() => _DetailPaketPageState();
 }
 
-// diubah: Dijadikan StatefulWidget untuk me-refresh data setelah edit.
 class _DetailPaketPageState extends State<DetailPaketPage> {
-  // diubah: Objek paket sekarang dapat diperbarui.
   late PaketModel _paket;
 
   @override
   void initState() {
     super.initState();
-    // diubah: Inisialisasi paket dari widget.
     _paket = widget.paket;
+    developer.log('[DetailPaket] 📦 : Menampilkan detail paket: ${_paket.nama} (ID: ${_paket.id})');
   }
 
-  // ditambah: Fungsi untuk menavigasi ke halaman edit dan me-refresh data jika ada perubahan.
   void _editPaket() async {
+    developer.log('[DetailPaket] 📝 : Menuju Form Edit Paket: ${_paket.nama}');
+    
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            FormPaket(paket: _paket), // Mengirim paket yang ada
+        builder: (context) => FormPaket(paket: _paket),
       ),
     );
 
     if (result == true) {
-      // Jika ada perubahan, muat ulang data paket dari database (atau cukup perbarui dari hasil)
-      // Untuk simpelnya, kita bisa mengasumsikan paket yang diperbarui dikirim kembali
-      // atau kita bisa memuat ulang dari DB. Di sini kita hanya pop.
+      developer.log('[DetailPaket] 🔄 : Mendeteksi perubahan data paket.');
       if (mounted) {
-        Navigator.pop(
-          context,
-          true,
-        ); // Kembali ke halaman list dan memicu refresh
+        // Karena data paket kemungkinan besar berubah di DB, 
+        // kita kirim sinyal 'true' ke halaman daftar untuk refresh list.
+        developer.log('[DetailPaket] ⬅️ : Kembali ke list untuk menyegarkan data terbaru.');
+        Navigator.pop(context, true);
       }
+    } else {
+      developer.log('[DetailPaket] ℹ️ : Pengguna membatalkan edit atau tidak ada perubahan.');
     }
   }
 
@@ -62,6 +56,7 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
+            developer.log('[DetailPaket] 🔙 : Kembali ke halaman sebelumnya');
             Navigator.pop(context);
           },
         ),
@@ -73,39 +68,68 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Card(
           elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Detail Paket',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                Row(
+                  children: [
+                    const Icon(Icons.inventory_2, color: Colors.blueAccent),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Informasi Layanan',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
-                // diubah: Menggunakan _paket yang ada di state.
                 _buildDetailRow('Nama Paket', _paket.nama),
-                _buildDetailRow('Harga', 'Rp ${_paket.harga}'),
+                _buildDetailRow('Harga Sewa', 'Rp ${_paket.harga}'),
                 _buildDetailRow(
-                  'Durasi',
+                  'Masa Aktif',
                   '${_paket.durasi} ${_paket.tipe.name}',
                 ),
-                // dihapus: 'Jumlah Poin' tidak lagi digunakan.
-                // ditambah: Menampilkan detail poin dan status publik.
-                const Divider(height: 20, thickness: 1),
-                _buildDetailRow('Poin Hadiah', _paket.poinHadiah.toString()),
-                _buildDetailRow('Poin Penukaran', _paket.poinPenukaran.toString()),
-                _buildDetailRow('Publik', _paket.isPublic ? 'Ya' : 'Tidak'),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Divider(thickness: 1),
+                ),
+                Row(
+                  children: [
+                    const Icon(Icons.stars, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Sistem Poin',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildDetailRow('Poin Hadiah', '${_paket.poinHadiah} Poin', 
+                    subTitle: 'Didapat saat beli paket'),
+                _buildDetailRow('Poin Penukaran', '${_paket.poinPenukaran} Poin',
+                    subTitle: 'Syarat tukar gratis'),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Divider(thickness: 1),
+                ),
+                _buildDetailRow(
+                  'Status Publik', 
+                  _paket.isPublic ? 'Tersedia di Aplikasi' : 'Hanya Admin',
+                  customValueColor: _paket.isPublic ? Colors.green : Colors.red,
+                ),
               ],
             ),
           ),
@@ -114,14 +138,48 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {String? subTitle, Color? customValueColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 13,
+                  ),
+                ),
+                if (subTitle != null)
+                  Text(
+                    subTitle,
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: customValueColor ?? Colors.black87,
+              ),
+            ),
+          ),
         ],
       ),
     );

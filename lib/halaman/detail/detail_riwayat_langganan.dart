@@ -9,6 +9,7 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer; // Tambahkan import developer
 
 class DetailLanggananTransaksiPage extends StatefulWidget {
   final String idTransaksi;
@@ -29,7 +30,7 @@ class _DetailLanggananTransaksiPageState
   @override
   void initState() {
     super.initState();
-
+    developer.log('[DetailLangganan] 🚀 : Inisialisasi halaman untuk ID Transaksi: ${widget.idTransaksi}');
     _transaksiFuture = _transaksiOperasi.getTransaksiById(widget.idTransaksi);
   }
 
@@ -45,14 +46,19 @@ class _DetailLanggananTransaksiPageState
           }
 
           if (snapshot.hasError) {
+            developer.log('[DetailLangganan] ❌ : Error saat mengambil data transaksi', error: snapshot.error);
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           final transaksi = snapshot.data;
 
           if (transaksi == null) {
+            developer.log('[DetailLangganan] ⚠️ : Data transaksi tidak ditemukan di database');
             return const Center(child: Text('Transaksi tidak ditemukan'));
           }
+
+          developer.log('[DetailLangganan] ✅ : Berhasil memuat Transaksi: ${transaksi.id}');
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
@@ -61,10 +67,11 @@ class _DetailLanggananTransaksiPageState
                   _buildFutureInfoCard<PelangganModel>(
                     'Informasi Pelanggan',
                     _pelangganOperasi.getPelangganById(transaksi.idPelanggan!),
+                    'Pelanggan',
                     (pelanggan) => [
                       _buildDetailRow(
                         'Nama Pelanggan',
-                        pelanggan?.nama ?? '...',
+                        pelanggan?.nama ?? 'Tidak Diketahui',
                       ),
                     ],
                   ),
@@ -73,15 +80,16 @@ class _DetailLanggananTransaksiPageState
                   _buildFutureInfoCard<PaketModel>(
                     'Informasi Paket',
                     _paketOperasi.getPaketById(transaksi.idPaket!),
+                    'Paket',
                     (paket) => [
-                      _buildDetailRow('Nama Paket', paket?.nama ?? '...'),
+                      _buildDetailRow('Nama Paket', paket?.nama ?? 'Tidak Diketahui'),
                       _buildDetailRow(
                         'Harga',
                         FormatUang.formatMataUang(paket?.harga.toDouble() ?? 0),
                       ),
                       _buildDetailRow(
                         'Durasi',
-                        '${paket?.durasi} ${paket?.tipe.name}',
+                        '${paket?.durasi ?? 0} ${paket?.tipe.name ?? ""}',
                       ),
                     ],
                   ),
@@ -106,7 +114,7 @@ class _DetailLanggananTransaksiPageState
                 _buildInfoCard('Status', [
                   _buildDetailRow(
                     'Status Pembayaran',
-                    transaksi.statusPembayaran.name,
+                    transaksi.statusPembayaran.name.toUpperCase(),
                   ),
                 ]),
               ],
@@ -141,6 +149,7 @@ class _DetailLanggananTransaksiPageState
   Widget _buildFutureInfoCard<T>(
     String title,
     Future<T?> future,
+    String tag, // Tag untuk membedakan log
     List<Widget> Function(T? data) builder,
   ) {
     return FutureBuilder<T?>(
@@ -148,12 +157,21 @@ class _DetailLanggananTransaksiPageState
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildInfoCard(title, [
-            const Center(child: CircularProgressIndicator()),
+            const Center(child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            )),
           ]);
         }
         if (snapshot.hasError) {
+          developer.log('[DetailLangganan] ❌ : Gagal memuat data $tag', error: snapshot.error);
           return _buildInfoCard(title, [const Text('Gagal memuat data')]);
         }
+
+        if (snapshot.hasData) {
+          developer.log('[DetailLangganan] 📡 : Data $tag berhasil diambil secara asinkron');
+        }
+
         return _buildInfoCard(title, builder(snapshot.data));
       },
     );

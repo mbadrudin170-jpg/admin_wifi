@@ -29,12 +29,13 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   @override
   void initState() {
     super.initState();
+    developer.log('[VersiApkUserPage]-[initState] 🏁 : Menginisialisasi halaman Versi APK User', name: 'VersiApkUserPage');
     _versiApkUserOperasi = widget.operasi ?? VersiApkUserOperasi();
     _loadData();
   }
 
-  // ✅ BENAR - Menggunakan ArsitekturApkEnum.universal sebagai key
   void _urutkanList() {
+    developer.log('[VersiApkUserPage]-[_urutkanList] ⚖️ : Mengurutkan daftar berdasarkan $_urutanSaatIni', name: 'VersiApkUserPage');
     _daftarVersiApk.sort((a, b) {
       switch (_urutanSaatIni) {
         case Urutan.buildZA:
@@ -49,9 +50,11 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           return a.versiTerbaru.compareTo(b.versiTerbaru);
       }
     });
+    developer.log('[VersiApkUserPage]-[_urutkanList] ✅ : Pengurutan selesai', name: 'VersiApkUserPage');
   }
 
   Future<void> _loadData() async {
+    developer.log('[VersiApkUserPage]-[_loadData] 🔄 : Memulai pengambilan data versi APK aktif dari database/cloud', name: 'VersiApkUserPage');
     if (!mounted) return;
     setState(() {
       _isLoading = true;
@@ -59,6 +62,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     });
     try {
       final daftarVersi = await _versiApkUserOperasi.ambilSemuaVersiApkAktif();
+      developer.log('[VersiApkUserPage]-[_loadData] 📥 : Berhasil mengambil ${daftarVersi.length} data versi APK', name: 'VersiApkUserPage');
       if (!mounted) return;
       setState(() {
         _daftarVersiApk = daftarVersi;
@@ -67,7 +71,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
       });
     } catch (e, s) {
       developer.log(
-        'Gagal memuat data',
+        '[VersiApkUserPage]-[_loadData] ❌ : Terjadi kesalahan saat memuat data',
         error: e,
         stackTrace: s,
         name: 'VersiApkUserPage',
@@ -81,11 +85,14 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   void _perbaruiAtauTambahItem(VersiApkUserModel item) {
+    developer.log('[VersiApkUserPage]-[_perbaruiAtauTambahItem] 🛠️ : Memperbarui list lokal dengan item ID: ${item.id}', name: 'VersiApkUserPage');
     final index = _daftarVersiApk.indexWhere((v) => v.id == item.id);
     setState(() {
       if (index != -1) {
+        developer.log('[VersiApkUserPage]-[_perbaruiAtauTambahItem] 📝 : Mengganti data lama di index $index', name: 'VersiApkUserPage');
         _daftarVersiApk[index] = item;
       } else {
+        developer.log('[VersiApkUserPage]-[_perbaruiAtauTambahItem] ✨ : Menambahkan data baru ke dalam list', name: 'VersiApkUserPage');
         _daftarVersiApk.add(item);
       }
       _urutkanList();
@@ -93,6 +100,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   void _keDetail(VersiApkUserModel versiApk) {
+    developer.log('[VersiApkUserPage]-[_keDetail] 🔍 : Menuju halaman detail untuk Versi: ${versiApk.versiTerbaru}', name: 'VersiApkUserPage');
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -102,6 +110,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   void _keFormEdit(VersiApkUserModel versiApk) async {
+    developer.log('[VersiApkUserPage]-[_keFormEdit] ✏️ : Menuju form edit untuk Versi: ${versiApk.versiTerbaru}', name: 'VersiApkUserPage');
     final hasil = await Navigator.push<VersiApkUserModel>(
       context,
       MaterialPageRoute(
@@ -112,11 +121,13 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
       ),
     );
     if (hasil != null && mounted) {
+      developer.log('[VersiApkUserPage]-[_keFormEdit] ✅ : Mendapatkan hasil pembaharuan dari form', name: 'VersiApkUserPage');
       _perbaruiAtauTambahItem(hasil);
     }
   }
 
   void _keFormTambah() async {
+    developer.log('[VersiApkUserPage]-[_keFormTambah] ➕ : Menuju form tambah versi APK baru', name: 'VersiApkUserPage');
     final hasil = await Navigator.push<VersiApkUserModel>(
       context,
       MaterialPageRoute(
@@ -124,11 +135,13 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
       ),
     );
     if (hasil != null && mounted) {
+      developer.log('[VersiApkUserPage]-[_keFormTambah] ✅ : Mendapatkan data versi baru dari form', name: 'VersiApkUserPage');
       _perbaruiAtauTambahItem(hasil);
     }
   }
 
   Future<void> _tampilkanDialogUrutkan() async {
+    developer.log('[VersiApkUserPage]-[_tampilkanDialogUrutkan] 🗣️ : Menampilkan dialog pengurutan', name: 'VersiApkUserPage');
     final urutanBaru = await showDialog<Urutan>(
       context: context,
       builder: (BuildContext context) {
@@ -140,10 +153,10 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // wajib menggunakan RadioGroup
                   RadioGroup<Urutan>(
                     groupValue: selectedUrutan,
                     onChanged: (Urutan? value) {
+                      developer.log('[VersiApkUserPage]-[_tampilkanDialogUrutkan] 🔘 : Radio button berubah ke $value', name: 'VersiApkUserPage');
                       setStateDialog(() {
                         selectedUrutan = value;
                       });
@@ -152,9 +165,9 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
                       children: Urutan.values.map((urutan) {
                         return ListTile(
                           title: Text(_getNamaUrutan(urutan)),
-                          // 2. Hapus groupValue dan onChanged dari sini
                           leading: Radio<Urutan>(value: urutan),
                           onTap: () {
+                            developer.log('[VersiApkUserPage]-[_tampilkanDialogUrutkan] 👆 : ListTile urutan $urutan diklik', name: 'VersiApkUserPage');
                             setStateDialog(() {
                               selectedUrutan = urutan;
                             });
@@ -168,11 +181,17 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
               actions: <Widget>[
                 TextButton(
                   child: const Text('Batal'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    developer.log('[VersiApkUserPage]-[_tampilkanDialogUrutkan] 🔙 : Dialog dibatalkan', name: 'VersiApkUserPage');
+                    Navigator.of(context).pop();
+                  },
                 ),
                 TextButton(
                   child: const Text('OK'),
-                  onPressed: () => Navigator.of(context).pop(selectedUrutan),
+                  onPressed: () {
+                    developer.log('[VersiApkUserPage]-[_tampilkanDialogUrutkan] 👌 : Konfirmasi urutan baru: $selectedUrutan', name: 'VersiApkUserPage');
+                    Navigator.of(context).pop(selectedUrutan);
+                  },
                 ),
               ],
             );
@@ -182,6 +201,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     );
 
     if (urutanBaru != null && urutanBaru != _urutanSaatIni) {
+      developer.log('[VersiApkUserPage]-[_tampilkanDialogUrutkan] 🔃 : Mengubah urutan dari $_urutanSaatIni ke $urutanBaru', name: 'VersiApkUserPage');
       setState(() {
         _urutanSaatIni = urutanBaru;
         _urutkanList();
@@ -203,6 +223,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   Future<void> _tampilkanDialogOpsi(VersiApkUserModel versi) async {
+    developer.log('[VersiApkUserPage]-[_tampilkanDialogOpsi] 📂 : Menampilkan SimpleDialog opsi untuk Versi: ${versi.versiTerbaru}', name: 'VersiApkUserPage');
     showDialog(
       context: context,
       builder: (c) => SimpleDialog(
@@ -210,6 +231,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
         children: [
           SimpleDialogOption(
             onPressed: () {
+              developer.log('[VersiApkUserPage]-[_tampilkanDialogOpsi] 👆 : Opsi Edit dipilih', name: 'VersiApkUserPage');
               Navigator.pop(c);
               _keFormEdit(versi);
             },
@@ -220,6 +242,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           ),
           SimpleDialogOption(
             onPressed: () {
+              developer.log('[VersiApkUserPage]-[_tampilkanDialogOpsi] 👆 : Opsi Arsipkan dipilih', name: 'VersiApkUserPage');
               Navigator.pop(c);
               _tampilkanDialogArsip(versi);
             },
@@ -234,6 +257,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   Future<void> _tampilkanDialogArsip(VersiApkUserModel versi) async {
+    developer.log('[VersiApkUserPage]-[_tampilkanDialogArsip] ❓ : Menampilkan konfirmasi arsip untuk ID: ${versi.id}', name: 'VersiApkUserPage');
     showDialog(
       context: context,
       builder: (c) => AlertDialog(
@@ -244,11 +268,15 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
         actions: [
           TextButton(
             child: const Text('Batal'),
-            onPressed: () => Navigator.pop(c),
+            onPressed: () {
+              developer.log('[VersiApkUserPage]-[_tampilkanDialogArsip] 🔙 : Pengarsipan dibatalkan user', name: 'VersiApkUserPage');
+              Navigator.pop(c);
+            },
           ),
           TextButton(
             child: const Text('Arsipkan'),
             onPressed: () {
+              developer.log('[VersiApkUserPage]-[_tampilkanDialogArsip] 🆗 : User mengonfirmasi pengarsipan', name: 'VersiApkUserPage');
               Navigator.pop(c);
               _arsipkan(versi.id);
             },
@@ -259,8 +287,10 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   Future<void> _arsipkan(String id) async {
+    developer.log('[VersiApkUserPage]-[_arsipkan] 📦 : Memulai proses pengarsipan di layer Operasi untuk ID: $id', name: 'VersiApkUserPage');
     try {
       await _versiApkUserOperasi.arsipkanVersiApkUser(id);
+      developer.log('[VersiApkUserPage]-[_arsipkan] ✅ : Data berhasil diarsipkan dari database', name: 'VersiApkUserPage');
       if (!mounted) return;
       setState(() {
         _daftarVersiApk.removeWhere((v) => v.id == id);
@@ -273,7 +303,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
       );
     } catch (e, s) {
       developer.log(
-        'Gagal mengarsipkan',
+        '[VersiApkUserPage]-[_arsipkan] ❌ : Gagal mengarsipkan data',
         name: 'VersiApkUserPage',
         error: e,
         stackTrace: s,
@@ -290,20 +320,27 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    developer.log('[VersiApkUserPage]-[build] 🏗️ : Membangun UI VersiApkUserPage', name: 'VersiApkUserPage');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daftar Versi APK'),
         actions: [
           IconButton(
             icon: const Icon(Icons.sort),
-            onPressed: _tampilkanDialogUrutkan,
+            onPressed: () {
+              developer.log('[VersiApkUserPage]-[AppBar] 👆 : Icon sort ditekan', name: 'VersiApkUserPage');
+              _tampilkanDialogUrutkan();
+            },
             tooltip: 'Urutkan',
           ),
         ],
       ),
       body: _buildContent(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _keFormTambah,
+        onPressed: () {
+          developer.log('[VersiApkUserPage]-[FAB] 👆 : Tombol tambah versi ditekan', name: 'VersiApkUserPage');
+          _keFormTambah();
+        },
         tooltip: 'Tambah Versi APK',
         child: const Icon(Icons.add),
       ),
@@ -311,8 +348,12 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   }
 
   Widget _buildContent() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      developer.log('[VersiApkUserPage]-[_buildContent] ⏳ : Menampilkan loading indicator', name: 'VersiApkUserPage');
+      return const Center(child: CircularProgressIndicator());
+    }
     if (_error != null) {
+      developer.log('[VersiApkUserPage]-[_buildContent] ⚠️ : Menampilkan pesan error UI', name: 'VersiApkUserPage');
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -322,11 +363,16 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     }
 
     if (_daftarVersiApk.isEmpty) {
+      developer.log('[VersiApkUserPage]-[_buildContent] 📭 : Daftar kosong, menampilkan placeholder', name: 'VersiApkUserPage');
       return const Center(child: Text('Tidak ada data versi APK.'));
     }
 
+    developer.log('[VersiApkUserPage]-[_buildContent] 📜 : Membangun ListView dengan ${_daftarVersiApk.length} item', name: 'VersiApkUserPage');
     return RefreshIndicator(
-      onRefresh: _loadData,
+      onRefresh: () async {
+        developer.log('[VersiApkUserPage]-[RefreshIndicator] 🔃 : User melakukan pull-to-refresh', name: 'VersiApkUserPage');
+        await _loadData();
+      },
       child: ListView.builder(
         itemCount: _daftarVersiApk.length,
         itemBuilder: (context, index) {
@@ -342,8 +388,14 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              onTap: () => _keDetail(versiApk),
-              onLongPress: () => _tampilkanDialogOpsi(versiApk),
+              onTap: () {
+                developer.log('[VersiApkUserPage]-[ListView] 👆 : Item index $index diklik (Tap)', name: 'VersiApkUserPage');
+                _keDetail(versiApk);
+              },
+              onLongPress: () {
+                developer.log('[VersiApkUserPage]-[ListView] 🖐️ : Item index $index ditekan lama (LongPress)', name: 'VersiApkUserPage');
+                _tampilkanDialogOpsi(versiApk);
+              },
             ),
           );
         },

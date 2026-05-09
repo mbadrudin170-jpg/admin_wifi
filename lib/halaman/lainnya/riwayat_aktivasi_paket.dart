@@ -1,5 +1,4 @@
 // path: lib/halaman/lainnya/riwayat_aktivasi_paket.dart
-// diubah: File ini sekarang mengambil dan menampilkan data dari TransaksiModel dengan tipe langganan.
 
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
@@ -9,6 +8,7 @@ import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
+import 'dart:developer' as developer;
 
 enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
@@ -28,21 +28,28 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
   @override
   void initState() {
     super.initState();
+    developer.log('[RiwayatAktivasiPaketPage]-[initState] 🏁 : Menginisialisasi halaman riwayat', name: 'RiwayatAktivasiPaket');
     _loadRiwayat();
   }
 
   Future<void> _loadRiwayat() async {
+    developer.log('[RiwayatAktivasiPaketPage]-[_loadRiwayat] 🔄 : Memulai fetch data transaksi aktivasi paket', name: 'RiwayatAktivasiPaket');
     setState(() {
       _listTransaksiFuture = _transaksiOperasi
           .getTransaksiByAktivasiPaket()
           .then((list) {
+            developer.log('[RiwayatAktivasiPaketPage]-[_loadRiwayat] 📥 : Berhasil mengambil ${list.length} data transaksi', name: 'RiwayatAktivasiPaket');
             _urutkanList(list, _urutanAktif);
             return list;
+          }).catchError((error) {
+            developer.log('[RiwayatAktivasiPaketPage]-[_loadRiwayat] ❌ : Error saat mengambil data', error: error, name: 'RiwayatAktivasiPaket');
+            throw error;
           });
     });
   }
 
   void _urutkanList(List<TransaksiModel> list, OpsiUrutkan pilihan) {
+    developer.log('[RiwayatAktivasiPaketPage]-[_urutkanList] ⚖️ : Mengurutkan list berdasarkan $pilihan', name: 'RiwayatAktivasiPaket');
     int Function(TransaksiModel, TransaksiModel) comparator;
 
     switch (pilihan) {
@@ -64,6 +71,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
               ? (isLunasA ? -1 : 1)
               : (isLunasA ? 1 : -1);
         };
+        break;
       case OpsiUrutkan.berakhirHariIni:
         comparator = (a, b) {
           final sekarang = DateTime.now();
@@ -86,16 +94,21 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
         break;
     }
     list.sort(comparator);
+    developer.log('[RiwayatAktivasiPaketPage]-[_urutkanList] ✅ : Proses pengurutan selesai', name: 'RiwayatAktivasiPaket');
   }
 
   void _showUrutkanDialog() async {
+    developer.log('[RiwayatAktivasiPaketPage]-[_showUrutkanDialog] 🗣️ : Menampilkan dialog urutkan', name: 'RiwayatAktivasiPaket');
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
       context: context,
       builder: (BuildContext context) {
         Widget buildOption(String text, OpsiUrutkan value) {
           final bool isSelected = _urutanAktif == value;
           return SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, value),
+            onPressed: () {
+              developer.log('[RiwayatAktivasiPaketPage]-[_showUrutkanDialog] 👆 : User memilih opsi $value', name: 'RiwayatAktivasiPaket');
+              Navigator.pop(context, value);
+            },
             child: Text(
               text,
               style: TextStyle(
@@ -119,6 +132,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
     );
 
     if (pilihan != null) {
+      developer.log('[RiwayatAktivasiPaketPage]-[_showUrutkanDialog] 🔃 : Memproses perubahan urutan ke $pilihan', name: 'RiwayatAktivasiPaket');
       final list = await _listTransaksiFuture;
       setState(() {
         _urutanAktif = pilihan;
@@ -130,6 +144,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
 
   @override
   Widget build(BuildContext context) {
+    developer.log('[RiwayatAktivasiPaketPage]-[build] 🏗️ : Membangun UI riwayat', name: 'RiwayatAktivasiPaket');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Riwayat Langganan'),
@@ -147,8 +162,10 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            developer.log('[RiwayatAktivasiPaketPage]-[FutureBuilder] ⚠️ : Menampilkan error di UI', error: snapshot.error, name: 'RiwayatAktivasiPaket');
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            developer.log('[RiwayatAktivasiPaketPage]-[FutureBuilder] 📭 : Data kosong/null', name: 'RiwayatAktivasiPaket');
             return const Center(
               child: Text('Tidak ada riwayat langganan ditemukan.'),
             );
@@ -169,6 +186,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                   ),
                   child: ListTile(
                     onTap: () async {
+                      developer.log('[RiwayatAktivasiPaketPage]-[ListView] 🔍 : Menuju detail transaksi ID: ${transaksi.id}', name: 'RiwayatAktivasiPaket');
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -178,6 +196,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                         ),
                       );
                       if (result == true) {
+                        developer.log('[RiwayatAktivasiPaketPage]-[ListView] 🔄 : Kembali dari detail, me-refresh data', name: 'RiwayatAktivasiPaket');
                         _loadRiwayat();
                       }
                     },

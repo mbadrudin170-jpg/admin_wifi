@@ -36,11 +36,13 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
   void initState() {
     super.initState();
     _pelangganAktif = widget.pelanggan;
+    developer.log('[DetailPelangganAktif] 🚀 : Inisialisasi detail untuk ID: ${_pelangganAktif.id}');
     _loadDetails();
   }
 
   Future<void> _launchWhatsApp(String phoneNumber) async {
-    // diubah: Logika pemformatan nomor telepon diperbaiki
+    developer.log('[DetailPelangganAktif] 📱 : Mencoba membuka WhatsApp ke nomor: $phoneNumber');
+    
     String formattedNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
     if (formattedNumber.startsWith('0')) {
       formattedNumber = '62${formattedNumber.substring(1)}';
@@ -50,15 +52,19 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
 
     final Uri whatsappUri = Uri.parse('https://wa.me/$formattedNumber');
 
-    if (await canLaunchUrl(whatsappUri)) {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        developer.log('[DetailPelangganAktif] ✅ : WhatsApp berhasil dibuka');
+      } else {
+        throw 'Could not launch $whatsappUri';
+      }
+    } catch (e) {
+      developer.log('[DetailPelangganAktif] ❌ : Gagal membuka WhatsApp', error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Tidak dapat membuka WhatsApp. Pastikan sudah terinstal.',
-            ),
+            content: Text('Tidak dapat membuka WhatsApp. Pastikan sudah terinstal.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -68,12 +74,12 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
 
   Future<void> _loadDetails() async {
     if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final pelangganOperasi = PelangganOperasi();
     final paketOperasi = PaketOperasi();
+
+    developer.log('[DetailPelangganAktif] 📡 : Mengambil detail Pelanggan & Paket secara paralel...');
 
     try {
       final idPaket = _pelangganAktif.idPaket;
@@ -92,36 +98,35 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
           _paket = results.length > 1 ? results[1] as PaketModel? : null;
           _isLoading = false;
         });
+        developer.log('[DetailPelangganAktif] ✅ : Detail berhasil dimuat. Pelanggan: ${_pelanggan?.nama}');
       }
     } catch (e, s) {
       developer.log(
-        'Gagal memuat detail',
+        '[DetailPelangganAktif] ❌ : Gagal memuat detail',
         name: 'DetailPelangganAktif',
         error: e,
         stackTrace: s,
       );
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
   void _navigateToEdit() async {
+    developer.log('[DetailPelangganAktif] 📝 : Menuju form edit pelanggan aktif');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            FormPelangganAktif(pelangganAktif: _pelangganAktif),
+        builder: (context) => FormPelangganAktif(pelangganAktif: _pelangganAktif),
       ),
     );
 
     if (result == true) {
+      developer.log('[DetailPelangganAktif] 🔄 : Mendeteksi perubahan data, menyegarkan UI...');
       final operasi = PelangganAktifOperasi();
-      final updatedPelangganAktif = await operasi.ambilSatuPelangganAktif(
-        _pelangganAktif.id,
-      );
+      final updatedPelangganAktif = await operasi.ambilSatuPelangganAktif(_pelangganAktif.id);
+      
       if (mounted && updatedPelangganAktif != null) {
         setState(() {
           _pelangganAktif = updatedPelangganAktif;
@@ -138,155 +143,139 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
         title: Text(_pelanggan?.nama ?? 'Detail Pelanggan'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context, true);
-          },
+          onPressed: () => Navigator.pop(context, true),
         ),
         actions: [
           IconButton(icon: const Icon(Icons.edit), onPressed: _navigateToEdit),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                if (_pelanggan != null) {
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(
+                              child: TextButton(
+                                onPressed: () {
+                                  if (_pelanggan != null) {
+                                    developer.log('[DetailPelangganAktif] 🔗 : Navigasi ke profil pelanggan');
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetailPelangganPage(idPelanggan: _pelanggan!.id),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  _pelanggan?.nama ?? _pelangganAktif.idPelanggan,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.blue),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Divider(),
+                            _buildWhatsAppInfoRow(
+                              'No HP',
+                              _pelanggan?.telepon ?? 'Tidak ditemukan',
+                            ),
+                            InkWell(
+                              onTap: () {
+                                if (_paket != null) {
+                                  developer.log('[DetailPelangganAktif] 🔗 : Navigasi ke detail paket');
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) => DetailPelangganPage(
-                                        idPelanggan: _pelanggan!.id,
-                                      ),
-                                    ),
+                                    MaterialPageRoute(builder: (context) => DetailPaketPage(paket: _paket!)),
                                   );
                                 }
                               },
-                              child: Text(
-                                _pelanggan?.nama ?? _pelangganAktif.idPelanggan,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineSmall,
+                              child: _buildInfoRow(
+                                'Paket',
+                                _paket?.nama ?? '(ID: ${_pelangganAktif.idPaket})',
+                                isLink: true,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Divider(),
-                          _buildWhatsAppInfoRow(
-                            'No HP',
-                            _pelanggan?.telepon ?? 'Tidak ditemukan',
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              if (_paket != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        DetailPaketPage(paket: _paket!),
-                                  ),
-                                );
-                              }
-                            },
-                            child: _buildInfoRow(
-                              'Paket',
-                              _paket?.nama ??
-                                  '(ID: ${_pelangganAktif.idPaket})',
-                            ),
-                          ),
-                          _buildInfoRow(
-                            'Status',
-                            _pelangganAktif.status.displayName,
-                          ),
-                          // ditambahkan: Menampilkan jumlah poin dari paket yang aktif
-                          if (_paket != null)
                             _buildInfoRow(
-                              'Poin Diperoleh',
-                              '${_paket!.poinHadiah} Poin', //diubah: dari jumlahPoin
+                              'Status',
+                              _pelangganAktif.status.displayName,
                             ),
-
-                          _buildInfoRow(
-                            'Mulai',
-                            '${FormatTanggal.formatTanggalRingkas(_pelangganAktif.tanggalMulai)} - ${FormatJam.formatJamMenit(_pelangganAktif.tanggalMulai)}',
-                          ),
-                          _buildInfoRow(
-                            'Berakhir',
-                            '${FormatTanggal.formatTanggalRingkas(_pelangganAktif.tanggalBerakhir)} - ${FormatJam.formatJamMenit(_pelangganAktif.tanggalBerakhir)}',
-                          ),
-                          const Divider(),
-                          const SizedBox(height: 16),
-                          Text(
-                            PerhitunganUtil.getTeksSisaMasaAktif(
-                              _pelangganAktif.tanggalBerakhir,
+                            if (_paket != null)
+                              _buildInfoRow(
+                                'Poin Diperoleh',
+                                '${_paket!.poinHadiah} Poin',
+                              ),
+                            _buildInfoRow(
+                              'Mulai',
+                              '${FormatTanggal.formatTanggalRingkas(_pelangganAktif.tanggalMulai)} - ${FormatJam.formatJamMenit(_pelangganAktif.tanggalMulai)}',
                             ),
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: PerhitunganUtil.getWarnaSisaMasaAktif(
-                                    _pelangganAktif.tanggalBerakhir,
+                            _buildInfoRow(
+                              'Berakhir',
+                              '${FormatTanggal.formatTanggalRingkas(_pelangganAktif.tanggalBerakhir)} - ${FormatJam.formatJamMenit(_pelangganAktif.tanggalBerakhir)}',
+                            ),
+                            const Divider(),
+                            const SizedBox(height: 16),
+                            Text(
+                              PerhitunganUtil.getTeksSisaMasaAktif(_pelangganAktif.tanggalBerakhir),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: PerhitunganUtil.getWarnaSisaMasaAktif(_pelangganAktif.tanggalBerakhir),
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-
-                          // ... Bagian lain dari widget Column
-                          const SizedBox(height: 24),
-                          // Tombol untuk memicu pengiriman rincian aktivasi melalui WhatsApp
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.send_to_mobile),
-                            label: const Text('Kirim Info via WhatsApp'),
-                            onPressed: () {
-                              // Memanggil fungsi statis untuk mengirim pesan
-                              PesanInfoPaket.kirimRincianPaket(_pelangganAktif);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.send_to_mobile),
+                              label: const Text('Kirim Info via WhatsApp'),
+                              onPressed: () {
+                                developer.log('[DetailPelangganAktif] 📩 : Mengirim rincian via WhatsApp');
+                                PesanInfoPaket.kirimRincianPaket(_pelangganAktif);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                backgroundColor: Colors.green.shade600,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
-                          ),
-
-                          // ... Bagian lain dari widget Column
-                        ],
+                          ],
+                        ),
                       ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isLink ? Colors.blue : null,
+                  ),
             ),
           ),
         ],
@@ -305,19 +294,16 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
             onTap: () => _launchWhatsApp(value),
             borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 4.0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Row(
                 children: [
                   Text(
                     value,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
                   ),
                   const SizedBox(width: 8),
                   FaIcon(

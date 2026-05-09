@@ -1,4 +1,5 @@
 // lib/main.dart
+import 'dart:developer' as developer;
 import 'package:admin_wifi/services/servis_sinkronisasi.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,9 @@ import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
 
 void main() {
+  // Logging titik awal aplikasi
+  developer.log('🎬 [System] -> [main] -> Aplikasi Admin WiFi dimulai', name: 'App.Lifecycle');
+  
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
@@ -18,8 +22,14 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<SinkronisasiService>(
-          create: (_) => SinkronisasiService(),
-          dispose: (_, service) => service.dispose(),
+          create: (_) {
+            developer.log('🏗️ [MyApp] -> [Provider<SinkronisasiService>] -> Inisialisasi SinkronisasiService', name: 'App.Provider');
+            return SinkronisasiService();
+          },
+          dispose: (_, service) {
+            developer.log('🗑️ [MyApp] -> [Provider<SinkronisasiService>] -> Menghapus (dispose) SinkronisasiService', name: 'App.Provider');
+            service.dispose();
+          },
         ),
         // Tambahkan provider lain di sini jika perlu
       ],
@@ -33,6 +43,8 @@ class AppMaterial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    developer.log('🎨 [AppMaterial] -> [build] -> Membangun struktur tema dan MaterialApp', name: 'App.UI');
+
     const Color primarySeedColor = Colors.deepPurple;
 
     final TextTheme appTextTheme = const TextTheme(

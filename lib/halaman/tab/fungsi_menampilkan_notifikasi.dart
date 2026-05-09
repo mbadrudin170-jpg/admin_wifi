@@ -1,5 +1,4 @@
 // Path: lib/halaman/tab/fungsi_menampilkan_notifikasi.dart
-// diubah: Mengganti operator logika dari && menjadi || untuk izin.
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -11,11 +10,10 @@ void onDidReceiveNotificationResponse(
   NotificationResponse notificationResponse,
 ) async {
   developer.log(
-    'Notifikasi di-tap: ID=${notificationResponse.id}, '
-    'Payload=${notificationResponse.payload}',
-    name: 'NotifikasiServis',
+    '🔔 [NotifikasiServis] -> [onDidReceiveNotificationResponse] -> Notifikasi di-tap. '
+    'ID: ${notificationResponse.id}, Payload: ${notificationResponse.payload}',
+    name: 'Notifikasi.Interaction',
   );
-  // TODO: Implementasikan logika navigasi atau aksi lainnya
 }
 
 class NotifikasiServis {
@@ -27,6 +25,10 @@ class NotifikasiServis {
   NotifikasiServis.internal(this.plugin);
 
   Future<void> inisialisasi() async {
+    developer.log(
+      '🏗️ [NotifikasiServis] -> [inisialisasi] -> Memulai konfigurasi plugin',
+      name: 'Notifikasi.Lifecycle',
+    );
     try {
       const AndroidInitializationSettings androidInitializationSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -49,41 +51,72 @@ class NotifikasiServis {
 
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-      developer.log('Timezone lokal diatur ke Asia/Jakarta.', name: 'NotifikasiServis');
-      developer.log('Inisialisasi berhasil', name: 'NotifikasiServis');
+
+      developer.log(
+        '✅ [NotifikasiServis] -> [inisialisasi] -> Berhasil. Timezone: Asia/Jakarta',
+        name: 'Notifikasi.Success',
+      );
     } catch (e, s) {
-      developer.log('Error inisialisasi', name: 'NotifikasiServis', error: e, stackTrace: s);
+      developer.log(
+        '❌ [NotifikasiServis] -> [inisialisasi] -> Error',
+        name: 'Notifikasi.Error',
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
   Future<bool> requestPermissions() async {
+    developer.log(
+      '🔐 [NotifikasiServis] -> [requestPermissions] -> Meminta izin ke sistem',
+      name: 'Notifikasi.Permission',
+    );
     try {
       bool? androidResult;
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          plugin.resolvePlatformSpecificImplementation<
+          plugin
+              .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin
               >();
       if (androidImplementation != null) {
-        androidResult = await androidImplementation.requestNotificationsPermission();
+        androidResult = await androidImplementation
+            .requestNotificationsPermission();
+        developer.log(
+          '🤖 [NotifikasiServis] -> Permission Android: $androidResult',
+          name: 'Notifikasi.Permission',
+        );
       }
 
       bool? iosResult;
-      final IOSFlutterLocalNotificationsPlugin? iOSImplementation =
-          plugin.resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin
-              >();
+      final IOSFlutterLocalNotificationsPlugin? iOSImplementation = plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       if (iOSImplementation != null) {
         iosResult = await iOSImplementation.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
         );
+        developer.log(
+          '🍎 [NotifikasiServis] -> Permission iOS: $iosResult',
+          name: 'Notifikasi.Permission',
+        );
       }
-      developer.log('Permintaan izin selesai.', name: 'NotifikasiServis');
-      // diubah: Logika diubah dari && ke ||
-      return (androidResult ?? false) || (iosResult ?? false);
+
+      final bool finalResult = (androidResult ?? false) || (iosResult ?? false);
+      developer.log(
+        '📊 [NotifikasiServis] -> Hasil akhir izin: $finalResult',
+        name: 'Notifikasi.Permission',
+      );
+      return finalResult;
     } catch (e, s) {
-      developer.log('Gagal meminta izin notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);
+      developer.log(
+        '❌ [NotifikasiServis] -> [requestPermissions] -> Gagal meminta izin',
+        name: 'Notifikasi.Error',
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
@@ -94,6 +127,10 @@ class NotifikasiServis {
     required String body,
     required DateTime jadwal,
   }) async {
+    developer.log(
+      '📅 [NotifikasiServis] -> [jadwalNotifikasi] -> Mencoba menjadwalkan. ID: $id, Judul: $title, Waktu: $jadwal',
+      name: 'Notifikasi.Action',
+    );
     try {
       const AndroidNotificationDetails androidNotificationDetails =
           AndroidNotificationDetails(
@@ -119,18 +156,38 @@ class NotifikasiServis {
         androidScheduleMode: AndroidScheduleMode.inexact,
       );
 
-      developer.log('Notifikasi dijadwalkan - ID: $id, Waktu: $jadwal', name: 'NotifikasiServis');
+      developer.log(
+        '✅ [NotifikasiServis] -> [jadwalNotifikasi] -> Sukses dijadwalkan untuk ID: $id',
+        name: 'Notifikasi.Success',
+      );
     } catch (e, s) {
-      developer.log('Error jadwal notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);
+      developer.log(
+        '❌ [NotifikasiServis] -> [jadwalNotifikasi] -> Gagal menjadwalkan ID: $id',
+        name: 'Notifikasi.Error',
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
   Future<void> batalNotifikasi(int id) async {
+    developer.log(
+      '🚫 [NotifikasiServis] -> [batalNotifikasi] -> Membatalkan ID: $id',
+      name: 'Notifikasi.Action',
+    );
     try {
       await plugin.cancel(id: id);
-      developer.log('Notifikasi dibatalkan - ID: $id', name: 'NotifikasiServis');
+      developer.log(
+        '🗑️ [NotifikasiServis] -> [batalNotifikasi] -> Sukses dibatalkan untuk ID: $id',
+        name: 'Notifikasi.Success',
+      );
     } catch (e, s) {
-      developer.log('Error membatalkan notifikasi', name: 'NotifikasiServis', error: e, stackTrace: s);
+      developer.log(
+        '❌ [NotifikasiServis] -> [batalNotifikasi] -> Gagal membatalkan ID: $id',
+        name: 'Notifikasi.Error',
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -139,6 +196,10 @@ class NotifikasiServis {
     required String title,
     required String body,
   }) async {
+    developer.log(
+      '⚡ [NotifikasiServis] -> [tampilkanNotifikasiLangsung] -> Menampilkan sekarang. ID: $id, Judul: $title',
+      name: 'Notifikasi.Action',
+    );
     try {
       const AndroidNotificationDetails androidNotificationDetails =
           AndroidNotificationDetails(
@@ -162,9 +223,17 @@ class NotifikasiServis {
         notificationDetails: notificationDetails,
       );
 
-      developer.log('Notifikasi langsung ditampilkan - ID: $id', name: 'NotifikasiServis');
+      developer.log(
+        '✅ [NotifikasiServis] -> [tampilkanNotifikasiLangsung] -> Sukses muncul. ID: $id',
+        name: 'Notifikasi.Success',
+      );
     } catch (e, s) {
-      developer.log('Error menampilkan notifikasi langsung', name: 'NotifikasiServis', error: e, stackTrace: s);
+      developer.log(
+        '❌ [NotifikasiServis] -> [tampilkanNotifikasiLangsung] -> Gagal memunculkan ID: $id',
+        name: 'Notifikasi.Error',
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 }

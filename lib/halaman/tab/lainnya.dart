@@ -8,7 +8,6 @@ import '../lainnya/paket.dart';
 import '../lainnya/pelanggan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
-import '../lainnya/ubah_data.dart';
 import '../lainnya/versi_apk_user.dart';
 import 'pesanan.dart';
 import '../lainnya/pengaturan.dart'; // ditambahkan: Import halaman pengaturan
@@ -114,14 +113,14 @@ class _LainnyaTabState extends State<LainnyaPage> {
               ),
             ),
           ),
-          _buildNavigationButton(
-            title: 'Ubah Data',
-            icon: Icons.edit,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const UbahDataPage()),
-            ),
-          ),
+          // _buildNavigationButton(
+          //   title: 'Ubah Data',
+          //   icon: Icons.edit,
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => const UbahDataPage()),
+          //   ),
+          // ),
           // ditambahkan: Navigasi ke Halaman Versi Aplikasi Pengguna
           _buildNavigationButton(
             title: 'Versi Aplikasi Pengguna',

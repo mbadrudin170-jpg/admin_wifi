@@ -1,5 +1,6 @@
 // path: lib/halaman/detail/detail_versi_apk_user.dart
 
+import 'dart:developer' as developer; // Tambahkan import ini
 import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:flutter/material.dart';
@@ -15,12 +16,16 @@ class DetailVersiApkUser extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Versi APK'),
-        // ditambah: tombol aksi untuk mengedit
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Data',
             onPressed: () async {
+              developer.log(
+                '📝 [DetailVersiApkUser] -> [onPressed Edit] -> Menuju form edit untuk versi: ${versiApk.versiTerbaru}',
+                name: 'DetailVersiApkUser.Navigation',
+              );
+
               // Navigasi ke form dengan membawa data yang ada
               final result = await Navigator.push<bool>(
                 context,
@@ -34,10 +39,19 @@ class DetailVersiApkUser extends StatelessWidget {
               // Jika ada perubahan (form disimpan), kembali ke halaman daftar
               // dan kirim sinyal untuk refresh
               if (result == true && context.mounted) {
+                developer.log(
+                  '✅ [DetailVersiApkUser] -> [onPressed Edit] -> Berhasil edit data, mengirim sinyal refresh ke daftar.',
+                  name: 'DetailVersiApkUser.Callback',
+                );
                 Navigator.pop(
                   context,
                   true,
                 ); // Kembali & kirim 'true' ke halaman daftar
+              } else {
+                developer.log(
+                  'ℹ️ [DetailVersiApkUser] -> [onPressed Edit] -> Kembali tanpa perubahan data.',
+                  name: 'DetailVersiApkUser.Callback',
+                );
               }
             },
           ),

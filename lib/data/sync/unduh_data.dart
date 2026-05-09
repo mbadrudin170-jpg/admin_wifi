@@ -1,5 +1,4 @@
 // path: lib/data/sync/unduh_data.dart
-// diubah: Mengomentari semua referensi ke RiwayatLanggananModel dan operasinya.
 
 import 'dart:developer' as developer;
 
@@ -38,8 +37,7 @@ class LayananUnduhData {
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
-  // final RiwayatLanggananOperasi _riwayatLanggananOperasi =
-  //     RiwayatLanggananOperasi();
+  // final RiwayatLanggananOperasi _riwayatLanggananOperasi = RiwayatLanggananOperasi();
   final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   final PesananOperasi _pesanOperasi = PesananOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
@@ -47,6 +45,9 @@ class LayananUnduhData {
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
   Future<void> unduhSemuaData() async {
+    developer.log('🚀 Memulai sinkronisasi massal data dari Firebase...', name: 'SYNC.Full');
+    final stopwatch = Stopwatch()..start();
+
     try {
       await Future.wait([
         unduhDataDompet(),
@@ -62,10 +63,13 @@ class LayananUnduhData {
         unduhDataVersiApkUser(),
         unduhDataPengaturan(),
       ]);
+      
+      stopwatch.stop();
+      developer.log('✅ Sinkronisasi selesai dalam ${stopwatch.elapsed.inSeconds} detik', name: 'SYNC.Full');
     } catch (e, s) {
       developer.log(
-        'Gagal melakukan sinkronisasi awal',
-        name: 'LayananUnduhData',
+        '❌ Gagal melakukan sinkronisasi awal',
+        name: 'SYNC.Full',
         error: e,
         stackTrace: s,
         level: 1000,
@@ -76,21 +80,18 @@ class LayananUnduhData {
 
   Future<void> unduhDataPengaturan() async {
     try {
-      final doc = await _firestore
-          .collection('pengaturan')
-          .doc('default')
-          .get();
+      developer.log('📡 Mengunduh: Pengaturan', name: 'SYNC.Pengaturan');
+      final doc = await _firestore.collection('pengaturan').doc('default').get();
+      
       if (doc.exists && doc.data() != null) {
         final pengaturan = PengaturanModel.fromFirebase(doc.data()!);
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
+        developer.log('✅ Pengaturan default berhasil diperbarui', name: 'SYNC.Pengaturan');
+      } else {
+        developer.log('⚠️ Dokumen pengaturan tidak ditemukan di Firebase', name: 'SYNC.Pengaturan');
       }
     } catch (e, s) {
-      developer.log(
-        'Gagal unduh data pengaturan',
-        name: 'LayananUnduhData.Pengaturan',
-        error: e,
-        stackTrace: s,
-      );
+      developer.log('❌ Gagal unduh data pengaturan', name: 'SYNC.Pengaturan', error: e, stackTrace: s);
     }
   }
 
@@ -130,8 +131,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<PelangganAktifModel>(
       namaKoleksi: 'pelanggan_aktif',
       fromFirebase: (id, map) => PelangganAktifModel.fromFirebase(id, map),
-      operasiBatch: (data) =>
-          _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -147,8 +147,7 @@ class LayananUnduhData {
   //   await sinkronisasiKoleksi<RiwayatLanggananModel>(
   //     namaKoleksi: 'riwayat_langganan',
   //     fromFirebase: (id, map) => RiwayatLanggananModel.fromFirebase(id, map),
-  //     operasiBatch: (data) =>
-  //         _riwayatLanggananOperasi.sisipkanAtauPerbaruiBatch(data),
+  //     operasiBatch: (data) => _riwayatLanggananOperasi.sisipkanAtauPerbaruiBatch(data),
   //   );
   // }
 
@@ -156,8 +155,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<KritikSaranModel>(
       namaKoleksi: 'kritik_saran',
       fromFirebase: (id, map) => KritikSaranModel.fromFirebase(id, map),
-      operasiBatch: (data) =>
-          _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -173,8 +171,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<SubKategoriModel>(
       namaKoleksi: 'sub_kategori',
       fromFirebase: (id, map) => SubKategoriModel.fromFirebase(id, map),
-      operasiBatch: (data) =>
-          _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -182,8 +179,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<VersiApkUserModel>(
       namaKoleksi: 'versi_apk_user',
       fromFirebase: (id, map) => VersiApkUserModel.fromFirebase(id, map),
-      operasiBatch: (data) =>
-          _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -192,12 +188,28 @@ class LayananUnduhData {
     required T Function(String id, Map<String, dynamic> data) fromFirebase,
     required Future<void> Function(List<T>) operasiBatch,
   }) async {
-    final snapshot = await _firestore.collection(namaKoleksi).get();
-    if (snapshot.docs.isNotEmpty) {
-      final dataList = snapshot.docs
-          .map((doc) => fromFirebase(doc.id, doc.data()))
-          .toList();
-      await operasiBatch(dataList);
+    try {
+      developer.log('📡 Mengunduh koleksi: [$namaKoleksi]', name: 'SYNC.Koleksi');
+      final snapshot = await _firestore.collection(namaKoleksi).get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        final dataList = snapshot.docs
+            .map((doc) => fromFirebase(doc.id, doc.data()))
+            .toList();
+        
+        developer.log('💾 Menyimpan ${dataList.length} item ke database lokal untuk [$namaKoleksi]', name: 'SYNC.Koleksi');
+        await operasiBatch(dataList);
+        developer.log('✅ Koleksi [$namaKoleksi] sinkron.', name: 'SYNC.Koleksi');
+      } else {
+        developer.log('📭 Koleksi [$namaKoleksi] kosong di Firebase.', name: 'SYNC.Koleksi');
+      }
+    } catch (e, s) {
+      developer.log(
+        '❌ Error sinkronisasi koleksi: $namaKoleksi',
+        name: 'SYNC.Koleksi',
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 }

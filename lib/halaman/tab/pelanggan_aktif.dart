@@ -1,6 +1,7 @@
 // path: lib/halaman/tab/pelanggan_aktif.dart
-// diubah: Menghapus impor dan field yang tidak terpakai.
 
+import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -42,7 +43,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final now = DateTime.now();
-  // State untuk data
+
   List<PelangganAktifModel> _semuaPelanggan = [];
   List<PelangganAktifModel> _hasilFilter = [];
   Map<String, String> _mapNamaPelanggan = {};
@@ -50,7 +51,6 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   OpsiUrutkan _urutanAktif = OpsiUrutkan.tanggalBerakhir;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
-  // ditambah: Buat instance untuk cek koneksi
   final KoneksiInternetService _koneksiService = KoneksiInternetService();
 
   @override
@@ -59,12 +59,20 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   @override
   void initState() {
     super.initState();
+    developer.log(
+      '🏗️ [pelanggan_aktif.dart] -> [initState] -> Inisialisasi halaman',
+      name: 'PelangganAktif.Lifecycle',
+    );
     _loadData();
     _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    developer.log(
+      '🗑️ [pelanggan_aktif.dart] -> [dispose] -> Menghapus resources',
+      name: 'PelangganAktif.Lifecycle',
+    );
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
@@ -75,6 +83,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   Future<void> _refreshData() async {
+    developer.log(
+      '🔄 [pelanggan_aktif.dart] -> [_refreshData] -> User melakukan pull-to-refresh',
+      name: 'PelangganAktif.Interaction',
+    );
     await _loadData(forceRefresh: true);
   }
 
@@ -85,21 +97,33 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     });
 
     try {
-      // diubah: Menggunakan instance _koneksiService
       final koneksiTersedia = await _koneksiService.cekKoneksi();
-      // diubah: Logika refresh dirombak untuk menangani timeout dan mode offline.
+
       if (koneksiTersedia && forceRefresh) {
-        // Menambahkan timeout untuk mencegah loading tanpa henti saat koneksi buruk.
+        developer.log(
+          '🌐 [pelanggan_aktif.dart] -> [_loadData] -> Mencoba unggah data ke cloud (Force Refresh)',
+          name: 'PelangganAktif.Sync',
+        );
         await LayananUnggahData().unggahDataPelangganAktif().timeout(
           const Duration(seconds: 15),
           onTimeout: () {
-            // Memberikan pesan error yang jelas saat timeout terjadi.
+            developer.log(
+              '⏰ [pelanggan_aktif.dart] -> [_loadData] -> Timeout saat unggah data',
+              name: 'PelangganAktif.Error',
+            );
             throw 'Waktu sinkronisasi habis, periksa kembali koneksi internet Anda.';
           },
         );
         await SyncManager().setLastSyncTimestamp(now);
+        developer.log(
+          '✅ [pelanggan_aktif.dart] -> [_loadData] -> Unggah data sukses',
+          name: 'PelangganAktif.Sync',
+        );
       } else if (!koneksiTersedia && forceRefresh) {
-        // ditambahkan: Menampilkan pesan jika pengguna mencoba refresh tanpa koneksi.
+        developer.log(
+          '⚠️ [pelanggan_aktif.dart] -> [_loadData] -> Refresh gagal karena offline',
+          name: 'PelangganAktif.Info',
+        );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -109,6 +133,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           );
         }
       }
+
       final pelangganList = await _pelangganOperasi.getPelanggan();
       _mapNamaPelanggan = {for (var p in pelangganList) p.id: p.nama};
 
@@ -116,8 +141,18 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           .ambilSemuaPelangganAktif();
       _semuaPelanggan = pelangganAktifList;
 
+      developer.log(
+        '📊 [pelanggan_aktif.dart] -> [_loadData] -> Berhasil memuat ${_semuaPelanggan.length} pelanggan dari lokal',
+        name: 'PelangganAktif.Success',
+      );
       _applyFilterAndSort();
-    } catch (e) {
+    } catch (e, s) {
+      developer.log(
+        '❌ [pelanggan_aktif.dart] -> [_loadData] -> Gagal memuat data',
+        name: 'PelangganAktif.Error',
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -134,13 +169,18 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
   void _applyFilterAndSort() {
     List<PelangganAktifModel> tempResult;
-
     final query = _searchController.text.toLowerCase();
+
     if (query.isNotEmpty) {
       tempResult = _semuaPelanggan.where((pelanggan) {
-        final nama = _mapNamaPelanggan[pelanggan.idPelanggan]!.toLowerCase();
+        final nama =
+            _mapNamaPelanggan[pelanggan.idPelanggan]?.toLowerCase() ?? '';
         return nama.contains(query);
       }).toList();
+      developer.log(
+        '🔍 [pelanggan_aktif.dart] -> [_applyFilterAndSort] -> Searching query: "$query", Hasil: ${tempResult.length}',
+        name: 'PelangganAktif.Filter',
+      );
     } else {
       tempResult = List.of(_semuaPelanggan);
     }
@@ -196,6 +236,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     }
 
     tempResult.sort(comparator);
+    developer.log(
+      '⚖️ [pelanggan_aktif.dart] -> [_applyFilterAndSort] -> Sorting by: ${_urutanAktif.name}',
+      name: 'PelangganAktif.Sort',
+    );
 
     if (mounted) {
       setState(() {
@@ -205,6 +249,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   Future<void> _arsipkanPelanggan(PelangganAktifModel pelangganAktif) async {
+    developer.log(
+      '📥 [pelanggan_aktif.dart] -> [_arsipkanPelanggan] -> Menampilkan dialog arsip ID: ${pelangganAktif.id}',
+      name: 'PelangganAktif.Interaction',
+    );
     final bool? konfirmasi = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -240,6 +288,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     if (konfirmasi == true) {
       try {
         await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id);
+        developer.log(
+          '✅ [pelanggan_aktif.dart] -> [_arsipkanPelanggan] -> Berhasil diarsipkan',
+          name: 'PelangganAktif.Success',
+        );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +304,13 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           _semuaPelanggan.removeWhere((p) => p.id == pelangganAktif.id);
           _hasilFilter.removeWhere((p) => p.id == pelangganAktif.id);
         });
-      } catch (e) {
+      } catch (e, s) {
+        developer.log(
+          '❌ [pelanggan_aktif.dart] -> [_arsipkanPelanggan] -> Gagal mengarsipkan',
+          name: 'PelangganAktif.Error',
+          error: e,
+          stackTrace: s,
+        );
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -265,6 +323,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   void _showUrutkanDialog() async {
+    developer.log(
+      '📋 [pelanggan_aktif.dart] -> [_showUrutkanDialog] -> Membuka dialog sorting',
+      name: 'PelangganAktif.Interaction',
+    );
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
       context: context,
       builder: (BuildContext context) {
@@ -322,17 +384,29 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   void _tambahPelangganAktif() async {
+    developer.log(
+      '➕ [pelanggan_aktif.dart] -> [_tambahPelangganAktif] -> Menuju form tambah',
+      name: 'PelangganAktif.Navigation',
+    );
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => FormPelangganAktif()),
     );
     if (!mounted) return;
     if (result == true) {
+      developer.log(
+        '📝 [pelanggan_aktif.dart] -> [_tambahPelangganAktif] -> Mendapat feedback sukses dari form',
+        name: 'PelangganAktif.Success',
+      );
       _loadData(forceRefresh: true);
     }
   }
 
   void _opsiLanjutan() async {
+    developer.log(
+      '⚙️ [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Membuka opsi lanjutan',
+      name: 'PelangganAktif.Interaction',
+    );
     final OpsiHapusPilihan? pilihan = await showDialog<OpsiHapusPilihan>(
       context: context,
       builder: (BuildContext context) {
@@ -340,24 +414,20 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           title: const Text('Opsi Lanjutan'),
           children: <Widget>[
             SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, OpsiHapusPilihan.arsipkanKadaluarsa);
-              },
+              onPressed: () =>
+                  Navigator.pop(context, OpsiHapusPilihan.arsipkanKadaluarsa),
               child: const Text('Arsipkan pelanggan kadaluarsa'),
             ),
             SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, OpsiHapusPilihan.hapusSemua);
-              },
+              onPressed: () =>
+                  Navigator.pop(context, OpsiHapusPilihan.hapusSemua),
               child: Text(
                 'Hapus Semua Pelanggan Aktif',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
             SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, OpsiHapusPilihan.batal);
-              },
+              onPressed: () => Navigator.pop(context, OpsiHapusPilihan.batal),
               child: const Text('Batal'),
             ),
           ],
@@ -369,6 +439,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     switch (pilihan) {
       case OpsiHapusPilihan.hapusSemua:
+        developer.log(
+          '🚨 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Meminta konfirmasi HAPUS SEMUA',
+          name: 'PelangganAktif.Alert',
+        );
         final bool? konfirmasi = await showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -393,24 +467,34 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
         if (konfirmasi == true) {
           await _pelangganAktifOperasi.arsipkanSemuaPelangganAktif();
+          developer.log(
+            '🔥 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Semua pelanggan diarsipkan/dihapus',
+            name: 'PelangganAktif.Success',
+          );
           _loadData(forceRefresh: true);
         }
         break;
       case OpsiHapusPilihan.arsipkanKadaluarsa:
+        developer.log(
+          '🧹 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Proses arsipkan kadaluarsa...',
+          name: 'PelangganAktif.Action',
+        );
         final int jumlahDiarsipkan = await _pelangganAktifOperasi
             .arsipkanPelangganKadaluarsa();
+        developer.log(
+          '🧹 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Berhasil mengarsipkan $jumlahDiarsipkan pelanggan',
+          name: 'PelangganAktif.Success',
+        );
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               '$jumlahDiarsipkan pelanggan kadaluarsa berhasil diarsipkan.',
             ),
-            duration: const Duration(seconds: 3),
           ),
         );
         _loadData(forceRefresh: true);
         break;
-      case OpsiHapusPilihan.batal:
       default:
         break;
     }
@@ -438,9 +522,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, color: Colors.grey),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
+                  onPressed: () => _searchController.clear(),
                 )
               : null,
         ),
@@ -453,6 +535,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       IconButton(
         icon: const Icon(Icons.close),
         onPressed: () {
+          developer.log(
+            '🔍 [pelanggan_aktif.dart] -> [Search] -> Menutup pencarian',
+            name: 'PelangganAktif.Interaction',
+          );
           if (mounted) {
             setState(() {
               _isSearching = false;
@@ -470,6 +556,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       IconButton(
         icon: const Icon(Icons.search),
         onPressed: () {
+          developer.log(
+            '🔍 [pelanggan_aktif.dart] -> [Search] -> Membuka pencarian',
+            name: 'PelangganAktif.Interaction',
+          );
           if (mounted) {
             setState(() {
               _isSearching = true;
@@ -524,10 +614,12 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            onLongPress: () {
-                              _arsipkanPelanggan(pelanggan);
-                            },
+                            onLongPress: () => _arsipkanPelanggan(pelanggan),
                             onTap: () async {
+                              developer.log(
+                                '🖱️ [pelanggan_aktif.dart] -> [Card] -> Tap ke detail ID: ${pelanggan.id}',
+                                name: 'PelangganAktif.Navigation',
+                              );
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(

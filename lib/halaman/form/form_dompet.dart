@@ -29,35 +29,48 @@ class _FormDompetState extends State<FormDompet> {
   @override
   void initState() {
     super.initState();
+    developer.log('[FormDompet] 🚀 : Inisialisasi FormDompet');
     _namaFocusNode = FocusNode();
 
     if (_isEditMode) {
+      developer.log(
+        '[FormDompet] 📝 : Mode Edit Dompet: ${widget.dompet!.namaDompet}',
+      );
       _namaController.text = widget.dompet!.namaDompet;
-      // dihapus: Pengisian saldo manual dihapus.
+    } else {
+      developer.log('[FormDompet] ✨ : Mode Tambah Dompet Baru');
     }
   }
 
   @override
   void dispose() {
+    developer.log(
+      '[FormDompet] 🧹 : Melakukan dispose pada controller dan focusNode',
+    );
     _namaController.dispose();
     _namaFocusNode.dispose();
     super.dispose();
   }
 
   void _simpanForm() async {
+    developer.log('[FormDompet] 💾 : Proses simpan dimulai');
     _namaFocusNode.unfocus();
 
     if (_formKey.currentState!.validate()) {
       try {
         if (_isEditMode) {
-          // diubah: Logika update hanya untuk nama dompet. Saldo tidak diubah.
+          developer.log(
+            '[FormDompet] 🔄 : Memperbarui nama dompet ID: ${widget.dompet!.id}',
+          );
           final updatedDompet = DompetModel(
             id: widget.dompet!.id,
             namaDompet: _namaController.text,
-            saldo: widget.dompet!.saldo, // Saldo lama tetap dipertahankan
+            saldo: widget.dompet!.saldo, // Saldo tetap mengikuti data lama
             diperbarui: DateTime.now(),
           );
           await _dompetOperasi.updateDompet(updatedDompet);
+
+          developer.log('[FormDompet] ✅ : Nama dompet berhasil diperbarui');
 
           if (!mounted) return;
           Navigator.pop(context, true);
@@ -69,14 +82,19 @@ class _FormDompetState extends State<FormDompet> {
             ),
           );
         } else {
-          // diubah: Logika buat baru dengan saldo awal 0.
+          developer.log(
+            '[FormDompet] 🆕 : Membuat dompet baru dengan saldo awal 0',
+          );
           final nuevoDompet = DompetModel(
             id: const Uuid().v4(),
             namaDompet: _namaController.text,
-            saldo: 0.0, // Saldo awal selalu 0
+            saldo: 0.0, // Arsitektur baru: saldo awal selalu 0
             diperbarui: DateTime.now(),
           );
           await _dompetOperasi.createDompet(nuevoDompet);
+
+          developer.log('[FormDompet] ✅ : Dompet baru berhasil disimpan');
+
           if (!mounted) return;
           Navigator.pop(context, true);
 
@@ -89,7 +107,7 @@ class _FormDompetState extends State<FormDompet> {
         }
       } catch (e, s) {
         developer.log(
-          'Gagal menyimpan dompet',
+          '[FormDompet] ❌ : Gagal menyimpan dompet',
           name: 'form_dompet.save',
           error: e,
           stackTrace: s,
@@ -102,6 +120,8 @@ class _FormDompetState extends State<FormDompet> {
           ),
         );
       }
+    } else {
+      developer.log('[FormDompet] ⚠️ : Validasi form gagal');
     }
   }
 
@@ -134,7 +154,6 @@ class _FormDompetState extends State<FormDompet> {
                   return null;
                 },
               ),
-              // dihapus: TextFormField untuk saldo dihapus dari UI.
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _simpanForm,

@@ -1,5 +1,6 @@
 // path: lib/halaman/form/form_pengaturan.dart
 
+import 'dart:developer' as developer; // Tambahkan import log
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
@@ -29,6 +30,10 @@ class _FormPengaturanState extends State<FormPengaturan> {
   @override
   void initState() {
     super.initState();
+    developer.log(
+      '📝 [FormPengaturan] -> [initState] -> Inisialisasi formulir dengan data awal',
+      name: 'FormPengaturan.Lifecycle',
+    );
     _intervalController = TextEditingController(
       text: widget.pengaturan.intervalSinkronisasiOtomatis.toString(),
     );
@@ -43,6 +48,10 @@ class _FormPengaturanState extends State<FormPengaturan> {
 
   @override
   void dispose() {
+    developer.log(
+      '🗑️ [FormPengaturan] -> [dispose] -> Membersihkan controller formulir',
+      name: 'FormPengaturan.Lifecycle',
+    );
     _intervalController.dispose();
     _hapusArsipController.dispose();
     _infoController.dispose();
@@ -50,6 +59,11 @@ class _FormPengaturanState extends State<FormPengaturan> {
   }
 
   void _simpanForm() async {
+    developer.log(
+      '🔘 [FormPengaturan] -> [_simpanForm] -> Mencoba memvalidasi dan menyimpan data',
+      name: 'FormPengaturan.Action',
+    );
+
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
@@ -64,8 +78,17 @@ class _FormPengaturanState extends State<FormPengaturan> {
       );
 
       try {
+        developer.log(
+          '💾 [FormPengaturan] -> [_simpanForm] -> Mengirim data baru ke database',
+          name: 'FormPengaturan.Database',
+        );
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturanBaru);
+        
         if (mounted) {
+          developer.log(
+            '✅ [FormPengaturan] -> [_simpanForm] -> Pengaturan berhasil diperbarui',
+            name: 'FormPengaturan.Success',
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Pengaturan berhasil disimpan.'),
@@ -75,6 +98,11 @@ class _FormPengaturanState extends State<FormPengaturan> {
           Navigator.pop(context, true); // Kembali dengan sinyal sukses
         }
       } catch (e) {
+        developer.log(
+          '❌ [FormPengaturan] -> [_simpanForm] -> Error saat menyimpan: $e',
+          name: 'FormPengaturan.Error',
+          error: e,
+        );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -88,6 +116,11 @@ class _FormPengaturanState extends State<FormPengaturan> {
           setState(() => _isLoading = false);
         }
       }
+    } else {
+      developer.log(
+        '⚠️ [FormPengaturan] -> [_simpanForm] -> Validasi gagal, periksa inputan user',
+        name: 'FormPengaturan.Validation',
+      );
     }
   }
 
@@ -122,6 +155,10 @@ class _FormPengaturanState extends State<FormPengaturan> {
                     ),
                     value: _modePemeliharaan,
                     onChanged: (bool value) {
+                      developer.log(
+                        '🔄 [FormPengaturan] -> [onChanged Mode] -> Mengubah status pemeliharaan ke: $value',
+                        name: 'FormPengaturan.UI',
+                      );
                       setState(() {
                         _modePemeliharaan = value;
                       });
@@ -156,7 +193,6 @@ class _FormPengaturanState extends State<FormPengaturan> {
               ),
             ),
           ),
-          // diubah: Mengganti withOpacity dengan Color.fromRGBO
           if (_isLoading)
             Container(
               color: const Color.fromRGBO(0, 0, 0, 0.5),

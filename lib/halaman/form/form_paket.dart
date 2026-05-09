@@ -32,13 +32,21 @@ class _FormPaketState extends State<FormPaket> {
 
   bool get _isEditMode => widget.paket != null;
   bool _isPublic = true;
+
   @override
   void initState() {
     super.initState();
+    developer.log(
+      '[FormPaket]-[_initState] 🚀 : Memulai inisialisasi form paket',
+    );
+
     // diubah: Gunakan paketOperasi dari widget jika ada, jika tidak buat instance baru.
     _paketOperasi = widget.paketOperasi ?? PaketOperasi();
 
     if (_isEditMode) {
+      developer.log(
+        '[FormPaket]-[_initState] 📝 : Masuk ke mode EDIT dengan ID: ${widget.paket!.id}',
+      );
       _namaController.text = widget.paket!.nama;
       _hargaController.text = widget.paket!.harga.toString();
       _durasiController.text = widget.paket!.durasi.toString();
@@ -48,11 +56,17 @@ class _FormPaketState extends State<FormPaket> {
 
       _selectedTipe = widget.paket!.tipe;
       _isPublic = widget.paket!.isPublic;
+    } else {
+      developer.log('[FormPaket]-[_initState] ✨ : Masuk ke mode TAMBAH BARU');
     }
   }
 
   void _saveForm() async {
+    developer.log('[FormPaket]-[_saveForm] 📥 : Tombol simpan ditekan');
+
     if (_formKey.currentState!.validate()) {
+      developer.log('[FormPaket]-[_saveForm] ✅ : Validasi form berhasil');
+
       final newPaket = PaketModel(
         id: _isEditMode ? widget.paket!.id : null,
         nama: _namaController.text,
@@ -64,14 +78,25 @@ class _FormPaketState extends State<FormPaket> {
         poinPenukaran: int.tryParse(_poinPenukaranController.text) ?? 0,
         isPublic: _isPublic,
       );
+
       try {
         if (_isEditMode) {
+          developer.log(
+            '[FormPaket]-[_saveForm] 🔄 : Mengirim data update ke database',
+          );
           await _paketOperasi.updatePaket(newPaket);
         } else {
+          developer.log(
+            '[FormPaket]-[_saveForm] 📤 : Mengirim data baru ke database',
+          );
           await _paketOperasi.createPaket(newPaket);
         }
 
         if (!mounted) return;
+
+        developer.log(
+          '[FormPaket]-[_saveForm] 🎉 : Operasi database berhasil diselesaikan',
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -81,43 +106,48 @@ class _FormPaketState extends State<FormPaket> {
         );
         Navigator.pop(context, true);
       } on DatabaseException catch (e, s) {
-        // Tangkap error database secara spesifik
-        if (!mounted) return;
         String errorMessage =
             'Gagal menyimpan paket. Terjadi kesalahan database.';
-        // Periksa jika ini adalah error karena nama sudah ada (unique constraint)
         if (e.isUniqueConstraintError()) {
           errorMessage = 'Nama paket sudah ada. Harap gunakan nama lain.';
         }
+
         developer.log(
-          'Gagal menyimpan paket: $errorMessage',
+          '[FormPaket]-[_saveForm] 🛑 : Gagal menyimpan paket (DatabaseException): $errorMessage',
           name: 'form_paket.save',
           error: e,
           stackTrace: s,
           level: 1000,
         );
+
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(errorMessage)));
       } catch (e, s) {
-        // Tangkap error lainnya
-        if (!mounted) return;
         developer.log(
-          'Gagal menyimpan paket: Terjadi kesalahan tidak diketahui.',
+          '[FormPaket]-[_saveForm] ❌ : Gagal menyimpan paket (Unknown Error): Terjadi kesalahan tidak diketahui.',
           name: 'form_paket.save',
           error: e,
           stackTrace: s,
           level: 1000,
         );
+
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
       }
+    } else {
+      developer.log(
+        '[FormPaket]-[_saveForm] ⚠️ : Validasi form gagal, periksa input pengguna',
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    developer.log('[FormPaket]-[build] 🎨 : Merender tampilan widget form');
     return Scaffold(
       appBar: AppBar(title: Text(_isEditMode ? 'Edit Paket' : 'Tambah Paket')),
       body: Padding(
@@ -180,7 +210,9 @@ class _FormPaketState extends State<FormPaket> {
 
                 TextFormField(
                   controller: _poinPenukaranController,
-                  decoration: const InputDecoration(labelText: 'Poin Penukaran'),
+                  decoration: const InputDecoration(
+                    labelText: 'Poin Penukaran',
+                  ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) return null;
@@ -197,14 +229,15 @@ class _FormPaketState extends State<FormPaket> {
                   items: TipeDurasi.values.map((TipeDurasi tipe) {
                     return DropdownMenuItem<TipeDurasi>(
                       value: tipe,
-                      child: Text(
-                        tipe.displayName,
-                      ), // Menggunakan displayName dari extension
+                      child: Text(tipe.displayName),
                     );
                   }).toList(),
                   onChanged: (TipeDurasi? newValue) {
+                    developer.log(
+                      '[FormPaket]-[Dropdown] 🔄 : Mengubah tipe durasi ke: ${newValue!.displayName}',
+                    );
                     setState(() {
-                      _selectedTipe = newValue!;
+                      _selectedTipe = newValue;
                     });
                   },
                 ),
@@ -213,13 +246,19 @@ class _FormPaketState extends State<FormPaket> {
                   subtitle: const Text('Jika OFF, paket tidak tampil ke user'),
                   value: _isPublic,
                   onChanged: (value) {
+                    developer.log(
+                      '[FormPaket]-[Switch] 🔘 : Mengubah status public menjadi: $value',
+                    );
                     setState(() {
                       _isPublic = value;
                     });
                   },
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(onPressed: _saveForm, child: const Text('Simpan')),
+                ElevatedButton(
+                  onPressed: _saveForm,
+                  child: const Text('Simpan'),
+                ),
               ],
             ),
           ),
@@ -230,6 +269,9 @@ class _FormPaketState extends State<FormPaket> {
 
   @override
   void dispose() {
+    developer.log(
+      '[FormPaket]-[dispose] 🧹 : Membersihkan controller dan resources',
+    );
     _namaController.dispose();
     _hargaController.dispose();
     _durasiController.dispose();

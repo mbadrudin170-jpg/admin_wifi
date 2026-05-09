@@ -1,4 +1,5 @@
-// diubah: Mengimpor file utilitas terpusat.
+// path: lib/halaman/lainnya/kritik_saran_page.dart
+
 import 'dart:developer' as developer;
 import 'package:admin_wifi/halaman/detail/detail_kritik_saran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -21,32 +22,41 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
   @override
   void initState() {
     super.initState();
+    developer.log('🚀 [KritikSaranPage] initState: Memulai halaman', name: 'APP.KritikSaran');
     _kritikSaranOperasi.debugCekTabel();
     _loadKritikSaran();
   }
 
   void _loadKritikSaran() {
+    developer.log('🔄 [KritikSaranPage] _loadKritikSaran: Memanggil getKritikSaran()', name: 'APP.KritikSaran');
     setState(() {
       _kritikSaranFuture = _kritikSaranOperasi
           .getKritikSaran()
           .then((data) {
-            developer.log('📊 Jumlah data kritik saran: ${data.length}');
+            developer.log('📊 [KritikSaranPage] Berhasil memuat ${data.length} data', name: 'APP.KritikSaran');
             for (var item in data) {
               developer.log(
-                '📝 Data: ${item.isi} | User: ${item.userId} | Tanggal: ${item.tanggal}',
+                '📝 Item ID: ${item.id} | User: ${item.userId} | Tanggal: ${item.tanggal}',
+                name: 'APP.KritikSaran'
               );
             }
             return data;
           })
-          .catchError((error) {
-            developer.log('❌ Error ambil data: $error');
-            throw error; // Tetap lempar error agar FutureBuilder menangkapnya
+          .catchError((error, stackTrace) {
+            developer.log(
+              '❌ [KritikSaranPage] Error ambil data', 
+              error: error, 
+              stackTrace: stackTrace,
+              name: 'APP.KritikSaran'
+            );
+            throw error;
           });
     });
   }
 
-  // Fungsi untuk menghapus kritik saran dari halaman daftar (via long press)
   Future<void> _hapusKritikSaran(KritikSaranModel item) async {
+    developer.log('⚠️ [KritikSaranPage] Mencoba menghapus Item ID: ${item.id}', name: 'APP.KritikSaran');
+    
     final konfirmasi = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -56,11 +66,17 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () {
+              developer.log('🔘 [KritikSaranPage] Dialog Hapus: User memilih Batal', name: 'APP.KritikSaran');
+              Navigator.of(context).pop(false);
+            },
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () {
+              developer.log('🔘 [KritikSaranPage] Dialog Hapus: User memilih Hapus', name: 'APP.KritikSaran');
+              Navigator.of(context).pop(true);
+            },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
@@ -70,7 +86,11 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
     if (konfirmasi == true && mounted) {
       try {
+        developer.log('🔨 [KritikSaranPage] Menjalankan operasi hapus ke database...', name: 'APP.KritikSaran');
         await _kritikSaranOperasi.hapusKritikSaran(item.id);
+        
+        developer.log('✅ [KritikSaranPage] Item ID: ${item.id} berhasil dihapus', name: 'APP.KritikSaran');
+        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -80,7 +100,13 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
           );
         }
         _loadKritikSaran();
-      } catch (e) {
+      } catch (e, stackTrace) {
+        developer.log(
+          '❌ [KritikSaranPage] Gagal menghapus item', 
+          error: e, 
+          stackTrace: stackTrace,
+          name: 'APP.KritikSaran'
+        );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -95,6 +121,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
   @override
   Widget build(BuildContext context) {
+    developer.log('🏗️ [KritikSaranPage] Building UI...', name: 'APP.KritikSaran');
     return Scaffold(
       appBar: AppBar(title: const Text('Kritik & Saran')),
       body: FutureBuilder<List<KritikSaranModel>>(
@@ -122,8 +149,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () async {
-                      // Jadikan onTap async
-                      // Tangkap hasil dari Navigator.push
+                      developer.log('🔗 [KritikSaranPage] Navigasi ke detail ID: ${item.id}', name: 'APP.KritikSaran');
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -132,8 +158,8 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                         ),
                       );
 
-                      // Jika hasilnya 'true', muat ulang data
                       if (result == true) {
+                        developer.log('🔄 [KritikSaranPage] Kembali dari detail dengan result true, refresh data', name: 'APP.KritikSaran');
                         _loadKritikSaran();
                       }
                     },

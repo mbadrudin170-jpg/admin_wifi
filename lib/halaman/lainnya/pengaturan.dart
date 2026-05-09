@@ -1,5 +1,6 @@
 // path: lib/halaman/lainnya/pengaturan.dart
 
+import 'dart:developer' as developer; // Tambahkan import log
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
@@ -20,11 +21,19 @@ class _PengaturanPageState extends State<PengaturanPage> {
   @override
   void initState() {
     super.initState();
+    developer.log(
+      '⚙️ [PengaturanPage] -> [initState] -> Inisialisasi halaman pengaturan',
+      name: 'PengaturanPage.Lifecycle',
+    );
     _loadPengaturan();
   }
 
   // Fungsi untuk memuat data pengaturan dari database.
   void _loadPengaturan() {
+    developer.log(
+      '📥 [PengaturanPage] -> [_loadPengaturan] -> Memuat data pengaturan dari database local',
+      name: 'PengaturanPage.Data',
+    );
     setState(() {
       _futurePengaturan = _pengaturanOperasi.getPengaturan();
     });
@@ -32,6 +41,11 @@ class _PengaturanPageState extends State<PengaturanPage> {
 
   // Fungsi untuk menavigasi ke halaman form edit dan memuat ulang data jika ada perubahan.
   void _editPengaturan(PengaturanModel pengaturan) async {
+    developer.log(
+      '📝 [PengaturanPage] -> [_editPengaturan] -> Navigasi ke FormPengaturan',
+      name: 'PengaturanPage.Navigation',
+    );
+    
     final hasil = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -40,7 +54,16 @@ class _PengaturanPageState extends State<PengaturanPage> {
     );
 
     if (hasil == true && mounted) {
+      developer.log(
+        '✅ [PengaturanPage] -> [_editPengaturan] -> Data berhasil diperbarui, melakukan refresh UI',
+        name: 'PengaturanPage.Callback',
+      );
       _loadPengaturan();
+    } else {
+      developer.log(
+        'ℹ️ [PengaturanPage] -> [_editPengaturan] -> Kembali tanpa melakukan perubahan',
+        name: 'PengaturanPage.Callback',
+      );
     }
   }
 
@@ -54,6 +77,11 @@ class _PengaturanPageState extends State<PengaturanPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            developer.log(
+              '❌ [PengaturanPage] -> [FutureBuilder] -> Gagal memuat data: ${snapshot.error}',
+              name: 'PengaturanPage.Error',
+              error: snapshot.error,
+            );
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final pengaturan = snapshot.data!;
@@ -77,7 +105,6 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           ikon: Icons.auto_delete_outlined,
                         ),
                         const Divider(height: 24, thickness: 1),
-                        // ditambahkan: Card untuk semua pengaturan terkait pemeliharaan
                         Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
@@ -97,7 +124,6 @@ class _PengaturanPageState extends State<PengaturanPage> {
                                   color: Theme.of(context).primaryColor,
                                 ),
                               ),
-                              // ditambahkan: Tampilkan info pemeliharaan hanya jika mode aktif
                               if (pengaturan.modePemeliharaan)
                                 ListTile(
                                   leading: const Icon(Icons.info_outline),
@@ -140,7 +166,6 @@ class _PengaturanPageState extends State<PengaturanPage> {
     );
   }
 
-  // Widget helper untuk membuat card informasi yang konsisten.
   Widget _buildInfoCard({
     required String judul,
     required String nilai,

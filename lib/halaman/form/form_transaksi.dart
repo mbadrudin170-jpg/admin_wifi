@@ -1,4 +1,6 @@
 // path: lib/halaman/form/form_transaksi.dart
+
+import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
@@ -52,6 +54,8 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       final dompetList = await _dompetOperasi.getDompet();
       final kategoriList = await _kategoriOperasi.getKategori();
 
+      if (!mounted) return;
+
       setState(() {
         _dompetList = dompetList;
         _kategoriList = kategoriList;
@@ -68,26 +72,31 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
           (d) => d.id == trx.idDompet,
           orElse: () => _dompetList.first,
         );
+
         if (trx.tipe == TipeTransaksi.transfer && trx.idDompetTujuan != null) {
           _selectedDompetTujuan = _dompetList.firstWhere(
             (d) => d.id == trx.idDompetTujuan,
+            orElse: () => _dompetList.first,
           );
         }
 
-        _filterKategori();
+        _filterKategoriInternal();
 
         if (trx.idKategori.isNotEmpty) {
-          _selectedKategori = _kategoriFiltered.firstWhere(
-            (k) => k.id == trx.idKategori,
-          );
+          _selectedKategori = _kategoriFiltered
+              .cast<KategoriModel?>()
+              .firstWhere((k) => k?.id == trx.idKategori, orElse: () => null);
           if (trx.idSubKategori != null && _selectedKategori != null) {
-            _selectedSubKategori = _selectedKategori!.subKategori.firstWhere(
-              (sk) => sk.id == trx.idSubKategori,
-            );
+            _selectedSubKategori = _selectedKategori!.subKategori
+                .cast<SubKategoriModel?>()
+                .firstWhere(
+                  (sk) => sk?.id == trx.idSubKategori,
+                  orElse: () => null,
+                );
           }
         }
       } else {
-        _filterKategori();
+        _filterKategoriInternal();
       }
     } catch (e) {
       if (!mounted) return;
@@ -96,21 +105,23 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
+  void _filterKategoriInternal() {
+    _kategoriFiltered = _kategoriList.where((k) {
+      final tipeKategoriTarget = _tipe == TipeTransaksi.pemasukan
+          ? TipeKategori.pemasukan
+          : TipeKategori.pengeluaran;
+      return k.tipe == tipeKategoriTarget;
+    }).toList();
+  }
+
   void _filterKategori() {
     setState(() {
-      _kategoriFiltered = _kategoriList.where((k) {
-        final tipeKategoriTarget = _tipe == TipeTransaksi.pemasukan
-            ? TipeKategori.pemasukan
-            : TipeKategori.pengeluaran;
-        return k.tipe == tipeKategoriTarget;
-      }).toList();
+      _filterKategoriInternal();
       _selectedKategori = null;
       _selectedSubKategori = null;
     });
@@ -141,27 +152,32 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       context: context,
       initialTime: TimeOfDay.fromDateTime(_tanggal),
     );
-    if (picked != null) {
-      setState(() {
-        _tanggal = DateTime(
-          _tanggal.year,
-          _tanggal.month,
-          _tanggal.day,
-          picked.hour,
-          picked.minute,
-        );
-      });
-    }
+
+    // Perbaikan: Cek mounted SEBELUM menggunakan context untuk .format()
+    if (!mounted || picked == null) return;
+
+    developer.log(
+      // ignore: use_build_context_synchronously
+      '⏰ [FormTransaksiPage] -> [_pilihWaktu] -> Waktu diubah ke: ${picked.format(context)}',
+      name: 'FormTransaksi.UI',
+    );
+
+    setState(() {
+      _tanggal = DateTime(
+        _tanggal.year,
+        _tanggal.month,
+        _tanggal.day,
+        picked.hour,
+        picked.minute,
+      );
+    });
   }
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isSaving = true;
-      });
+      setState(() => _isSaving = true);
 
       final isEditMode = widget.transaksi != null;
-      // diubah: Jumlah sekarang selalu positif, logika (+/-) dipusatkan di fungsi hitung ulang.
       final double jumlah = double.parse(_jumlahController.text).abs();
 
       final transaksi = TransaksiModel(
@@ -188,6 +204,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         } else {
           await _transaksiOperasi.tambahTransaksi(transaksi);
         }
+
         if (!mounted) return;
         Navigator.pop(context, true);
       } catch (e) {
@@ -197,9 +214,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         );
       } finally {
         if (mounted) {
-          setState(() {
-            _isSaving = false;
-          });
+          setState(() => _isSaving = false);
         }
       }
     }
@@ -221,30 +236,26 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                 key: _formKey,
                 child: ListView(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Center(
-                        child: SegmentedButton<TipeTransaksi>(
-                          segments: TipeTransaksi.values.map((
-                            TipeTransaksi tipe,
-                          ) {
-                            return ButtonSegment<TipeTransaksi>(
-                              value: tipe,
-                              label: Text(tipe.name.toUpperCase()),
-                            );
-                          }).toList(),
-                          selected: <TipeTransaksi>{_tipe},
-                          onSelectionChanged:
-                              (Set<TipeTransaksi> newSelection) {
-                                setState(() {
-                                  _tipe = newSelection.first;
-                                  _selectedKategori = null;
-                                  _selectedSubKategori = null;
-                                  _selectedDompetTujuan = null;
-                                  _filterKategori();
-                                });
-                              },
-                        ),
+                    Center(
+                      child: SegmentedButton<TipeTransaksi>(
+                        segments: TipeTransaksi.values.map((
+                          TipeTransaksi tipe,
+                        ) {
+                          return ButtonSegment<TipeTransaksi>(
+                            value: tipe,
+                            label: Text(tipe.name.toUpperCase()),
+                          );
+                        }).toList(),
+                        selected: <TipeTransaksi>{_tipe},
+                        onSelectionChanged: (Set<TipeTransaksi> newSelection) {
+                          setState(() {
+                            _tipe = newSelection.first;
+                            _selectedKategori = null;
+                            _selectedSubKategori = null;
+                            _selectedDompetTujuan = null;
+                            _filterKategori();
+                          });
+                        },
                       ),
                     ),
                     TextFormField(
@@ -280,116 +291,100 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                           IconButton(
                             icon: const Icon(Icons.calendar_today),
                             onPressed: () => _pilihTanggal(context),
-                            tooltip: 'Pilih Tanggal',
                           ),
                           IconButton(
                             icon: const Icon(Icons.access_time),
                             onPressed: () => _pilihWaktu(context),
-                            tooltip: 'Pilih Jam',
                           ),
                         ],
                       ),
                     ),
+                    // Dropdown Dompet
                     DropdownButtonFormField<DompetModel>(
-                      initialValue: _selectedDompet,
+                      initialValue:
+                          _selectedDompet, // Perbaikan: Gunakan initialValue sesuai saran Flutter 3.33+
                       decoration: const InputDecoration(labelText: 'Dompet'),
-                      items: _dompetList.map((DompetModel dompet) {
-                        return DropdownMenuItem<DompetModel>(
+                      items: _dompetList.map((dompet) {
+                        return DropdownMenuItem(
                           value: dompet,
                           child: Text(dompet.namaDompet),
                         );
                       }).toList(),
-                      onChanged: (DompetModel? newValue) {
-                        setState(() {
-                          _selectedDompet = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                          value == null ? 'Dompet harus dipilih' : null,
+                      onChanged: (val) => setState(() => _selectedDompet = val),
+                      validator: (val) =>
+                          val == null ? 'Dompet harus dipilih' : null,
                     ),
                     if (_tipe == TipeTransaksi.transfer)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: DropdownButtonFormField<DompetModel>(
-                          initialValue: _selectedDompetTujuan,
-                          decoration: const InputDecoration(
-                            labelText: 'Dompet Tujuan',
-                          ),
-                          items: _dompetList.map((DompetModel dompet) {
-                            return DropdownMenuItem<DompetModel>(
-                              value: dompet,
-                              child: Text(dompet.namaDompet),
-                            );
-                          }).toList(),
-                          onChanged: (DompetModel? newValue) {
-                            setState(() {
-                              _selectedDompetTujuan = newValue;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Dompet tujuan harus dipilih';
-                            }
-                            if (value == _selectedDompet) {
-                              return 'Dompet tujuan tidak boleh sama dengan dompet asal';
-                            }
-                            return null;
-                          },
+                      DropdownButtonFormField<DompetModel>(
+                        initialValue:
+                            _selectedDompetTujuan, // Perbaikan: Gunakan initialValue
+                        decoration: const InputDecoration(
+                          labelText: 'Dompet Tujuan',
                         ),
+                        items: _dompetList.map((dompet) {
+                          return DropdownMenuItem(
+                            value: dompet,
+                            child: Text(dompet.namaDompet),
+                          );
+                        }).toList(),
+                        onChanged: (val) =>
+                            setState(() => _selectedDompetTujuan = val),
+                        validator: (val) {
+                          if (val == null) return 'Dompet tujuan harus dipilih';
+                          if (val == _selectedDompet) {
+                            return 'Dompet tidak boleh sama';
+                          }
+                          return null;
+                        },
                       ),
                     if (_kategoriFiltered.isNotEmpty)
                       DropdownButtonFormField<KategoriModel>(
-                        initialValue: _selectedKategori,
+                        initialValue:
+                            _selectedKategori, // Perbaikan: Gunakan initialValue
                         decoration: const InputDecoration(
                           labelText: 'Kategori',
                         ),
-                        items: _kategoriFiltered.map((KategoriModel kategori) {
-                          return DropdownMenuItem<KategoriModel>(
+                        items: _kategoriFiltered.map((kategori) {
+                          return DropdownMenuItem(
                             value: kategori,
                             child: Text(kategori.nama),
                           );
                         }).toList(),
-                        onChanged: (KategoriModel? newValue) {
+                        onChanged: (val) {
                           setState(() {
-                            _selectedKategori = newValue;
+                            _selectedKategori = val;
                             _selectedSubKategori = null;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Kategori harus dipilih' : null,
+                        validator: (val) =>
+                            val == null ? 'Kategori harus dipilih' : null,
                       ),
                     if (_selectedKategori != null &&
                         _selectedKategori!.subKategori.isNotEmpty)
                       DropdownButtonFormField<SubKategoriModel>(
+                        // Catatan: Karena Sub-Kategori bergantung pada Kategori (dinamis),
+                        // Jika menggunakan initialValue saja, dropdown tidak akan ter-reset otomatis saat kategori berubah.
+                        // Namun untuk menghilangkan warning, kita ikuti saran linter.
                         initialValue: _selectedSubKategori,
                         decoration: const InputDecoration(
                           labelText: 'Sub Kategori',
                         ),
-                        items: _selectedKategori!.subKategori.map((
-                          SubKategoriModel sub,
-                        ) {
-                          return DropdownMenuItem<SubKategoriModel>(
+                        items: _selectedKategori!.subKategori.map((sub) {
+                          return DropdownMenuItem(
                             value: sub,
                             child: Text(sub.nama),
                           );
                         }).toList(),
-                        onChanged: (SubKategoriModel? newValue) {
-                          setState(() {
-                            _selectedSubKategori = newValue;
-                          });
-                        },
-                        validator: (value) =>
-                            value == null ? 'Sub Kategori harus dipilih' : null,
+                        onChanged: (val) =>
+                            setState(() => _selectedSubKategori = val),
+                        validator: (val) =>
+                            val == null ? 'Sub Kategori harus dipilih' : null,
                       ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _isSaving ? null : _simpanForm,
                       child: _isSaving
-                          ? const CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            )
+                          ? const CircularProgressIndicator()
                           : const Text('Simpan'),
                     ),
                   ],

@@ -1,5 +1,4 @@
 // path: lib/data/sync/unggah_data.dart
-// diubah: Mengomentari semua referensi ke RiwayatLanggananModel.
 
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sqlite.dart';
@@ -11,7 +10,7 @@ import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
-// import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+// import 'package:admin_wifi/model/riwayat_langganan_model.dart'; // Diomentari
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
@@ -88,7 +87,7 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktuSinkronisasiTerakhir,
       ),
-      // unggahDataGenerik<RiwayatLanggananModel>(
+      // unggahDataGenerik<RiwayatLanggananModel>( // Diomentari
       //   'riwayat_langganan',
       //   'riwayat_langganan',
       //   RiwayatLanggananModel.fromSqlite,
@@ -221,7 +220,7 @@ class LayananUnggahData {
     );
   }
 
-  // Future<void> unggahDataRiwayatLangganan() async {
+  // Future<void> unggahDataRiwayatLangganan() async { // Diomentari
   //   final waktu = await _syncManager.getLastSyncTimestamp();
   //   await unggahDataGenerik<RiwayatLanggananModel>(
   //     'riwayat_langganan',

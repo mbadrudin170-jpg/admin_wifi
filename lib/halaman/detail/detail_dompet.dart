@@ -1,3 +1,4 @@
+// path: lib/halaman/detail/detail_dompet.dart
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
@@ -7,9 +8,8 @@ import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer; // Tambahkan ini
+import 'dart:developer' as developer;
 
-// ditambahkan: Data class untuk menampung hasil data dari Future
 class DetailDompetData {
   final DompetModel dompet;
   final List<TransaksiModel> transaksi;
@@ -45,20 +45,24 @@ class _DetailDompetState extends State<DetailDompet> {
   late final DompetOperasi _dompetOperasi;
   late final TransaksiOperasi _transaksiOperasi;
 
+  // Tambahkan variabel lokal untuk melacak nama dompet di AppBar
+  String? _namaDompetTerbaru;
+
   @override
   void initState() {
     super.initState();
-    developer.log('initState dipanggil', name: 'detail_dompet.dart');
     _dompetOperasi = widget.dompetOperasi ?? DompetOperasi();
     _transaksiOperasi = widget.transaksiOperasi ?? TransaksiOperasi();
+
+    developer.log('--- [Lifecycle: initState] DetailDompet ---');
     _futureDetailData = _loadData();
   }
 
   Future<DetailDompetData> _loadData() async {
     developer.log(
-      'Memulai memuat data untuk dompet ID: ${widget.dompet.id}',
-      name: 'detail_dompet.dart',
+      '[DetailDompet] 📡 Memulai _loadData() untuk ID: ${widget.dompet.id}',
     );
+
     try {
       final results = await Future.wait([
         _dompetOperasi.getDompetById(widget.dompet.id),
@@ -69,8 +73,15 @@ class _DetailDompetState extends State<DetailDompet> {
       final daftarTransaksi = results[1] as List<TransaksiModel>;
 
       if (dompetTerbaru == null) {
-        developer.log('Error: Dompet terbaru null', name: 'detail_dompet.dart');
-        throw Exception('Gagal memuat data dompet.');
+        developer.log('[DetailDompet] ⚠️ Dompet null di DB');
+        throw Exception('Dompet tidak ditemukan.');
+      }
+
+      // Update variabel lokal agar AppBar sinkron
+      if (mounted) {
+        setState(() {
+          _namaDompetTerbaru = dompetTerbaru.namaDompet;
+        });
       }
 
       double pemasukan = 0;
@@ -84,8 +95,7 @@ class _DetailDompetState extends State<DetailDompet> {
       }
 
       developer.log(
-        'Sukses memuat data: ${daftarTransaksi.length} transaksi ditemukan',
-        name: 'detail_dompet.dart',
+        '[DetailDompet] ✅ Data Berhasil Dimuat (Nama: ${dompetTerbaru.namaDompet}, Trx: ${daftarTransaksi.length})',
       );
 
       return DetailDompetData(
@@ -94,22 +104,18 @@ class _DetailDompetState extends State<DetailDompet> {
         totalPemasukan: pemasukan,
         totalPengeluaran: pengeluaran,
       );
-    } catch (e, stackTrace) {
+    } catch (e, s) {
       developer.log(
-        'Error pada _loadData: $e',
-        name: 'detail_dompet.dart',
+        '[DetailDompet] ❌ Gagal memuat data',
         error: e,
-        stackTrace: stackTrace,
+        stackTrace: s,
       );
       rethrow;
     }
   }
 
   void _muatUlangData() {
-    developer.log(
-      'Memperbarui tampilan (_muatUlangData)',
-      name: 'detail_dompet.dart',
-    );
+    developer.log('[DetailDompet] 🔄 Memicu _muatUlangData() via setState');
     setState(() {
       _futureDetailData = _loadData();
     });
@@ -117,17 +123,15 @@ class _DetailDompetState extends State<DetailDompet> {
 
   @override
   Widget build(BuildContext context) {
+    developer.log('--- [Lifecycle: build] DetailDompet ---');
     return Scaffold(
       appBar: AppBar(
-        key: const Key('appBar'),
-        title: Text(widget.dompet.namaDompet),
+        // PERBAIKAN: Gunakan nama terbaru, jika belum ada gunakan dari widget
+        title: Text(_namaDompetTerbaru ?? widget.dompet.namaDompet),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            developer.log(
-              'Navigasi kembali dari DetailDompet',
-              name: 'detail_dompet.dart',
-            );
+            developer.log('[DetailDompet] ⬅️ Kembali ke Home');
             Navigator.pop(context, true);
           },
         ),
@@ -135,20 +139,28 @@ class _DetailDompetState extends State<DetailDompet> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              developer.log(
-                'Membuka FormDompet untuk edit',
-                name: 'detail_dompet.dart',
-              );
+              developer.log('[DetailDompet] 📝 Menuju FormDompet (Edit)');
+
+              // PERBAIKAN: Kirim data dompet TERBARU ke form agar inputnya sinkron
+              // Jika _namaDompetTerbaru ada, kita buat instance temporary untuk dikirim
+              final dompetUntukEdit = _namaDompetTerbaru != null
+                  ? widget.dompet.copyWith(namaDompet: _namaDompetTerbaru)
+                  : widget.dompet;
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FormDompet(dompet: widget.dompet),
+                  builder: (context) => FormDompet(dompet: dompetUntukEdit),
                 ),
               );
+
+              developer.log(
+                '[DetailDompet] 📥 Kembali dari Form, Result: $result',
+              );
+
               if (result == true) {
                 developer.log(
-                  'Data berhasil diedit, memicu muat ulang',
-                  name: 'detail_dompet.dart',
+                  '[DetailDompet] ✨ Result TRUE, memanggil refresh...',
                 );
                 _muatUlangData();
               }
@@ -160,81 +172,57 @@ class _DetailDompetState extends State<DetailDompet> {
         future: _futureDetailData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
+            developer.log('[DetailDompet] ⏳ FutureBuilder: Waiting...');
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            developer.log(
-              'FutureBuilder menangkap error: ${snapshot.error}',
-              name: 'detail_dompet.dart',
-            );
+            developer.log('[DetailDompet] ❌ FutureBuilder: Error');
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (!snapshot.hasData) {
-            developer.log(
-              'FutureBuilder: Data kosong',
-              name: 'detail_dompet.dart',
-            );
-            return const Center(child: Text('Data tidak ditemukan.'));
+            developer.log('[DetailDompet] ❓ FutureBuilder: No Data');
+            return const Center(child: Text('Data Kosong'));
           }
 
           final data = snapshot.data!;
-          final dompetSaatIni = data.dompet;
-          final transaksiList = data.transaksi;
-          final double total = dompetSaatIni.saldo;
+          developer.log('[DetailDompet] 🎨 Membangun UI dengan data terbaru');
 
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Container(
+                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        bangunInfoRingkasan(
-                          context: context,
-                          label: 'Pemasukan',
-                          jumlah: data.totalPemasukan,
-                          warna: Colors.green,
-                          textKey: const Key('totalPemasukan'),
-                        ),
-                        bangunInfoRingkasan(
-                          context: context,
-                          label: 'Pengeluaran',
-                          jumlah: data.totalPengeluaran,
-                          warna: Colors.red,
-                          textKey: const Key('totalPengeluaran'),
-                        ),
-                        bangunInfoRingkasan(
-                          context: context,
-                          label: 'Total',
-                          jumlah: total,
-                          warna: total >= 0 ? Colors.blue : Colors.red,
-                          textKey: const Key('totalSaldo'),
-                        ),
-                      ],
+                    bangunInfoRingkasan(
+                      context: context,
+                      label: 'Pemasukan',
+                      jumlah: data.totalPemasukan,
+                      warna: Colors.green,
+                    ),
+                    bangunInfoRingkasan(
+                      context: context,
+                      label: 'Pengeluaran',
+                      jumlah: data.totalPengeluaran,
+                      warna: Colors.red,
+                    ),
+                    bangunInfoRingkasan(
+                      context: context,
+                      label: 'Saldo',
+                      jumlah: data.dompet.saldo, // Pakai data dari snapshot
+                      warna: data.dompet.saldo >= 0 ? Colors.blue : Colors.red,
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1, thickness: 1),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8.0,
-                  horizontal: 16.0,
-                ),
-                child: Text(
-                  'Riwayat Transaksi',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
+              const Divider(height: 1),
               Expanded(
-                child: transaksiList.isEmpty
-                    ? const Center(child: Text('Tidak ada riwayat transaksi.'))
-                    : _buildTransaksiList(transaksiList),
+                child: data.transaksi.isEmpty
+                    ? const Center(child: Text('Belum ada transaksi.'))
+                    : _buildTransaksiList(data.transaksi),
               ),
             ],
           );
@@ -251,7 +239,8 @@ class _DetailDompetState extends State<DetailDompet> {
       itemBuilder: (context, index) {
         final tanggal = groupedTransaksi.keys.elementAt(index);
         final transaksiPadaTanggal = groupedTransaksi[tanggal]!;
-        final totalPadaTanggal = transaksiPadaTanggal.fold(
+
+        final totalHarian = transaksiPadaTanggal.fold(
           0.0,
           (sum, item) =>
               sum +
@@ -263,13 +252,10 @@ class _DetailDompetState extends State<DetailDompet> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            bangunHeaderSeksi(tanggal, totalPadaTanggal),
+            bangunHeaderSeksi(tanggal, totalHarian),
             ...transaksiPadaTanggal.map(
               (transaksi) => bangunItemTransaksi(context, transaksi, () {
-                developer.log(
-                  'Callback hapus/edit transaksi dipicu',
-                  name: 'detail_dompet.dart',
-                );
+                developer.log('[DetailDompet] 🔄 Refresh dari ItemTransaksi');
                 _muatUlangData();
               }, _transaksiOperasi),
             ),

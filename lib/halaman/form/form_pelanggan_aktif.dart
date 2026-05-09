@@ -33,9 +33,11 @@ import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:admin_wifi/enum/enum.dart';
+import 'dart:developer' as developer;
 
 // ditambahkan: Fungsi ini diekstrak dari state untuk kemudahan pengujian.
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
+  developer.log('[Global]-[hitungTanggalBerakhir] ⏳ : Menghitung tanggal berakhir paket ${paket.nama} dari $startDate');
   switch (paket.tipe) {
     case TipeDurasi.jam:
       return startDate.add(Duration(hours: paket.durasi));
@@ -124,10 +126,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   @override
   void initState() {
     super.initState();
+    developer.log('[FormPelangganAktif]-[initState] 🚀 : Inisialisasi FormPelangganAktif');
     _loadAllData();
   }
 
   Future<void> _loadAllData() async {
+    developer.log('[FormPelangganAktif]-[_loadAllData] 🔄 : Memuat seluruh data referensi (Pelanggan, Paket, Dompet, Kategori)');
     try {
       final results = await Future.wait([
         widget.pelangganOperasi.getPelanggan(),
@@ -158,17 +162,20 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             .toList();
 
         if (_isEditMode) {
+          developer.log('[FormPelangganAktif]-[_loadAllData] 📝 : Mode Edit dideteksi, melakukan mapping data pelanggan aktif');
           final pa = widget.pelangganAktif!;
           try {
             _selectedPelanggan = _pelangganList.firstWhere(
               (p) => p.id == pa.idPelanggan,
             );
           } catch (e) {
+            developer.log('[FormPelangganAktif]-[_loadAllData] ⚠️ : Pelanggan dengan ID ${pa.idPelanggan} tidak ditemukan');
             _selectedPelanggan = null;
           }
           try {
             _selectedPaket = _paketList.firstWhere((p) => p.id == pa.idPaket);
           } catch (e) {
+            developer.log('[FormPelangganAktif]-[_loadAllData] ⚠️ : Paket dengan ID ${pa.idPaket} tidak ditemukan');
             _selectedPaket = null;
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -187,6 +194,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           _selectedTime = TimeOfDay.fromDateTime(tglMulai);
           _statusPembayaran = pa.status;
         } else {
+          developer.log('[FormPelangganAktif]-[_loadAllData] ✨ : Mode Tambah baru, mengatur waktu default');
           _selectedDate = DateTime.now();
           _selectedTime = TimeOfDay.now();
         }
@@ -194,7 +202,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         if (_selectedDompet == null && _daftarDompet.isNotEmpty) {
           _selectedDompet = _daftarDompet.first;
         }
-        // diubah: Logika inisialisasi _selectedKategori diperbaiki
+        
         if (_selectedKategori == null && _kategoriPemasukanList.isNotEmpty) {
           try {
             _selectedKategori = _kategoriPemasukanList.firstWhere(
@@ -206,8 +214,10 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         }
 
         _isLoading = false;
+        developer.log('[FormPelangganAktif]-[_loadAllData] ✅ : Data berhasil dimuat sepenuhnya');
       });
     } catch (e) {
+      developer.log('[FormPelangganAktif]-[_loadAllData] ❌ : Error saat memuat data: $e');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
@@ -219,6 +229,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    developer.log('[FormPelangganAktif]-[_selectDate] 📅 : Membuka DatePicker');
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
@@ -226,6 +237,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       lastDate: DateTime(2101),
     );
     if (picked != null && picked != _selectedDate) {
+      developer.log('[FormPelangganAktif]-[_selectDate] ✅ : Tanggal dipilih: $picked');
       setState(() {
         _selectedDate = picked;
       });
@@ -233,6 +245,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
+    developer.log('[FormPelangganAktif]-[_selectTime] 🕒 : Membuka TimePicker');
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
@@ -244,6 +257,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       },
     );
     if (picked != null && picked != _selectedTime) {
+      developer.log('[FormPelangganAktif]-[_selectTime] ✅ : Waktu dipilih: $picked');
       setState(() {
         _selectedTime = picked;
       });
@@ -251,7 +265,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   }
 
   Future<HasilSimpanModel> _saveForm() async {
+    developer.log('[FormPelangganAktif]-[_saveForm] 💾 : Menjalankan proses penyimpanan form');
     if (!_formKey.currentState!.validate()) {
+      developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Validasi form gagal (Data tidak lengkap)');
       return HasilSimpanModel(sukses: false, pesan: 'Data belum lengkap');
     }
 
@@ -263,6 +279,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _selectedTime == null ||
         _selectedDompet == null ||
         _selectedKategori == null) {
+      developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Salah satu field utama null');
       return HasilSimpanModel(
         sukses: false,
         pesan: 'Harap lengkapi semua data',
@@ -270,7 +287,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     }
 
     if (_gunakanPoin) {
+      developer.log('[FormPelangganAktif]-[_saveForm] 💡 : Menggunakan poin untuk aktivasi');
       if (selectedPaket.poinPenukaran <= 0) {
+        developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Paket tidak mendukung penukaran poin');
         return HasilSimpanModel(
           sukses: false,
           pesan: 'Paket ini tidak mendukung penukaran poin',
@@ -278,6 +297,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       }
 
       if (_saldoPoinPelanggan < selectedPaket.poinPenukaran) {
+        developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Poin pelanggan tidak cukup. Saldo: $_saldoPoinPelanggan, Dibutuhkan: ${selectedPaket.poinPenukaran}');
         return HasilSimpanModel(sukses: false, pesan: 'Poin tidak cukup');
       }
     }
@@ -336,6 +356,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       );
 
       if (_isEditMode) {
+        developer.log('[FormPelangganAktif]-[_saveForm] 🔄 : Melakukan update data Pelanggan Aktif dan Transaksi');
         await widget.pelangganAktifOperasi.updatePelangganAktif(
           pelangganAktifData,
         );
@@ -344,14 +365,17 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           transaksiData,
         );
       } else {
+        developer.log('[FormPelangganAktif]-[_saveForm] 📤 : Menambahkan data baru Pelanggan Aktif dan Transaksi');
         await widget.pelangganAktifOperasi.createPelangganAktif(
           pelangganAktifData,
         );
         await widget.transaksiOperasi.tambahTransaksi(transaksiData);
       }
 
+      developer.log('[FormPelangganAktif]-[_saveForm] 🎉 : Berhasil menyimpan data Pelanggan Aktif');
       return HasilSimpanModel(sukses: true, pesan: 'Berhasil disimpan');
     } catch (e) {
+      developer.log('[FormPelangganAktif]-[_saveForm] ❌ : Gagal saat eksekusi operasi database: $e');
       return HasilSimpanModel(sukses: false, pesan: 'Gagal menyimpan: $e');
     }
   }
@@ -413,9 +437,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             Switch(
                               value: _gunakanPoin,
                               onChanged: (bool value) {
+                                developer.log('[FormPelangganAktif]-[Switch] 🔘 : Perubahan status Gunakan Poin menjadi: $value');
                                 setState(() {
                                   _gunakanPoin = value;
-                                  // diubah: Reset kategori jika tidak ada di daftar yang baru
                                   if (!_kategoriList.contains(
                                     _selectedKategori,
                                   )) {
@@ -445,6 +469,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                         }).toList(),
                         onChanged: (PelangganModel? newValue) async {
                           if (newValue == null) return;
+                          developer.log('[FormPelangganAktif]-[Dropdown] 👤 : Pelanggan dipilih: ${newValue.nama}');
 
                           final saldoPoin = await widget.transaksiOperasi
                               .getTotalPoin(newValue.id);
@@ -455,6 +480,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             _selectedPelanggan = newValue;
                             _saldoPoinPelanggan = saldoPoin;
                           });
+                          developer.log('[FormPelangganAktif]-[Dropdown] 💰 : Saldo poin pelanggan ${newValue.nama} adalah $saldoPoin');
                         },
                         validator: (value) => value == null
                             ? 'Pelanggan tidak boleh kosong'
@@ -475,6 +501,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           );
                         }).toList(),
                         onChanged: (PaketModel? newValue) {
+                          developer.log('[FormPelangganAktif]-[Dropdown] 📦 : Paket dipilih: ${newValue?.nama}');
                           setState(() {
                             _selectedPaket = newValue;
                           });
@@ -497,6 +524,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           );
                         }).toList(),
                         onChanged: (DompetModel? newValue) {
+                          developer.log('[FormPelangganAktif]-[Dropdown] 💳 : Dompet dipilih: ${newValue?.namaDompet}');
                           setState(() {
                             _selectedDompet = newValue;
                           });
@@ -511,7 +539,6 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           labelText: 'Pilih Kategori Transaksi',
                           border: OutlineInputBorder(),
                         ),
-                        // diubah: Menggunakan _kategoriList (getter)
                         initialValue: _selectedKategori,
                         items: _kategoriList.map((KategoriModel kategori) {
                           return DropdownMenuItem<KategoriModel>(
@@ -520,6 +547,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           );
                         }).toList(),
                         onChanged: (KategoriModel? newValue) {
+                          developer.log('[FormPelangganAktif]-[Dropdown] 📑 : Kategori dipilih: ${newValue?.nama}');
                           setState(() {
                             _selectedKategori = newValue;
                           });
@@ -575,6 +603,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                     : Colors.black,
                               ),
                               onPressed: () {
+                                developer.log('[FormPelangganAktif]-[Button] ✅ : Status pembayaran diatur ke LUNAS');
                                 setState(() {
                                   _statusPembayaran = StatusPembayaran.lunas;
                                 });
@@ -598,6 +627,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                     : Colors.black,
                               ),
                               onPressed: () {
+                                developer.log('[FormPelangganAktif]-[Button] ⏳ : Status pembayaran diatur ke BELUM LUNAS');
                                 setState(() {
                                   _statusPembayaran =
                                       StatusPembayaran.belumLunas;
@@ -676,6 +706,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: () async {
+            developer.log('[FormPelangganAktif]-[Action] 👆 : Tombol Simpan ditekan');
             final navigator = Navigator.of(context);
             final messenger = ScaffoldMessenger.of(context);
 
@@ -691,10 +722,13 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             );
 
             if (hasil.sukses) {
+              developer.log('[FormPelangganAktif]-[Action] 🚀 : Penyimpanan berhasil, kembali ke halaman sebelumnya');
               await Future.delayed(const Duration(milliseconds: 300));
 
               if (!mounted) return;
               navigator.pop(true);
+            } else {
+              developer.log('[FormPelangganAktif]-[Action] 🛑 : Penyimpanan gagal: ${hasil.pesan}');
             }
           },
           style: ElevatedButton.styleFrom(

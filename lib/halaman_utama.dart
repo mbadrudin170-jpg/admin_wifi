@@ -1,5 +1,5 @@
 // path: lib/halaman_utama.dart
-// import 'package:admin_wifi/halaman/tes/halaman_tes.dart';
+import 'dart:developer' as developer;
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
@@ -8,13 +8,9 @@ import 'package:admin_wifi/halaman/tab/dompet.dart';
 import 'package:admin_wifi/halaman/tab/transaksi.dart';
 
 class HalamanUtama extends StatefulWidget {
-  // ditambah: untuk menerima status koneksi dari splash screen
   final bool isOffline;
 
-  const HalamanUtama({
-    super.key,
-    this.isOffline = false, // Default value jika tidak dikirim
-  });
+  const HalamanUtama({super.key, this.isOffline = false});
 
   @override
   State<HalamanUtama> createState() => _HalamanUtamaState();
@@ -28,10 +24,13 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     const DompetPage(),
     const TransaksiPage(),
     const LainnyaPage(),
-    // const HalamanTes(),
   ];
 
   void _onItemTapped(int index) {
+    developer.log(
+      '👆 [HalamanUtama] -> [_onItemTapped] -> Berpindah ke tab indeks: $index',
+      name: 'HalamanUtama.Navigation',
+    );
     setState(() {
       _selectedIndex = index;
     });
@@ -40,22 +39,39 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   @override
   void initState() {
     super.initState();
-    // diubah: Menjalankan pengecekan status offline setelah frame pertama selesai dibangun
+    developer.log(
+      '🏠 [HalamanUtama] -> [initState] -> Inisialisasi Halaman Utama',
+      name: 'HalamanUtama.Lifecycle',
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _cekDanTampilkanPesanOffline();
+
+      developer.log(
+        '⏳ [HalamanUtama] -> [PostFrameCallback] -> Menjalankan pengecekan langganan kadaluarsa',
+        name: 'HalamanUtama.BackgroundJob',
+      );
       CekLanggananKadaluarsaService().prosesLanggananKadaluarsa();
     });
   }
 
-  // ditambah: fungsi untuk menampilkan snackbar jika offline
   void _cekDanTampilkanPesanOffline() {
     if (widget.isOffline) {
+      developer.log(
+        '⚠️ [HalamanUtama] -> [_cekDanTampilkanPesanOffline] -> Status: OFFLINE. Menampilkan SnackBar peringatan.',
+        name: 'HalamanUtama.Network',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Anda dalam mode offline. Data mungkin tidak terbaru.'),
           backgroundColor: Colors.orange,
-          duration: Duration(seconds: 5), // Tampilkan lebih lama
+          duration: Duration(seconds: 5),
         ),
+      );
+    } else {
+      developer.log(
+        '🌐 [HalamanUtama] -> [_cekDanTampilkanPesanOffline] -> Status: ONLINE.',
+        name: 'HalamanUtama.Network',
       );
     }
   }
@@ -80,7 +96,6 @@ class _HalamanUtamaState extends State<HalamanUtama> {
             label: 'Transaksi',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Lainnya'),
-          // BottomNavigationBarItem(icon: Icon(Icons.label), label: 'test'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(context).colorScheme.primary,

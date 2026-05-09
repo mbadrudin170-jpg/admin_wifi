@@ -189,9 +189,36 @@ class PelangganAktifOperasi {
       );
       final namaPelanggan = pelanggan?.nama ?? 'Tanpa Nama';
 
+      // Batalkan notifikasi lama (ID HashCode dasar, +1, dan +2 untuk yang baru)
       await notifikasiServis.batalNotifikasi(pelangganAktif.id.hashCode);
       await notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 1));
+      await notifikasiServis.batalNotifikasi(
+        (pelangganAktif.id.hashCode + 2),
+      ); // ID untuk notifikasi tepat waktu
 
+      // --- 1. NOTIFIKASI TEPAT SAAT BERAKHIR (Paling Penting) ---
+      final jadwalTepatWaktu = pelangganAktif.tanggalBerakhir;
+      if (jadwalTepatWaktu.isAfter(DateTime.now())) {
+        await notifikasiServis.jadwalNotifikasi(
+          id:
+              (pelangganAktif.id.hashCode +
+              2), // Gunakan offset +2 agar tidak bentrok
+          title: 'Masa Aktif Habis!',
+          body: 'Paket WiFi untuk $namaPelanggan telah berakhir sekarang.',
+          jadwal: jadwalTepatWaktu,
+        );
+        developer.log(
+          '✅ [LOKAL] Notifikasi TEPAT WAKTU dijadwalkan untuk ${jadwalTepatWaktu.toIso8601String()}',
+          name: 'PelangganAktifOperasi',
+        );
+      } else {
+        developer.log(
+          '⏭️ [LOKAL] Notifikasi tepat waktu dilewati karena sudah kadaluarsa.',
+          name: 'PelangganAktifOperasi',
+        );
+      }
+
+      // --- 2. NOTIFIKASI H-1 ---
       final jadwalNotifikasiH1 = pelangganAktif.tanggalBerakhir.subtract(
         const Duration(days: 1),
       );
@@ -203,16 +230,12 @@ class PelangganAktifOperasi {
           jadwal: jadwalNotifikasiH1,
         );
         developer.log(
-          '✅ [LOKAL] Notifikasi H-1 dijadwalkan untuk ${jadwalNotifikasiH1.toIso8601String()}',
-          name: 'PelangganAktifOperasi',
-        );
-      } else {
-        developer.log(
-          '⏭️ [LOKAL] Notifikasi H-1 dilewati karena jadwal sudah lewat.',
+          '✅ [LOKAL] Notifikasi H-1 dijadwalkan.',
           name: 'PelangganAktifOperasi',
         );
       }
 
+      // --- 3. NOTIFIKASI H-3 ---
       final jadwalNotifikasiH3 = pelangganAktif.tanggalBerakhir.subtract(
         const Duration(days: 3),
       );
@@ -225,23 +248,17 @@ class PelangganAktifOperasi {
           jadwal: jadwalNotifikasiH3,
         );
         developer.log(
-          '✅ [LOKAL] Notifikasi H-3 dijadwalkan untuk ${jadwalNotifikasiH3.toIso8601String()}',
-          name: 'PelangganAktifOperasi',
-        );
-      } else {
-        developer.log(
-          '⏭️ [LOKAL] Notifikasi H-3 dilewati karena jadwal sudah lewat.',
+          '✅ [LOKAL] Notifikasi H-3 dijadwalkan.',
           name: 'PelangganAktifOperasi',
         );
       }
     } catch (e, stackTrace) {
       developer.log(
-        '❌ [LOKAL] Gagal menjadwalkan notifikasi untuk pelanggan aktif (ID: ${pelangganAktif.id}). Error: $e',
+        '❌ [LOKAL] Gagal menjadwalkan notifikasi. Error: $e',
         name: 'PelangganAktifOperasi',
         error: e,
         stackTrace: stackTrace,
       );
-      // Tidak rethrow karena notifikasi bersifat non-critical
     }
   }
 
@@ -313,6 +330,7 @@ class PelangganAktifOperasi {
 
       await notifikasiServis.batalNotifikasi(id.hashCode);
       await notifikasiServis.batalNotifikasi((id.hashCode + 1));
+      await notifikasiServis.batalNotifikasi((id.hashCode + 2));
 
       developer.log(
         '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
