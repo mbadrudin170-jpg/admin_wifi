@@ -1,10 +1,7 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
-// diubah: Direfactor untuk dependency injection NotifikasiServis agar mudah di-test.
-// diubah: Mengganti `jumlahPoin` yang sudah dihapus dengan `poinHadiah`.
+// diubah: Menghapus semua referensi ke RiwayatLanggananOperasi dan modelnya.
+// diubah: Memperbaiki logika arsip otomatis untuk hanya menandai pelanggan aktif sebagai isDeleted.
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
-import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as developer;
 import 'package:uuid/uuid.dart';
@@ -22,7 +19,6 @@ class PelangganAktifOperasi {
   late final NotifikasiServis notifikasiServis;
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
-  // ditambah: Konstruktor untuk dependency injection.
   PelangganAktifOperasi({NotifikasiServis? notifikasiServis}) {
     this.notifikasiServis = notifikasiServis ?? NotifikasiServis();
   }
@@ -169,7 +165,7 @@ class PelangganAktifOperasi {
     );
   }
 
-  Future<void> hapusPelangganYangDiArsipkan() async {
+  Future<void> hapusPermanenPelangganYangDiArsipkan() async {
     final db = await dbHelper.database;
     final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
     final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
@@ -207,41 +203,21 @@ class PelangganAktifOperasi {
     );
   }
 
-  // diubah: Menambahkan snapshot poinHadiah saat membuat riwayat.
   Future<int> arsipkanPelangganKadaluarsa() async {
-    final riwayatOperasi = RiwayatLanggananOperasi();
-    final paketOperasi = PaketOperasi();
     final semuaPelanggan = await ambilSemuaPelangganAktif();
     final sekarang = DateTime.now();
     final pelangganKadaluarsa = semuaPelanggan
         .where((p) => p.tanggalBerakhir.isBefore(sekarang) && !p.isDeleted)
         .toList();
+
     if (pelangganKadaluarsa.isEmpty) {
       return 0;
     }
+
     for (final pelanggan in pelangganKadaluarsa) {
-      final paket = await paketOperasi.getPaketById(pelanggan.idPaket);
-      if (paket != null) {
-        final riwayat = RiwayatLanggananModel(
-          id: pelanggan.id,
-          idPelanggan: pelanggan.idPelanggan,
-          idPaket: pelanggan.idPaket,
-          namaPaket: paket.nama,
-          hargaPaket: paket.harga,
-          durasiPaket: paket.durasi,
-          tipeDurasiPaket: paket.tipe.name,
-          jumlahPoinDiperoleh:
-              paket.poinHadiah, // diubah: snapshot poin dari paket
-          tanggalMulai: pelanggan.tanggalMulai,
-          tanggalBerakhir: pelanggan.tanggalBerakhir,
-          status: pelanggan.status,
-          diarsipkan: DateTime.now(),
-          diperbarui: DateTime.now(),
-        );
-        await riwayatOperasi.tambahRiwayatLangganan(riwayat);
-      }
       await arsipkanPelangganAktif(pelanggan.id);
     }
+
     developer.log(
       '🗂️ [LOKAL] ${pelangganKadaluarsa.length} pelanggan kadaluarsa telah diarsipkan.',
       name: 'PelangganAktifOperasi',

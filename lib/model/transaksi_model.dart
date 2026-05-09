@@ -1,10 +1,11 @@
 // path: lib/model/transaksi_model.dart
-// diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
-// diubah: ID sekarang wajib dan tidak dibuat secara otomatis di dalam model.
+// diubah: Model digabungkan dengan RiwayatLanggananModel dan denormalisasi data dihapus.
 import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/model/paket_model.dart'; // Impor untuk TipeDurasi
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum TipeTransaksi { pemasukan, pengeluaran, transfer }
+// ditambahkan: tipe 'langganan' untuk mencatat aktivasi/penukaran paket.
 
 class TransaksiModel {
   final String id;
@@ -13,23 +14,24 @@ class TransaksiModel {
   final double jumlah;
   final TipeTransaksi tipe;
   final String idDompet;
-  final String namaDompet;
-  final String? idDompetTujuan;
-  final String? namaDompetTujuan;
   final String idKategori;
-  final String namaKategori;
+  final String? idDompetTujuan;
   final String? idPelanggan;
-  final String? namaPelanggan;
   final String? idPaket;
-  final String? namaPaket;
   final String? idSubKategori;
-  final String? namaSubKategori;
   final StatusPembayaran statusPembayaran;
   final int poinYangDihasilkan;
   final int poinYangDigunakan;
   final DateTime? diperbarui;
   final DateTime? diarsipkan;
   final bool isDeleted;
+
+  // ditambahkan: Properti dari RiwayatLanggananModel
+  final int? durasiPaket;
+  final TipeDurasi? tipeDurasiPaket;
+  final DateTime? tanggalMulai;
+  final DateTime? tanggalBerakhir;
+  final bool aktivasiPaket;
 
   TransaksiModel({
     required this.id,
@@ -38,23 +40,22 @@ class TransaksiModel {
     required this.jumlah,
     required this.tipe,
     required this.idDompet,
-    required this.namaDompet,
-    this.idDompetTujuan,
-    this.namaDompetTujuan,
     required this.idKategori,
-    required this.namaKategori,
+    this.idDompetTujuan,
     this.idPelanggan,
-    this.namaPelanggan,
     this.idPaket,
-    this.namaPaket,
     this.idSubKategori,
-    this.namaSubKategori,
     this.statusPembayaran = StatusPembayaran.belumLunas,
     this.poinYangDihasilkan = 0,
     this.poinYangDigunakan = 0,
     this.diperbarui,
     this.diarsipkan,
     this.isDeleted = false,
+    this.durasiPaket,
+    this.tipeDurasiPaket,
+    this.tanggalMulai,
+    this.tanggalBerakhir,
+    this.aktivasiPaket = false,
   });
 
   static DateTime? _parseDateTime(dynamic dateValue) {
@@ -65,14 +66,9 @@ class TransaksiModel {
     return null;
   }
 
-  // diubah: Nama metode dari fromMap menjadi fromSqlite
   factory TransaksiModel.fromSqlite(Map<String, dynamic> map) {
-    final id = map['id'] as String?;
-    if (id == null) {
-      throw ArgumentError('ID tidak boleh null dari SQLite');
-    }
     return TransaksiModel(
-      id: id,
+      id: map['id'] as String,
       tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
       keterangan: map['keterangan'] ?? '',
       jumlah: (map['jumlah'] as num? ?? 0).toDouble(),
@@ -81,17 +77,11 @@ class TransaksiModel {
         orElse: () => TipeTransaksi.pengeluaran,
       ),
       idDompet: map['id_dompet'] ?? '',
-      namaDompet: map['nama_dompet'] ?? '',
-      idDompetTujuan: map['id_dompet_tujuan'],
-      namaDompetTujuan: map['nama_dompet_tujuan'],
       idKategori: map['id_kategori'] ?? '',
-      namaKategori: map['nama_kategori'] ?? '',
+      idDompetTujuan: map['id_dompet_tujuan'],
       idPelanggan: map['id_pelanggan'],
-      namaPelanggan: map['nama_pelanggan'],
       idPaket: map['id_paket'],
-      namaPaket: map['nama_paket'],
       idSubKategori: map['id_sub_kategori'],
-      namaSubKategori: map['nama_sub_kategori'],
       statusPembayaran: StatusPembayaran.values.firstWhere(
         (e) => e.name == map['status_pembayaran'],
         orElse: () => StatusPembayaran.belumLunas,
@@ -100,11 +90,17 @@ class TransaksiModel {
       poinYangDigunakan: (map['poin_yang_digunakan'] as num? ?? 0).toInt(),
       diperbarui: _parseDateTime(map['diperbarui']),
       diarsipkan: _parseDateTime(map['diarsipkan']),
-      isDeleted: map['isDeleted'] == 1 || map['isDeleted'] == true,
+      isDeleted: (map['isDeleted'] == 1),
+      durasiPaket: (map['durasi_paket'] as num?)?.toInt(),
+      tipeDurasiPaket: map['tipe_durasi_paket'] != null
+          ? TipeDurasi.values.byName(map['tipe_durasi_paket'])
+          : null,
+      tanggalMulai: _parseDateTime(map['tanggal_mulai']),
+      tanggalBerakhir: _parseDateTime(map['tanggal_berakhir']),
+      aktivasiPaket: map['aktivasi_paket'] == 1,
     );
   }
 
-  // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
   Map<String, dynamic> toSqlite() {
     return {
       'id': id,
@@ -113,27 +109,25 @@ class TransaksiModel {
       'jumlah': jumlah,
       'tipe': tipe.name,
       'id_dompet': idDompet,
-      'nama_dompet': namaDompet,
-      'id_dompet_tujuan': idDompetTujuan,
-      'nama_dompet_tujuan': namaDompetTujuan,
       'id_kategori': idKategori,
-      'nama_kategori': namaKategori,
+      'id_dompet_tujuan': idDompetTujuan,
       'id_pelanggan': idPelanggan,
-      'nama_pelanggan': namaPelanggan,
       'id_paket': idPaket,
-      'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
-      'nama_sub_kategori': namaSubKategori,
       'status_pembayaran': statusPembayaran.name,
       'poin_yang_dihasilkan': poinYangDihasilkan,
       'poin_yang_digunakan': poinYangDigunakan,
       'diperbarui': diperbarui?.toIso8601String(),
       'diarsipkan': diarsipkan?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
+      'durasi_paket': durasiPaket,
+      'tipe_durasi_paket': tipeDurasiPaket?.name,
+      'tanggal_mulai': tanggalMulai?.toIso8601String(),
+      'tanggal_berakhir': tanggalBerakhir?.toIso8601String(),
+      'aktivasi_paket': aktivasiPaket ? 1 : 0,
     };
   }
 
-  // ditambahkan: Factory fromFirebase
   factory TransaksiModel.fromFirebase(String id, Map<String, dynamic> data) {
     return TransaksiModel(
       id: id,
@@ -145,17 +139,11 @@ class TransaksiModel {
         orElse: () => TipeTransaksi.pengeluaran,
       ),
       idDompet: data['id_dompet'] ?? '',
-      namaDompet: data['nama_dompet'] ?? '',
-      idDompetTujuan: data['id_dompet_tujuan'],
-      namaDompetTujuan: data['nama_dompet_tujuan'],
       idKategori: data['id_kategori'] ?? '',
-      namaKategori: data['nama_kategori'] ?? '',
+      idDompetTujuan: data['id_dompet_tujuan'],
       idPelanggan: data['id_pelanggan'],
-      namaPelanggan: data['nama_pelanggan'],
       idPaket: data['id_paket'],
-      namaPaket: data['nama_paket'],
       idSubKategori: data['id_sub_kategori'],
-      namaSubKategori: data['nama_sub_kategori'],
       statusPembayaran: StatusPembayaran.values.firstWhere(
         (e) => e.name == data['status_pembayaran'],
         orElse: () => StatusPembayaran.belumLunas,
@@ -165,10 +153,16 @@ class TransaksiModel {
       diperbarui: _parseDateTime(data['diperbarui']),
       diarsipkan: _parseDateTime(data['diarsipkan']),
       isDeleted: data['isDeleted'] ?? false,
+      durasiPaket: (data['durasiPaket'] as num?)?.toInt(),
+      tipeDurasiPaket: data['tipeDurasiPaket'] != null
+          ? TipeDurasi.values.byName(data['tipeDurasiPaket'])
+          : null,
+      tanggalMulai: _parseDateTime(data['tanggalMulai']),
+      tanggalBerakhir: _parseDateTime(data['tanggalBerakhir']),
+      aktivasiPaket: data['aktivasiPaket'] ?? false,
     );
   }
 
-  // diubah: Nama metode dan logika diperbarui diubah
   Map<String, dynamic> toFirebase() {
     return {
       'id': id,
@@ -177,23 +171,26 @@ class TransaksiModel {
       'jumlah': jumlah,
       'tipe': tipe.name,
       'id_dompet': idDompet,
-      'nama_dompet': namaDompet,
-      'id_dompet_tujuan': idDompetTujuan,
-      'nama_dompet_tujuan': namaDompetTujuan,
       'id_kategori': idKategori,
-      'nama_kategori': namaKategori,
+      'id_dompet_tujuan': idDompetTujuan,
       'id_pelanggan': idPelanggan,
-      'nama_pelanggan': namaPelanggan,
       'id_paket': idPaket,
-      'nama_paket': namaPaket,
       'id_sub_kategori': idSubKategori,
-      'nama_sub_kategori': namaSubKategori,
       'status_pembayaran': statusPembayaran.name,
       'poin_yang_dihasilkan': poinYangDihasilkan,
       'poin_yang_digunakan': poinYangDigunakan,
-      'diperbarui': FieldValue.serverTimestamp(), // diubah
+      'diperbarui': FieldValue.serverTimestamp(),
       'diarsipkan': diarsipkan,
       'isDeleted': isDeleted,
+      'durasiPaket': durasiPaket,
+      'tipeDurasiPaket': tipeDurasiPaket?.name,
+      'tanggalMulai': tanggalMulai != null
+          ? Timestamp.fromDate(tanggalMulai!)
+          : null,
+      'tanggalBerakhir': tanggalBerakhir != null
+          ? Timestamp.fromDate(tanggalBerakhir!)
+          : null,
+      'aktivasiPaket': aktivasiPaket,
     };
   }
 
@@ -204,23 +201,22 @@ class TransaksiModel {
     double? jumlah,
     TipeTransaksi? tipe,
     String? idDompet,
-    String? namaDompet,
-    String? idDompetTujuan,
-    String? namaDompetTujuan,
     String? idKategori,
-    String? namaKategori,
+    String? idDompetTujuan,
     String? idPelanggan,
-    String? namaPelanggan,
     String? idPaket,
-    String? namaPaket,
     String? idSubKategori,
-    String? namaSubKategori,
     StatusPembayaran? statusPembayaran,
     int? poinYangDihasilkan,
     int? poinYangDigunakan,
     DateTime? diperbarui,
     DateTime? diarsipkan,
     bool? isDeleted,
+    int? durasiPaket,
+    TipeDurasi? tipeDurasiPaket,
+    DateTime? tanggalMulai,
+    DateTime? tanggalBerakhir,
+    bool? aktivasiPaket,
   }) {
     return TransaksiModel(
       id: id ?? this.id,
@@ -229,23 +225,22 @@ class TransaksiModel {
       jumlah: jumlah ?? this.jumlah,
       tipe: tipe ?? this.tipe,
       idDompet: idDompet ?? this.idDompet,
-      namaDompet: namaDompet ?? this.namaDompet,
-      idDompetTujuan: idDompetTujuan ?? this.idDompetTujuan,
-      namaDompetTujuan: namaDompetTujuan ?? this.namaDompetTujuan,
       idKategori: idKategori ?? this.idKategori,
-      namaKategori: namaKategori ?? this.namaKategori,
+      idDompetTujuan: idDompetTujuan ?? this.idDompetTujuan,
       idPelanggan: idPelanggan ?? this.idPelanggan,
-      namaPelanggan: namaPelanggan ?? this.namaPelanggan,
       idPaket: idPaket ?? this.idPaket,
-      namaPaket: namaPaket ?? this.namaPaket,
       idSubKategori: idSubKategori ?? this.idSubKategori,
-      namaSubKategori: namaSubKategori ?? this.namaSubKategori,
       statusPembayaran: statusPembayaran ?? this.statusPembayaran,
       poinYangDihasilkan: poinYangDihasilkan ?? this.poinYangDihasilkan,
       poinYangDigunakan: poinYangDigunakan ?? this.poinYangDigunakan,
       diperbarui: diperbarui ?? this.diperbarui,
       diarsipkan: diarsipkan ?? this.diarsipkan,
       isDeleted: isDeleted ?? this.isDeleted,
+      durasiPaket: durasiPaket ?? this.durasiPaket,
+      tipeDurasiPaket: tipeDurasiPaket ?? this.tipeDurasiPaket,
+      tanggalMulai: tanggalMulai ?? this.tanggalMulai,
+      tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
+      aktivasiPaket: aktivasiPaket ?? this.aktivasiPaket,
     );
   }
 }

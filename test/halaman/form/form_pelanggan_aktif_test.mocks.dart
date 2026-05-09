@@ -388,9 +388,9 @@ class MockPelangganAktifOperasi extends _i1.Mock
           as _i8.Future<void>);
 
   @override
-  _i8.Future<void> hapusPelangganYangDiArsipkan() =>
+  _i8.Future<void> hapusPermanenPelangganYangDiArsipkan() =>
       (super.noSuchMethod(
-            Invocation.method(#hapusPelangganYangDiArsipkan, []),
+            Invocation.method(#hapusPermanenPelangganYangDiArsipkan, []),
             returnValue: _i8.Future<void>.value(),
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
@@ -490,6 +490,16 @@ class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiByPelanggan, [pelangganId]),
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
+            ),
+          )
+          as _i8.Future<List<_i14.TransaksiModel>>);
+
+  @override
+  _i8.Future<List<_i14.TransaksiModel>> getTransaksiByAktivasiPaket() =>
+      (super.noSuchMethod(
+            Invocation.method(#getTransaksiByAktivasiPaket, []),
             returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
               <_i14.TransaksiModel>[],
             ),

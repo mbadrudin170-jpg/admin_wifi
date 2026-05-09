@@ -1,166 +1,176 @@
 // path: lib/halaman/detail/detail_riwayat_langganan.dart
-// File ini bertanggung jawab untuk menampilkan detail dari sebuah riwayat langganan.
+// diubah: File ini sekarang menampilkan detail transaksi langganan dari TransaksiModel.
 
-import 'package:admin_wifi/halaman/form/form_edit_riwayat_langganan.dart';
-import 'package:admin_wifi/model/riwayat_langganan_model.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'package:admin_wifi/widget/nama_paket.dart';
-import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/material.dart';
 
-class DetailRiwayatLanggananPage extends StatefulWidget {
-  final RiwayatLanggananModel riwayat;
+class DetailLanggananTransaksiPage extends StatefulWidget {
+  final String idTransaksi;
 
-  const DetailRiwayatLanggananPage({super.key, required this.riwayat});
-
+  const DetailLanggananTransaksiPage({super.key, required this.idTransaksi});
   @override
-  State<DetailRiwayatLanggananPage> createState() =>
-      _DetailRiwayatLanggananPageState();
+  State<DetailLanggananTransaksiPage> createState() =>
+      _DetailLanggananTransaksiPageState();
 }
 
-class _DetailRiwayatLanggananPageState
-    extends State<DetailRiwayatLanggananPage> {
-  late RiwayatLanggananModel _riwayat;
+class _DetailLanggananTransaksiPageState
+    extends State<DetailLanggananTransaksiPage> {
+  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  final PaketOperasi _paketOperasi = PaketOperasi();
+  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
+  late Future<TransaksiModel?> _transaksiFuture;
 
   @override
   void initState() {
     super.initState();
-    _riwayat = widget.riwayat;
-  }
 
-  // Navigasi ke halaman edit dan segarkan data jika ada perubahan
-  void _goToEditPage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FormEditRiwayatLangganan(riwayat: _riwayat),
-      ),
-    );
-
-    // Jika halaman edit mengembalikan 'true', segarkan halaman ini
-    if (result == true) {
-      if (mounted) {
-        Navigator.of(context).pop(true); // Kirim sinyal kembali ke daftar
-      }
-    }
+    _transaksiFuture = _transaksiOperasi.getTransaksiById(widget.idTransaksi);
   }
 
   @override
   Widget build(BuildContext context) {
-    final statusPembayaranText = _riwayat.status.displayName;
-    final statusPembayaranColor = _riwayat.status == StatusPembayaran.lunas
-        ? Colors.green
-        : Colors.red;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail Riwayat'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _goToEditPage,
-            tooltip: 'Edit Riwayat',
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
+      appBar: AppBar(title: const Text('Detail Langganan')),
+      body: FutureBuilder<TransaksiModel?>(
+        future: _transaksiFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final transaksi = snapshot.data;
+
+          if (transaksi == null) {
+            return const Center(child: Text('Transaksi tidak ditemukan'));
+          }
+          return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: NamaPelangganWidget(
-                    idPelanggan: _riwayat.idPelanggan,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+            child: ListView(
+              children: <Widget>[
+                if (transaksi.idPelanggan != null)
+                  _buildFutureInfoCard<PelangganModel>(
+                    'Informasi Pelanggan',
+                    _pelangganOperasi.getPelangganById(transaksi.idPelanggan!),
+                    (pelanggan) => [
+                      _buildDetailRow(
+                        'Nama Pelanggan',
+                        pelanggan?.nama ?? '...',
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 16),
+                if (transaksi.idPaket != null)
+                  _buildFutureInfoCard<PaketModel>(
+                    'Informasi Paket',
+                    _paketOperasi.getPaketById(transaksi.idPaket!),
+                    (paket) => [
+                      _buildDetailRow('Nama Paket', paket?.nama ?? '...'),
+                      _buildDetailRow(
+                        'Harga',
+                        FormatUang.formatMataUang(paket?.harga.toDouble() ?? 0),
+                      ),
+                      _buildDetailRow(
+                        'Durasi',
+                        '${paket?.durasi} ${paket?.tipe.name}',
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 16),
+                if (transaksi.tanggalMulai != null &&
+                    transaksi.tanggalBerakhir != null)
+                  _buildInfoCard('Waktu Langganan', [
+                    _buildDetailRow(
+                      'Tanggal Mulai',
+                      FormatTanggal.formatTanggalDanJam(
+                        transaksi.tanggalMulai!,
+                      ),
                     ),
+                    _buildDetailRow(
+                      'Tanggal Berakhir',
+                      FormatTanggal.formatTanggalDanJam(
+                        transaksi.tanggalBerakhir!,
+                      ),
+                    ),
+                  ]),
+                const SizedBox(height: 16),
+                _buildInfoCard('Status', [
+                  _buildDetailRow(
+                    'Status Pembayaran',
+                    transaksi.statusPembayaran.name,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: NamaPaketWidget(
-                    idPaket: _riwayat.idPaket,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                const Divider(height: 32),
-                _buildDetailRow(
-                  context,
-                  icon: Icons.payment,
-                  label: 'Status Pembayaran',
-                  value: statusPembayaranText,
-                  valueColor: statusPembayaranColor,
-                ),
-                // ditambahkan: Menampilkan jumlah poin yang diperoleh
-                _buildDetailRow(
-                  context,
-                  icon: Icons.star,
-                  label: 'Poin Diperoleh',
-                  value: '${_riwayat.jumlahPoinDiperoleh} Poin',
-                ),
-                _buildDetailRow(
-                  context,
-                  icon: Icons.date_range,
-                  label: 'Tanggal Mulai',
-                  value: FormatTanggal.formatTanggalBasic(
-                    _riwayat.tanggalMulai,
-                  ), // Diperbaiki
-                ),
-                _buildDetailRow(
-                  context,
-                  icon: Icons.event_busy,
-                  label: 'Tanggal Berakhir',
-                  value: FormatTanggal.formatTanggalBasic(
-                    _riwayat.tanggalBerakhir,
-                  ), // Diperbaiki
-                ),
-                _buildDetailRow(
-                  context,
-                  icon: Icons.archive,
-                  label: 'Diarsipkan Pada',
-                  value: _riwayat.diperbarui != null
-                      ? FormatTanggal.formatTanggalDanJam(_riwayat.diperbarui!)
-                      : '-',
-                ),
+                ]),
               ],
             ),
-          ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(String title, List<Widget> children) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(height: 20, thickness: 1),
+            ...children,
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-    Color? valueColor,
-  }) {
+  Widget _buildFutureInfoCard<T>(
+    String title,
+    Future<T?> future,
+    List<Widget> Function(T? data) builder,
+  ) {
+    return FutureBuilder<T?>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildInfoCard(title, [
+            const Center(child: CircularProgressIndicator()),
+          ]);
+        }
+        if (snapshot.hasError) {
+          return _buildInfoCard(title, [const Text('Gagal memuat data')]);
+        }
+        return _buildInfoCard(title, builder(snapshot.data));
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
-          const SizedBox(width: 16),
-          Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold)),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor,
-              fontWeight: valueColor != null
-                  ? FontWeight.bold
-                  : FontWeight.normal,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(label, style: TextStyle(color: Colors.grey[600])),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+              textAlign: TextAlign.end,
             ),
           ),
         ],

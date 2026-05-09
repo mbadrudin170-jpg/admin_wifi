@@ -2,6 +2,7 @@
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
@@ -170,17 +171,11 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         tanggal: _tanggal,
         tipe: _tipe,
         idDompet: _selectedDompet!.id,
-        namaDompet: _selectedDompet!.namaDompet,
         idDompetTujuan: _tipe == TipeTransaksi.transfer
             ? _selectedDompetTujuan?.id
             : null,
-        namaDompetTujuan: _tipe == TipeTransaksi.transfer
-            ? _selectedDompetTujuan?.namaDompet
-            : null,
         idKategori: _selectedKategori?.id ?? '',
-        namaKategori: _selectedKategori?.nama ?? '',
         idSubKategori: _selectedSubKategori?.id,
-        namaSubKategori: _selectedSubKategori?.nama,
         diperbarui: DateTime.now(),
       );
 

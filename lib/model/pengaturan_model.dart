@@ -1,9 +1,9 @@
 // path: lib/model/pengaturan_model.dart
-// diubah: Memperbaiki casting tipe di fromSqlite untuk menangani ID integer.
+// diubah: Menghapus properti 'id' yang tidak diperlukan karena tabel pengaturan tidak memilikinya.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PengaturanModel {
-  final String id;
   final int intervalSinkronisasiOtomatis;
   final int hapusOtomatisDataArsip;
   final bool modePemeliharaan;
@@ -11,13 +11,12 @@ class PengaturanModel {
   final DateTime? diperbarui;
 
   PengaturanModel({
-    String? id,
     this.intervalSinkronisasiOtomatis = 24,
     this.hapusOtomatisDataArsip = 30,
     this.modePemeliharaan = false,
     this.infoPemeliharaan = '',
     this.diperbarui,
-  }) : id = id ?? 'default';
+  });
 
   static DateTime? _parseDateTime(dynamic dateValue) {
     if (dateValue == null) return null;
@@ -32,8 +31,6 @@ class PengaturanModel {
 
   factory PengaturanModel.fromSqlite(Map<String, dynamic> map) {
     return PengaturanModel(
-      // diubah: Menggunakan .toString() untuk keamanan tipe dari database.
-      id: map['id']?.toString() ?? 'default',
       intervalSinkronisasiOtomatis:
           map['interval_sinkronisasi_otomatis'] as int? ?? 24,
       hapusOtomatisDataArsip: map['hapus_otomatis_data_arsip'] as int? ?? 30,
@@ -45,7 +42,6 @@ class PengaturanModel {
 
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
       'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
       'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
       'mode_pemeliharaan': modePemeliharaan ? 1 : 0,
@@ -60,7 +56,6 @@ class PengaturanModel {
 
   factory PengaturanModel.fromFirebase(Map<String, dynamic> data) {
     return PengaturanModel(
-      id: data['id'] as String? ?? 'default',
       intervalSinkronisasiOtomatis:
           data['interval_sinkronisasi_otomatis'] as int? ?? 24,
       hapusOtomatisDataArsip: data['hapus_otomatis_data_arsip'] as int? ?? 30,
@@ -72,7 +67,6 @@ class PengaturanModel {
 
   Map<String, dynamic> toFirebase() {
     return {
-      'id': id,
       'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
       'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
       'mode_pemeliharaan': modePemeliharaan,

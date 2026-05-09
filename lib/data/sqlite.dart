@@ -1,7 +1,6 @@
 // path: lib/data/sqlite.dart
-// diubah: Menambahkan kolom 'diperbarui' ke tabel 'status_unggah' dan menaikkan versi database.
-// diubah: Menambahkan kolom id_transaksi ke tabel pelanggan_aktif dan menaikkan versi database.
-// diubah: Menambahkan indeks pada tabel transaksi untuk performa query dan menaikkan versi database.
+// diubah: Menghapus tabel riwayat_langganan yang sudah tidak digunakan.
+// diubah: Memastikan kolom aktivasi_paket ada di definisi tabel utama.
 
 import 'dart:developer';
 import 'dart:io';
@@ -10,13 +9,11 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-// Kelas ini berfungsi sebagai pusat pengelolaan koneksi dan skema database SQLite.
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // diubah: Versi dinaikkan dari 36 ke 37 untuk menambahkan indeks pada tabel transaksi.
-  static const int _databaseVersion = 37;
+  static const int _databaseVersion = 39;
 
   DatabaseHelper._internal();
 
@@ -70,11 +67,15 @@ class DatabaseHelper {
         nama_dompet_tujuan TEXT,
         poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0,
         poin_yang_digunakan INTEGER NOT NULL DEFAULT 0,
-        status_pembayaran TEXT
+        status_pembayaran TEXT,
+        durasi_paket INTEGER,
+        tipe_durasi_paket TEXT,
+        tanggal_mulai TEXT,
+        tanggal_berakhir TEXT,
+        aktivasi_paket INTEGER DEFAULT 0
       )
     ''';
 
-  // diubah: Menambahkan kolom 'diperbarui'.
   static const String tabelStatusUnggah = '''
     CREATE TABLE status_unggah(
       tabel TEXT PRIMARY KEY,
@@ -123,57 +124,94 @@ class DatabaseHelper {
     );
   }
 
-  // diubah: Menambahkan logika upgrade untuk membuat indeks pada tabel transaksi.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     log('Memulai upgrade database dari versi $oldVersion ke $newVersion');
 
     if (oldVersion < 34) {
       try {
-        log('Menjalankan upgrade untuk versi < 34: Menambahkan kolom status_pembayaran pada tabel transaksi.');
-        await db.execute('ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT');
-        log('Kolom status_pembayaran berhasil ditambahkan ke tabel transaksi.');
+        await db.execute(
+          'ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT',
+        );
       } catch (e) {
-        log('Error saat menambahkan kolom status_pembayaran ke tabel transaksi: $e');
+        log('Gagal upgrade v34: $e');
       }
     }
 
     if (oldVersion < 35) {
       try {
-        log('Menjalankan upgrade untuk versi < 35: Menambahkan kolom diperbarui pada tabel status_unggah.');
-        await db.execute('ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT');
-        log('Kolom diperbarui berhasil ditambahkan ke tabel status_unggah.');
+        await db.execute(
+          'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT',
+        );
       } catch (e) {
-        log('Error saat menambahkan kolom diperbarui ke tabel status_unggah: $e');
+        log('Gagal upgrade v35: $e');
       }
     }
 
     if (oldVersion < 36) {
       try {
-        log('Menjalankan upgrade untuk versi < 36: Menambahkan kolom id_transaksi pada tabel pelanggan_aktif.');
-        await db.execute('ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT');
-        log('Kolom id_transaksi berhasil ditambahkan ke tabel pelanggan_aktif.');
+        await db.execute(
+          'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT',
+        );
       } catch (e) {
-        log('Error saat menambahkan kolom id_transaksi ke tabel pelanggan_aktif: $e');
+        log('Gagal upgrade v36: $e');
       }
     }
-    
-    // ditambah: Logika untuk membuat indeks pada tabel transaksi untuk meningkatkan performa query.
+
     if (oldVersion < 37) {
       try {
-        log('Menjalankan upgrade untuk versi < 37: Membuat indeks pada tabel transaksi.');
-        await db.execute('CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);');
-        await db.execute('CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);');
-        await db.execute('CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);');
-        log('Indeks berhasil dibuat pada tabel transaksi.');
+        await db.execute(
+          'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);',
+        );
+        await db.execute(
+          'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);',
+        );
+        await db.execute(
+          'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);',
+        );
       } catch (e) {
-        log('Error saat membuat indeks pada tabel transaksi: $e');
+        log('Gagal upgrade v37: $e');
+      }
+    }
+
+    if (oldVersion < 38) {
+      try {
+        log(
+          'Menjalankan upgrade untuk versi < 38: Menambahkan kolom langganan ke tabel transaksi.',
+        );
+        await db.execute(
+          'ALTER TABLE transaksi ADD COLUMN durasi_paket INTEGER',
+        );
+        await db.execute(
+          'ALTER TABLE transaksi ADD COLUMN tipe_durasi_paket TEXT',
+        );
+        await db.execute('ALTER TABLE transaksi ADD COLUMN tanggal_mulai TEXT');
+        await db.execute(
+          'ALTER TABLE transaksi ADD COLUMN tanggal_berakhir TEXT',
+        );
+        log('Kolom langganan berhasil ditambahkan ke tabel transaksi.');
+      } catch (e) {
+        log('Error saat menambahkan kolom langganan ke tabel transaksi: $e');
+      }
+    }
+    if (oldVersion < 39) {
+      try {
+        log(
+          'Menjalankan upgrade untuk versi < 39: Menambahkan kolom aktivasi_paket ke tabel transaksi.',
+        );
+        await db.execute(
+          'ALTER TABLE transaksi ADD COLUMN aktivasi_paket INTEGER DEFAULT 0',
+        );
+        log('Kolom aktivasi_paket berhasil ditambahkan ke tabel transaksi.');
+      } catch (e) {
+        log(
+          'Error saat menambahkan kolom aktivasi_paket ke tabel transaksi: $e',
+        );
       }
     }
 
     log('Upgrade database selesai.');
   }
 
-  // ditambah: Menambahkan perintah pembuatan indeks setelah tabel transaksi dibuat.
   Future<void> createTables(Database db) async {
     await db.execute(_tabelKategori);
     await db.execute(_tabelSubKategori);
@@ -181,13 +219,19 @@ class DatabaseHelper {
     await db.execute(_tabelPelanggan);
     await db.execute(_tabelPelangganAktif);
     await db.execute(tabelTransaksi);
-    // Membuat indeks untuk performa query yang lebih cepat pada tabel transaksi.
-    await db.execute('CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);');
-    await db.execute('CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);');
-    await db.execute('CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);');
+    await db.execute(
+      'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet);',
+    );
+    await db.execute(
+      'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan);',
+    );
+    await db.execute(
+      'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted);',
+    );
     await db.execute(tabelDompet);
     await db.execute(_tabelKritikSaran);
-    await db.execute(_tabelRiwayatLangganan);
+    // diubah: Menghapus pembuatan tabel riwayat_langganan
+    // await db.execute(_tabelRiwayatLangganan);
     await db.execute(_tabelPesanan);
     await db.execute(tabelVersiApkUser);
     await db.execute(_tabelPengaturan);
@@ -260,7 +304,6 @@ class DatabaseHelper {
       )
     ''';
 
-  // diubah: Menambahkan kolom id_transaksi dan foreign key
   static const String _tabelPelangganAktif = '''
       CREATE TABLE pelanggan_aktif(
         id TEXT PRIMARY KEY,
@@ -290,25 +333,7 @@ class DatabaseHelper {
       )
     ''';
 
-  static const String _tabelRiwayatLangganan = '''
-      CREATE TABLE riwayat_langganan(
-        id TEXT PRIMARY KEY,
-        id_pelanggan TEXT NOT NULL,
-        id_paket TEXT NOT NULL,
-        nama_paket TEXT NOT NULL,
-        harga_paket INTEGER NOT NULL,
-        durasi_paket INTEGER NOT NULL,
-        tipe_durasi_paket TEXT NOT NULL,
-        tanggal_mulai TEXT NOT NULL,
-        tanggal_berakhir TEXT NOT NULL,
-        status TEXT NOT NULL,
-        jumlah_poin_diperoleh INTEGER NOT NULL DEFAULT 0,
-        diperbarui TEXT,
-        diarsipkan TEXT,
-        isDeleted INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY (id_pelanggan) REFERENCES pelanggan (id) ON DELETE CASCADE
-      )
-    ''';
+  // diubah: Menghapus definisi tabel riwayat_langganan
 
   static const String _tabelPesanan = '''
       CREATE TABLE pesanan(

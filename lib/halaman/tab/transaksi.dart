@@ -1,3 +1,4 @@
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';

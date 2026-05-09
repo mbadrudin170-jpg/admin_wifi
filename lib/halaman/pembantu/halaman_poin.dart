@@ -1,6 +1,7 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:flutter/material.dart';
 
@@ -196,8 +197,16 @@ Widget _riwayatTransaksi(BuildContext context, String idPelanggan) {
           return ListTile(
             title: Text(transaksi.keterangan),
             subtitle: Text(transaksi.id),
-
             trailing: Text('${transaksi.poinYangDigunakan}'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DetailLanggananTransaksiPage(idTransaksi: transaksi.id),
+                ),
+              );
+            },
           );
         },
       );

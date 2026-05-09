@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:admin_wifi/enum/enum.dart';
 
 import 'pelanggan_aktif_operasi_test.mocks.dart';
 
@@ -43,7 +44,6 @@ void main() {
 
     await db.delete('pelanggan_aktif');
     await db.delete('paket');
-    await db.delete('riwayat_langganan');
     await db.delete('pelanggan');
   });
 
@@ -137,9 +137,6 @@ void main() {
       final result = await operasi.arsipkanPelangganKadaluarsa();
 
       expect(result, 1);
-
-      final riwayat = await db.query('riwayat_langganan');
-      expect(riwayat.length, 1);
 
       // Harusnya 6 kali. 2x2 dari create, 2 dari arsip pelanggan kadaluarsa
       verify(mockNotifikasiServis.batalNotifikasi(any)).called(6);

@@ -1,7 +1,6 @@
 // path: test/halaman/form/form_pelanggan_aktif_test.dart
-// diubah: Mengelompokkan semua tes ke dalam grup yang logis untuk meningkatkan keterbacaan.
-// diubah: Memperbarui tes untuk menguji fungsi top-level `hitungTanggalBerakhir` secara langsung.
-// diubah: Memperbaiki tipe data yang dikembalikan oleh mock tambahTransaksi.
+// diubah: Membungkus FormPelangganAktif dalam Scaffold untuk memastikan SnackBar dapat ditampilkan.
+// diubah: Menggunakan pumpAndSettle untuk menunggu animasi SnackBar selesai.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -23,6 +22,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:admin_wifi/enum/enum.dart';
 
 import 'form_pelanggan_aktif_test.mocks.dart';
 
@@ -100,14 +100,16 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: FormPelangganAktif(
-          pelangganAktif: pelangganAktif,
-          pelangganOperasi: mockPelangganOperasi,
-          paketOperasi: mockPaketOperasi,
-          pelangganAktifOperasi: mockPelangganAktifOperasi,
-          transaksiOperasi: mockTransaksiOperasi,
-          dompetOperasi: mockDompetOperasi,
-          kategoriOperasi: mockKategoriOperasi,
+        home: Scaffold( // diubah: Menambahkan Scaffold
+          body: FormPelangganAktif(
+            pelangganAktif: pelangganAktif,
+            pelangganOperasi: mockPelangganOperasi,
+            paketOperasi: mockPaketOperasi,
+            pelangganAktifOperasi: mockPelangganAktifOperasi,
+            transaksiOperasi: mockTransaksiOperasi,
+            dompetOperasi: mockDompetOperasi,
+            kategoriOperasi: mockKategoriOperasi,
+          ),
         ),
       ),
     );
@@ -144,7 +146,6 @@ void main() {
         mockPelangganAktifOperasi.updatePelangganAktif(any),
       ).thenAnswer((_) async => pelangganAktifDummy);
 
-      // diubah: Mengubah tipe kembalian menjadi Future<int> agar sesuai dengan signature baru.
       when(
         mockTransaksiOperasi.tambahTransaksi(any),
       ).thenAnswer((_) async => 1);
@@ -179,11 +180,9 @@ void main() {
         await tester.ensureVisible(find.text('Simpan'));
         await tester.tap(find.text('Simpan'));
 
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle(); // diubah: Menunggu SnackBar muncul
 
         expect(find.textContaining('berhasil'), findsOneWidget);
-
-        await tester.pumpAndSettle();
 
         verify(mockPelangganAktifOperasi.createPelangganAktif(any)).called(1);
         verify(mockTransaksiOperasi.tambahTransaksi(any)).called(1);
@@ -220,7 +219,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(simpanButtonFinder);
-        await tester.pump();
+        await tester.pumpAndSettle(); // diubah: Menunggu SnackBar
 
         expect(find.textContaining('Poin tidak cukup'), findsOneWidget);
 
@@ -280,11 +279,9 @@ void main() {
         await tester.ensureVisible(find.text('Simpan'));
         await tester.tap(find.text('Simpan'));
 
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle(); // diubah: Menunggu SnackBar
 
         expect(find.textContaining('diperbarui'), findsOneWidget);
-
-        await tester.pumpAndSettle();
 
         verify(mockPelangganAktifOperasi.updatePelangganAktif(any)).called(1);
       });

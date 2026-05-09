@@ -1,4 +1,5 @@
 // path: lib/data/sync/unduh_data.dart
+// diubah: Mengomentari semua referensi ke RiwayatLanggananModel dan operasinya.
 
 import 'dart:developer' as developer;
 
@@ -10,7 +11,7 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
+// import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
@@ -22,7 +23,7 @@ import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
-import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+// import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
@@ -37,16 +38,14 @@ class LayananUnduhData {
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
-  final RiwayatLanggananOperasi _riwayatLanggananOperasi =
-      RiwayatLanggananOperasi();
+  // final RiwayatLanggananOperasi _riwayatLanggananOperasi =
+  //     RiwayatLanggananOperasi();
   final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   final PesananOperasi _pesanOperasi = PesananOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
   final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
-  // ditambahkan: instance untuk operasi pengaturan
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
-  // diubah: Fungsi ini sekarang memanggil fungsi unduh spesifik, termasuk pengaturan.
   Future<void> unduhSemuaData() async {
     try {
       await Future.wait([
@@ -56,12 +55,11 @@ class LayananUnduhData {
         unduhDataPelanggan(),
         unduhDataPelangganAktif(),
         unduhDataTransaksi(),
-        unduhDataRiwayatLangganan(),
+        // unduhDataRiwayatLangganan(),
         unduhDataKritikSaran(),
         unduhDataPesanan(),
         unduhDataSubKategori(),
         unduhDataVersiApkUser(),
-        // ditambahkan: Panggilan untuk mengunduh pengaturan
         unduhDataPengaturan(),
       ]);
     } catch (e, s) {
@@ -76,9 +74,6 @@ class LayananUnduhData {
     }
   }
 
-  // --- FUNGSI UNDUH SPESIFIK (PUBLIK) ---
-
-  // ditambahkan: Fungsi untuk mengunduh data Pengaturan.
   Future<void> unduhDataPengaturan() async {
     try {
       final doc = await _firestore
@@ -96,7 +91,6 @@ class LayananUnduhData {
         error: e,
         stackTrace: s,
       );
-      // Tidak melempar rethrow agar proses sinkronisasi lain bisa lanjut
     }
   }
 
@@ -149,14 +143,14 @@ class LayananUnduhData {
     );
   }
 
-  Future<void> unduhDataRiwayatLangganan() async {
-    await sinkronisasiKoleksi<RiwayatLanggananModel>(
-      namaKoleksi: 'riwayat_langganan',
-      fromFirebase: (id, map) => RiwayatLanggananModel.fromFirebase(id, map),
-      operasiBatch: (data) =>
-          _riwayatLanggananOperasi.sisipkanAtauPerbaruiBatch(data),
-    );
-  }
+  // Future<void> unduhDataRiwayatLangganan() async {
+  //   await sinkronisasiKoleksi<RiwayatLanggananModel>(
+  //     namaKoleksi: 'riwayat_langganan',
+  //     fromFirebase: (id, map) => RiwayatLanggananModel.fromFirebase(id, map),
+  //     operasiBatch: (data) =>
+  //         _riwayatLanggananOperasi.sisipkanAtauPerbaruiBatch(data),
+  //   );
+  // }
 
   Future<void> unduhDataKritikSaran() async {
     await sinkronisasiKoleksi<KritikSaranModel>(
@@ -192,8 +186,6 @@ class LayananUnduhData {
           _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
-
-  // --- FUNGSI GENERIK (PUBLIK) ---
 
   Future<void> sinkronisasiKoleksi<T>({
     required String namaKoleksi,

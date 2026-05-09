@@ -1,4 +1,6 @@
 // path: test/halaman/tab/transaksi_test.dart
+// diubah: Menghapus parameter namaDompet dan namaKategori yang sudah usang dari fungsi helper.
+
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/tab/transaksi.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
@@ -7,10 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 
 import 'transaksi_test.mocks.dart';
 
-// Fungsi pembantu untuk membuat transaksi tiruan
 TransaksiModel buatTransaksi({
   required String id,
   required String keterangan,
@@ -24,9 +26,7 @@ TransaksiModel buatTransaksi({
     jumlah: jumlah,
     tipe: tipe,
     idDompet: 'dompet-1',
-    namaDompet: 'Dompet Utama',
     idKategori: 'kat-1',
-    namaKategori: 'Umum',
     tanggal: tanggal,
   );
 }
@@ -36,11 +36,9 @@ TransaksiModel buatTransaksi({
   MockSpec<NavigatorObserver>(),
 ])
 void main() {
-  // Inisialisasi mock objects
   late MockTransaksiOperasi mockTransaksiOperasi;
   late MockNavigatorObserver mockNavigatorObserver;
 
-  // Data tiruan
   final pemasukan1 = buatTransaksi(
     id: '1',
     keterangan: 'Gaji Mei',
@@ -65,18 +63,15 @@ void main() {
 
   final semuaTransaksi = [pemasukan1, pengeluaran1, pemasukan2];
 
-  // SetUp sebelum semua tes
   setUpAll(() {
     initializeDateFormatting('id_ID');
   });
 
-  // SetUp sebelum setiap tes
   setUp(() {
     mockTransaksiOperasi = MockTransaksiOperasi();
     mockNavigatorObserver = MockNavigatorObserver();
   });
 
-  // Fungsi untuk membangun widget TransaksiPage
   Future<void> pumpTransaksiPage(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -159,13 +154,10 @@ void main() {
         await pumpTransaksiPage(tester);
         await tester.pumpAndSettle();
 
-        // Verifikasi ringkasan
         expect(find.byKey(const ValueKey('Pemasukan')), findsOneWidget);
         expect(find.byKey(const ValueKey('Pengeluaran')), findsOneWidget);
         expect(find.byKey(const ValueKey('Total')), findsOneWidget);
 
-        // Verifikasi item list dengan byKey dan descendant
-        // Verifikasi item pertama (6 Mei 2026)
         final item1Finder = find.byKey(const ValueKey('3'));
         expect(item1Finder, findsOneWidget);
         expect(
@@ -177,7 +169,6 @@ void main() {
           findsOneWidget,
         );
 
-        // Verifikasi item kedua (5 Mei 2026 - Pemasukan)
         final item2Finder = find.byKey(const ValueKey('1'));
         expect(item2Finder, findsOneWidget);
         expect(
@@ -185,7 +176,6 @@ void main() {
           findsOneWidget,
         );
 
-        // Verifikasi item ketiga (5 Mei 2026 - Pengeluaran)
         final item3Finder = find.byKey(const ValueKey('2'));
         expect(item3Finder, findsOneWidget);
         expect(

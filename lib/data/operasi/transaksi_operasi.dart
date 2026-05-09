@@ -3,6 +3,7 @@
 // diubah: Mengganti logika update saldo bertahap dengan metode hitung ulang (SUM) untuk menjamin akurasi data.
 import 'dart:developer' as developer;
 
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:admin_wifi/model/transaksi_model.dart'; // diubah: path absolut
@@ -89,7 +90,9 @@ class TransaksiOperasi {
 
         // diubah: Panggil fungsi hitung ulang untuk dompet yang terpengaruh.
         await _recalculateAndUpdateDompetSaldo(data.idDompet, txn);
-        if (data.tipe == TipeTransaksi.transfer &&
+        if (data.tipe ==
+                TipeTransaksi
+                    .transfer && // Use .name for enums in string comparison
             data.idDompetTujuan != null) {
           await _recalculateAndUpdateDompetSaldo(data.idDompetTujuan!, txn);
         }
@@ -135,6 +138,21 @@ class TransaksiOperasi {
     }
   }
 
+  Future<TransaksiModel?> getTransaksiById(String id) async {
+    final db = await _db;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transaksi',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+
+    return TransaksiModel.fromSqlite(maps.first);
+  }
+
   Future<List<TransaksiModel>> ambilTransaksiByPelangganId(
     String pelangganId,
   ) async {
@@ -169,23 +187,54 @@ class TransaksiOperasi {
     });
   }
 
-  Future<List<TransaksiModel>> getTransaksiByPelanggan(
-    String pelangganId,
-  ) async {
+  // Future<List<TransaksiModel>> getTransaksiByPelanggan(
+  //   String pelangganId,
+  // ) async {
+  //   final db = await _db;
+  //   final List<Map<String, dynamic>> maps = await db.query(
+  //     'transaksi',
+  //     where: 'id_pelanggan = ? AND isDeleted = ?',
+  //     whereArgs: [pelangganId, 0],
+  //     orderBy: 'tanggal DESC',
+  //   );
+  //   developer.log(
+  //     'ambil semua transaksi berdasarkan idpelanggan : $maps',
+  //     name: 'TransaksiOperasi',
+  //   );
+  //   return List.generate(maps.length, (i) {
+  //     return TransaksiModel.fromSqlite(maps[i]);
+  //   });
+  // }
+  // // file: lib/data/operasi/transaksi_operasi.dart
+
+  // // ... (baris 191)
+  // // diubah: untuk mengambil transaksi di mana aktivasiPaket adalah 1.
+  Future<List<TransaksiModel>> getTransaksiByAktivasiPaket() async {
     final db = await _db;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'transaksi',
-      where: 'id_pelanggan = ? AND isDeleted = ?',
-      whereArgs: [pelangganId, 0],
-      orderBy: 'tanggal DESC',
-    );
-    developer.log(
-      'ambil semua transaksi berdasarkan idpelanggan : $maps',
-      name: 'TransaksiOperasi',
-    );
-    return List.generate(maps.length, (i) {
-      return TransaksiModel.fromSqlite(maps[i]);
-    });
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        'transaksi',
+        where: 'aktivasi_paket = ? AND isDeleted = ?',
+        whereArgs: [1, 0], // diubah: untuk mencari nilai 1 secara eksplisit.
+        orderBy: 'tanggal DESC',
+      );
+      developer.log(
+        'Mengambil transaksi dengan aktivasi_paket = 1 dari SQLite', // diubah: pesan log disesuaikan.
+        name:
+            'TransaksiOperasi.getTransaksiByAktivasiPaket', // diubah: nama log disesuaikan.
+      );
+      return List.generate(maps.length, (i) {
+        return TransaksiModel.fromSqlite(maps[i]);
+      });
+    } catch (e) {
+      developer.log(
+        'Error saat mengambil transaksi dengan aktivasi_paket = 1: $e', // diubah: pesan log disesuaikan.
+        name:
+            'TransaksiOperasi.getTransaksiByAktivasiPaket', // diubah: nama log disesuaikan.
+        error: e,
+      );
+      return [];
+    }
   }
 
   // diubah: Perhitungan ulang ganda dihapus untuk efisiensi.
@@ -265,7 +314,9 @@ class TransaksiOperasi {
 
           // 2. Hitung ulang saldo dompet yang terpengaruh.
           await _recalculateAndUpdateDompetSaldo(transaksiLama.idDompet, txn);
-          if (transaksiLama.tipe == TipeTransaksi.transfer &&
+          if (transaksiLama.tipe ==
+                  TipeTransaksi
+                      .transfer && // Use .name for enums in string comparison
               transaksiLama.idDompetTujuan != null) {
             await _recalculateAndUpdateDompetSaldo(
               transaksiLama.idDompetTujuan!,

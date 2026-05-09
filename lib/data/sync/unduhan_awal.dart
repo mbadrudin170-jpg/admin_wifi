@@ -35,7 +35,7 @@ class UnduhanAwalService {
     await _unduhDataPelangganAktifJikaKosong();
     await _unduhDataTransaksiJikaKosong();
     await _unduhDataKritikSaranJikaKosong();
-    await _unduhDataRiwayatLanggananJikaKosong();
+    // await _unduhDataRiwayatLanggananJikaKosong();
     await _unduhDataPesananJikaKosong();
 
     developer.log(
@@ -384,37 +384,37 @@ class UnduhanAwalService {
     }
   }
 
-  /// Fungsi ini mengunduh data riwayat langganan jika tabel 'riwayat_langganan' kosong.
-  // diubah: Menambahkan logging detail, else block, dan try-catch.
-  Future<void> _unduhDataRiwayatLanggananJikaKosong() async {
-    const String namaTabel = 'riwayat_langganan';
-    try {
-      if (await _apakahTabelKosong(namaTabel)) {
-        developer.log(
-          "Tabel '$namaTabel' terdeteksi kosong. Memulai unduhan...",
-          name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
-        );
-        await _layananUnduh.unduhDataRiwayatLangganan();
-        developer.log(
-          "Data untuk '$namaTabel' berhasil diunduh.",
-          name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
-        );
-      } else {
-        developer.log(
-          "Tabel '$namaTabel' sudah berisi data. Unduhan dilewati.",
-          name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
-        );
-      }
-    } catch (e, s) {
-      developer.log(
-        "Error saat proses unduh data '$namaTabel'.",
-        name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
-        error: e,
-        stackTrace: s,
-        level: 1000,
-      );
-    }
-  }
+  // /// Fungsi ini mengunduh data riwayat langganan jika tabel 'riwayat_langganan' kosong.
+  // // diubah: Menambahkan logging detail, else block, dan try-catch.
+  // Future<void> _unduhDataRiwayatLanggananJikaKosong() async {
+  //   const String namaTabel = 'riwayat_langganan';
+  //   try {
+  //     if (await _apakahTabelKosong(namaTabel)) {
+  //       developer.log(
+  //         "Tabel '$namaTabel' terdeteksi kosong. Memulai unduhan...",
+  //         name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
+  //       );
+  //       // await _layananUnduh.unduhDataRiwayatLangganan();
+  //       // developer.log(
+  //       //   "Data untuk '$namaTabel' berhasil diunduh.",
+  //       //   name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
+  //       // );
+  //     } else {
+  //       developer.log(
+  //         "Tabel '$namaTabel' sudah berisi data. Unduhan dilewati.",
+  //         name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
+  //       );
+  //     }
+  //   } catch (e, s) {
+  //     developer.log(
+  //       "Error saat proses unduh data '$namaTabel'.",
+  //       name: 'UnduhanAwalService._unduhDataRiwayatLanggananJikaKosong',
+  //       error: e,
+  //       stackTrace: s,
+  //       level: 1000,
+  //     );
+  //   }
+  // }
 
   /// Fungsi ini mengunduh data pesanan jika tabel 'pesanan' kosong.
   // diubah: Menambahkan logging detail, else block, dan try-catch.

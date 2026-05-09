@@ -1,25 +1,16 @@
 // path: lib/halaman/lainnya/riwayat_aktivasi_paket.dart
-// File ini bertanggung jawab untuk menampilkan daftar riwayat langganan.
+// diubah: File ini sekarang mengambil dan menampilkan data dari TransaksiModel dengan tipe langganan.
 
-import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
-import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/enum/status_pembayaran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 
-enum OpsiUrutkan {
-  hariIni,
-  terbaru,
-  terlama,
-  namaAZ,
-  namaZA,
-  lunas,
-  belumLunas,
-}
+enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
 class RiwayatAktivasiPaketPage extends StatefulWidget {
   const RiwayatAktivasiPaketPage({super.key});
@@ -30,10 +21,8 @@ class RiwayatAktivasiPaketPage extends StatefulWidget {
 }
 
 class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
-  final RiwayatLanggananOperasi _riwayatOperasi = RiwayatLanggananOperasi();
-  late Future<List<RiwayatLanggananModel>> _listRiwayatFuture = Future.value(
-    [],
-  );
+  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  late Future<List<TransaksiModel>> _listTransaksiFuture;
   OpsiUrutkan _urutanAktif = OpsiUrutkan.terbaru;
 
   @override
@@ -44,217 +33,59 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
 
   Future<void> _loadRiwayat() async {
     setState(() {
-      _listRiwayatFuture = _riwayatOperasi.ambilSemuaRiwayat().then((list) {
-        // Pengurutan default: terbaru
-        list.sort((a, b) {
-          final dateA = a.diarsipkan ?? a.diperbarui ?? DateTime(1970);
-          final dateB = b.diarsipkan ?? b.diperbarui ?? DateTime(1970);
-          return dateB.compareTo(dateA);
-        });
-        return list;
-      });
+      _listTransaksiFuture = _transaksiOperasi
+          .getTransaksiByAktivasiPaket()
+          .then((list) {
+            _urutkanList(list, _urutanAktif);
+            return list;
+          });
     });
   }
 
-  Future<void> _hapusRiwayat(RiwayatLanggananModel riwayat) async {
-    final bool? konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi Hapus'),
-          content: const Text('Apakah Anda yakin ingin menghapus riwayat ini?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(
-                'Hapus',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (konfirmasi == true) {
-      try {
-        await _riwayatOperasi.arsipkanRiwayatLangganan(riwayat.id);
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Riwayat berhasil dihapus.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _loadRiwayat();
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menghapus riwayat: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _hapusSemuaRiwayat() async {
-    final bool? konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Hapus Semua Riwayat?'),
-          content: const Text(
-            'Apakah Anda yakin ingin menghapus SEMUA riwayat? Tindakan ini tidak dapat dibatalkan.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(
-                'Hapus Semua',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (konfirmasi == true) {
-      try {
-        await _riwayatOperasi.hapusPermanenSemuaRiwayat();
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Semua riwayat berhasil dihapus.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _loadRiwayat();
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menghapus semua riwayat: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _urutkanList(OpsiUrutkan pilihan) async {
-    final list = await _listRiwayatFuture;
-    final pelangganOperasi = PelangganOperasi();
-
-    final Map<String, String> namaMap = {};
-    final semuaPelanggan = await pelangganOperasi.getPelanggan();
-    for (var p in semuaPelanggan) {
-      namaMap[p.id] = p.nama;
-    }
-
-    int Function(RiwayatLanggananModel, RiwayatLanggananModel) comparator;
+  void _urutkanList(List<TransaksiModel> list, OpsiUrutkan pilihan) {
+    int Function(TransaksiModel, TransaksiModel) comparator;
 
     switch (pilihan) {
-      case OpsiUrutkan.hariIni:
-        // DIPERBAIKI: Menggunakan logika fallback yang aman untuk tanggal
-        list.sort((a, b) {
-          final now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
-
-          final dateA = a.diarsipkan ?? a.diperbarui ?? DateTime(1970);
-          final dateB = b.diarsipkan ?? b.diperbarui ?? DateTime(1970);
-
-          final aIsToday =
-              dateA.year == today.year &&
-              dateA.month == today.month &&
-              dateA.day == today.day;
-          final bIsToday =
-              dateB.year == today.year &&
-              dateB.month == today.month &&
-              dateB.day == today.day;
-
-          if (aIsToday && !bIsToday) {
-            return -1; // a hari ini, b tidak -> a duluan
-          }
-          if (!aIsToday && bIsToday) {
-            return 1; // b hari ini, a tidak -> b duluan
-          }
-
-          // Jika keduanya hari ini atau keduanya bukan hari ini, urutkan berdasarkan waktu terbaru
-          return dateB.compareTo(dateA);
-        });
-        // Setelah diurutkan, filter untuk hanya menampilkan yang hari ini
-        final filteredList = list.where((item) {
-          final now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
-          final itemDate = item.diarsipkan ?? item.diperbarui;
-          return itemDate != null &&
-              itemDate.year == today.year &&
-              itemDate.month == today.month &&
-              itemDate.day == today.day;
-        }).toList();
-
-        setState(() {
-          _listRiwayatFuture = Future.value(filteredList);
-          _urutanAktif = pilihan;
-        });
-        return; // Return agar tidak menjalankan sort di luar switch
-
       case OpsiUrutkan.terbaru:
-        comparator = (a, b) {
-          final dateA = a.diarsipkan ?? a.diperbarui ?? DateTime(1970);
-          final dateB = b.diarsipkan ?? b.diperbarui ?? DateTime(1970);
-          return dateB.compareTo(dateA);
-        };
+        comparator = (a, b) =>
+            (b.diperbarui ?? b.tanggal).compareTo(a.diperbarui ?? a.tanggal);
         break;
       case OpsiUrutkan.terlama:
-        comparator = (a, b) {
-          final dateA = a.diarsipkan ?? a.diperbarui ?? DateTime(1970);
-          final dateB = b.diarsipkan ?? b.diperbarui ?? DateTime(1970);
-          return dateA.compareTo(dateB);
-        };
-        break;
-      case OpsiUrutkan.namaAZ:
-      case OpsiUrutkan.namaZA:
-        comparator = (a, b) {
-          final namaA = namaMap[a.idPelanggan] ?? '';
-          final namaB = namaMap[b.idPelanggan] ?? '';
-          return pilihan == OpsiUrutkan.namaAZ
-              ? namaA.compareTo(namaB)
-              : namaB.compareTo(namaA);
-        };
+        comparator = (a, b) =>
+            (a.diperbarui ?? a.tanggal).compareTo(b.diperbarui ?? b.tanggal);
         break;
       case OpsiUrutkan.lunas:
       case OpsiUrutkan.belumLunas:
         comparator = (a, b) {
-          final isLunasA = a.status == StatusPembayaran.lunas;
-          final isLunasB = b.status == StatusPembayaran.lunas;
+          final isLunasA = a.statusPembayaran == StatusPembayaran.lunas;
+          final isLunasB = b.statusPembayaran == StatusPembayaran.lunas;
           if (isLunasA == isLunasB) return 0;
           return (pilihan == OpsiUrutkan.lunas)
               ? (isLunasA ? -1 : 1)
               : (isLunasA ? 1 : -1);
         };
+      case OpsiUrutkan.berakhirHariIni:
+        comparator = (a, b) {
+          final sekarang = DateTime.now();
+
+          bool isHariIni(DateTime? tanggal) {
+            if (tanggal == null) return false;
+
+            return tanggal.year == sekarang.year &&
+                tanggal.month == sekarang.month &&
+                tanggal.day == sekarang.day;
+          }
+
+          final aHariIni = isHariIni(a.tanggalBerakhir);
+          final bHariIni = isHariIni(b.tanggalBerakhir);
+
+          if (aHariIni == bHariIni) return 0;
+
+          return aHariIni ? -1 : 1;
+        };
         break;
     }
-
     list.sort(comparator);
-
-    setState(() {
-      _listRiwayatFuture = Future.value(list);
-      _urutanAktif = pilihan;
-    });
   }
 
   void _showUrutkanDialog() async {
@@ -263,15 +94,12 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
       builder: (BuildContext context) {
         Widget buildOption(String text, OpsiUrutkan value) {
           final bool isSelected = _urutanAktif == value;
-          return Container(
-            color: isSelected ? Theme.of(context).highlightColor : null,
-            child: SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, value),
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, value),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           );
@@ -280,31 +108,23 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
         return SimpleDialog(
           title: const Text('Urutkan Berdasarkan'),
           children: <Widget>[
-            buildOption('Hari Ini', OpsiUrutkan.hariIni),
-            buildOption('Arsip Terbaru', OpsiUrutkan.terbaru),
-            buildOption('Arsip Terlama', OpsiUrutkan.terlama),
-            buildOption('Nama (A-Z)', OpsiUrutkan.namaAZ),
-            buildOption('Nama (Z-A)', OpsiUrutkan.namaZA),
-            buildOption('Status Pembayaran (Lunas)', OpsiUrutkan.lunas),
-            buildOption(
-              'Status Pembayaran (Belum Lunas)',
-              OpsiUrutkan.belumLunas,
-            ),
-            SimpleDialogOption(
-              child: const Text('Batal'),
-              onPressed: () => Navigator.pop(context),
-            ),
+            buildOption('Berakhir Hari Ini', OpsiUrutkan.berakhirHariIni),
+            buildOption('Terbaru', OpsiUrutkan.terbaru),
+            buildOption('Terlama', OpsiUrutkan.terlama),
+            buildOption('Status (Lunas)', OpsiUrutkan.lunas),
+            buildOption('Status (Belum Lunas)', OpsiUrutkan.belumLunas),
           ],
         );
       },
     );
 
     if (pilihan != null) {
-      // Jika memilih 'Hari Ini', muat ulang semua data lalu filter
-      if (pilihan == OpsiUrutkan.hariIni) {
-        await _loadRiwayat(); // Muat ulang semua data
-      }
-      _urutkanList(pilihan);
+      final list = await _listTransaksiFuture;
+      setState(() {
+        _urutanAktif = pilihan;
+        _urutkanList(list, pilihan);
+        _listTransaksiFuture = Future.value(list);
+      });
     }
   }
 
@@ -319,89 +139,70 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
             onPressed: _showUrutkanDialog,
             tooltip: 'Urutkan',
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_sweep),
-            onPressed: _hapusSemuaRiwayat,
-            tooltip: 'Hapus Semua Riwayat',
-          ),
         ],
       ),
-      body: FutureBuilder<List<RiwayatLanggananModel>>(
-        future: _listRiwayatFuture,
+      body: FutureBuilder<List<TransaksiModel>>(
+        future: _listTransaksiFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Text(
-                _urutanAktif == OpsiUrutkan.hariIni
-                    ? 'Tidak ada riwayat untuk hari ini.'
-                    : 'Tidak ada riwayat langganan ditemukan.',
-              ),
+            return const Center(
+              child: Text('Tidak ada riwayat langganan ditemukan.'),
             );
           } else {
             return ListView.builder(
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final riwayat = snapshot.data![index];
-
-                final statusPembayaranText = riwayat.status.displayName;
+                final transaksi = snapshot.data![index];
                 final statusPembayaranColor =
-                    riwayat.status == StatusPembayaran.lunas
+                    transaksi.statusPembayaran == StatusPembayaran.lunas
                     ? Colors.green
                     : Colors.red;
-
-                final tanggalArsip = riwayat.diarsipkan ?? riwayat.diperbarui;
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 7,
                   ),
-                  clipBehavior: Clip.antiAlias,
                   child: ListTile(
                     onTap: () async {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              DetailRiwayatLanggananPage(riwayat: riwayat),
+                          builder: (context) => DetailLanggananTransaksiPage(
+                            idTransaksi: transaksi.id,
+                          ),
                         ),
                       );
-                      // Jika ada sinyal perubahan, muat ulang data
                       if (result == true) {
                         _loadRiwayat();
                       }
                     },
-                    onLongPress: () {
-                      _hapusRiwayat(riwayat);
-                    },
                     title: NamaPelangganWidget(
-                      idPelanggan: riwayat.idPelanggan,
+                      idPelanggan: transaksi.idPelanggan ?? ' ',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        NamaPaketWidget(idPaket: riwayat.idPaket),
+                        NamaPaketWidget(idPaket: transaksi.idPaket ?? ''),
                         const SizedBox(height: 4),
                         Text(
-                          'Pembayaran: $statusPembayaranText',
+                          'Status: ${transaksi.statusPembayaran.name}',
                           style: TextStyle(
                             color: statusPembayaranColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'Diarsipkan pada: ${tanggalArsip != null ? FormatTanggal.formatTanggalDanJam(tanggalArsip) : '-'}',
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Aktif: ${FormatTanggal.formatTanggalBasic(riwayat.tanggalMulai)} - ${FormatTanggal.formatTanggalBasic(riwayat.tanggalBerakhir)}',
-                        ),
+                        if (transaksi.tanggalMulai != null &&
+                            transaksi.tanggalBerakhir != null)
+                          Text(
+                            'Aktif: ${FormatTanggal.formatTanggalBasic(transaksi.tanggalMulai!)} - ${FormatTanggal.formatTanggalBasic(transaksi.tanggalBerakhir!)}',
+                          ),
                       ],
                     ),
                     trailing: const Icon(Icons.chevron_right),

@@ -1,7 +1,8 @@
 // path: test/data/sqlite_test.dart
-// diubah: Menyesuaikan pemanggilan toMapForSqlite menjadi toSqlite
-// diubah: Menambahkan id pada pembuatan TransaksiModel untuk tes
+// diubah: Menyesuaikan pembuatan TransaksiModel di tes agar cocok dengan konstruktor baru (tanpa namaDompet/namaKategori).
+// diubah: Menghapus kolom usang dari pernyataan INSERT manual.
 
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
@@ -17,7 +18,6 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     databaseHelper = DatabaseHelper.instance;
     db = await databaseHelper.database;
-    // Membersihkan tabel sebelum setiap pengujian untuk memastikan isolasi
     await db.delete('transaksi');
     await db.delete('dompet');
   });
@@ -36,7 +36,6 @@ void main() {
       final hasil = await db.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='table'",
       );
-
       final namaTabel = hasil.map((e) => e['name']).toList();
 
       expect(namaTabel.contains('kategori'), true);
@@ -47,7 +46,7 @@ void main() {
       expect(namaTabel.contains('transaksi'), true);
       expect(namaTabel.contains('dompet'), true);
       expect(namaTabel.contains('kritik_saran'), true);
-      expect(namaTabel.contains('riwayat_langganan'), true);
+      // expect(namaTabel.contains('riwayat_langganan'), true); // dihapus
       expect(namaTabel.contains('pesanan'), true);
       expect(namaTabel.contains('versi_apk_user'), true);
     });
@@ -60,10 +59,8 @@ void main() {
         'tanggal': DateTime.now().toIso8601String(),
         'tipe': 'pemasukan',
         'isDeleted': 0,
-        'nama_dompet': 'test', 
-        'nama_kategori': 'test', 
-        'id_dompet': 'test', 
-        'id_kategori': 'test', 
+        'id_dompet': 'test',
+        'id_kategori': 'test',
         'diperbarui': DateTime.now().toIso8601String(),
       });
       final hasil = await db.query('transaksi');
@@ -81,12 +78,11 @@ void main() {
       });
 
       final hasil = await db.query('dompet');
-
       expect(hasil.first['isDeleted'], 0);
     });
 
     test(
-      '1. skema tabel transaksi harus sama dengan TransaksiModel.toMap()',
+      '1. skema tabel transaksi harus sama dengan TransaksiModel.toSqlite()',
       () async {
         final hasil = await db.rawQuery("PRAGMA table_info(transaksi)");
         final kolomDatabase = hasil.map((e) => e['name'] as String).toSet();
@@ -98,12 +94,9 @@ void main() {
           jumlah: 10000,
           tipe: TipeTransaksi.pemasukan,
           idDompet: '1',
-          namaDompet: 'dompet',
           idKategori: '1',
-          namaKategori: 'kategori',
         );
 
-        // diubah: Menggunakan toSqlite
         await db.insert('transaksi', model.toSqlite());
 
         final kolomModel = model.toSqlite().keys.toSet();
@@ -114,12 +107,12 @@ void main() {
         expect(
           notInDb.isEmpty,
           true,
-          reason: 'Kolom model ini tidak ada di DB: \$notInDb',
+          reason: 'Kolom model ini tidak ada di DB: $notInDb',
         );
         expect(
           notInModel.isEmpty,
           true,
-          reason: 'Kolom DB ini tidak ada di model: \$notInModel',
+          reason: 'Kolom DB ini tidak ada di model: $notInModel',
         );
       },
     );
