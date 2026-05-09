@@ -7,6 +7,7 @@ import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer; // Tambahkan ini
 
 // ditambahkan: Data class untuk menampung hasil data dari Future
 class DetailDompetData {
@@ -40,55 +41,75 @@ class DetailDompet extends StatefulWidget {
 }
 
 class _DetailDompetState extends State<DetailDompet> {
-  // diubah: Hanya satu future untuk semua data
   late Future<DetailDompetData> _futureDetailData;
-
   late final DompetOperasi _dompetOperasi;
   late final TransaksiOperasi _transaksiOperasi;
 
   @override
   void initState() {
     super.initState();
+    developer.log('initState dipanggil', name: 'detail_dompet.dart');
     _dompetOperasi = widget.dompetOperasi ?? DompetOperasi();
     _transaksiOperasi = widget.transaksiOperasi ?? TransaksiOperasi();
-    // diubah: Memanggil fungsi _loadData untuk future
     _futureDetailData = _loadData();
   }
 
-  // diubah: Fungsi untuk memuat semua data dalam satu pemanggilan
   Future<DetailDompetData> _loadData() async {
-    final results = await Future.wait([
-      _dompetOperasi.getDompetById(widget.dompet.id),
-      _transaksiOperasi.ambilTransaksiByDompetId(widget.dompet.id),
-    ]);
-
-    final dompetTerbaru = results[0] as DompetModel?;
-    final daftarTransaksi = results[1] as List<TransaksiModel>;
-
-    if (dompetTerbaru == null) {
-      throw Exception('Gagal memuat data dompet.');
-    }
-
-    double pemasukan = 0;
-    double pengeluaran = 0;
-    for (var trx in daftarTransaksi) {
-      if (trx.tipe == TipeTransaksi.pemasukan) {
-        pemasukan += trx.jumlah;
-      } else if (trx.tipe == TipeTransaksi.pengeluaran) {
-        pengeluaran += trx.jumlah;
-      }
-    }
-
-    return DetailDompetData(
-      dompet: dompetTerbaru,
-      transaksi: daftarTransaksi,
-      totalPemasukan: pemasukan,
-      totalPengeluaran: pengeluaran,
+    developer.log(
+      'Memulai memuat data untuk dompet ID: ${widget.dompet.id}',
+      name: 'detail_dompet.dart',
     );
+    try {
+      final results = await Future.wait([
+        _dompetOperasi.getDompetById(widget.dompet.id),
+        _transaksiOperasi.ambilTransaksiByDompetId(widget.dompet.id),
+      ]);
+
+      final dompetTerbaru = results[0] as DompetModel?;
+      final daftarTransaksi = results[1] as List<TransaksiModel>;
+
+      if (dompetTerbaru == null) {
+        developer.log('Error: Dompet terbaru null', name: 'detail_dompet.dart');
+        throw Exception('Gagal memuat data dompet.');
+      }
+
+      double pemasukan = 0;
+      double pengeluaran = 0;
+      for (var trx in daftarTransaksi) {
+        if (trx.tipe == TipeTransaksi.pemasukan) {
+          pemasukan += trx.jumlah;
+        } else if (trx.tipe == TipeTransaksi.pengeluaran) {
+          pengeluaran += trx.jumlah;
+        }
+      }
+
+      developer.log(
+        'Sukses memuat data: ${daftarTransaksi.length} transaksi ditemukan',
+        name: 'detail_dompet.dart',
+      );
+
+      return DetailDompetData(
+        dompet: dompetTerbaru,
+        transaksi: daftarTransaksi,
+        totalPemasukan: pemasukan,
+        totalPengeluaran: pengeluaran,
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error pada _loadData: $e',
+        name: 'detail_dompet.dart',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
-  // diubah: Fungsi muat ulang hanya me-reassign future
   void _muatUlangData() {
+    developer.log(
+      'Memperbarui tampilan (_muatUlangData)',
+      name: 'detail_dompet.dart',
+    );
     setState(() {
       _futureDetailData = _loadData();
     });
@@ -98,12 +119,15 @@ class _DetailDompetState extends State<DetailDompet> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ditambahkan: Key untuk AppBar
         key: const Key('appBar'),
         title: Text(widget.dompet.namaDompet),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
+            developer.log(
+              'Navigasi kembali dari DetailDompet',
+              name: 'detail_dompet.dart',
+            );
             Navigator.pop(context, true);
           },
         ),
@@ -111,6 +135,10 @@ class _DetailDompetState extends State<DetailDompet> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
+              developer.log(
+                'Membuka FormDompet untuk edit',
+                name: 'detail_dompet.dart',
+              );
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -118,13 +146,16 @@ class _DetailDompetState extends State<DetailDompet> {
                 ),
               );
               if (result == true) {
+                developer.log(
+                  'Data berhasil diedit, memicu muat ulang',
+                  name: 'detail_dompet.dart',
+                );
                 _muatUlangData();
               }
             },
           ),
         ],
       ),
-      // diubah: Seluruh body dibungkus dengan FutureBuilder
       body: FutureBuilder<DetailDompetData>(
         future: _futureDetailData,
         builder: (context, snapshot) {
@@ -133,17 +164,24 @@ class _DetailDompetState extends State<DetailDompet> {
           }
 
           if (snapshot.hasError) {
+            developer.log(
+              'FutureBuilder menangkap error: ${snapshot.error}',
+              name: 'detail_dompet.dart',
+            );
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (!snapshot.hasData) {
+            developer.log(
+              'FutureBuilder: Data kosong',
+              name: 'detail_dompet.dart',
+            );
             return const Center(child: Text('Data tidak ditemukan.'));
           }
 
           final data = snapshot.data!;
           final dompetSaatIni = data.dompet;
           final transaksiList = data.transaksi;
-
           final double total = dompetSaatIni.saldo;
 
           return Column(
@@ -196,7 +234,6 @@ class _DetailDompetState extends State<DetailDompet> {
               Expanded(
                 child: transaksiList.isEmpty
                     ? const Center(child: Text('Tidak ada riwayat transaksi.'))
-                    // diubah: Menggunakan widget _buildTransaksiList yang baru
                     : _buildTransaksiList(transaksiList),
               ),
             ],
@@ -206,7 +243,6 @@ class _DetailDompetState extends State<DetailDompet> {
     );
   }
 
-  // ditambahkan: Fungsi untuk membangun daftar transaksi yang dikelompokkan
   Widget _buildTransaksiList(List<TransaksiModel> transaksiData) {
     final groupedTransaksi = groupTransaksiByDate(transaksiData);
 
@@ -229,12 +265,13 @@ class _DetailDompetState extends State<DetailDompet> {
           children: [
             bangunHeaderSeksi(tanggal, totalPadaTanggal),
             ...transaksiPadaTanggal.map(
-              (transaksi) => bangunItemTransaksi(
-                context,
-                transaksi,
-                _muatUlangData,
-                _transaksiOperasi, // Diubah: Menambahkan parameter yang hilang
-              ),
+              (transaksi) => bangunItemTransaksi(context, transaksi, () {
+                developer.log(
+                  'Callback hapus/edit transaksi dipicu',
+                  name: 'detail_dompet.dart',
+                );
+                _muatUlangData();
+              }, _transaksiOperasi),
             ),
           ],
         );

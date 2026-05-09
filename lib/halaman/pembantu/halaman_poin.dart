@@ -1,4 +1,5 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
+import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
@@ -18,12 +19,13 @@ class HalamanPoin extends StatefulWidget {
 }
 
 class _HalamanPoinState extends State<HalamanPoin> {
+  final String fileName = 'halaman_poin.dart';
   final transaksiOperasi = TransaksiOperasi();
   final paketOperasi = PaketOperasi();
+
   int totalPoin = 0;
   bool isLoading = true;
   List<PaketModel> daftarPaket = [];
-
   MenuPoin menuAktif = MenuPoin.riwayat;
 
   @override
@@ -32,17 +34,36 @@ class _HalamanPoinState extends State<HalamanPoin> {
     _loadData();
   }
 
-  // Fungsi ini bertujuan untuk memuat total poin pelanggan.
   Future<void> _loadData() async {
-    final hasilPoin = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
-    final hasilPaket = await paketOperasi.getPaket();
-    if (!mounted) return;
+    try {
+      developer.log(
+        '🔄 Memuat data poin dan paket untuk pelanggan: ${widget.idPelanggan}',
+        name: fileName,
+      );
 
-    setState(() {
-      totalPoin = hasilPoin;
-      daftarPaket = hasilPaket;
-      isLoading = false;
-    });
+      final hasilPoin = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
+      final hasilPaket = await paketOperasi.getPaket();
+
+      if (!mounted) return;
+
+      setState(() {
+        totalPoin = hasilPoin;
+        daftarPaket = hasilPaket;
+        isLoading = false;
+      });
+
+      developer.log(
+        '✅ Data berhasil dimuat. Total Poin: $totalPoin, Jumlah Paket: ${daftarPaket.length}',
+        name: fileName,
+      );
+    } catch (e) {
+      developer.log(
+        '❌ Gagal memuat data di HalamanPoin: $e',
+        name: fileName,
+        error: e,
+      );
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -56,26 +77,27 @@ class _HalamanPoinState extends State<HalamanPoin> {
       body: Column(
         children: [
           _infoPoin(context, totalPoin),
+
+          // Tab Switcher dengan rasio 50:50
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 10),
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(30),
             ),
             child: Row(
-              // //saya pinginnya kedua tombol ini bisa mendapatkan rasio 50:50 lebar nya dari parent
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              // // mainAxisSize: MainAxisSize.min,
               children: [
                 Expanded(
                   child: _buildTabButton(
                     label: 'Penukaran',
                     aktif: menuAktif == MenuPoin.penukaran,
                     onTap: () {
-                      setState(() {
-                        menuAktif = MenuPoin.penukaran;
-                      });
+                      developer.log(
+                        '🔘 Pindah ke tab Penukaran',
+                        name: fileName,
+                      );
+                      setState(() => menuAktif = MenuPoin.penukaran);
                     },
                   ),
                 ),
@@ -84,19 +106,19 @@ class _HalamanPoinState extends State<HalamanPoin> {
                     label: 'Riwayat',
                     aktif: menuAktif == MenuPoin.riwayat,
                     onTap: () {
-                      setState(() {
-                        menuAktif = MenuPoin.riwayat;
-                      });
+                      developer.log('🔘 Pindah ke tab Riwayat', name: fileName);
+                      setState(() => menuAktif = MenuPoin.riwayat);
                     },
                   ),
                 ),
               ],
             ),
           ),
+
           Expanded(
             child: menuAktif == MenuPoin.riwayat
-                ? _riwayatTransaksi(context, widget.idPelanggan)
-                : _listPaket(context, totalPoin, daftarPaket),
+                ? _riwayatTransaksi(context, widget.idPelanggan, fileName)
+                : _listPaket(context, totalPoin, daftarPaket, fileName),
           ),
         ],
       ),
@@ -105,14 +127,28 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   Widget _infoPoin(BuildContext context, int poin) {
     return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text('Total Poin'),
-            Text(
-              '$poin',
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            const Text('Total Poin Anda', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.stars, color: Colors.amber, size: 30),
+                const SizedBox(width: 10),
+                Text(
+                  '$poin',
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -129,21 +165,27 @@ Widget _buildTabButton({
   return GestureDetector(
     onTap: onTap,
     child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: aktif ? Colors.white : Colors.transparent,
         borderRadius: BorderRadius.circular(25),
         boxShadow: aktif
-            ? [const BoxShadow(color: Colors.black12, blurRadius: 6)]
+            ? [
+                const BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ]
             : null,
       ),
       child: Text(
-        textAlign: TextAlign.center,
         label,
+        textAlign: TextAlign.center,
         style: TextStyle(
           fontWeight: FontWeight.bold,
-          color: aktif ? Colors.black : Colors.grey,
+          color: aktif ? Colors.black : Colors.grey.shade600,
         ),
       ),
     ),
@@ -151,88 +193,101 @@ Widget _buildTabButton({
 }
 
 double _hitungProgressPencapaian(int poinDimiliki, int poinDibutuhkan) {
-  // Hindari pembagian dengan nol jika total poin tidak valid.
-  if (poinDibutuhkan <= 0) {
-    return 0.0;
-  }
-  final double rasio = poinDimiliki / poinDibutuhkan;
-  return rasio.clamp(0.0, 1.0);
+  if (poinDibutuhkan <= 0) return 0.0;
+  return (poinDimiliki / poinDibutuhkan).clamp(0.0, 1.0);
 }
 
 Widget _listPaket(
   BuildContext context,
   int totalPoinPelanggan,
   List<PaketModel> daftarPaket,
+  String fileName,
 ) {
   if (daftarPaket.isEmpty) {
-    return const Center(child: Text('Belum ada paket'));
+    return const Center(child: Text('Belum ada paket penukaran'));
   }
 
   return ListView.builder(
+    padding: const EdgeInsets.only(bottom: 20),
     itemCount: daftarPaket.length,
     itemBuilder: (context, index) {
       final paket = daftarPaket[index];
       final bool bisaDitukar = totalPoinPelanggan >= paket.poinPenukaran;
 
       return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: ListTile(
-          title: Text(paket.nama),
-
+          leading: CircleAvatar(
+            backgroundColor: bisaDitukar
+                ? Colors.green.shade100
+                : Colors.blue.shade100,
+            child: Icon(
+              Icons.card_giftcard,
+              color: bisaDitukar ? Colors.green : Colors.blue,
+            ),
+          ),
+          title: Text(
+            paket.nama,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Poin: ${paket.poinPenukaran}'),
-              const SizedBox(height: 5),
-
+              Text('Butuh ${paket.poinPenukaran} Poin'),
+              const SizedBox(height: 8),
               if (paket.isPublic)
-                LinearProgressIndicator(
-                  value: _hitungProgressPencapaian(
-                    totalPoinPelanggan,
-                    paket.poinPenukaran,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: _hitungProgressPencapaian(
+                      totalPoinPelanggan,
+                      paket.poinPenukaran,
+                    ),
+                    backgroundColor: Colors.grey.shade300,
+                    color: bisaDitukar ? Colors.green : Colors.blue,
+                    minHeight: 8,
                   ),
-                  backgroundColor: Colors.grey.shade300,
-                  color: bisaDitukar
-                      ? Colors.green
-                      : Theme.of(context).primaryColor,
-                  minHeight: 6,
                 )
               else
-                // ditambah: Pesan ini muncul jika paket tidak publik.
                 const Text(
-                  'Paket tidak dapat ditukar',
+                  '⚠️ Paket khusus (Internal)',
                   style: TextStyle(
                     color: Colors.red,
                     fontStyle: FontStyle.italic,
+                    fontSize: 12,
                   ),
                 ),
             ],
           ),
+          trailing: bisaDitukar && paket.isPublic
+              ? ElevatedButton(
+                  onPressed: () {
+                    developer.log(
+                      '🎁 Mencoba menukar paket: ${paket.nama}',
+                      name: fileName,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Tukar'),
+                )
+              : null,
         ),
       );
     },
   );
 }
 
-int _selisihPoin(TransaksiModel t) {
-  return t.poinYangDihasilkan - t.poinYangDigunakan;
-}
-
-Color _warnaPoin(int selisih) {
-  if (selisih > 0) {
-    return Colors.green;
-  } else if (selisih < 0) {
-    return Colors.red;
-  } else {
-    return Colors.grey;
-  }
-}
-
-Widget _riwayatTransaksi(BuildContext context, String idPelanggan) {
+Widget _riwayatTransaksi(
+  BuildContext context,
+  String idPelanggan,
+  String fileName,
+) {
   final transaksiOperasi = TransaksiOperasi();
 
-  return FutureBuilder(
+  return FutureBuilder<List<TransaksiModel>>(
     future: transaksiOperasi.ambilTransaksiByPelangganId(idPelanggan),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -240,7 +295,11 @@ Widget _riwayatTransaksi(BuildContext context, String idPelanggan) {
       }
 
       if (snapshot.hasError) {
-        return Center(child: Text('Terjadi error: ${snapshot.error}'));
+        developer.log(
+          '❌ Error snapshot riwayat: ${snapshot.error}',
+          name: fileName,
+        );
+        return const Center(child: Text('Terjadi kesalahan data'));
       }
 
       final daftarTransaksi = snapshot.data ?? [];
@@ -250,36 +309,42 @@ Widget _riwayatTransaksi(BuildContext context, String idPelanggan) {
       }
 
       return ListView.builder(
+        padding: const EdgeInsets.only(bottom: 20),
         itemCount: daftarTransaksi.length,
         itemBuilder: (context, index) {
           final transaksi = daftarTransaksi[index];
-          final selisih = _selisihPoin(transaksi);
+          final selisih =
+              transaksi.poinYangDihasilkan - transaksi.poinYangDigunakan;
+          final color = selisih > 0
+              ? Colors.green
+              : (selisih < 0 ? Colors.red : Colors.grey);
+
           return ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            leading: Icon(
+              selisih > 0
+                  ? Icons.add_circle_outline
+                  : Icons.remove_circle_outline,
+              color: color,
+            ),
             title: Text(transaksi.keterangan),
-            subtitle: Text(transaksi.id),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  selisih > 0
-                      ? Icons.arrow_upward
-                      : selisih < 0
-                      ? Icons.arrow_downward
-                      : Icons.remove,
-                  color: _warnaPoin(selisih),
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${selisih >= 0 ? '+' : ''}$selisih poin',
-                  style: TextStyle(
-                    color: _warnaPoin(selisih),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            subtitle: Text(transaksi.id, style: const TextStyle(fontSize: 10)),
+            trailing: Text(
+              '${selisih >= 0 ? '+' : ''}$selisih Poin',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
             onTap: () {
+              developer.log(
+                '🔍 Melihat detail transaksi: ${transaksi.id}',
+                name: fileName,
+              );
               Navigator.push(
                 context,
                 MaterialPageRoute(

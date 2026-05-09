@@ -9,121 +9,151 @@ import 'package:sqflite/sqflite.dart';
 /// yang terkait dengan tabel `status_unggah`.
 class StatusUnggahOperasi {
   final _dbHelper = DatabaseHelper.instance;
+  final String fileName = 'status_unggah_operasi.dart';
 
   /// Menyimpan atau memperbarui [StatusUnggahModel].
-  ///
-  /// Jika record dengan `tabel` yang sama sudah ada, record tersebut akan diperbarui.
-  /// Jika tidak, record baru akan dibuat.
   Future<void> simpanStatusUnggah(StatusUnggahModel status) async {
-    final db = await _dbHelper.database;
-    await db.insert(
-      'status_unggah',
-      status.toSqlite(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    try {
+      developer.log('Memulai simpanStatusUnggah untuk tabel: ${status.tabel.name}', name: fileName);
+      final db = await _dbHelper.database;
+      
+      await db.insert(
+        'status_unggah',
+        status.toSqlite(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      
+      developer.log(
+        '✅ Berhasil simpan/update status_unggah tabel: ${status.tabel.name} (Status: ${status.status}, Jumlah ID: ${status.ids.length})',
+        name: fileName,
+      );
+    } catch (e) {
+      developer.log('❌ Gagal simpanStatusUnggah: $e', name: fileName, error: e);
+      rethrow;
+    }
   }
 
   /// Mengambil semua [StatusUnggahModel] dari database.
-  ///
-  /// Mengembalikan daftar kosong jika tidak ada data.
   Future<List<StatusUnggahModel>> ambilSemuaStatusUnggah() async {
-    developer.log(
-      'Mulai mengambil semua status unggah',
-      name: 'StatusUnggahOperasi',
-    );
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('status_unggah');
+    try {
+      developer.log('Mulai mengambil semua data dari tabel status_unggah', name: fileName);
+      final db = await _dbHelper.database;
+      final List<Map<String, dynamic>> maps = await db.query('status_unggah');
 
-    if (maps.isEmpty) {
+      if (maps.isEmpty) {
+        developer.log('⚠️ Tabel status_unggah kosong.', name: fileName);
+        return [];
+      }
+
+      developer.log('Data mentah ditemukan: ${maps.length} baris', name: fileName);
+
+      final hasil = List.generate(maps.length, (i) {
+        return StatusUnggahModel.fromSqlite(maps[i]);
+      });
+
       developer.log(
-        'Tidak ada data status unggah yang ditemukan.',
-        name: 'StatusUnggahOperasi',
+        'Berhasil memproses ${hasil.length} StatusUnggahModel',
+        name: fileName,
       );
-      return [];
+      return hasil;
+    } catch (e) {
+      developer.log('❌ Gagal ambilSemuaStatusUnggah: $e', name: fileName, error: e);
+      rethrow;
     }
-
-    developer.log('Data mentah dari DB: $maps', name: 'StatusUnggahOperasi');
-
-    final hasil = List.generate(maps.length, (i) {
-      return StatusUnggahModel.fromSqlite(maps[i]);
-    });
-
-    developer.log(
-      'Hasil setelah diproses: ${hasil.map((e) => e.toFirebase()).toList()}',
-      name: 'StatusUnggahOperasi',
-    );
-    return hasil;
   }
 
   /// Mengambil satu [StatusUnggahModel] berdasarkan [NamaTabel].
-  ///
-  /// Mengembalikan `null` jika tidak ada data yang ditemukan.
   Future<StatusUnggahModel?> ambilStatusUnggahByTabel(NamaTabel tabel) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'status_unggah',
-      where: 'tabel = ?',
-      whereArgs: [tabel.name],
-    );
-    if (maps.isNotEmpty) {
-      return StatusUnggahModel.fromSqlite(maps.first);
+    try {
+      developer.log('Mengambil status_unggah untuk tabel: ${tabel.name}', name: fileName);
+      final db = await _dbHelper.database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'status_unggah',
+        where: 'tabel = ?',
+        whereArgs: [tabel.name],
+      );
+
+      if (maps.isNotEmpty) {
+        developer.log('Data ditemukan untuk tabel: ${tabel.name}', name: fileName);
+        return StatusUnggahModel.fromSqlite(maps.first);
+      }
+      
+      developer.log('Data tidak ditemukan untuk tabel: ${tabel.name}', name: fileName);
+      return null;
+    } catch (e) {
+      developer.log('❌ Gagal ambilStatusUnggahByTabel: $e', name: fileName, error: e);
+      rethrow;
     }
-    return null;
   }
 
   /// Menghapus [StatusUnggahModel] dari database berdasarkan [NamaTabel].
   Future<void> hapusStatusUnggah(NamaTabel tabel) async {
-    final db = await _dbHelper.database;
-    await db.delete(
-      'status_unggah',
-      where: 'tabel = ?',
-      whereArgs: [tabel.name],
-    );
+    try {
+      developer.log('Menghapus record status_unggah untuk tabel: ${tabel.name}', name: fileName);
+      final db = await _dbHelper.database;
+      int count = await db.delete(
+        'status_unggah',
+        where: 'tabel = ?',
+        whereArgs: [tabel.name],
+      );
+      developer.log('✅ Berhasil hapus status_unggah. Baris terpengaruh: $count', name: fileName);
+    } catch (e) {
+      developer.log('❌ Gagal hapusStatusUnggah: $e', name: fileName, error: e);
+      rethrow;
+    }
   }
 
-  /// Menambahkan daftar ID ke [StatusUnggahModel] yang ada dan menandainya sebagai
-  /// perlu diunggah.
-  ///
-  /// Jika tidak ada status untuk [tabel] yang diberikan, status baru akan dibuat.
-  /// Fungsi ini memastikan bahwa ID yang ditambahkan bersifat unik.
+  /// Menambahkan daftar ID ke [StatusUnggahModel] yang ada dan menandainya sebagai perlu diunggah.
   Future<void> tambahIdDanUbahStatus(NamaTabel tabel, List<String> ids) async {
-    // Ambil status yang ada, atau buat yang baru jika tidak ada.
-    final statusSaatIni =
-        await ambilStatusUnggahByTabel(tabel) ??
-        StatusUnggahModel(tabel: tabel, status: false, ids: []);
+    try {
+      developer.log('Menambahkan ${ids.length} ID baru ke status_unggah tabel: ${tabel.name}', name: fileName);
+      
+      // Ambil status yang ada, atau buat yang baru jika tidak ada.
+      final statusSaatIni =
+          await ambilStatusUnggahByTabel(tabel) ??
+          StatusUnggahModel(tabel: tabel, status: false, ids: []);
 
-    // Gabungkan daftar ID yang ada dengan yang baru, hindari duplikat.
-    final idSet = <String>{...statusSaatIni.ids, ...ids};
+      // Gabungkan daftar ID yang ada dengan yang baru, hindari duplikat.
+      final idSet = <String>{...statusSaatIni.ids, ...ids};
 
-    // Buat objek status yang diperbarui.
-    final statusDiperbarui = statusSaatIni.copyWith(
-      ids: idSet.toList(),
-      status: true,
-    );
+      // Buat objek status yang diperbarui.
+      final statusDiperbarui = statusSaatIni.copyWith(
+        ids: idSet.toList(),
+        status: true,
+      );
 
-    // Simpan status yang diperbarui ke database.
-    await simpanStatusUnggah(statusDiperbarui);
+      // Simpan status yang diperbarui ke database.
+      await simpanStatusUnggah(statusDiperbarui);
+      developer.log('✅ Update ID unik selesai. Total ID sekarang: ${idSet.length}', name: fileName);
+    } catch (e) {
+      developer.log('❌ Gagal tambahIdDanUbahStatus: $e', name: fileName, error: e);
+      rethrow;
+    }
   }
 
   /// Mereset status unggah untuk tabel tertentu.
-  ///
-  /// Ini akan mengatur `status` menjadi `false` dan mengosongkan daftar `ids`.
-  /// Biasanya dipanggil setelah proses unggah ke Firebase berhasil.
   Future<void> resetStatus(NamaTabel tabel) async {
-    final db = await _dbHelper.database;
-    // diperbaiki: Nama tabel 'status_ungah' menjadi 'status_unggah'.
-    await db.update(
-      'status_unggah',
-      {
-        'status': 0, // false
-        'ids': '[]', // JSON string untuk list kosong
-      },
-      where: 'tabel = ?',
-      whereArgs: [tabel.name],
-    );
-    developer.log(
-      'Status unggah untuk tabel ${tabel.name} telah di-reset.',
-      name: 'StatusUnggahOperasi',
-    );
+    try {
+      developer.log('Mereset status unggah (ids = empty, status = false) untuk tabel: ${tabel.name}', name: fileName);
+      final db = await _dbHelper.database;
+      
+      int count = await db.update(
+        'status_unggah',
+        {
+          'status': 0, // false
+          'ids': '[]', // JSON string untuk list kosong
+        },
+        where: 'tabel = ?',
+        whereArgs: [tabel.name],
+      );
+      
+      developer.log(
+        '✅ Status unggah untuk tabel ${tabel.name} telah di-reset. Baris terpengaruh: $count',
+        name: fileName,
+      );
+    } catch (e) {
+      developer.log('❌ Gagal resetStatus: $e', name: fileName, error: e);
+      rethrow;
+    }
   }
 }

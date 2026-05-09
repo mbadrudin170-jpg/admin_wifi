@@ -21,244 +21,526 @@ class PelangganAktifOperasi {
 
   PelangganAktifOperasi({NotifikasiServis? notifikasiServis}) {
     this.notifikasiServis = notifikasiServis ?? NotifikasiServis();
+    developer.log(
+      '🔧 [LOKAL] PelangganAktifOperasi diinisialisasi.',
+      name: 'PelangganAktifOperasi',
+    );
   }
 
   Future<PelangganAktifModel> createPelangganAktif(
     PelangganAktifModel pelangganAktif,
   ) async {
-    final db = await dbHelper.database;
-    final pelangganUntukDisimpan = pelangganAktif.copyWith(
-      id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
-      diperbarui: DateTime.now(),
-    );
-    final data = pelangganUntukDisimpan.toSqlite();
-    await db.insert(
-      'pelanggan_aktif',
-      data,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await _jadwalkanNotifikasi(pelangganUntukDisimpan);
-    await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
-    developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat.',
-    );
-    return pelangganUntukDisimpan;
+    try {
+      final db = await dbHelper.database;
+      final pelangganUntukDisimpan = pelangganAktif.copyWith(
+        id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
+        diperbarui: DateTime.now(),
+      );
+      final data = pelangganUntukDisimpan.toSqlite();
+
+      developer.log(
+        '📝 [LOKAL] Mencoba membuat pelanggan aktif dengan ID: ${pelangganUntukDisimpan.id}',
+        name: 'PelangganAktifOperasi',
+      );
+
+      await db.insert(
+        'pelanggan_aktif',
+        data,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await _jadwalkanNotifikasi(pelangganUntukDisimpan);
+      await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
+
+      developer.log(
+        '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      return pelangganUntukDisimpan;
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal membuat pelanggan aktif. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
-    final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'pelanggan_aktif',
-      where: 'isDeleted = ?',
-      whereArgs: [0],
-    );
-    return List.generate(
-      maps.length,
-      (i) => PelangganAktifModel.fromSqlite(maps[i]),
-    );
+    try {
+      final db = await dbHelper.database;
+
+      developer.log(
+        '🔍 [LOKAL] Mengambil semua pelanggan aktif (isDeleted = 0)',
+        name: 'PelangganAktifOperasi',
+      );
+
+      final List<Map<String, dynamic>> maps = await db.query(
+        'pelanggan_aktif',
+        where: 'isDeleted = ?',
+        whereArgs: [0],
+      );
+
+      developer.log(
+        '✅ [LOKAL] Berhasil mengambil ${maps.length} pelanggan aktif.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      return List.generate(
+        maps.length,
+        (i) => PelangganAktifModel.fromSqlite(maps[i]),
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal mengambil semua pelanggan aktif. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
-    final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'pelanggan_aktif',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    if (maps.isNotEmpty) {
-      return PelangganAktifModel.fromSqlite(maps.first);
+    try {
+      final db = await dbHelper.database;
+
+      developer.log(
+        '🔍 [LOKAL] Mencari pelanggan aktif dengan ID: $id',
+        name: 'PelangganAktifOperasi',
+      );
+
+      final List<Map<String, dynamic>> maps = await db.query(
+        'pelanggan_aktif',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      if (maps.isNotEmpty) {
+        developer.log(
+          '✅ [LOKAL] Pelanggan aktif dengan ID: $id ditemukan.',
+          name: 'PelangganAktifOperasi',
+        );
+        return PelangganAktifModel.fromSqlite(maps.first);
+      }
+
+      developer.log(
+        '⚠️ [LOKAL] Pelanggan aktif dengan ID: $id tidak ditemukan.',
+        name: 'PelangganAktifOperasi',
+      );
+      return null;
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal mengambil pelanggan aktif dengan ID: $id. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    return null;
   }
 
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
-    final db = await dbHelper.database;
-    final data = pelangganAktif.toSqlite();
-    await db.update(
-      'pelanggan_aktif',
-      data,
-      where: 'id = ?',
-      whereArgs: [pelangganAktif.id],
-    );
-    developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diperbarui.',
-    );
-    await _jadwalkanNotifikasi(pelangganAktif);
-    await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
+    try {
+      final db = await dbHelper.database;
+      final data = pelangganAktif.toSqlite();
+
+      developer.log(
+        '📝 [LOKAL] Memperbarui pelanggan aktif dengan ID: ${pelangganAktif.id}',
+        name: 'PelangganAktifOperasi',
+      );
+
+      await db.update(
+        'pelanggan_aktif',
+        data,
+        where: 'id = ?',
+        whereArgs: [pelangganAktif.id],
+      );
+
+      developer.log(
+        '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diperbarui.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      await _jadwalkanNotifikasi(pelangganAktif);
+      await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal memperbarui pelanggan aktif (ID: ${pelangganAktif.id}). Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   Future<void> _jadwalkanNotifikasi(PelangganAktifModel pelangganAktif) async {
-    final pelanggan = await _pelangganOperasi.getPelangganById(
-      pelangganAktif.idPelanggan,
-    );
-    final namaPelanggan = pelanggan?.nama ?? 'Tanpa Nama';
-
-    await notifikasiServis.batalNotifikasi(pelangganAktif.id.hashCode);
-    await notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 1));
-
-    final jadwalNotifikasiH1 = pelangganAktif.tanggalBerakhir.subtract(
-      const Duration(days: 1),
-    );
-    if (jadwalNotifikasiH1.isAfter(DateTime.now())) {
-      await notifikasiServis.jadwalNotifikasi(
-        id: pelangganAktif.id.hashCode,
-        title: 'Paket Akan Segera Berakhir',
-        body: 'Paket untuk pelanggan $namaPelanggan akan berakhir besok.',
-        jadwal: jadwalNotifikasiH1,
+    try {
+      developer.log(
+        '🔔 [LOKAL] Menjadwalkan notifikasi untuk pelanggan aktif (ID: ${pelangganAktif.id})',
+        name: 'PelangganAktifOperasi',
       );
-    }
 
-    final jadwalNotifikasiH3 = pelangganAktif.tanggalBerakhir.subtract(
-      const Duration(days: 3),
-    );
-    if (jadwalNotifikasiH3.isAfter(DateTime.now())) {
-      await notifikasiServis.jadwalNotifikasi(
-        id: (pelangganAktif.id.hashCode + 1),
-        title: 'Pengingat Paket',
-        body:
-            'Paket untuk pelanggan $namaPelanggan akan berakhir dalam 3 hari.',
-        jadwal: jadwalNotifikasiH3,
+      final pelanggan = await _pelangganOperasi.getPelangganById(
+        pelangganAktif.idPelanggan,
       );
+      final namaPelanggan = pelanggan?.nama ?? 'Tanpa Nama';
+
+      await notifikasiServis.batalNotifikasi(pelangganAktif.id.hashCode);
+      await notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 1));
+
+      final jadwalNotifikasiH1 = pelangganAktif.tanggalBerakhir.subtract(
+        const Duration(days: 1),
+      );
+      if (jadwalNotifikasiH1.isAfter(DateTime.now())) {
+        await notifikasiServis.jadwalNotifikasi(
+          id: pelangganAktif.id.hashCode,
+          title: 'Paket Akan Segera Berakhir',
+          body: 'Paket untuk pelanggan $namaPelanggan akan berakhir besok.',
+          jadwal: jadwalNotifikasiH1,
+        );
+        developer.log(
+          '✅ [LOKAL] Notifikasi H-1 dijadwalkan untuk ${jadwalNotifikasiH1.toIso8601String()}',
+          name: 'PelangganAktifOperasi',
+        );
+      } else {
+        developer.log(
+          '⏭️ [LOKAL] Notifikasi H-1 dilewati karena jadwal sudah lewat.',
+          name: 'PelangganAktifOperasi',
+        );
+      }
+
+      final jadwalNotifikasiH3 = pelangganAktif.tanggalBerakhir.subtract(
+        const Duration(days: 3),
+      );
+      if (jadwalNotifikasiH3.isAfter(DateTime.now())) {
+        await notifikasiServis.jadwalNotifikasi(
+          id: (pelangganAktif.id.hashCode + 1),
+          title: 'Pengingat Paket',
+          body:
+              'Paket untuk pelanggan $namaPelanggan akan berakhir dalam 3 hari.',
+          jadwal: jadwalNotifikasiH3,
+        );
+        developer.log(
+          '✅ [LOKAL] Notifikasi H-3 dijadwalkan untuk ${jadwalNotifikasiH3.toIso8601String()}',
+          name: 'PelangganAktifOperasi',
+        );
+      } else {
+        developer.log(
+          '⏭️ [LOKAL] Notifikasi H-3 dilewati karena jadwal sudah lewat.',
+          name: 'PelangganAktifOperasi',
+        );
+      }
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal menjadwalkan notifikasi untuk pelanggan aktif (ID: ${pelangganAktif.id}). Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Tidak rethrow karena notifikasi bersifat non-critical
     }
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(
     List<PelangganAktifModel> items,
   ) async {
-    final db = await dbHelper.database;
-    final batch = db.batch();
-    for (var item in items) {
-      batch.insert(
-        'pelanggan_aktif',
-        item.toSqlite(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+    try {
+      final db = await dbHelper.database;
+
+      developer.log(
+        '📦 [LOKAL] Memproses batch ${items.length} pelanggan aktif.',
+        name: 'PelangganAktifOperasi',
       );
+
+      final batch = db.batch();
+      for (var item in items) {
+        batch.insert(
+          'pelanggan_aktif',
+          item.toSqlite(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit(noResult: true);
+
+      developer.log(
+        '✅ [LOKAL] Batch ${items.length} pelanggan aktif berhasil diproses.',
+        name: 'PelangganAktifOperasi',
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal memproses batch pelanggan aktif. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    await batch.commit(noResult: true);
   }
 
   Future<void> arsipkanPelangganAktif(String id) async {
-    final db = await dbHelper.database;
-    final pelangganAktif = await ambilSatuPelangganAktif(id);
-    if (pelangganAktif == null) {
+    try {
+      final db = await dbHelper.database;
+
       developer.log(
-        '⚠️ [LOKAL] Pelanggan aktif dengan ID: $id tidak ditemukan untuk diarsipkan.',
+        '📦 [LOKAL] Mencoba mengarsipkan pelanggan aktif dengan ID: $id',
         name: 'PelangganAktifOperasi',
       );
-      return;
+
+      final pelangganAktif = await ambilSatuPelangganAktif(id);
+      if (pelangganAktif == null) {
+        developer.log(
+          '⚠️ [LOKAL] Pelanggan aktif dengan ID: $id tidak ditemukan untuk diarsipkan.',
+          name: 'PelangganAktifOperasi',
+        );
+        return;
+      }
+
+      final pelangganDiarsipkan = pelangganAktif.copyWith(
+        isDeleted: true,
+        diarsipkan: DateTime.now(),
+      );
+
+      await db.update(
+        'pelanggan_aktif',
+        pelangganDiarsipkan.toSqlite(),
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      await notifikasiServis.batalNotifikasi(id.hashCode);
+      await notifikasiServis.batalNotifikasi((id.hashCode + 1));
+
+      developer.log(
+        '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal mengarsipkan pelanggan aktif (ID: $id). Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    final pelangganDiarsipkan = pelangganAktif.copyWith(
-      isDeleted: true,
-      diarsipkan: DateTime.now(),
-    );
-    await db.update(
-      'pelanggan_aktif',
-      pelangganDiarsipkan.toSqlite(),
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    await notifikasiServis.batalNotifikasi(id.hashCode);
-    await notifikasiServis.batalNotifikasi((id.hashCode + 1));
-    developer.log(
-      '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
-      name: 'PelangganAktifOperasi',
-    );
   }
 
   Future<void> hapusPermanenPelangganYangDiArsipkan() async {
-    final db = await dbHelper.database;
-    final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
-    final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
-      'pelanggan_aktif',
-      where: 'diarsipkan IS NOT NULL AND diarsipkan < ?',
-      whereArgs: [batasWaktu.toIso8601String()],
-    );
-    if (pelangganKadaluarsa.isEmpty) {
+    try {
+      final db = await dbHelper.database;
+      final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
+
       developer.log(
-        'ℹ️ [LOKAL] Tidak ada pelanggan aktif yang diarsipkan lebih dari 30 hari untuk dihapus.',
+        '🧹 [LOKAL] Mencari pelanggan diarsipkan sebelum ${batasWaktu.toIso8601String()}',
         name: 'PelangganAktifOperasi',
       );
-      return;
+
+      final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
+        'pelanggan_aktif',
+        where: 'diarsipkan IS NOT NULL AND diarsipkan < ?',
+        whereArgs: [batasWaktu.toIso8601String()],
+      );
+
+      if (pelangganKadaluarsa.isEmpty) {
+        developer.log(
+          'ℹ️ [LOKAL] Tidak ada pelanggan aktif yang diarsipkan lebih dari 30 hari untuk dihapus.',
+          name: 'PelangganAktifOperasi',
+        );
+        return;
+      }
+
+      final idsUntukDihapus = pelangganKadaluarsa
+          .map((map) => map['id'] as String)
+          .toList();
+
+      developer.log(
+        '🗑️ [LOKAL] Menghapus ${idsUntukDihapus.length} pelanggan diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      final count = await db.delete(
+        'pelanggan_aktif',
+        where: 'id IN (${List.filled(idsUntukDihapus.length, '?').join(',')})',
+        whereArgs: idsUntukDihapus,
+      );
+
+      developer.log(
+        '🧹 [LOKAL] $count pelanggan aktif yang diarsipkan lebih dari 30 hari telah dihapus permanen.',
+        name: 'PelangganAktifOperasi',
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal menghapus permanen pelanggan diarsipkan. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    final idsUntukDihapus = pelangganKadaluarsa
-        .map((map) => map['id'] as String)
-        .toList();
-    final count = await db.delete(
-      'pelanggan_aktif',
-      where: 'id IN (${List.filled(idsUntukDihapus.length, '?').join(',')})',
-      whereArgs: idsUntukDihapus,
-    );
-    developer.log(
-      '🧹 [LOKAL] $count pelanggan aktif yang diarsipkan lebih dari 30 hari telah dihapus permanen.',
-      name: 'PelangganAktifOperasi',
-    );
   }
 
   Future<void> hapusSemuaPelangganAktif() async {
-    final db = await dbHelper.database;
-    await db.delete('pelanggan_aktif');
-    developer.log(
-      '🗑️ [LOKAL] Semua pelanggan aktif telah dihapus permanen.',
-      name: 'PelangganAktifOperasi',
-    );
+    try {
+      final db = await dbHelper.database;
+
+      developer.log(
+        '⚠️ [LOKAL] Menghapus SEMUA pelanggan aktif secara permanen!',
+        name: 'PelangganAktifOperasi',
+      );
+
+      await db.delete('pelanggan_aktif');
+
+      developer.log(
+        '🗑️ [LOKAL] Semua pelanggan aktif telah dihapus permanen.',
+        name: 'PelangganAktifOperasi',
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal menghapus semua pelanggan aktif. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   Future<int> arsipkanPelangganKadaluarsa() async {
-    final semuaPelanggan = await ambilSemuaPelangganAktif();
-    final sekarang = DateTime.now();
-    final pelangganKadaluarsa = semuaPelanggan
-        .where((p) => p.tanggalBerakhir.isBefore(sekarang) && !p.isDeleted)
-        .toList();
+    try {
+      developer.log(
+        '🔍 [LOKAL] Memeriksa pelanggan kadaluarsa untuk diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
 
-    if (pelangganKadaluarsa.isEmpty) {
-      return 0;
+      final semuaPelanggan = await ambilSemuaPelangganAktif();
+      final sekarang = DateTime.now();
+      final pelangganKadaluarsa = semuaPelanggan
+          .where((p) => p.tanggalBerakhir.isBefore(sekarang) && !p.isDeleted)
+          .toList();
+
+      if (pelangganKadaluarsa.isEmpty) {
+        developer.log(
+          'ℹ️ [LOKAL] Tidak ada pelanggan kadaluarsa untuk diarsipkan.',
+          name: 'PelangganAktifOperasi',
+        );
+        return 0;
+      }
+
+      developer.log(
+        '📦 [LOKAL] Ditemukan ${pelangganKadaluarsa.length} pelanggan kadaluarsa. Mulai mengarsipkan...',
+        name: 'PelangganAktifOperasi',
+      );
+
+      for (final pelanggan in pelangganKadaluarsa) {
+        await arsipkanPelangganAktif(pelanggan.id);
+      }
+
+      developer.log(
+        '🗂️ [LOKAL] ${pelangganKadaluarsa.length} pelanggan kadaluarsa telah diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      return pelangganKadaluarsa.length;
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal mengarsipkan pelanggan kadaluarsa. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-
-    for (final pelanggan in pelangganKadaluarsa) {
-      await arsipkanPelangganAktif(pelanggan.id);
-    }
-
-    developer.log(
-      '🗂️ [LOKAL] ${pelangganKadaluarsa.length} pelanggan kadaluarsa telah diarsipkan.',
-      name: 'PelangganAktifOperasi',
-    );
-    return pelangganKadaluarsa.length;
   }
 
   Future<int> arsipkanSemuaPelangganAktif() async {
-    final semuaPelanggan = await ambilSemuaPelangganAktif();
-    if (semuaPelanggan.isEmpty) {
+    try {
       developer.log(
-        'ℹ️ [LOKAL] Tidak ada pelanggan aktif untuk diarsipkan.',
+        '📦 [LOKAL] Mengarsipkan semua pelanggan aktif.',
         name: 'PelangganAktifOperasi',
       );
-      return 0;
+
+      final semuaPelanggan = await ambilSemuaPelangganAktif();
+
+      if (semuaPelanggan.isEmpty) {
+        developer.log(
+          'ℹ️ [LOKAL] Tidak ada pelanggan aktif untuk diarsipkan.',
+          name: 'PelangganAktifOperasi',
+        );
+        return 0;
+      }
+
+      developer.log(
+        '📊 [LOKAL] Mengarsipkan ${semuaPelanggan.length} pelanggan aktif...',
+        name: 'PelangganAktifOperasi',
+      );
+
+      for (final pelanggan in semuaPelanggan) {
+        await arsipkanPelangganAktif(pelanggan.id);
+      }
+
+      developer.log(
+        '🗂️ [LOKAL] ${semuaPelanggan.length} pelanggan aktif telah diarsipkan.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      return semuaPelanggan.length;
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal mengarsipkan semua pelanggan aktif. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    for (final pelanggan in semuaPelanggan) {
-      await arsipkanPelangganAktif(pelanggan.id);
-    }
-    developer.log(
-      '🗂️ [LOKAL] ${semuaPelanggan.length} pelanggan aktif telah diarsipkan.',
-      name: 'PelangganAktifOperasi',
-    );
-    return semuaPelanggan.length;
   }
 
   Future<List<PelangganAktifModel>> getPelangganAktifByIds(
     List<String> ids,
   ) async {
-    if (ids.isEmpty) {
-      return [];
+    try {
+      if (ids.isEmpty) {
+        developer.log(
+          'ℹ️ [LOKAL] getPelangganAktifByIds dipanggil dengan list ID kosong.',
+          name: 'PelangganAktifOperasi',
+        );
+        return [];
+      }
+
+      final db = await dbHelper.database;
+
+      developer.log(
+        '🔍 [LOKAL] Mencari ${ids.length} pelanggan aktif berdasarkan IDs.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      final placeholders = List.filled(ids.length, '?').join(',');
+      final List<Map<String, dynamic>> maps = await db.query(
+        'pelanggan_aktif',
+        where: 'id IN ($placeholders)',
+        whereArgs: ids,
+      );
+
+      developer.log(
+        '✅ [LOKAL] Ditemukan ${maps.length} dari ${ids.length} pelanggan aktif yang dicari.',
+        name: 'PelangganAktifOperasi',
+      );
+
+      return List.generate(maps.length, (i) {
+        return PelangganAktifModel.fromSqlite(maps[i]);
+      });
+    } catch (e, stackTrace) {
+      developer.log(
+        '❌ [LOKAL] Gagal mengambil pelanggan aktif berdasarkan IDs. Error: $e',
+        name: 'PelangganAktifOperasi',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    final db = await dbHelper.database;
-    final placeholders = List.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> maps = await db.query(
-      'pelanggan_aktif',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids,
-    );
-    return List.generate(maps.length, (i) {
-      return PelangganAktifModel.fromSqlite(maps[i]);
-    });
   }
 }

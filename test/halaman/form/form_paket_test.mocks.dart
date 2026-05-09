@@ -3,12 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i5;
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart' as _i3;
 import 'package:admin_wifi/data/sqlite.dart' as _i2;
-import 'package:admin_wifi/model/paket_model.dart' as _i5;
+import 'package:admin_wifi/model/paket_model.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -51,85 +52,96 @@ class MockPaketOperasi extends _i1.Mock implements _i3.PaketOperasi {
           as _i2.DatabaseHelper);
 
   @override
-  _i4.Future<void> createPaket(_i5.PaketModel? paket) =>
+  String get fileName =>
+      (super.noSuchMethod(
+            Invocation.getter(#fileName),
+            returnValue: _i4.dummyValue<String>(
+              this,
+              Invocation.getter(#fileName),
+            ),
+          )
+          as String);
+
+  @override
+  _i5.Future<void> createPaket(_i6.PaketModel? paket) =>
       (super.noSuchMethod(
             Invocation.method(#createPaket, [paket]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<List<_i5.PaketModel>> getPaket() =>
+  _i5.Future<List<_i6.PaketModel>> getPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getPaket, []),
-            returnValue: _i4.Future<List<_i5.PaketModel>>.value(
-              <_i5.PaketModel>[],
+            returnValue: _i5.Future<List<_i6.PaketModel>>.value(
+              <_i6.PaketModel>[],
             ),
           )
-          as _i4.Future<List<_i5.PaketModel>>);
+          as _i5.Future<List<_i6.PaketModel>>);
 
   @override
-  _i4.Future<_i5.PaketModel?> getPaketById(String? id) =>
+  _i5.Future<_i6.PaketModel?> getPaketById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getPaketById, [id]),
-            returnValue: _i4.Future<_i5.PaketModel?>.value(),
+            returnValue: _i5.Future<_i6.PaketModel?>.value(),
           )
-          as _i4.Future<_i5.PaketModel?>);
+          as _i5.Future<_i6.PaketModel?>);
 
   @override
-  _i4.Future<void> updatePaket(_i5.PaketModel? paket) =>
+  _i5.Future<void> updatePaket(_i6.PaketModel? paket) =>
       (super.noSuchMethod(
             Invocation.method(#updatePaket, [paket]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> hapusPaket(String? id) =>
+  _i5.Future<void> hapusPaket(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hapusPaket, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> hapusSemuaPaket() =>
+  _i5.Future<void> hapusSemuaPaket() =>
       (super.noSuchMethod(
             Invocation.method(#hapusSemuaPaket, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<List<_i5.PaketModel>> getPerubahan(DateTime? since) =>
+  _i5.Future<List<_i6.PaketModel>> getPerubahan(DateTime? since) =>
       (super.noSuchMethod(
             Invocation.method(#getPerubahan, [since]),
-            returnValue: _i4.Future<List<_i5.PaketModel>>.value(
-              <_i5.PaketModel>[],
+            returnValue: _i5.Future<List<_i6.PaketModel>>.value(
+              <_i6.PaketModel>[],
             ),
           )
-          as _i4.Future<List<_i5.PaketModel>>);
+          as _i5.Future<List<_i6.PaketModel>>);
 
   @override
-  _i4.Future<void> sisipkanAtauPerbaruiBatch(List<_i5.PaketModel>? items) =>
+  _i5.Future<void> sisipkanAtauPerbaruiBatch(List<_i6.PaketModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<List<_i5.PaketModel>> getPaketByIds(List<String>? ids) =>
+  _i5.Future<List<_i6.PaketModel>> getPaketByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getPaketByIds, [ids]),
-            returnValue: _i4.Future<List<_i5.PaketModel>>.value(
-              <_i5.PaketModel>[],
+            returnValue: _i5.Future<List<_i6.PaketModel>>.value(
+              <_i6.PaketModel>[],
             ),
           )
-          as _i4.Future<List<_i5.PaketModel>>);
+          as _i5.Future<List<_i6.PaketModel>>);
 }
