@@ -1,151 +1,112 @@
 // path: lib/data/services/pengecekan_data_baru.dart
-import 'dart:developer' as developer;
-
-// ditambah: Impor StatusUnggahOperasi yang baru
 import 'package:admin_wifi/data/operasi/operasi.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// ditambah: fungsi helper untuk konversi camelCase ke snake_case
-
-/// [PengecekanDataBaruService] menyediakan mekanisme untuk memeriksa
-/// apakah ada data baru baik di server (Firebase) maupun di lokal (SQLite).
 class PengecekanDataBaruService {
   final FirebaseFirestore _firestore;
   final SyncManager _syncManager;
-  // dihapus: _dbHelper tidak lagi dibutuhkan di sini setelah refactor
-  // final DatabaseHelper _dbHelper;
-
-  // ditambah: Tambahkan dependensi untuk StatusUnggahOperasi
   final StatusUnggahOperasi _statusUnggahOperasi;
 
   PengecekanDataBaruService({
     FirebaseFirestore? firestore,
     SyncManager? syncManager,
-    // dihapus: dbHelper tidak lagi diinject
-    // DatabaseHelper? dbHelper,
-    // ditambah: Inject StatusUnggahOperasi
     StatusUnggahOperasi? statusUnggahOperasi,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _syncManager = syncManager ?? SyncManager(),
-       // _dbHelper = dbHelper ?? DatabaseHelper.instance,
-       _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
-    // 🚀 Inisialisasi
-    developer.log(
-      'PengecekanDataBaruService berhasil diinisialisasi dengan FirebaseFirestore, SyncManager, dan StatusUnggahOperasi',
-      name: 'PengecekanDataBaruService-Constructor 🚀',
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _syncManager = syncManager ?? SyncManager(),
+        _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
+    Log.info(
+      'Inisialisasi PengecekanDataBaruService berhasil. Komponen FirebaseFirestore untuk akses cloud, SyncManager untuk manajemen waktu lokal, dan StatusUnggahOperasi untuk akses bendera SQLite telah siap digunakan.',
     );
   }
 
-  /// Memeriksa apakah ada data di SQLite yang 'diperbarui' setelah waktu unggah terakhir.
-  /// Berguna untuk memutuskan apakah perlu menjalankan proses UNGGAH.
-  // diubah: Seluruh logika di dalam fungsi ini diganti dengan satu panggilan
-  // ke _statusUnggahOperasi.apakahPerluUnggah() agar lebih efisien.
   Future<bool> apakahSqliteAdaDataBaru() async {
-    developer.log(
-      'Memulai pengecekan apakah ada data baru di SQLite yang perlu diunggah',
-      name: 'PengecekanDataBaruService-apakahSqliteAdaDataBaru ℹ️',
+    Log.info(
+      'Memulai prosedur pengecekan data lokal di SQLite. Sistem akan memverifikasi apakah ada perubahan data yang belum diunggah ke server.',
     );
 
-    developer.log(
-      'Memeriksa bendera `perlu_unggah`...',
-      name: 'PengecekanDataBaru.SQLite',
-    );
-    // Cukup panggil fungsi dari StatusUnggahOperasi. Jauh lebih cepat!
-    final hasil = await _statusUnggahOperasi.getPerluUnggah();
+    try {
+      Log.info(
+        'Mengakses StatusUnggahOperasi untuk membaca nilai dari kolom perlu_unggah di database internal. Ini adalah indikator utama apakah aplikasi memiliki payload baru.',
+      );
+      final bool hasil = await _statusUnggahOperasi.getPerluUnggah();
 
-    developer.log(
-      'Hasil pengecekan SQLite: ${hasil ? "Ada data baru yang perlu diunggah" : "Tidak ada data baru untuk diunggah"}',
-      name:
-          'PengecekanDataBaruService-apakahSqliteAdaDataBaru ${hasil ? "✅" : "ℹ️"}',
-    );
-
-    return hasil;
+      if (hasil) {
+        Log.info(
+          'Hasil pengecekan SQLite: Ditemukan bendera perlu_unggah bernilai TRUE. Aplikasi memiliki data baru yang harus segera disinkronisasikan ke server.',
+        );
+      } else {
+        Log.info(
+          'Hasil pengecekan SQLite: Bendera perlu_unggah bernilai FALSE. Tidak ada perubahan data lokal yang memerlukan tindakan pengunggahan saat ini.',
+        );
+      }
+      return hasil;
+    } catch (e, s) {
+      Log.error(
+        'Gagal melakukan pengecekan status perlu_unggah pada SQLite. Terjadi kesalahan pada query database atau akses file database lokal terhambat.',
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    }
   }
 
-  /// Memeriksa apakah 'diperbarui' di dokumen status global Firebase lebih baru dari unduhan terakhir.
-  /// Berguna untuk memutuskan apakah perlu menjalankan proses UNDUH.
   Future<bool> apakahFirebaseAdaDataBaru({
     required String namaKoleksi,
     required String idDokumen,
   }) async {
-    developer.log(
-      'Memulai pengecekan data baru di Firebase untuk koleksi: $namaKoleksi, dokumen: $idDokumen',
-      name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru ℹ️',
+    Log.info(
+      'Memulai prosedur pembandingan timestamp server. Lokasi target koleksi: "$namaKoleksi", dokumen: "$idDokumen". Prosedur ini akan menentukan apakah aplikasi perlu mengunduh data terbaru.',
     );
 
     try {
-      developer.log(
-        'Mengambil waktu unduh terakhir dari SyncManager',
-        name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru 🔄',
-      );
+      Log.info('Mengambil metadata waktu unduhan terakhir dari penyimpanan preferensi lokal melalui SyncManager.');
+      final DateTime waktuLokal = await _syncManager.getTerakhirUnduh();
+      Log.info('Timestamp unduhan lokal terakhir yang tercatat adalah: $waktuLokal');
 
-      final waktuLokal = await _syncManager.getTerakhirUnduh();
+      Log.info('Membangun referensi dokumen Firestore dan memulai permintaan pengambilan data langsung dari server cloud (Source.server).');
+      final DocumentReference docRef = _firestore.collection(namaKoleksi).doc(idDokumen);
+      final DocumentSnapshot docSnapshot = await docRef.get(const GetOptions(source: Source.server));
 
-      developer.log(
-        'Waktu unduh terakhir (lokal): $waktuLokal',
-        name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru 📝',
-      );
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        Log.info('Dokumen status ditemukan di server. Melakukan ekstraksi payload data untuk mencari field pembanding.');
+        final data = docSnapshot.data() as Map<String, dynamic>;
 
-      final docRef = _firestore.collection(namaKoleksi).doc(idDokumen);
+        if (data.containsKey('diperbarui')) {
+          Log.info('Field "diperbarui" ditemukan pada dokumen server. Mengonversi tipe data Timestamp Firestore ke objek DateTime Dart.');
+          final DateTime waktuServer = (data['diperbarui'] as Timestamp).toDate();
+          Log.info('Waktu pembaruan di server adalah: $waktuServer');
 
-      developer.log(
-        'Mengambil dokumen dari server: $namaKoleksi/$idDokumen',
-        name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru 🔄',
-      );
-
-      final docSnapshot = await docRef.get(
-        const GetOptions(source: Source.server),
-      );
-
-      if (docSnapshot.exists &&
-          docSnapshot.data() != null &&
-          docSnapshot.data()!.containsKey('diperbarui')) {
-        final waktuServer = (docSnapshot.data()!['diperbarui'] as Timestamp)
-            .toDate();
-
-        developer.log(
-          'Waktu server (diperbarui): $waktuServer | Waktu lokal: $waktuLokal',
-          name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru 📝',
+          final bool isAfter = waktuServer.isAfter(waktuLokal);
+          if (isAfter) {
+            Log.info(
+              'Kesimpulan: Waktu server ($waktuServer) lebih baru daripada waktu lokal ($waktuLokal). PENGUNDUHAN DATA DIPERLUKAN untuk menjaga aktualitas data.',
+            );
+          } else {
+            Log.info(
+              'Kesimpulan: Waktu server tidak lebih baru daripada waktu lokal. Data aplikasi saat ini sudah sinkron dengan versi terbaru di server.',
+            );
+          }
+          return isAfter;
+        } else {
+          Log.warning(
+            'Struktur data dokumen di server tidak sesuai standar. Field "diperbarui" tidak ditemukan. Sistem mengasumsikan tidak ada pembaruan untuk menghindari pengunduhan yang tidak perlu.',
+          );
+          return false;
+        }
+      } else {
+        Log.warning(
+          'Dokumen target "$idDokumen" tidak tersedia di koleksi "$namaKoleksi" pada server Firebase. Pastikan dokumen status global telah dibuat di konsol Firebase.',
         );
-
-        final isAfter = waktuServer.isAfter(waktuLokal);
-
-        developer.log(
-          'Hasil perbandingan Firebase: ${isAfter ? "Data server lebih baru, perlu unduh" : "Data lokal sudah terbaru, tidak perlu unduh"}',
-          name:
-              'PengecekanDataBaruService-apakahFirebaseAdaDataBaru ${isAfter ? "✅" : "ℹ️"}',
-        );
-
-        return isAfter;
+        return false;
       }
-
-      developer.log(
-        'Dokumen tidak ditemukan, tidak memiliki data, atau tidak memiliki field diperbarui. Mengembalikan false',
-        name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru ⚠️',
-      );
-
-      return false;
     } catch (e, s) {
-      developer.log(
-        'Gagal memeriksa data baru di Firebase.',
-        name: 'PengecekanDataBaru.Firebase.Error',
+      Log.error(
+        'Terjadi kegagalan saat proses pembandingan waktu server dan lokal. Masalah mungkin terletak pada koneksi jaringan atau hak akses (Security Rules) Firebase Firestore.',
         error: e,
         stackTrace: s,
       );
-
-      developer.log(
-        'Error saat memeriksa data baru di Firebase: $e | Koleksi: $namaKoleksi | Dokumen: $idDokumen',
-        name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru ❌',
-        error: e,
-        stackTrace: s,
-      );
-
-      developer.log(
-        'Mengembalikan false karena terjadi error saat pengecekan Firebase',
-        name: 'PengecekanDataBaruService-apakahFirebaseAdaDataBaru ⚠️',
-      );
-
       return false;
     }
   }

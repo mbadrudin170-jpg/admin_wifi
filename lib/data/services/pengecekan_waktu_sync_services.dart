@@ -1,10 +1,9 @@
 // path: lib/data/services/pengecekan_waktu_sync_services.dart
 
-import 'dart:developer' as developer;
-
-import 'package:admin_wifi/data/services/pengecekan_data_baru.dart'; // diubah: impor ke file yang benar
+import 'package:admin_wifi/data/services/pengecekan_data_baru.dart';
 import 'package:admin_wifi/data/sync/unduh_data.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 
 class PengecekanWaktuSyncService {
@@ -13,126 +12,79 @@ class PengecekanWaktuSyncService {
   final LayananUnduhData _layananUnduh;
   final PengecekanDataBaruService _pengecekanDataBaru;
 
-  // dihapus: dependensi ke DatabaseHelper karena logikanya sudah dipindahkan
   PengecekanWaktuSyncService({
     SyncManager? syncManager,
     LayananUnggahData? layananUnggah,
     LayananUnduhData? layananUnduh,
     PengecekanDataBaruService? pengecekanDataBaru,
-  }) : _syncManager = syncManager ?? SyncManager(),
-       _layananUnggah = layananUnggah ?? LayananUnggahData(),
-       _layananUnduh = layananUnduh ?? LayananUnduhData(),
-       _pengecekanDataBaru = pengecekanDataBaru ?? PengecekanDataBaruService() {
-    developer.log(
-      'PengecekanWaktuSyncService berhasil diinisialisasi dengan SyncManager, LayananUnggahData, LayananUnduhData, dan PengecekanDataBaruService',
-      name: 'PengecekanWaktuSyncService-Constructor 🚀',
+  })  : _syncManager = syncManager ?? SyncManager(),
+        _layananUnggah = layananUnggah ?? LayananUnggahData(),
+        _layananUnduh = layananUnduh ?? LayananUnduhData(),
+        _pengecekanDataBaru =
+            pengecekanDataBaru ?? PengecekanDataBaruService() {
+    Log.info(
+      'Inisialisasi PengecekanWaktuSyncService berhasil. Seluruh dependensi utama seperti SyncManager (pengelola status), LayananUnggah (pengiriman data), LayananUnduh (penerimaan data), dan PengecekanDataBaruService (detektor perubahan) telah disuntikkan ke dalam sistem dan siap digunakan.',
     );
   }
 
   Future<void> jalankanPengecekanDanSinkronisasi() async {
-    developer.log(
-      'Memulai alur pengecekan sinkronisasi...',
-      name: 'PengecekanWaktuSync',
+    Log.info(
+      'Memulai siklus orkestrasi sinkronisasi global. Prosedur ini akan menjalankan dua fase utama secara berurutan: Fase Sinkronisasi Keluar (Upload) untuk memastikan data lokal terkirim ke cloud, kemudian Fase Sinkronisasi Masuk (Download) untuk memastikan data lokal tetap aktual dengan cloud.',
     );
 
-    developer.log(
-      'Memulai alur pengecekan dan sinkronisasi lengkap (Unggah + Unduh)',
-      name: 'PengecekanWaktuSyncService-jalankanPengecekanDanSinkronisasi ℹ️',
-    );
-
+    Log.info('Memasuki Fase Pertama: Memulai prosedur pemeriksaan data lokal yang perlu diunggah.');
     await _cekDanJalankanUnggah();
 
-    developer.log(
-      'Proses unggah selesai, melanjutkan ke proses unduh',
-      name: 'PengecekanWaktuSyncService-jalankanPengecekanDanSinkronisasi 🔄',
+    Log.info(
+      'Fase Pertama (Unggah) telah diselesaikan atau dilewati. Melanjutkan ke Fase Kedua: Memulai prosedur pemeriksaan pembaruan data di server cloud.',
     );
 
     await _cekDanJalankanUnduh();
 
-    developer.log(
-      'Alur pengecekan sinkronisasi selesai.',
-      name: 'PengecekanWaktuSync',
-    );
-
-    developer.log(
-      'Alur pengecekan dan sinkronisasi lengkap berhasil diselesaikan',
-      name: 'PengecekanWaktuSyncService-jalankanPengecekanDanSinkronisasi ✅',
+    Log.info(
+      'Seluruh siklus jalankanPengecekanDanSinkronisasi() telah berakhir dengan sukses. Status sinkronisasi lokal dan server kini seharusnya berada dalam kondisi konsisten.',
     );
   }
 
   Future<void> _cekDanJalankanUnggah() async {
-    developer.log(
-      'Memulai proses pengecekan dan unggah data lokal',
-      name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah ℹ️',
+    Log.info(
+      'Menjalankan fungsi internal _cekDanJalankanUnggah(). Sistem akan melakukan inspeksi pada database SQLite lokal untuk mendeteksi adanya entri data baru atau perubahan yang belum ditandai sebagai tersinkronisasi.',
     );
 
     try {
-      developer.log(
-        'Mengecek data lokal untuk diunggah...',
-        name: 'PengecekanWaktuSync.Unggah',
+      Log.info(
+        'Memanggil method apakahSqliteAdaDataBaru() dari PengecekanDataBaruService. Melakukan query pengecekan flag sinkronisasi pada tabel-tabel terkait di database lokal.',
       );
 
-      developer.log(
-        'Memanggil PengecekanDataBaruService.apakahSqliteAdaDataBaru() untuk mengecek perubahan lokal',
-        name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah 🔄',
-      );
-
-      // diubah: Memanggil metode dari layanan yang didedikasikan
-      final apakahAdaDataUntukDiunggah = await _pengecekanDataBaru
-          .apakahSqliteAdaDataBaru();
-
-      developer.log(
-        'Hasil pengecekan data lokal: ${apakahAdaDataUntukDiunggah ? "Ada data untuk diunggah" : "Tidak ada data untuk diunggah"}',
-        name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah 📝',
-      );
+      final bool apakahAdaDataUntukDiunggah =
+          await _pengecekanDataBaru.apakahSqliteAdaDataBaru();
 
       if (apakahAdaDataUntukDiunggah) {
-        developer.log(
-          'Perubahan lokal terdeteksi, menjalankan proses unggah...',
-          name: 'PengecekanWaktuSync.Unggah',
+        Log.info(
+          'Deteksi Berhasil: Ditemukan data baru di penyimpanan lokal yang memerlukan sinkronisasi ke cloud. Mempersiapkan pemanggilan LayananUnggahData untuk memproses migrasi data.',
         );
 
-        developer.log(
-          'Memulai proses unggah semua data ke server',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah 🔄',
-        );
-
+        Log.info('Memulai eksekusi unggahSemuaData(). Seluruh payload data lokal akan dikonversi dan dikirim melalui protokol API/Firestore.');
         await _layananUnggah.unggahSemuaData();
 
-        developer.log(
-          'Proses unggah selesai, memperbarui waktu unggah terakhir',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah ✅',
+        Log.info(
+          'Eksekusi unggahSemuaData() selesai tanpa kendala. Langkah selanjutnya adalah memperbarui metadata waktu sinkronisasi agar sistem tidak mengunggah data yang sama pada siklus berikutnya.',
         );
 
         final waktuSekarang = DateTime.now();
         await _syncManager.setTerakhirUnggah(waktuSekarang);
 
-        developer.log(
-          'Waktu unggah terakhir berhasil diperbarui: $waktuSekarang',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah ✅',
+        Log.info(
+          'Metadata sinkronisasi berhasil diperbarui. Waktu terakhir unggah (last_upload_timestamp) kini disetel pada: $waktuSekarang.',
         );
       } else {
-        developer.log(
-          'Tidak ada data lokal baru untuk diunggah.',
-          name: 'PengecekanWaktuSync.Unggah',
-        );
-
-        developer.log(
-          'Tidak ada perubahan lokal, melewati proses unggah',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah ℹ️',
+        Log.info(
+          'Hasil Pengecekan: Tidak ditemukan record baru atau perubahan data pada database SQLite lokal. Melewati fase pengunggahan untuk menghemat bandwidth dan sumber daya sistem.',
         );
       }
     } catch (e, s) {
-      developer.log(
-        'Gagal dalam alur pengecekan unggah.',
-        name: 'PengecekanWaktuSync.Unggah.Error',
-        error: e,
-        stackTrace: s,
-      );
-
-      developer.log(
-        'Error saat pengecekan atau proses unggah: $e',
-        name: 'PengecekanWaktuSyncService-_cekDanJalankanUnggah ❌',
+      Log.error(
+        'Kegagalan Operasional: Terjadi kesalahan fatal selama fase pengecekan atau pengunggahan data lokal ke server. Proses sinkronisasi keluar dihentikan secara paksa untuk mencegah korupsi data.',
         error: e,
         stackTrace: s,
       );
@@ -140,86 +92,48 @@ class PengecekanWaktuSyncService {
   }
 
   Future<void> _cekDanJalankanUnduh() async {
-    developer.log(
-      'Memulai proses pengecekan dan unduh data dari server',
-      name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh ℹ️',
+    Log.info(
+      'Menjalankan fungsi internal _cekDanJalankanUnduh(). Sistem akan melakukan handshake dengan Firebase Firestore untuk memeriksa apakah ada pembaruan data dari admin atau user lain yang perlu diterapkan di database lokal.',
     );
 
     try {
-      developer.log(
-        'Mengecek data baru di server untuk diunduh...',
-        name: 'PengecekanWaktuSync.Unduh',
+      Log.info(
+        'Mengirim permintaan pengecekan ke Firebase melalui apakahFirebaseAdaDataBaru() pada koleksi: "data_baru", dokumen: "global". Mencari perbedaan timestamp antara server dan lokal.',
       );
 
-      developer.log(
-        'Memanggil PengecekanDataBaruService.apakahFirebaseAdaDataBaru() untuk mengecek data server',
-        name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh 🔄',
-      );
-
-      // diubah: Memanggil metode yang lebih spesifik dari layanan yang didedikasikan
-      final apakahAdaDataBaruDiServer = await _pengecekanDataBaru
+      final bool apakahAdaDataBaruDiServer = await _pengecekanDataBaru
           .apakahFirebaseAdaDataBaru(
-            namaKoleksi: 'status',
-            idDokumen: 'global',
-          );
-
-      developer.log(
-        'Hasil pengecekan data server: ${apakahAdaDataBaruDiServer ? "Ada data baru untuk diunduh" : "Data sudah sinkron"}',
-        name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh 📝',
-      );
+              namaKoleksi: 'data_baru', idDokumen: 'global');
 
       if (apakahAdaDataBaruDiServer) {
-        developer.log(
-          'Data baru di server terdeteksi, menjalankan proses unduh...',
-          name: 'PengecekanWaktuSync.Unduh',
+        Log.info(
+          'Deteksi Server: Server cloud memiliki data yang lebih baru dibandingkan database lokal. Menginisiasi proses pengunduhan data secara menyeluruh.',
         );
 
-        developer.log(
-          'Memulai proses unduh semua data dari server',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh 🔄',
-        );
-
+        Log.info('Memulai eksekusi unduhSemuaData(). Mengambil snapshot terbaru dari Firestore dan memperbarui record SQLite lokal secara atomik.');
         await _layananUnduh.unduhSemuaData();
 
-        developer.log(
-          'Proses unduh selesai, memperbarui waktu unduh terakhir',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh ✅',
+        Log.info(
+          'Eksekusi unduhSemuaData() telah berhasil. Menginstruksikan SyncManager untuk memperbarui catatan waktu sinkronisasi masuk terakhir.',
         );
 
         final waktuSekarang = DateTime.now();
         await _syncManager.setTerakhirUnduh(waktuSekarang);
 
-        developer.log(
-          'Waktu unduh terakhir berhasil diperbarui: $waktuSekarang',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh ✅',
+        Log.info(
+          'Sinkronisasi masuk selesai. Metadata last_download_timestamp telah diperbarui menjadi: $waktuSekarang. Data lokal kini identik dengan data server.',
         );
       } else {
-        developer.log(
-          'Data lokal sudah sinkron dengan server.',
-          name: 'PengecekanWaktuSync.Unduh',
-        );
-
-        developer.log(
-          'Tidak ada data baru di server, melewati proses unduh',
-          name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh ℹ️',
+        Log.info(
+          'Hasil Pengecekan Server: Cloud tidak memiliki pembaruan data (data lokal sudah up-to-date). Menghentikan fase pengunduhan untuk efisiensi.',
         );
       }
     } catch (e, s) {
-      developer.log(
-        'Gagal dalam alur pengecekan unduh.',
-        name: 'PengecekanWaktuSync.Unduh.Error',
-        error: e,
-        stackTrace: s,
-      );
-
-      developer.log(
-        'Error saat pengecekan atau proses unduh: $e',
-        name: 'PengecekanWaktuSyncService-_cekDanJalankanUnduh ❌',
+      Log.error(
+        'Kegagalan Operasional: Terjadi error saat mencoba mengambil atau memproses data baru dari server cloud ke penyimpanan lokal.',
         error: e,
         stackTrace: s,
       );
     }
   }
-
-  // dihapus: Fungsi helper _apakahAdaPerubahanLokal telah dipindahkan ke PengecekanDataBaruService.
 }

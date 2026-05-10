@@ -3,6 +3,7 @@
 // dan daftar semua dompet yang tersedia. Pengguna dapat menambahkan dompet baru melalui
 // tombol floating action.
 
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -26,35 +27,42 @@ class _DompetPageState extends State<DompetPage> {
   @override
   void initState() {
     super.initState();
+    Log.info('Halaman Dompet sedang diinisialisasi.');
     _loadDompet();
   }
 
   // Fungsi untuk memuat ulang data dompet dan ringkasan keuangan
   void _loadDompet() {
+    Log.info('Memulai pemuatan data dompet dan ringkasan keuangan.');
     setState(() {
       _listaDompetFuture = _dompetOperasi.getDompet();
       _ringkasanKey.currentState?.refresh();
     });
+    Log.info('Pemuatan data dompet dan ringkasan keuangan telah dijadwalkan.');
   }
 
   // Fungsi untuk menavigasi ke halaman tambah dompet
   void _tambahDompet() async {
+    Log.info('Navigasi ke halaman tambah dompet.');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormDompet()),
     );
     if (!mounted) return;
     if (result == true) {
+      Log.info('Berhasil menambahkan dompet baru, memuat ulang data.');
       _loadDompet();
     }
   }
 
   // Fungsi untuk menampilkan dialog konfirmasi sebelum menghapus semua dompet
   void _tampilkanDialogHapusSemua() async {
+    Log.info('Menampilkan dialog konfirmasi hapus semua dompet.');
     final dompetList = await _dompetOperasi.getDompet();
     if (!mounted) return;
 
     if (dompetList.isEmpty) {
+      Log.warning('Tidak ada dompet untuk dihapus.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tidak ada dompet untuk dihapus.')),
       );
@@ -73,12 +81,14 @@ class _DompetPageState extends State<DompetPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
+                Log.info('Pengguna membatalkan penghapusan semua dompet.');
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Hapus'),
               onPressed: () {
+                Log.warning('Pengguna mengkonfirmasi penghapusan semua dompet.');
                 Navigator.of(context).pop(); // Tutup dialog sebelum operasi
                 _hapusSemuaDompet();
               },
@@ -91,6 +101,8 @@ class _DompetPageState extends State<DompetPage> {
 
   // Fungsi untuk menampilkan dialog konfirmasi pengarsipan satu dompet
   void _showDialogHapusSatu(DompetModel dompet) {
+    Log.info(
+        'Menampilkan dialog konfirmasi pengarsipan untuk dompet: "${dompet.namaDompet}".');
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -103,12 +115,16 @@ class _DompetPageState extends State<DompetPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
+                Log.info(
+                    'Pengguna membatalkan pengarsipan dompet: "${dompet.namaDompet}".');
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Arsipkan'),
               onPressed: () {
+                Log.warning(
+                    'Pengguna mengkonfirmasi pengarsipan dompet: "${dompet.namaDompet}".');
                 Navigator.of(context).pop(); // Tutup dialog sebelum operasi
                 _hapusSatuDompet(dompet);
               },
@@ -121,15 +137,19 @@ class _DompetPageState extends State<DompetPage> {
 
   // Fungsi untuk mengarsipkan satu dompet
   void _hapusSatuDompet(DompetModel dompet) async {
+    Log.info('Memulai pengarsipan dompet: "${dompet.namaDompet}".');
     try {
       await _dompetOperasi.arsipkanSatuDompet(dompet.id);
       _loadDompet(); // Muat ulang data
       if (!mounted) return;
+      Log.info('Dompet "${dompet.namaDompet}" berhasil diarsipkan.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Dompet berhasil diarsipkan.')),
       );
-    } catch (e) {
+    } catch (e, s) {
       if (!mounted) return;
+      Log.error('Gagal mengarsipkan dompet: "${dompet.namaDompet}".',
+          error: e, stackTrace: s);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal mengarsipkan dompet: $e')));
@@ -138,15 +158,19 @@ class _DompetPageState extends State<DompetPage> {
 
   // Fungsi untuk menghapus semua dompet secara permanen
   void _hapusSemuaDompet() async {
+    Log.info('Memulai penghapusan semua dompet.');
     try {
       await _dompetOperasi.hapusSemuaDompet();
       _loadDompet(); // Muat ulang data
       if (!mounted) return;
+      Log.info('Semua dompet berhasil dihapus.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Semua dompet berhasil dihapus.')),
       );
-    } catch (e) {
+    } catch (e, s) {
       if (!mounted) return;
+      Log.error('Gagal menghapus semua dompet.',
+          error: e, stackTrace: s);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal menghapus dompet: $e')));
@@ -155,6 +179,7 @@ class _DompetPageState extends State<DompetPage> {
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI untuk Halaman Dompet.');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dompet'),
@@ -174,14 +199,21 @@ class _DompetPageState extends State<DompetPage> {
               future: _listaDompetFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
+                  Log.info('Menunggu data dompet...');
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
+                  Log.error('Error saat memuat data dompet.',
+                      error: snapshot.error,
+                      stackTrace: snapshot.stackTrace);
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  Log.info('Tidak ada data dompet ditemukan.');
                   return const Center(
                     child: Text('Tidak ada dompet ditemukan.'),
                   );
                 } else {
+                  Log.info(
+                      'Berhasil memuat ${snapshot.data!.length} dompet, membangun daftar.');
                   return ListView.builder(
                     padding: const EdgeInsets.only(top: 8),
                     itemCount: snapshot.data!.length,
@@ -190,6 +222,8 @@ class _DompetPageState extends State<DompetPage> {
                       return DompetCard(
                         dompet: dompet,
                         onTap: () async {
+                          Log.info(
+                              'Navigasi ke detail dompet: "${dompet.namaDompet}".');
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -233,10 +267,12 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
   @override
   void initState() {
     super.initState();
+    Log.info('Menginisialisasi widget Ringkasan Keuangan.');
     _loadSummary();
   }
 
   void _loadSummary() {
+    Log.info('Memuat data ringkasan keuangan.');
     _summaryFuture = Future.wait([
       _dompetOperasi.getTotalSaldoPositif(),
       _dompetOperasi.getTotalSaldoNegatif(),
@@ -246,6 +282,7 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
 
   // Metode ini bisa dipanggil dari parent untuk refresh
   void refresh() {
+    Log.info('Memuat ulang data ringkasan keuangan atas permintaan parent.');
     setState(() {
       _loadSummary();
     });
@@ -253,6 +290,7 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI untuk widget Ringkasan Keuangan.');
     return FutureBuilder<List<double>>(
       future: _summaryFuture,
       builder: (context, snapshot) {
@@ -266,6 +304,14 @@ class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
           pemasukan = result[0];
           pengeluaran = result[1].abs(); // Tampilkan sebagai angka positif
           total = result[2];
+          Log.info(
+              'Ringkasan keuangan berhasil dihitung: Pemasukan=$pemasukan, Pengeluaran=$pengeluaran, Total=$total');
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          Log.info('Menunggu data ringkasan keuangan...');
+        } else if (snapshot.hasError) {
+          Log.error('Gagal memuat ringkasan keuangan',
+              error: snapshot.error,
+              stackTrace: snapshot.stackTrace);
         }
 
         return Card(

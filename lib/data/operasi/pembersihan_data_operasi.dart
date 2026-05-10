@@ -1,19 +1,24 @@
 // path: lib/data/operasi/pembersihan_data_operasi.dart
 
 import 'package:admin_wifi/data/sqlite.dart';
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 
 class PembersihanDataOperasi {
   final dbHelper = DatabaseHelper.instance;
+  final String _fileName = 'pembersihan_data_operasi.dart';
 
   /// Fungsi utama untuk menghapus semua data arsip
   /// yang sudah lebih tua dari [batasHari] di semua tabel yang relevan.
   Future<int> hapusSemuaDataArsipKadaluarsa({required int batasHari}) async {
-    final db = await dbHelper.database;
+    final name = '$_fileName.hapusSemuaDataArsipKadaluarsa';
+    Log.info(
+      'Memulai proses pembersihan data arsip yang lebih tua dari $batasHari hari.',
+    );
 
+    final db = await dbHelper.database;
     int totalTerhapus = 0;
 
-    // List semua tabel yang punya kolom "diarsipkan"
+    // diubah: Menghapus 'riwayat_langganan' karena tabel tidak ada.
     final List<String> daftarTabel = [
       'pelanggan',
       'pelanggan_aktif',
@@ -22,42 +27,44 @@ class PembersihanDataOperasi {
       'sub_kategori',
       'transaksi',
       'dompet',
-      'riwayat_langganan',
       'pesanan',
       'versi_apk_user',
     ];
 
     for (final tabel in daftarTabel) {
       try {
-        // diperbaiki: Menghapus backslash yang salah agar interpolasi string 'tabel' berjalan dengan benar.
-        final hasil = await db.rawDelete('''
+        // diubah: Memperbaiki query SQL. Argumen `batasHari` diinterpolasi langsung
+        // ke dalam string karena ? tidak didukung di dalam fungsi datetime() sqflite.
+        final query =
+            '''
           DELETE FROM $tabel
           WHERE diarsipkan IS NOT NULL
-          AND diarsipkan <= datetime('now', '-? days')
-        ''', [batasHari]);
+          AND diarsipkan <= datetime('now', '-$batasHari days')
+        ''';
+        final hasil = await db.rawDelete(query);
 
         if (hasil > 0) {
-          // diperbaiki: Menghapus backslash yang salah untuk logging yang benar.
-          developer.log(
-            'Menghapus $hasil baris dari tabel $tabel yang diarsipkan lebih dari $batasHari hari.',
-            name: 'PembersihanDataOperasi',
+          Log.info(
+            '[$tabel] Dihapus $hasil baris yang diarsipkan lebih dari $batasHari hari.',
           );
         }
 
         totalTerhapus += hasil;
       } catch (e, s) {
-        // diperbaiki: Menghapus backslash yang salah untuk logging error yang benar.
-        developer.log(
-          'Gagal membersihkan tabel $tabel',
+        Log.error(
+          'Gagal membersihkan tabel $tabel.',
           error: e,
           stackTrace: s,
-          name: 'PembersihanDataOperasi.Error',
+          name: '$name.Error',
         );
         // Lanjutkan ke tabel berikutnya meskipun ada error di satu tabel
         continue;
       }
     }
 
+    Log.info(
+      'Total $totalTerhapus baris data arsip kadaluarsa berhasil dihapus dari database.',
+    );
     return totalTerhapus;
   }
 }

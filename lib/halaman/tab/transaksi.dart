@@ -1,3 +1,5 @@
+// path: lib/halaman/tab/transaksi.dart
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,7 @@ class RingkasanTransaksi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI untuk Ringkasan Transaksi.');
     return Card(
       margin: const EdgeInsets.all(8.0),
       elevation: 2,
@@ -73,29 +76,41 @@ class _TransaksiPageState extends State<TransaksiPage> {
   @override
   void initState() {
     super.initState();
+    Log.info('Halaman Transaksi sedang diinisialisasi.');
     // diubah: Menggunakan dependensi yang diinjeksikan (jika ada) atau membuat instance baru.
     _transaksiOperasi = widget.transaksiOperasi ?? TransaksiOperasi();
+    Log.info('Memulai pengambilan data awal untuk transaksi.');
     _dataFuture = _getData();
   }
 
   // diubah: Menggabungkan semua pengambilan data ke dalam satu fungsi.
   Future<Map<String, dynamic>> _getData() async {
-    final results = await Future.wait([
-      _transaksiOperasi.ambilSemuaTransaksi(),
-      _transaksiOperasi.getTotalPemasukan(),
-      _transaksiOperasi.getTotalPengeluaran(),
-      _transaksiOperasi.getNetTotal(),
-    ]);
-    return {
-      'transaksi': results[0] as List<TransaksiModel>,
-      'pemasukan': results[1] as double,
-      'pengeluaran': results[2] as double,
-      'total': results[3] as double,
-    };
+    Log.info('Mengambil semua data transaksi dan ringkasan dari database.');
+    try {
+      final results = await Future.wait([
+        _transaksiOperasi.ambilSemuaTransaksi(),
+        _transaksiOperasi.getTotalPemasukan(),
+        _transaksiOperasi.getTotalPengeluaran(),
+        _transaksiOperasi.getNetTotal(),
+      ]);
+      final transaksi = results[0] as List<TransaksiModel>;
+      Log.info('Berhasil mengambil ${transaksi.length} item transaksi.');
+      return {
+        'transaksi': transaksi,
+        'pemasukan': results[1] as double,
+        'pengeluaran': results[2] as double,
+        'total': results[3] as double,
+      };
+    } catch (e, s) {
+      Log.error('Terjadi kesalahan saat mengambil data transaksi.', error: e, stackTrace: s);
+      // Re-throw the error to be caught by the FutureBuilder
+      rethrow;
+    }
   }
 
   // untuk memuat atau memuat ulang semua data dengan setState untuk memicu rebuild.
   void _loadData() {
+    Log.info('Memuat ulang data transaksi atas permintaan.');
     setState(() {
       _dataFuture = _getData();
     });
@@ -103,32 +118,51 @@ class _TransaksiPageState extends State<TransaksiPage> {
 
   // untuk menavigasi ke halaman tambah transaksi dan memuat ulang data jika berhasil.
   void _tambahTransaksi() async {
+    Log.info('Navigasi ke halaman tambah transaksi.');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormTransaksiPage()),
     );
     if (result == true) {
+      Log.info('Berhasil menambahkan transaksi baru, memuat ulang data.');
       _loadData();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI untuk Halaman Transaksi.');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaksi'),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.delete))],
+        actions: [
+          IconButton(
+              onPressed: () {
+                Log.info(
+                    'Tombol hapus semua transaksi ditekan, tetapi fungsi belum diimplementasikan.');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Fitur hapus semua belum tersedia.')),
+                );
+              },
+              icon: const Icon(Icons.delete))
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _dataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
+            Log.info('Menunggu data transaksi...');
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
+            Log.error('FutureBuilder menangkap error saat membangun UI transaksi.',
+                error: snapshot.error,
+                stackTrace: snapshot.stackTrace);
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data == null) {
+            Log.warning('FutureBuilder tidak menerima data transaksi.');
             return const Center(child: Text('Tidak ada data ditemukan.'));
           }
 
@@ -137,6 +171,8 @@ class _TransaksiPageState extends State<TransaksiPage> {
           final pengeluaran = data['pengeluaran'] ?? 0.0;
           final total = data['total'] ?? 0.0;
           final transaksiData = data['transaksi'] as List<TransaksiModel>;
+          Log.info(
+              'Data transaksi berhasil diterima oleh FutureBuilder, membangun UI utama.');
 
           return Column(
             children: [
@@ -168,6 +204,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
 
   // diubah: Menggunakan fungsi dari widget/transaksi_list_widgets.dart
   Widget _buildTransaksiList(List<TransaksiModel> transaksiData) {
+    Log.info('Membangun daftar transaksi dengan ${transaksiData.length} item.');
     // diubah: Menggunakan fungsi publik dari file widget.
     final groupedTransaksi = groupTransaksiByDate(transaksiData);
 

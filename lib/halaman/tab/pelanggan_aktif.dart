@@ -1,8 +1,8 @@
 // path: lib/halaman/tab/pelanggan_aktif.dart
 
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
@@ -59,20 +59,14 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   @override
   void initState() {
     super.initState();
-    developer.log(
-      '🏗️ [pelanggan_aktif.dart] -> [initState] -> Inisialisasi halaman',
-      name: 'PelangganAktif.Lifecycle',
-    );
+    Log.info('Halaman Pelanggan Aktif sedang diinisialisasi.');
     _loadData();
     _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
-    developer.log(
-      '🗑️ [pelanggan_aktif.dart] -> [dispose] -> Menghapus resources',
-      name: 'PelangganAktif.Lifecycle',
-    );
+    Log.info('Halaman Pelanggan Aktif sedang dibersihkan.');
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
@@ -83,10 +77,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   Future<void> _refreshData() async {
-    developer.log(
-      '🔄 [pelanggan_aktif.dart] -> [_refreshData] -> User melakukan pull-to-refresh',
-      name: 'PelangganAktif.Interaction',
-    );
+    Log.info('Memuat ulang data Pelanggan Aktif karena permintaan pengguna.');
     await _loadData(forceRefresh: true);
   }
 
@@ -100,33 +91,22 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     try {
       final koneksiTersedia = await _koneksiService.cekKoneksi();
+      Log.info('Status koneksi internet saat ini: ${koneksiTersedia ? "Online" : "Offline"}.');
 
       if (koneksiTersedia && forceRefresh) {
-        developer.log(
-          '🌐 [pelanggan_aktif.dart] -> [_loadData] -> Mencoba unggah data ke cloud (Force Refresh)',
-          name: 'PelangganAktif.Sync',
-        );
+        Log.info('Memulai pengunggahan data pelanggan aktif ke server.');
         await LayananUnggahData().unggahDataPelangganAktif().timeout(
           const Duration(seconds: 15),
           onTimeout: () {
-            developer.log(
-              '⏰ [pelanggan_aktif.dart] -> [_loadData] -> Timeout saat unggah data',
-              name: 'PelangganAktif.Error',
-            );
+            Log.warning('Waktu unggah data habis.');
             throw 'Waktu sinkronisasi habis, periksa kembali koneksi internet Anda.';
           },
         );
 
         await syncManager.setTerakhirUnggah(now);
-        developer.log(
-          '✅ [pelanggan_aktif.dart] -> [_loadData] -> Unggah data sukses',
-          name: 'PelangganAktif.Sync',
-        );
+        Log.info('Pengunggahan data pelanggan aktif berhasil.');
       } else if (!koneksiTersedia && forceRefresh) {
-        developer.log(
-          '⚠️ [pelanggan_aktif.dart] -> [_loadAwal] -> Refresh gagal karena offline',
-          name: 'PelangganAktif.Info',
-        );
+        Log.warning('Gagal memuat ulang data karena tidak ada koneksi internet.');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -140,26 +120,19 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       final pelangganList = await _pelangganOperasi.getPelanggan();
       _mapNamaPelanggan = {for (var p in pelangganList) p.id: p.nama};
 
-      final pelangganAktifList = await _pelangganAktifOperasi
-          .ambilSemuaPelangganAktif();
+      final pelangganAktifList =
+          await _pelangganAktifOperasi.ambilSemuaPelangganAktif();
       _semuaPelanggan = pelangganAktifList;
 
-      developer.log(
-        '📊 [pelanggan_aktif.dart] -> [_loadData] -> Berhasil memuat ${_semuaPelanggan.length} pelanggan dari lokal',
-        name: 'PelangganAktif.Success',
-      );
+      Log.info(
+          'Berhasil memuat ${_semuaPelanggan.length} data pelanggan aktif dari database lokal.');
       _applyFilterAndSort();
     } catch (e, s) {
-      developer.log(
-        '❌ [pelanggan_aktif.dart] -> [_loadData] -> Gagal memuat data',
-        name: 'PelangganAktif.Error',
-        error: e,
-        stackTrace: s,
-      );
+      Log.error('Terjadi kesalahan saat memuat data pelanggan aktif.',
+          error: e, stackTrace: s);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
       }
     } finally {
       if (mounted) {
@@ -180,10 +153,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
             _mapNamaPelanggan[pelanggan.idPelanggan]?.toLowerCase() ?? '';
         return nama.contains(query);
       }).toList();
-      developer.log(
-        '🔍 [pelanggan_aktif.dart] -> [_applyFilterAndSort] -> Searching query: "$query", Hasil: ${tempResult.length}',
-        name: 'PelangganAktif.Filter',
-      );
+      Log.info('Pencarian untuk "$query" menghasilkan ${tempResult.length} hasil.');
     } else {
       tempResult = List.of(_semuaPelanggan);
     }
@@ -217,7 +187,6 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       case OpsiUrutkan.lunas:
       case OpsiUrutkan.belumLunas:
         comparator = (a, b) {
-          // diubah: Perbandingan kembali ke enum vs enum
           final isLunasA = a.status == StatusPembayaranEnum.lunas;
           final isLunasB = b.status == StatusPembayaranEnum.lunas;
           if (isLunasA == isLunasB) return 0;
@@ -240,10 +209,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     }
 
     tempResult.sort(comparator);
-    developer.log(
-      '⚖️ [pelanggan_aktif.dart] -> [_applyFilterAndSort] -> Sorting by: ${_urutanAktif.name}',
-      name: 'PelangganAktif.Sort',
-    );
+    Log.info('Data diurutkan berdasarkan: ${_urutanAktif.name}.');
 
     if (mounted) {
       setState(() {
@@ -253,10 +219,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   Future<void> _arsipkanPelanggan(PelangganAktifModel pelangganAktif) async {
-    developer.log(
-      '📥 [pelanggan_aktif.dart] -> [_arsipkanPelanggan] -> Menampilkan dialog arsip ID: ${pelangganAktif.id}',
-      name: 'PelangganAktif.Interaction',
-    );
+    Log.info(
+        'Meminta konfirmasi untuk mengarsipkan pelanggan aktif dengan ID: ${pelangganAktif.id}.');
     final bool? konfirmasi = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -292,10 +256,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     if (konfirmasi == true) {
       try {
         await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id);
-        developer.log(
-          '✅ [pelanggan_aktif.dart] -> [_arsipkanPelanggan] -> Berhasil diarsipkan',
-          name: 'PelangganAktif.Success',
-        );
+        Log.info(
+            'Pelanggan aktif dengan ID: ${pelangganAktif.id} berhasil diarsipkan.');
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -309,12 +271,10 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           _hasilFilter.removeWhere((p) => p.id == pelangganAktif.id);
         });
       } catch (e, s) {
-        developer.log(
-          '❌ [pelanggan_aktif.dart] -> [_arsipkanPelanggan] -> Gagal mengarsipkan',
-          name: 'PelangganAktif.Error',
-          error: e,
-          stackTrace: s,
-        );
+        Log.error(
+            'Gagal mengarsipkan pelanggan aktif dengan ID: ${pelangganAktif.id}.',
+            error: e,
+            stackTrace: s);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -327,10 +287,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   void _showUrutkanDialog() async {
-    developer.log(
-      '📋 [pelanggan_aktif.dart] -> [_showUrutkanDialog] -> Membuka dialog sorting',
-      name: 'PelangganAktif.Interaction',
-    );
+    Log.info('Membuka dialog untuk memilih opsi pengurutan.');
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
       context: context,
       builder: (BuildContext context) {
@@ -388,29 +345,20 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   void _tambahPelangganAktif() async {
-    developer.log(
-      '➕ [pelanggan_aktif.dart] -> [_tambahPelangganAktif] -> Menuju form tambah',
-      name: 'PelangganAktif.Navigation',
-    );
+    Log.info('Navigasi ke halaman tambah pelanggan aktif.');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => FormPelangganAktif()),
     );
     if (!mounted) return;
     if (result == true) {
-      developer.log(
-        '📝 [pelanggan_aktif.dart] -> [_tambahPelangganAktif] -> Mendapat feedback sukses dari form',
-        name: 'PelangganAktif.Success',
-      );
+      Log.info('Berhasil menambahkan pelanggan aktif baru.');
       _loadData(forceRefresh: true);
     }
   }
 
   void _opsiLanjutan() async {
-    developer.log(
-      '⚙️ [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Membuka opsi lanjutan',
-      name: 'PelangganAktif.Interaction',
-    );
+    Log.info('Membuka dialog opsi lanjutan.');
     final OpsiHapusPilihan? pilihan = await showDialog<OpsiHapusPilihan>(
       context: context,
       builder: (BuildContext context) {
@@ -443,10 +391,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     switch (pilihan) {
       case OpsiHapusPilihan.hapusSemua:
-        developer.log(
-          '🚨 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Meminta konfirmasi HAPUS SEMUA',
-          name: 'PelangganAktif.Alert',
-        );
+        Log.warning('Meminta konfirmasi untuk menghapus semua pelanggan aktif.');
         final bool? konfirmasi = await showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -471,24 +416,17 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
         if (konfirmasi == true) {
           await _pelangganAktifOperasi.arsipkanSemuaPelangganAktif();
-          developer.log(
-            '🔥 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Semua pelanggan diarsipkan/dihapus',
-            name: 'PelangganAktif.Success',
-          );
+          Log.info('Semua pelanggan aktif berhasil diarsipkan.');
           _loadData(forceRefresh: true);
         }
         break;
       case OpsiHapusPilihan.arsipkanKadaluarsa:
-        developer.log(
-          '🧹 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Proses arsipkan kadaluarsa...',
-          name: 'PelangganAktif.Action',
-        );
-        final int jumlahDiarsipkan = await _pelangganAktifOperasi
-            .arsipkanPelangganKadaluarsa();
-        developer.log(
-          '🧹 [pelanggan_aktif.dart] -> [_opsiLanjutan] -> Berhasil mengarsipkan $jumlahDiarsipkan pelanggan',
-          name: 'PelangganAktif.Success',
-        );
+        Log.info(
+            'Memulai proses pengarsipan pelanggan aktif yang sudah kadaluarsa.');
+        final int jumlahDiarsipkan =
+            await _pelangganAktifOperasi.arsipkanPelangganKadaluarsa();
+        Log.info(
+            'Berhasil mengarsipkan $jumlahDiarsipkan pelanggan aktif yang sudah kadaluarsa.');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -539,10 +477,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       IconButton(
         icon: const Icon(Icons.close),
         onPressed: () {
-          developer.log(
-            '🔍 [pelanggan_aktif.dart] -> [Search] -> Menutup pencarian',
-            name: 'PelangganAktif.Interaction',
-          );
+          Log.info('Menutup mode pencarian.');
           if (mounted) {
             setState(() {
               _isSearching = false;
@@ -560,10 +495,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       IconButton(
         icon: const Icon(Icons.search),
         onPressed: () {
-          developer.log(
-            '🔍 [pelanggan_aktif.dart] -> [Search] -> Membuka pencarian',
-            name: 'PelangganAktif.Interaction',
-          );
+          Log.info('Membuka mode pencarian.');
           if (mounted) {
             setState(() {
               _isSearching = true;
@@ -599,83 +531,83 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
                       child: Text('Tidak ada pelanggan aktif ditemukan.'),
                     )
                   : _hasilFilter.isEmpty && _searchController.text.isNotEmpty
-                  ? const Center(child: Text('Pelanggan tidak ditemukan.'))
-                  : ListView.builder(
-                      itemCount: _hasilFilter.length,
-                      itemBuilder: (context, index) {
-                        final pelanggan = _hasilFilter[index];
-                        // diubah: Tidak perlu konversi, langsung gunakan enum dari model
-                        final statusPembayaran = pelanggan.status;
+                      ? const Center(child: Text('Pelanggan tidak ditemukan.'))
+                      : ListView.builder(
+                          itemCount: _hasilFilter.length,
+                          itemBuilder: (context, index) {
+                            final pelanggan = _hasilFilter[index];
+                            final statusPembayaran = pelanggan.status;
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 7,
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onLongPress: () => _arsipkanPelanggan(pelanggan),
-                            onTap: () async {
-                              developer.log(
-                                '🖱️ [pelanggan_aktif.dart] -> [Card] -> Tap ke detail ID: ${pelanggan.id}',
-                                name: 'PelangganAktif.Navigation',
-                              );
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailPelangganAktif(
-                                    pelanggan: pelanggan,
-                                  ),
-                                ),
-                              );
-                              _loadData(forceRefresh: true);
-                            },
-                            child: ListTile(
-                              title: NamaPelangganWidget(
-                                idPelanggan: pelanggan.idPelanggan,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 7,
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  NamaPaketWidget(idPaket: pelanggan.idPaket),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Pembayaran: ${statusPembayaran.displayName}',
-                                    style: TextStyle(
-                                      color:
-                                          statusPembayaran ==
-                                              StatusPembayaranEnum.lunas
-                                          ? Colors.green
-                                          : Colors.red,
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onLongPress: () =>
+                                    _arsipkanPelanggan(pelanggan),
+                                onTap: () async {
+                                  Log.info(
+                                      'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelanggan.id}.');
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailPelangganAktif(
+                                        pelanggan: pelanggan,
+                                      ),
+                                    ),
+                                  );
+                                  _loadData(forceRefresh: true);
+                                },
+                                child: ListTile(
+                                  title: NamaPelangganWidget(
+                                    idPelanggan: pelanggan.idPelanggan,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelanggan.tanggalBerakhir)}',
-                                    style: TextStyle(
-                                      color:
-                                          PerhitunganUtil.getWarnaSisaMasaAktif(
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      NamaPaketWidget(
+                                          idPaket: pelanggan.idPaket),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Pembayaran: ${statusPembayaran.displayName}',
+                                        style: TextStyle(
+                                          color: statusPembayaran ==
+                                                  StatusPembayaranEnum.lunas
+                                              ? Colors.green
+                                              : Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelanggan.tanggalBerakhir)}',
+                                        style: TextStyle(
+                                          color: PerhitunganUtil
+                                              .getWarnaSisaMasaAktif(
                                             pelanggan.tanggalBerakhir,
                                           ),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Berakhir: ${FormatTanggal.formatTanggalBasic(pelanggan.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelanggan.tanggalBerakhir)}',
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Berakhir: ${FormatTanggal.formatTanggalBasic(pelanggan.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelanggan.tanggalBerakhir)}',
-                                  ),
-                                ],
+                                  trailing: const Icon(Icons.chevron_right),
+                                ),
                               ),
-                              trailing: const Icon(Icons.chevron_right),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                            );
+                          },
+                        ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahPelangganAktif,

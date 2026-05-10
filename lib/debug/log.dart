@@ -13,13 +13,12 @@ class Log {
 
   /// ✅ Log Informasi
   /// Digunakan untuk alur normal aplikasi
-  static void info(String message, {String? name}) {
+  static void info(String message) {
     // diubah: Tambah parameter name
     _logCustom(
       message,
-      name: name ?? 'INFO',
+      name: '✅',
       color: _green,
-      icon: '✅',
       level: 800,
     ); // diubah: Teruskan name
   }
@@ -30,9 +29,8 @@ class Log {
     // diubah: Tambah parameter name
     _logCustom(
       message,
-      name: name ?? 'WARN',
+      name: '⚠️',
       color: _yellow,
-      icon: '⚠️',
       level: 900,
     ); // diubah: Teruskan name
   }
@@ -48,9 +46,8 @@ class Log {
     // diubah: Tambah parameter name
     _logCustom(
       message,
-      name: name ?? 'ERROR', // diubah: Teruskan name
+      name: '❌', // diubah: Teruskan name
       color: _red,
-      icon: '❌',
       level: 1000,
       error: error,
       st: stackTrace,
@@ -67,9 +64,8 @@ class Log {
   }) {
     _logCustom(
       '[$method] $path | Data: $data',
-      name: name ?? 'API', // diubah: Teruskan name
+      name: '🌐', // diubah: Teruskan name
       color: _cyan,
-      icon: '🌐',
       level: 500,
     );
   }
@@ -79,7 +75,6 @@ class Log {
     String message, {
     required String name,
     required String color,
-    required String icon,
     required int level,
     Object? error,
     StackTrace? st,
@@ -102,12 +97,12 @@ class Log {
       final methodCaller = match.group(1);
       final fileInfo = match.group(2);
 
-      location = '$methodCaller - $fileInfo';
+      location = '[ $methodCaller ] - $fileInfo';
     }
 
     // Output log
     dev.log(
-      '$color $icon $message - $location$_reset',
+      '$color $message - $location$_reset',
       name: name,
       level: level,
       time: DateTime.now(),

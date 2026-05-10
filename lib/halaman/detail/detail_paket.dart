@@ -1,5 +1,6 @@
 // path: lib/halaman/detail/detail_paket.dart
-import 'dart:developer' as developer;
+
+import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
@@ -7,128 +8,253 @@ import 'package:admin_wifi/halaman/form/form_paket.dart';
 class DetailPaketPage extends StatefulWidget {
   final PaketModel paket;
 
-  const DetailPaketPage({super.key, required this.paket});
+  const DetailPaketPage({
+    super.key,
+    required this.paket,
+  });
 
   @override
-  State<DetailPaketPage> createState() => _DetailPaketPageState();
+  State<DetailPaketPage> createState() =>
+      _DetailPaketPageState();
 }
 
-class _DetailPaketPageState extends State<DetailPaketPage> {
+class _DetailPaketPageState
+    extends State<DetailPaketPage> {
   late PaketModel _paket;
 
   @override
   void initState() {
     super.initState();
+
+    Log.info(
+      'Membuka halaman detail paket.',
+    );
+
     _paket = widget.paket;
-    developer.log('[DetailPaket] 📦 : Menampilkan detail paket: ${_paket.nama} (ID: ${_paket.id})');
+
+    Log.info(
+      'Data paket berhasil dimuat dengan nama paket: ${_paket.nama} dan ID: ${_paket.id}.',
+    );
   }
 
   void _editPaket() async {
-    developer.log('[DetailPaket] 📝 : Menuju Form Edit Paket: ${_paket.nama}');
-    
+    Log.info(
+      'Memulai navigasi ke halaman form edit paket untuk paket: ${_paket.nama}.',
+    );
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FormPaket(paket: _paket),
+        builder: (context) {
+          Log.info(
+            'Membangun halaman FormPaket untuk proses edit.',
+          );
+
+          return FormPaket(
+            paket: _paket,
+          );
+        },
       ),
     );
 
+    Log.info(
+      'Halaman edit paket selesai ditutup dengan hasil: $result.',
+    );
+
     if (result == true) {
-      developer.log('[DetailPaket] 🔄 : Mendeteksi perubahan data paket.');
+      Log.info(
+        'Terdeteksi perubahan data paket setelah proses edit.',
+      );
+
       if (mounted) {
-        // Karena data paket kemungkinan besar berubah di DB, 
-        // kita kirim sinyal 'true' ke halaman daftar untuk refresh list.
-        developer.log('[DetailPaket] ⬅️ : Kembali ke list untuk menyegarkan data terbaru.');
-        Navigator.pop(context, true);
+        Log.info(
+          'Widget masih mounted. Mengirim sinyal refresh ke halaman sebelumnya.',
+        );
+
+        Navigator.pop(
+          context,
+          true,
+        );
+
+        Log.info(
+          'Berhasil kembali ke halaman sebelumnya dengan status refresh.',
+        );
+      } else {
+        Log.warning(
+          'Widget sudah tidak mounted saat ingin kembali ke halaman sebelumnya.',
+        );
       }
     } else {
-      developer.log('[DetailPaket] ℹ️ : Pengguna membatalkan edit atau tidak ada perubahan.');
+      Log.warning(
+        'Pengguna membatalkan edit atau tidak ada perubahan data paket.',
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    Log.info(
+      'Membangun UI halaman detail paket.',
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_paket.nama),
+        title: Text(
+          _paket.nama,
+        ),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+          ),
           onPressed: () {
-            developer.log('[DetailPaket] 🔙 : Kembali ke halaman sebelumnya');
+            Log.info(
+              'Pengguna menekan tombol kembali pada halaman detail paket.',
+            );
+
             Navigator.pop(context);
+
+            Log.info(
+              'Berhasil kembali ke halaman sebelumnya.',
+            );
           },
         ),
         actions: [
           IconButton(
             onPressed: _editPaket,
-            icon: const Icon(Icons.edit),
+            icon: const Icon(
+              Icons.edit,
+            ),
             tooltip: 'Edit Paket',
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(
+          16.0,
+        ),
         child: Card(
           elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius:
+                BorderRadius.circular(
+              12,
+            ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(
+              20.0,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              mainAxisSize:
+                  MainAxisSize.min,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.inventory_2, color: Colors.blueAccent),
-                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.inventory_2,
+                      color: Colors.blueAccent,
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
                     Text(
                       'Informasi Layanan',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      style: Theme.of(
+                        context,
+                      )
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(
+                            fontWeight:
+                                FontWeight.bold,
                           ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                _buildDetailRow('Nama Paket', _paket.nama),
-                _buildDetailRow('Harga Sewa', 'Rp ${_paket.harga}'),
+                const SizedBox(
+                  height: 20,
+                ),
+                _buildDetailRow(
+                  'Nama Paket',
+                  _paket.nama,
+                ),
+                _buildDetailRow(
+                  'Harga Sewa',
+                  'Rp ${_paket.harga}',
+                ),
                 _buildDetailRow(
                   'Masa Aktif',
                   '${_paket.durasi} ${_paket.tipe.name}',
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Divider(thickness: 1),
+                  padding:
+                      EdgeInsets.symmetric(
+                    vertical: 8.0,
+                  ),
+                  child: Divider(
+                    thickness: 1,
+                  ),
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.stars, color: Colors.orange),
-                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.stars,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
                     Text(
                       'Sistem Poin',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      style: Theme.of(
+                        context,
+                      )
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(
+                            fontWeight:
+                                FontWeight.bold,
                           ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _buildDetailRow('Poin Hadiah', '${_paket.poinHadiah} Poin', 
-                    subTitle: 'Didapat saat beli paket'),
-                _buildDetailRow('Poin Penukaran', '${_paket.poinPenukaran} Poin',
-                    subTitle: 'Syarat tukar gratis'),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Divider(thickness: 1),
+                const SizedBox(
+                  height: 12,
                 ),
                 _buildDetailRow(
-                  'Status Publik', 
-                  _paket.isPublic ? 'Tersedia di Aplikasi' : 'Hanya Admin',
-                  customValueColor: _paket.isPublic ? Colors.green : Colors.red,
+                  'Poin Hadiah',
+                  '${_paket.poinHadiah} Poin',
+                  subTitle:
+                      'Didapat saat beli paket',
+                ),
+                _buildDetailRow(
+                  'Poin Penukaran',
+                  '${_paket.poinPenukaran} Poin',
+                  subTitle:
+                      'Syarat tukar gratis',
+                ),
+                const Padding(
+                  padding:
+                      EdgeInsets.symmetric(
+                    vertical: 8.0,
+                  ),
+                  child: Divider(
+                    thickness: 1,
+                  ),
+                ),
+                _buildDetailRow(
+                  'Status Publik',
+                  _paket.isPublic
+                      ? 'Tersedia di Aplikasi'
+                      : 'Hanya Admin',
+                  customValueColor:
+                      _paket.isPublic
+                          ? Colors.green
+                          : Colors.red,
                 ),
               ],
             ),
@@ -138,20 +264,34 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {String? subTitle, Color? customValueColor}) {
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    String? subTitle,
+    Color? customValueColor,
+  }) {
+    Log.info(
+      'Membangun detail row dengan label: $label dan value: $value.',
+    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(
+        vertical: 10.0,
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 2,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style:
+                      const TextStyle(
                     color: Colors.grey,
                     fontSize: 13,
                   ),
@@ -159,10 +299,12 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
                 if (subTitle != null)
                   Text(
                     subTitle,
-                    style: const TextStyle(
+                    style:
+                        const TextStyle(
                       color: Colors.black38,
                       fontSize: 11,
-                      fontStyle: FontStyle.italic,
+                      fontStyle:
+                          FontStyle.italic,
                     ),
                   ),
               ],
@@ -172,11 +314,15 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
             flex: 3,
             child: Text(
               value,
-              textAlign: TextAlign.end,
+              textAlign:
+                  TextAlign.end,
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
                 fontSize: 15,
-                color: customValueColor ?? Colors.black87,
+                color:
+                    customValueColor ??
+                        Colors.black87,
               ),
             ),
           ),

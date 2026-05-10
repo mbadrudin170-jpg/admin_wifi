@@ -5,7 +5,8 @@ import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:developer' as developer; // Import developer log
+// Mengganti developer log standar dengan log custom
+import 'package:admin_wifi/debug/log.dart';
 
 class DetailPelangganPage extends StatefulWidget {
   final String idPelanggan;
@@ -27,22 +28,37 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('[DetailPelanggan] 🚀 : Membuka detail pelanggan ID: ${widget.idPelanggan}');
+    // Log inisialisasi state
+    Log.info(
+      'Memulai siklus hidup initState pada DetailPelangganPage untuk ID Pelanggan: ${widget.idPelanggan}. Sistem akan segera memicu pemuatan data dari database.',
+    );
     _loadData();
   }
 
   // Fungsi ini bertujuan untuk memuat data pelanggan dan total poin.
   Future<void> _loadData() async {
+    Log.info(
+      'Menjalankan fungsi _loadData(). Mencoba melakukan pengambilan data paralel untuk profil pelanggan dan akumulasi poin dari database.',
+    );
     try {
-      developer.log('[DetailPelanggan] 📡 : Mengambil data dari database...');
-      
+      Log.info(
+        'Memulai request asinkron ke PelangganOperasi untuk mencari data dengan ID: ${widget.idPelanggan}',
+      );
       final hasilPelanggan = await pelangganOperasi.getPelangganById(
         widget.idPelanggan,
       );
 
+      Log.info(
+        'Memulai request asinkron ke TransaksiOperasi untuk menghitung total poin pelanggan ID: ${widget.idPelanggan}',
+      );
       final hasilPoin = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
 
-      if (!mounted) return;
+      if (!mounted) {
+        Log.warning(
+          'Fungsi _loadData() selesai tapi widget sudah tidak terpasang (not mounted) di pohon widget. Membatalkan pembaruan State untuk mencegah kebocoran memori.',
+        );
+        return;
+      }
 
       setState(() {
         pelanggan = hasilPelanggan;
@@ -51,33 +67,50 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       });
 
       if (hasilPelanggan != null) {
-        developer.log('[DetailPelanggan] ✅ : Data ditemukan: ${hasilPelanggan.nama}');
+        Log.info(
+          'Pemuatan data berhasil secara keseluruhan. Objek pelanggan atas nama "${hasilPelanggan.nama}" telah dimuat ke dalam state dan UI siap dirender ulang.',
+        );
       } else {
-        developer.log('[DetailPelanggan] ⚠️ : Data pelanggan tidak ditemukan di DB');
+        Log.warning(
+          'Pemuatan data selesai tetapi mengembalikan nilai null. Pelanggan dengan ID: ${widget.idPelanggan} tidak ditemukan dalam koleksi database. UI akan menampilkan pesan data tidak ditemukan.',
+        );
       }
     } catch (e, stackTrace) {
-      developer.log(
-        '[DetailPelanggan] ❌ : Error saat load data',
+      Log.error(
+        'Terjadi kegagalan fatal saat proses pengambilan data di fungsi _loadData(). Hal ini bisa disebabkan oleh masalah koneksi database atau ketidakcocokan skema model.',
         error: e,
         stackTrace: stackTrace,
       );
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+        Log.info(
+          'State isLoading telah diatur ke false meskipun terjadi error agar spinner berhenti berputar.',
+        );
+      }
     }
   }
 
   // Fungsi ini bertujuan untuk menyalin semua info pelanggan.
   void _salinSemuaInfo(BuildContext context, PelangganModel pelanggan) {
-    developer.log('[DetailPelanggan] 📋 : Menyalin semua info ke clipboard');
-    final info = '''
+    Log.info(
+      'User memicu aksi _salinSemuaInfo(). Mempersiapkan penggabungan string untuk Nama: ${pelanggan.nama}, Telepon: ${pelanggan.telepon}, Alamat: ${pelanggan.alamat}, Password: ${pelanggan.password}, dan MAC: ${pelanggan.macAddress}.',
+    );
+
+    final info =
+        '''
 Nama : ${pelanggan.nama}
 No HP : ${pelanggan.telepon}
 Alamat : ${pelanggan.alamat}
 Password : ${pelanggan.password}
 MAC : ${pelanggan.macAddress}
 '''
-        .trim();
+            .trim();
 
-    Clipboard.setData(ClipboardData(text: info));
+    Clipboard.setData(ClipboardData(text: info)).then((_) {
+      Log.info(
+        'Data komprehensif pelanggan berhasil didorong ke sistem Clipboard perangkat.',
+      );
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Semua info berhasil disalin')),
@@ -86,18 +119,30 @@ MAC : ${pelanggan.macAddress}
 
   // Fungsi ini bertujuan untuk menyalin data spesifik.
   void _salinData(BuildContext context, String label, String data) {
-    developer.log('[DetailPelanggan] 📎 : Menyalin $label');
-    Clipboard.setData(ClipboardData(text: data));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label berhasil disalin')),
+    Log.info(
+      'User memicu aksi _salinData() untuk bagian spesifik: $label dengan nilai data: $data.',
     );
+
+    Clipboard.setData(ClipboardData(text: data)).then((_) {
+      Log.info('Berhasil menyalin data kategori $label ke Clipboard.');
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$label berhasil disalin')));
   }
 
   @override
   Widget build(BuildContext context) {
+    Log.info(
+      'Membangun UI (build method) DetailPelangganPage. Status Loading: $isLoading, Pelanggan Terdeteksi: ${pelanggan != null}',
+    );
+
     // Tampilkan loading spinner saat data sedang diambil
     if (isLoading) {
+      Log.info(
+        'Merender tampilan CircularProgressIndicator karena status isLoading masih true.',
+      );
       return Scaffold(
         appBar: AppBar(title: const Text('Detail Pelanggan')),
         body: const Center(child: CircularProgressIndicator()),
@@ -106,6 +151,9 @@ MAC : ${pelanggan.macAddress}
 
     // Cek jika data kosong setelah loading selesai
     if (pelanggan == null) {
+      Log.warning(
+        'Merender tampilan pesan "Pelanggan tidak ditemukan" karena objek pelanggan bernilai null setelah proses loading selesai.',
+      );
       return Scaffold(
         appBar: AppBar(title: const Text('Detail Pelanggan')),
         body: const Center(child: Text('Pelanggan tidak ditemukan')),
@@ -120,18 +168,26 @@ MAC : ${pelanggan.macAddress}
           children: [
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
-                  developer.log('[DetailPelanggan] 🪙 : Menuju Halaman Poin');
+                  Log.info(
+                    'Interaksi pengguna: Mengetuk kartu Poin. Melakukan navigasi push ke HalamanPoin untuk pelanggan: ${pelanggan!.nama}',
+                  );
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
                           HalamanPoin(idPelanggan: widget.idPelanggan),
                     ),
-                  );
+                  ).then((_) {
+                    Log.info(
+                      'Kembali dari HalamanPoin ke DetailPelangganPage.',
+                    );
+                  });
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -160,43 +216,38 @@ MAC : ${pelanggan.macAddress}
               ),
             ),
             const SizedBox(height: 24),
-            _buildDetailRow(
-              context,
-              'Nama',
-              pelanggan!.nama,
-              () => _salinData(context, 'Nama', pelanggan!.nama),
-            ),
+            _buildDetailRow(context, 'Nama', pelanggan!.nama, () {
+              Log.info('Trigger tombol salin pada baris Nama.');
+              _salinData(context, 'Nama', pelanggan!.nama);
+            }),
             const Divider(),
-            _buildDetailRow(
-              context,
-              'Telepon',
-              pelanggan!.telepon,
-              () => _salinData(context, 'No Telepon', pelanggan!.telepon),
-            ),
+            _buildDetailRow(context, 'Telepon', pelanggan!.telepon, () {
+              Log.info('Trigger tombol salin pada baris Telepon.');
+              _salinData(context, 'No Telepon', pelanggan!.telepon);
+            }),
             const Divider(),
-            _buildDetailRow(
-              context,
-              'Alamat',
-              pelanggan!.alamat,
-              () => _salinData(context, 'Alamat', pelanggan!.alamat),
-            ),
+            _buildDetailRow(context, 'Alamat', pelanggan!.alamat, () {
+              Log.info('Trigger tombol salin pada baris Alamat.');
+              _salinData(context, 'Alamat', pelanggan!.alamat);
+            }),
             const Divider(),
-            _buildDetailRow(
-              context,
-              'Password',
-              pelanggan!.password,
-              () => _salinData(context, 'Password', pelanggan!.password),
-            ),
+            _buildDetailRow(context, 'Password', pelanggan!.password, () {
+              Log.info('Trigger tombol salin pada baris Password.');
+              _salinData(context, 'Password', pelanggan!.password);
+            }),
             const Divider(),
-            _buildDetailRow(
-              context,
-              'MAC Address',
-              pelanggan!.macAddress,
-              () => _salinData(context, 'MAC Address', pelanggan!.macAddress),
-            ),
+            _buildDetailRow(context, 'MAC Address', pelanggan!.macAddress, () {
+              Log.info('Trigger tombol salin pada baris MAC Address.');
+              _salinData(context, 'MAC Address', pelanggan!.macAddress);
+            }),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => _salinSemuaInfo(context, pelanggan!),
+              onPressed: () {
+                Log.info(
+                  'Menekan tombol utama "Salin Semua Info" di bagian bawah layar.',
+                );
+                _salinSemuaInfo(context, pelanggan!);
+              },
               icon: const Icon(Icons.copy_all),
               label: const Text('Salin Semua Info'),
               style: ElevatedButton.styleFrom(
@@ -215,6 +266,9 @@ MAC : ${pelanggan.macAddress}
     String detail,
     VoidCallback salinData,
   ) {
+    // Log pembentukan widget row (opsional untuk sangat terperinci)
+    // Log.info('Membangun baris detail untuk kategori: $judul');
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(

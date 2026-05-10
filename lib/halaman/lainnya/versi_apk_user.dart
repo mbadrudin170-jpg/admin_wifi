@@ -149,26 +149,22 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               title: const Text('Urutkan Berdasarkan'),
-              content: RadioGroup(
+              content: RadioGroup<Urutan>(
                 groupValue: selectedUrutan,
                 onChanged: (Urutan? value) {
                   Log.info('Grup radio berubah ke $value');
-                  setStateDialog(() {
-                    selectedUrutan = value;
-                  });
+                  if (value != null) {
+                    setStateDialog(() {
+                      selectedUrutan = value;
+                    });
+                  }
                 },
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: Urutan.values.map((urutan) {
-                    return ListTile(
+                    return RadioListTile<Urutan>(
                       title: Text(_getNamaUrutan(urutan)),
-                      leading: Radio<Urutan>(value: urutan),
-                      onTap: () {
-                        Log.info('ListTile urutan $urutan diklik');
-                        setStateDialog(() {
-                          selectedUrutan = urutan;
-                        });
-                      },
+                      value: urutan,
                     );
                   }).toList(),
                 ),

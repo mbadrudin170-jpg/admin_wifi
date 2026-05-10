@@ -1,12 +1,8 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
-import 'dart:developer' as developer;
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
-import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:flutter/material.dart';
+import 'package:admin_wifi/debug/log.dart';
 
+// Enum untuk mengontrol tab yang aktif
 enum MenuPoin { penukaran, riwayat }
 
 class HalamanPoin extends StatefulWidget {
@@ -19,343 +15,293 @@ class HalamanPoin extends StatefulWidget {
 }
 
 class _HalamanPoinState extends State<HalamanPoin> {
-  final String fileName = 'halaman_poin.dart';
-  final transaksiOperasi = TransaksiOperasi();
-  final paketOperasi = PaketOperasi();
+  MenuPoin _menuPilihan = MenuPoin.penukaran;
 
-  int totalPoin = 0;
-  bool isLoading = true;
-  List<PaketModel> daftarPaket = [];
-  MenuPoin menuAktif = MenuPoin.riwayat;
+  // Placeholder data
+  final int _totalPoin = 1250; // Contoh total poin pelanggan
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    Log.info('========================================');
+    Log.info('LIFECYCLE: initState() - Halaman HalamanPoin');
+    Log.info('ID Pelanggan: ${widget.idPelanggan}');
+    Log.info('Menu default: Penukaran');
+    Log.info('Total poin (placeholder): $_totalPoin');
+    Log.info('========================================');
+    Log.info('Memanggil _loadDataPoin() untuk memuat data poin pelanggan.');
+    _loadDataPoin();
   }
 
-  Future<void> _loadData() async {
-    try {
-      developer.log(
-        '🔄 Memuat data poin dan paket untuk pelanggan: ${widget.idPelanggan}',
-        name: fileName,
+  @override
+  void dispose() {
+    Log.info('========================================');
+    Log.info('LIFECYCLE: dispose() - Halaman HalamanPoin');
+    Log.info('ID Pelanggan: ${widget.idPelanggan}');
+    Log.info('Membersihkan resource halaman poin.');
+    Log.info('========================================');
+    super.dispose();
+  }
+
+  Future<void> _loadDataPoin() async {
+    Log.info('========================================');
+    Log.info('MEMUAT DATA POIN PELANGGAN');
+    Log.info('ID Pelanggan: ${widget.idPelanggan}');
+    Log.info('========================================');
+    Log.info(
+      'TODO: Implementasikan logika untuk memuat total poin, riwayat, dan daftar hadiah dari database.',
+    );
+    Log.info(
+      'Saat ini menggunakan data placeholder (total poin: $_totalPoin).',
+    );
+
+    if (!mounted) {
+      Log.warning(
+        'Widget sudah tidak mounted saat _loadDataPoin() dipanggil. Membatalkan proses.',
       );
-
-      final hasilPoin = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
-      final hasilPaket = await paketOperasi.getPaket();
-
-      if (!mounted) return;
-
-      setState(() {
-        totalPoin = hasilPoin;
-        daftarPaket = hasilPaket;
-        isLoading = false;
-      });
-
-      developer.log(
-        '✅ Data berhasil dimuat. Total Poin: $totalPoin, Jumlah Paket: ${daftarPaket.length}',
-        name: fileName,
-      );
-    } catch (e) {
-      developer.log(
-        '❌ Gagal memuat data di HalamanPoin: $e',
-        name: fileName,
-        error: e,
-      );
-      if (mounted) setState(() => isLoading = false);
+      return;
     }
+
+    Log.info(
+      'Widget masih mounted. Memperbarui state untuk memicu rebuild UI.',
+    );
+    setState(() {
+      // TODO: Update state dengan data dari database setelah implementasi
+    });
+    Log.info(
+      'State berhasil diperbarui. Data poin saat ini menggunakan nilai placeholder.',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    Log.info('========================================');
+    Log.info('LIFECYCLE: build() - Membangun UI HalamanPoin');
+    Log.info('ID Pelanggan: ${widget.idPelanggan}');
+    Log.info(
+      'Menu aktif: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
+    );
+    Log.info('Total poin ditampilkan: $_totalPoin');
+    Log.info('========================================');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Halaman Poin')),
+      appBar: AppBar(
+        title: Text('Poin: ${widget.idPelanggan}'),
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Log.info(
+              'NAVIGASI: Tombol Kembali ditekan. Kembali ke halaman sebelumnya.',
+            );
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: Column(
         children: [
-          _infoPoin(context, totalPoin),
+          _buildInfoPoinHeader(),
+          _buildSegmentedControl(),
+          Expanded(child: _buildContentView()),
+        ],
+      ),
+    );
+  }
 
-          // Tab Switcher dengan rasio 50:50
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTabButton(
-                    label: 'Penukaran',
-                    aktif: menuAktif == MenuPoin.penukaran,
-                    onTap: () {
-                      developer.log(
-                        '🔘 Pindah ke tab Penukaran',
-                        name: fileName,
-                      );
-                      setState(() => menuAktif = MenuPoin.penukaran);
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: _buildTabButton(
-                    label: 'Riwayat',
-                    aktif: menuAktif == MenuPoin.riwayat,
-                    onTap: () {
-                      developer.log('🔘 Pindah ke tab Riwayat', name: fileName);
-                      setState(() => menuAktif = MenuPoin.riwayat);
-                    },
-                  ),
-                ),
-              ],
-            ),
+  // Widget untuk menampilkan informasi total poin
+  Widget _buildInfoPoinHeader() {
+    Log.info('Membangun header informasi total poin. Total: $_totalPoin');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      color: Theme.of(context).primaryColor.withAlpha(26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'Total Poin Anda',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-
-          Expanded(
-            child: menuAktif == MenuPoin.riwayat
-                ? _riwayatTransaksi(context, widget.idPelanggan, fileName)
-                : _listPaket(context, totalPoin, daftarPaket, fileName),
+          const SizedBox(height: 8),
+          Text(
+            '$_totalPoin',
+            style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
           ),
         ],
       ),
     );
   }
 
-  Widget _infoPoin(BuildContext context, int poin) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Text('Total Poin Anda', style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.stars, color: Colors.amber, size: 30),
-                const SizedBox(width: 10),
-                Text(
-                  '$poin',
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+  // Widget untuk tombol segment (Penukaran/Riwayat)
+  Widget _buildSegmentedControl() {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      child: SegmentedButton<MenuPoin>(
+        segments: const [
+          ButtonSegment<MenuPoin>(
+            value: MenuPoin.penukaran,
+            label: Text('Tukar Hadiah'),
+            icon: Icon(Icons.card_giftcard),
+          ),
+          ButtonSegment<MenuPoin>(
+            value: MenuPoin.riwayat,
+            label: Text('Riwayat Poin'),
+            icon: Icon(Icons.history),
+          ),
+        ],
+        selected: {_menuPilihan},
+        onSelectionChanged: (Set<MenuPoin> newSelection) {
+          final selection = newSelection.first;
+          Log.info('SEGMENTED CONTROL: Tab dipilih berubah.');
+          Log.info(
+            '  - Tab sebelumnya: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
+          );
+          Log.info(
+            '  - Tab baru: ${selection == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
+          );
+          setState(() {
+            _menuPilihan = selection;
+          });
+          Log.info(
+            'State _menuPilihan berhasil diperbarui. UI akan menampilkan konten tab yang dipilih.',
+          );
+        },
       ),
     );
   }
-}
 
-Widget _buildTabButton({
-  required String label,
-  required bool aktif,
-  required VoidCallback onTap,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: aktif ? Colors.white : Colors.transparent,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: aktif
-            ? [
-                const BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: aktif ? Colors.black : Colors.grey.shade600,
-        ),
-      ),
-    ),
-  );
-}
+  // Widget untuk menampilkan konten berdasarkan tab yang dipilih
+  Widget _buildContentView() {
+    Log.info(
+      'Membangun konten untuk tab: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
+    );
 
-double _hitungProgressPencapaian(int poinDimiliki, int poinDibutuhkan) {
-  if (poinDibutuhkan <= 0) return 0.0;
-  return (poinDimiliki / poinDibutuhkan).clamp(0.0, 1.0);
-}
-
-Widget _listPaket(
-  BuildContext context,
-  int totalPoinPelanggan,
-  List<PaketModel> daftarPaket,
-  String fileName,
-) {
-  if (daftarPaket.isEmpty) {
-    return const Center(child: Text('Belum ada paket penukaran'));
+    switch (_menuPilihan) {
+      case MenuPoin.penukaran:
+        return _buildDaftarHadiah();
+      case MenuPoin.riwayat:
+        return _buildRiwayatPoin();
+    }
   }
 
-  return ListView.builder(
-    padding: const EdgeInsets.only(bottom: 20),
-    itemCount: daftarPaket.length,
-    itemBuilder: (context, index) {
-      final paket = daftarPaket[index];
-      final bool bisaDitukar = totalPoinPelanggan >= paket.poinPenukaran;
+  // Placeholder untuk daftar hadiah
+  Widget _buildDaftarHadiah() {
+    Log.info('Membangun daftar hadiah yang tersedia untuk ditukar.');
 
-      return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: bisaDitukar
-                ? Colors.green.shade100
-                : Colors.blue.shade100,
-            child: Icon(
-              Icons.card_giftcard,
-              color: bisaDitukar ? Colors.green : Colors.blue,
-            ),
-          ),
-          title: Text(
-            paket.nama,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Butuh ${paket.poinPenukaran} Poin'),
-              const SizedBox(height: 8),
-              if (paket.isPublic)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: _hitungProgressPencapaian(
-                      totalPoinPelanggan,
-                      paket.poinPenukaran,
-                    ),
-                    backgroundColor: Colors.grey.shade300,
-                    color: bisaDitukar ? Colors.green : Colors.blue,
-                    minHeight: 8,
-                  ),
-                )
-              else
-                const Text(
-                  '⚠️ Paket khusus (Internal)',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 12,
-                  ),
-                ),
-            ],
-          ),
-          trailing: bisaDitukar && paket.isPublic
-              ? ElevatedButton(
-                  onPressed: () {
-                    developer.log(
-                      '🎁 Mencoba menukar paket: ${paket.nama}',
-                      name: fileName,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Tukar'),
-                )
-              : null,
-        ),
+    final List<Map<String, dynamic>> daftarHadiah = [
+      {'nama': 'Voucher Pulsa Rp 5.000', 'poin': 500},
+      {'nama': 'Voucher Pulsa Rp 10.000', 'poin': 950},
+      {'nama': 'Merchandise Topi', 'poin': 1200},
+      {'nama': 'Gratis Langganan 1 Bulan', 'poin': 2500},
+    ];
+
+    Log.info('Jumlah hadiah tersedia: ${daftarHadiah.length}');
+    daftarHadiah.forEach((hadiah) {
+      final cukupPoin = _totalPoin >= hadiah['poin'];
+      Log.info(
+        '  - ${hadiah['nama']}: ${hadiah['poin']} poin (Status: ${cukupPoin ? "DAPAT DITUKAR" : "POIN KURANG (butuh ${hadiah['poin'] - _totalPoin} poin lagi)"})',
       );
-    },
-  );
-}
+    });
 
-Widget _riwayatTransaksi(
-  BuildContext context,
-  String idPelanggan,
-  String fileName,
-) {
-  final transaksiOperasi = TransaksiOperasi();
+    return ListView.builder(
+      itemCount: daftarHadiah.length,
+      itemBuilder: (context, index) {
+        final hadiah = daftarHadiah[index];
+        final cukupPoin = _totalPoin >= hadiah['poin'];
 
-  return FutureBuilder<List<TransaksiModel>>(
-    future: transaksiOperasi.ambilTransaksiByPelangganId(idPelanggan),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      if (snapshot.hasError) {
-        developer.log(
-          '❌ Error snapshot riwayat: ${snapshot.error}',
-          name: fileName,
-        );
-        return const Center(child: Text('Terjadi kesalahan data'));
-      }
-
-      final daftarTransaksi = snapshot.data ?? [];
-
-      if (daftarTransaksi.isEmpty) {
-        return const Center(child: Text('Belum ada riwayat transaksi'));
-      }
-
-      return ListView.builder(
-        padding: const EdgeInsets.only(bottom: 20),
-        itemCount: daftarTransaksi.length,
-        itemBuilder: (context, index) {
-          final transaksi = daftarTransaksi[index];
-          final selisih =
-              transaksi.poinYangDihasilkan - transaksi.poinYangDigunakan;
-          final color = selisih > 0
-              ? Colors.green
-              : (selisih < 0 ? Colors.red : Colors.grey);
-
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 4,
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: ListTile(
+            title: Text(hadiah['nama']),
+            subtitle: Text('${hadiah['poin']} Poin'),
+            trailing: ElevatedButton(
+              onPressed: cukupPoin
+                  ? () {
+                      Log.info('========================================');
+                      Log.info('AKSI: Tombol "Tukar" ditekan');
+                      Log.info('Hadiah: ${hadiah['nama']}');
+                      Log.info('Poin dibutuhkan: ${hadiah['poin']}');
+                      Log.info('Poin tersedia: $_totalPoin');
+                      Log.info(
+                        'Sisa poin setelah penukaran: ${_totalPoin - hadiah['poin']}',
+                      );
+                      Log.info(
+                        'TODO: Implementasikan logika penukaran poin ke database.',
+                      );
+                      Log.info('========================================');
+                      // TODO: Implementasi logika penukaran poin
+                    }
+                  : null,
+              child: const Text('Tukar'),
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Placeholder untuk riwayat poin
+  Widget _buildRiwayatPoin() {
+    Log.info('Membangun daftar riwayat poin pelanggan.');
+
+    final List<Map<String, dynamic>> riwayatPoin = [
+      {
+        'keterangan': 'Aktivasi Paket Hemat',
+        'poin': '+100',
+        'tanggal': '05 Mei 2024',
+      },
+      {
+        'keterangan': 'Aktivasi Paket Gaming',
+        'poin': '+150',
+        'tanggal': '01 Mei 2024',
+      },
+      {
+        'keterangan': 'Tukar Voucher Pulsa',
+        'poin': '-500',
+        'tanggal': '28 Apr 2024',
+      },
+      {'keterangan': 'Login Harian', 'poin': '+5', 'tanggal': '27 Apr 2024'},
+    ];
+
+    Log.info('Jumlah riwayat poin: ${riwayatPoin.length}');
+    for (var riwayat in riwayatPoin) {
+      final String poinStr = riwayat['poin'];
+      final isPenambahan = poinStr.startsWith('+');
+      Log.info(
+        '  - ${riwayat['tanggal']}: ${riwayat['keterangan']} (${isPenambahan ? "PENAMBAHAN" : "PENGURANGAN"} $poinStr poin)',
+      );
+    }
+
+    return ListView.builder(
+      itemCount: riwayatPoin.length,
+      itemBuilder: (context, index) {
+        final riwayat = riwayatPoin[index];
+        final String poinStr = riwayat['poin'];
+        final isPenambahan = poinStr.startsWith('+');
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: ListTile(
             leading: Icon(
-              selisih > 0
+              isPenambahan
                   ? Icons.add_circle_outline
                   : Icons.remove_circle_outline,
-              color: color,
+              color: isPenambahan ? Colors.green : Colors.red,
             ),
-            title: Text(transaksi.keterangan),
-            subtitle: Text(transaksi.id, style: const TextStyle(fontSize: 10)),
+            title: Text(riwayat['keterangan']),
+            subtitle: Text(riwayat['tanggal']),
             trailing: Text(
-              '${selisih >= 0 ? '+' : ''}$selisih Poin',
+              poinStr,
               style: TextStyle(
-                color: color,
+                color: isPenambahan ? Colors.green : Colors.red,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
-            onTap: () {
-              developer.log(
-                '🔍 Melihat detail transaksi: ${transaksi.id}',
-                name: fileName,
-              );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      DetailLanggananTransaksiPage(idTransaksi: transaksi.id),
-                ),
-              );
-            },
-          );
-        },
-      );
-    },
-  );
+          ),
+        );
+      },
+    );
+  }
 }

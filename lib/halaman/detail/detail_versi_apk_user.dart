@@ -1,6 +1,6 @@
 // path: lib/halaman/detail/detail_versi_apk_user.dart
 
-import 'dart:developer' as developer; // Tambahkan import ini
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:flutter/material.dart';
@@ -9,48 +9,71 @@ import 'package:flutter/material.dart';
 class DetailVersiApkUser extends StatelessWidget {
   final VersiApkUserModel versiApk;
 
-  const DetailVersiApkUser({super.key, required this.versiApk});
+  const DetailVersiApkUser({
+    super.key,
+    required this.versiApk,
+  });
 
   @override
   Widget build(BuildContext context) {
+    Log.info(
+      'Membangun halaman detail versi APK dengan versi terbaru: ${versiApk.versiTerbaru}.',
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Versi APK'),
+        title: const Text(
+          'Detail Versi APK',
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(
+              Icons.edit,
+            ),
             tooltip: 'Edit Data',
             onPressed: () async {
-              developer.log(
-                '📝 [DetailVersiApkUser] -> [onPressed Edit] -> Menuju form edit untuk versi: ${versiApk.versiTerbaru}',
-                name: 'DetailVersiApkUser.Navigation',
+              Log.info(
+                'Pengguna menekan tombol edit untuk versi APK: ${versiApk.versiTerbaru}.',
               );
 
-              // Navigasi ke form dengan membawa data yang ada
-              final result = await Navigator.push<bool>(
+              final result =
+                  await Navigator.push<bool>(
                 context,
                 MaterialPageRoute(
-                  // Mengirim data ke FormVersiApkUser
-                  builder: (context) =>
-                      FormVersiApkUser(versiApkUser: versiApk),
+                  builder: (context) {
+                    Log.info(
+                      'Membangun halaman FormVersiApkUser untuk proses edit.',
+                    );
+
+                    return FormVersiApkUser(
+                      versiApkUser:
+                          versiApk,
+                    );
+                  },
                 ),
               );
 
-              // Jika ada perubahan (form disimpan), kembali ke halaman daftar
-              // dan kirim sinyal untuk refresh
-              if (result == true && context.mounted) {
-                developer.log(
-                  '✅ [DetailVersiApkUser] -> [onPressed Edit] -> Berhasil edit data, mengirim sinyal refresh ke daftar.',
-                  name: 'DetailVersiApkUser.Callback',
+              Log.info(
+                'Halaman form edit versi APK selesai ditutup dengan hasil: $result.',
+              );
+
+              if (result == true &&
+                  context.mounted) {
+                Log.info(
+                  'Berhasil edit data versi APK dan mengirim sinyal refresh ke halaman sebelumnya.',
                 );
+
                 Navigator.pop(
                   context,
                   true,
-                ); // Kembali & kirim 'true' ke halaman daftar
+                );
+
+                Log.info(
+                  'Berhasil kembali ke halaman sebelumnya dengan status refresh.',
+                );
               } else {
-                developer.log(
-                  'ℹ️ [DetailVersiApkUser] -> [onPressed Edit] -> Kembali tanpa perubahan data.',
-                  name: 'DetailVersiApkUser.Callback',
+                Log.warning(
+                  'Tidak ada perubahan data versi APK atau widget sudah tidak mounted.',
                 );
               }
             },
@@ -58,50 +81,123 @@ class DetailVersiApkUser extends StatelessWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(
+          16.0,
+        ),
         children: [
-          _buildInfoRow('Versi Terbaru', versiApk.versiTerbaru),
-          _buildInfoRow('Wajib Update', versiApk.wajibUpdate ? 'Ya' : 'Tidak'),
-          _buildInfoRow('Catatan Rilis', versiApk.catatanRilis),
-          const SizedBox(height: 16),
+          _buildInfoRow(
+            'Versi Terbaru',
+            versiApk.versiTerbaru,
+          ),
+          _buildInfoRow(
+            'Wajib Update',
+            versiApk.wajibUpdate
+                ? 'Ya'
+                : 'Tidak',
+          ),
+          _buildInfoRow(
+            'Catatan Rilis',
+            versiApk.catatanRilis,
+          ),
+          const SizedBox(
+            height: 16,
+          ),
           const Text(
             'Nomor Build Terbaru',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: TextStyle(
+              fontWeight:
+                  FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
-          ...versiApk.nomorBuildTerbaru.entries.map(
-            (entry) => _buildInfoRow(entry.key.name, entry.value.toString()),
+          ...versiApk
+              .nomorBuildTerbaru.entries
+              .map(
+            (entry) {
+              Log.info(
+                'Menampilkan nomor build untuk arsitektur: ${entry.key.name} dengan nilai: ${entry.value}.',
+              );
+
+              return _buildInfoRow(
+                entry.key.name,
+                entry.value.toString(),
+              );
+            },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(
+            height: 16,
+          ),
           const Text(
             'Tautan Unduhan',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: TextStyle(
+              fontWeight:
+                  FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
-          ...versiApk.tautanUnduhan.entries.map(
-            (entry) => _buildInfoRow(entry.key.name, entry.value),
+          ...versiApk
+              .tautanUnduhan.entries
+              .map(
+            (entry) {
+              Log.info(
+                'Menampilkan tautan unduhan untuk arsitektur: ${entry.key.name}.',
+              );
+
+              return _buildInfoRow(
+                entry.key.name,
+                entry.value,
+              );
+            },
           ),
-          const SizedBox(height: 16),
-          _buildInfoRow('Youtube Tutorial', versiApk.youtubeTutorial),
+          const SizedBox(
+            height: 16,
+          ),
+          _buildInfoRow(
+            'Youtube Tutorial',
+            versiApk.youtubeTutorial,
+          ),
         ],
       ),
     );
   }
 
   // untuk membangun baris informasi
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+  ) {
+    Log.info(
+      'Membangun info row dengan label: $label dan value: $value.',
+    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding:
+          const EdgeInsets.symmetric(
+        vertical: 8.0,
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(
+                fontWeight:
+                    FontWeight.bold,
+              ),
             ),
           ),
-          const Text(': '),
-          Flexible(child: Text(value)),
+          const Text(
+            ': ',
+          ),
+          Flexible(
+            child: Text(
+              value,
+            ),
+          ),
         ],
       ),
     );

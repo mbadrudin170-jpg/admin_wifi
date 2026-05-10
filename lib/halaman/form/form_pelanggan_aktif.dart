@@ -29,27 +29,47 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:admin_wifi/enum/enum.dart';
-import 'dart:developer' as developer;
 
 // ditambahkan: Fungsi ini diekstrak dari state untuk kemudahan pengujian.
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
-  developer.log('[Global]-[hitungTanggalBerakhir] ⏳ : Menghitung tanggal berakhir paket ${paket.nama} dari $startDate');
+  Log.info('FUNGSI GLOBAL: hitungTanggalBerakhir() dipanggil.');
+  Log.info('  - Tanggal Mulai: ${startDate.toIso8601String()}');
+  Log.info('  - Nama Paket: ${paket.nama}');
+  Log.info('  - Tipe Durasi: ${paket.tipe.displayName}');
+  Log.info('  - Durasi: ${paket.durasi}');
+
+  DateTime hasil;
   switch (paket.tipe) {
     case TipeDurasi.jam:
-      return startDate.add(Duration(hours: paket.durasi));
+      Log.info('  - Perhitungan: $startDate + ${paket.durasi} jam');
+      hasil = startDate.add(Duration(hours: paket.durasi));
+      break;
     case TipeDurasi.hari:
-      return startDate.add(Duration(days: paket.durasi));
+      Log.info('  - Perhitungan: $startDate + ${paket.durasi} hari');
+      hasil = startDate.add(Duration(days: paket.durasi));
+      break;
     case TipeDurasi.bulan:
-      return Jiffy.parseFromDateTime(
+      Log.info(
+        '  - Perhitungan: $startDate + ${paket.durasi} bulan (menggunakan Jiffy)',
+      );
+      hasil = Jiffy.parseFromDateTime(
         startDate,
       ).add(months: paket.durasi).dateTime;
+      break;
     case TipeDurasi.menit:
-      return startDate.add(Duration(minutes: paket.durasi));
+      Log.info('  - Perhitungan: $startDate + ${paket.durasi} menit');
+      hasil = startDate.add(Duration(minutes: paket.durasi));
+      break;
   }
+
+  Log.info('  - Hasil Tanggal Berakhir: ${hasil.toIso8601String()}');
+  Log.info('  - Format: ${FormatTanggal.formatTanggalDanJam(hasil)}');
+  return hasil;
 }
 
 class FormPelangganAktif extends StatefulWidget {
@@ -60,6 +80,7 @@ class FormPelangganAktif extends StatefulWidget {
   final TransaksiOperasi transaksiOperasi;
   final DompetOperasi dompetOperasi;
   final KategoriOperasi kategoriOperasi;
+
   FormPelangganAktif({
     super.key,
     this.pelangganAktif,
@@ -74,7 +95,20 @@ class FormPelangganAktif extends StatefulWidget {
        pelangganAktifOperasi = pelangganAktifOperasi ?? PelangganAktifOperasi(),
        transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
        dompetOperasi = dompetOperasi ?? DompetOperasi(),
-       kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
+       kategoriOperasi = kategoriOperasi ?? KategoriOperasi() {
+    Log.info('FormPelangganAktif instance dibuat.');
+    Log.info(
+      '  - Mode: ${pelangganAktif != null ? "EDIT (ID: ${pelangganAktif!.id})" : "TAMBAH BARU"}',
+    );
+    Log.info('  - PelangganOperasi: ${this.pelangganOperasi.hashCode}');
+    Log.info('  - PaketOperasi: ${this.paketOperasi.hashCode}');
+    Log.info(
+      '  - PelangganAktifOperasi: ${this.pelangganAktifOperasi.hashCode}',
+    );
+    Log.info('  - TransaksiOperasi: ${this.transaksiOperasi.hashCode}');
+    Log.info('  - DompetOperasi: ${this.dompetOperasi.hashCode}');
+    Log.info('  - KategoriOperasi: ${this.kategoriOperasi.hashCode}');
+  }
 
   @override
   State<FormPelangganAktif> createState() => _FormPelangganAktifState();
@@ -89,7 +123,6 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   List<KategoriModel> _kategoriPemasukanList = [];
   List<KategoriModel> _kategoriPengeluaranList = [];
 
-  // diubah: Menggunakan getter untuk mendapatkan daftar kategori yang aktif
   List<KategoriModel> get _kategoriList =>
       _gunakanPoin ? _kategoriPengeluaranList : _kategoriPemasukanList;
 
@@ -108,30 +141,50 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   StatusPembayaranEnum _statusPembayaran = StatusPembayaranEnum.lunas;
 
   bool get _isEditMode => widget.pelangganAktif != null;
+
   int hitungPoinEfektif() {
     if (_selectedPaket == null) return 0;
-
     if (_gunakanPoin) {
-      return _selectedPaket!.poinPenukaran;
+      final poinEfektif = _selectedPaket!.poinPenukaran;
+      Log.info(
+        'PERHITUNGAN POIN EFEKTIF: Poin penukaran dari paket "${_selectedPaket!.nama}" = $poinEfektif',
+      );
+      return poinEfektif;
     }
-
+    Log.info('PERHITUNGAN POIN EFEKTIF: Tidak menggunakan poin, return 0');
     return 0;
   }
 
   int hitungSisaPoin() {
     final pakai = hitungPoinEfektif();
-    return (_saldoPoinPelanggan - pakai).clamp(0, 999999999);
+    final sisa = (_saldoPoinPelanggan - pakai).clamp(0, 999999999);
+    Log.info(
+      'PERHITUNGAN SISA POIN: Saldo poin pelanggan: $_saldoPoinPelanggan, Poin dipakai: $pakai, Sisa: $sisa',
+    );
+    return sisa;
   }
 
   @override
   void initState() {
     super.initState();
-    developer.log('[FormPelangganAktif]-[initState] 🚀 : Inisialisasi FormPelangganAktif');
+    Log.info('========================================');
+    Log.info('LIFECYCLE: initState() - Halaman FormPelangganAktif');
+    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    Log.info('========================================');
+    Log.info('Memanggil _loadAllData() untuk mengambil semua data referensi.');
     _loadAllData();
   }
 
   Future<void> _loadAllData() async {
-    developer.log('[FormPelangganAktif]-[_loadAllData] 🔄 : Memuat seluruh data referensi (Pelanggan, Paket, Dompet, Kategori)');
+    Log.info('========================================');
+    Log.info('MEMULAI PEMUATAN SEMUA DATA REFERENSI');
+    Log.info('========================================');
+    Log.info('Mengambil 4 jenis data secara paralel:');
+    Log.info('  1. Daftar Pelanggan (getPelanggan)');
+    Log.info('  2. Daftar Paket (getPaket)');
+    Log.info('  3. Daftar Dompet (getDompet)');
+    Log.info('  4. Daftar Kategori (getKategori)');
+
     try {
       final results = await Future.wait([
         widget.pelangganOperasi.getPelanggan(),
@@ -139,45 +192,110 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         widget.dompetOperasi.getDompet(),
         widget.kategoriOperasi.getKategori(),
       ]);
-      if (!mounted) return;
+
+      Log.info('Keempat query selesai dijalankan. Memproses hasil...');
+
+      if (!mounted) {
+        Log.warning(
+          'Widget sudah tidak mounted setelah data berhasil diambil. Membatalkan update state.',
+        );
+        return;
+      }
 
       setState(() {
         _pelangganList = results[0] as List<PelangganModel>;
+        Log.info(
+          'Data Pelanggan: ${_pelangganList.length} pelanggan ditemukan.',
+        );
+
         _pelangganList.sort(
           (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
         );
+        Log.info('Daftar pelanggan diurutkan berdasarkan nama (A-Z).');
+
         _paketList = results[1] as List<PaketModel>;
+        Log.info('Data Paket: ${_paketList.length} paket ditemukan.');
 
         final semuaDompet = results[2] as List<DompetModel>;
+        Log.info(
+          'Data Dompet (sebelum filter): ${semuaDompet.length} dompet ditemukan.',
+        );
         _daftarDompet = semuaDompet
             .where((dompet) => !dompet.isDeleted)
             .toList();
+        Log.info(
+          'Data Dompet (setelah filter isDeleted=false): ${_daftarDompet.length} dompet tersedia.',
+        );
+
         final semuaKategori = results[3] as List<KategoriModel>;
+        Log.info(
+          'Data Kategori (sebelum filter): ${semuaKategori.length} kategori ditemukan.',
+        );
+
         _kategoriPemasukanList = semuaKategori
             .where((k) => k.tipe == TipeKategori.pemasukan && !k.isDeleted)
             .toList();
+        Log.info(
+          'Kategori Pemasukan (setelah filter): ${_kategoriPemasukanList.length} kategori.',
+        );
+        for (var k in _kategoriPemasukanList) {
+          Log.info('  - ${k.nama} (ID: ${k.id})');
+        }
 
         _kategoriPengeluaranList = semuaKategori
             .where((k) => k.tipe == TipeKategori.pengeluaran && !k.isDeleted)
             .toList();
+        Log.info(
+          'Kategori Pengeluaran (setelah filter): ${_kategoriPengeluaranList.length} kategori.',
+        );
+        for (var k in _kategoriPengeluaranList) {
+          Log.info('  - ${k.nama} (ID: ${k.id})');
+        }
 
         if (_isEditMode) {
-          developer.log('[FormPelangganAktif]-[_loadAllData] 📝 : Mode Edit dideteksi, melakukan mapping data pelanggan aktif');
+          Log.info('========================================');
+          Log.info(
+            'MODE EDIT: Melakukan mapping data pelanggan aktif yang sudah ada',
+          );
+          Log.info('========================================');
           final pa = widget.pelangganAktif!;
+          Log.info('Data pelanggan aktif yang akan diedit:');
+          Log.info('  - ID: ${pa.id}');
+          Log.info('  - ID Pelanggan: ${pa.idPelanggan}');
+          Log.info('  - ID Paket: ${pa.idPaket}');
+          Log.info('  - ID Transaksi: ${pa.idTransaksi}');
+          Log.info('  - Tanggal Mulai: ${pa.tanggalMulai}');
+          Log.info('  - Tanggal Berakhir: ${pa.tanggalBerakhir}');
+          Log.info('  - Status: ${pa.status}');
+
           try {
             _selectedPelanggan = _pelangganList.firstWhere(
               (p) => p.id == pa.idPelanggan,
             );
+            Log.info(
+              'Pelanggan berhasil ditemukan: ${_selectedPelanggan!.nama} (ID: ${_selectedPelanggan!.id})',
+            );
           } catch (e) {
-            developer.log('[FormPelangganAktif]-[_loadAllData] ⚠️ : Pelanggan dengan ID ${pa.idPelanggan} tidak ditemukan');
+            Log.warning(
+              'Pelanggan dengan ID ${pa.idPelanggan} tidak ditemukan dalam daftar.',
+            );
             _selectedPelanggan = null;
           }
+
           try {
             _selectedPaket = _paketList.firstWhere((p) => p.id == pa.idPaket);
+            Log.info(
+              'Paket berhasil ditemukan: ${_selectedPaket!.nama} (ID: ${_selectedPaket!.id})',
+            );
           } catch (e) {
-            developer.log('[FormPelangganAktif]-[_loadAllData] ⚠️ : Paket dengan ID ${pa.idPaket} tidak ditemukan');
+            Log.warning(
+              'Paket dengan ID ${pa.idPaket} tidak ditemukan dalam daftar.',
+            );
             _selectedPaket = null;
             if (mounted) {
+              Log.warning(
+                'Menampilkan SnackBar peringatan paket tidak ditemukan.',
+              );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -192,33 +310,92 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
           final tglMulai = pa.tanggalMulai;
           _selectedDate = tglMulai;
           _selectedTime = TimeOfDay.fromDateTime(tglMulai);
+          Log.info(
+            'Tanggal dan waktu mulai diatur dari data yang ada: ${FormatTanggal.formatTanggalDanJam(tglMulai)}',
+          );
           _statusPembayaran = pa.status;
+          Log.info('Status pembayaran: $_statusPembayaran');
         } else {
-          developer.log('[FormPelangganAktif]-[_loadAllData] ✨ : Mode Tambah baru, mengatur waktu default');
+          Log.info('MODE TAMBAH BARU: Mengatur waktu default ke sekarang.');
           _selectedDate = DateTime.now();
           _selectedTime = TimeOfDay.now();
+          Log.info(
+            'Tanggal default: ${FormatTanggal.formatTanggalBasic(_selectedDate!)}',
+          );
+          Log.info('Waktu default: ${_selectedTime!.format(context)}');
         }
 
         if (_selectedDompet == null && _daftarDompet.isNotEmpty) {
           _selectedDompet = _daftarDompet.first;
+          Log.info(
+            'Dompet default dipilih: ${_selectedDompet!.namaDompet} (ID: ${_selectedDompet!.id})',
+          );
+        } else if (_daftarDompet.isEmpty) {
+          Log.warning('Tidak ada dompet yang tersedia. Daftar dompet kosong.');
         }
-        
+
         if (_selectedKategori == null && _kategoriPemasukanList.isNotEmpty) {
           try {
             _selectedKategori = _kategoriPemasukanList.firstWhere(
               (k) => k.nama.toLowerCase() == 'aktivasi paket',
             );
+            Log.info(
+              'Kategori "Aktivasi Paket" ditemukan dan dipilih secara default.',
+            );
           } catch (e) {
             _selectedKategori = _kategoriPemasukanList.first;
+            Log.info(
+              'Kategori "Aktivasi Paket" tidak ditemukan. Kategori pertama dipilih: ${_selectedKategori!.nama}',
+            );
           }
+        } else if (_kategoriPemasukanList.isEmpty &&
+            _kategoriPengeluaranList.isEmpty) {
+          Log.warning(
+            'Tidak ada kategori yang tersedia. Kedua daftar kategori kosong.',
+          );
         }
 
         _isLoading = false;
-        developer.log('[FormPelangganAktif]-[_loadAllData] ✅ : Data berhasil dimuat sepenuhnya');
+        Log.info('========================================');
+        Log.info('PEMUATAN DATA REFERENSI SELESAI');
+        Log.info('Ringkasan data yang dimuat:');
+        Log.info('  - Pelanggan: ${_pelangganList.length} data');
+        Log.info('  - Paket: ${_paketList.length} data');
+        Log.info('  - Dompet: ${_daftarDompet.length} data');
+        Log.info(
+          '  - Kategori Pemasukan: ${_kategoriPemasukanList.length} data',
+        );
+        Log.info(
+          '  - Kategori Pengeluaran: ${_kategoriPengeluaranList.length} data',
+        );
+        Log.info(
+          '  - Pelanggan Terpilih: ${_selectedPelanggan?.nama ?? "Belum dipilih"}',
+        );
+        Log.info(
+          '  - Paket Terpilih: ${_selectedPaket?.nama ?? "Belum dipilih"}',
+        );
+        Log.info(
+          '  - Dompet Terpilih: ${_selectedDompet?.namaDompet ?? "Belum dipilih"}',
+        );
+        Log.info(
+          '  - Kategori Terpilih: ${_selectedKategori?.nama ?? "Belum dipilih"}',
+        );
+        Log.info('========================================');
       });
-    } catch (e) {
-      developer.log('[FormPelangganAktif]-[_loadAllData] ❌ : Error saat memuat data: $e');
-      if (!mounted) return;
+    } catch (e, s) {
+      Log.error(
+        'Gagal memuat data referensi. '
+        'Proses pengambilan data pelanggan, paket, dompet, atau kategori mengalami kegagalan. '
+        'Kemungkinan penyebab: koneksi database gagal atau data corrupt.',
+        error: e,
+        stackTrace: s,
+      );
+      if (!mounted) {
+        Log.warning(
+          'Widget sudah tidak mounted setelah error. Tidak dapat memperbarui state atau menampilkan SnackBar.',
+        );
+        return;
+      }
       setState(() {
         _isLoading = false;
       });
@@ -229,23 +406,48 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    developer.log('[FormPelangganAktif]-[_selectDate] 📅 : Membuka DatePicker');
+    Log.info('========================================');
+    Log.info('AKSI: Membuka DatePicker untuk memilih tanggal');
+    Log.info(
+      'Tanggal saat ini: ${_selectedDate != null ? FormatTanggal.formatTanggalBasic(_selectedDate!) : "Belum dipilih"}',
+    );
+    Log.info('========================================');
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
+
     if (picked != null && picked != _selectedDate) {
-      developer.log('[FormPelangganAktif]-[_selectDate] ✅ : Tanggal dipilih: $picked');
+      Log.info(
+        'DatePicker: Tanggal baru dipilih: ${FormatTanggal.formatTanggalBasic(picked)}',
+      );
+      Log.info(
+        'Tanggal sebelumnya: ${_selectedDate != null ? FormatTanggal.formatTanggalBasic(_selectedDate!) : "Belum dipilih"}',
+      );
       setState(() {
         _selectedDate = picked;
       });
+      Log.info('State _selectedDate berhasil diperbarui.');
+    } else if (picked == null) {
+      Log.info('DatePicker: Pengguna membatalkan pemilihan tanggal.');
+    } else {
+      Log.info(
+        'DatePicker: Tanggal yang dipilih sama dengan sebelumnya. Tidak ada perubahan.',
+      );
     }
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    developer.log('[FormPelangganAktif]-[_selectTime] 🕒 : Membuka TimePicker');
+    Log.info('========================================');
+    Log.info('AKSI: Membuka TimePicker untuk memilih waktu');
+    Log.info(
+      'Waktu saat ini: ${_selectedTime != null ? "${_selectedTime!.hour}:${_selectedTime!.minute}" : "Belum dipilih"}',
+    );
+    Log.info('========================================');
+
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
@@ -256,22 +458,63 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         );
       },
     );
+
     if (picked != null && picked != _selectedTime) {
-      developer.log('[FormPelangganAktif]-[_selectTime] ✅ : Waktu dipilih: $picked');
+      Log.info(
+        'TimePicker: Waktu baru dipilih: ${picked.hour}:${picked.minute}',
+      );
+      Log.info(
+        'Waktu sebelumnya: ${_selectedTime != null ? "${_selectedTime!.hour}:${_selectedTime!.minute}" : "Belum dipilih"}',
+      );
       setState(() {
         _selectedTime = picked;
       });
+      Log.info('State _selectedTime berhasil diperbarui.');
+    } else if (picked == null) {
+      Log.info('TimePicker: Pengguna membatalkan pemilihan waktu.');
+    } else {
+      Log.info(
+        'TimePicker: Waktu yang dipilih sama dengan sebelumnya. Tidak ada perubahan.',
+      );
     }
   }
 
   Future<HasilSimpanModel> _saveForm() async {
-    developer.log('[FormPelangganAktif]-[_saveForm] 💾 : Menjalankan proses penyimpanan form');
+    Log.info('========================================');
+    Log.info('PROSES PENYIMPANAN FORM');
+    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    Log.info('========================================');
+
+    Log.info('Memvalidasi form...');
     if (!_formKey.currentState!.validate()) {
-      developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Validasi form gagal (Data tidak lengkap)');
+      Log.warning('Validasi form GAGAL. Data belum lengkap atau tidak valid.');
       return HasilSimpanModel(sukses: false, pesan: 'Data belum lengkap');
     }
+    Log.info('Validasi form BERHASIL.');
 
     final selectedPaket = _selectedPaket;
+
+    Log.info('Memeriksa kelengkapan data...');
+    Log.info(
+      '  - Pelanggan: ${_selectedPelanggan != null ? _selectedPelanggan!.nama : "NULL"}',
+    );
+    Log.info(
+      '  - Paket: ${selectedPaket != null ? selectedPaket.nama : "NULL"}',
+    );
+    Log.info(
+      '  - Tanggal: ${_selectedDate != null ? FormatTanggal.formatTanggalBasic(_selectedDate!) : "NULL"}',
+    );
+    Log.info(
+      '  - Waktu: ${_selectedTime != null ? "${_selectedTime!.hour}:${_selectedTime!.minute}" : "NULL"}',
+    );
+    Log.info(
+      '  - Dompet: ${_selectedDompet != null ? _selectedDompet!.namaDompet : "NULL"}',
+    );
+    Log.info(
+      '  - Kategori: ${_selectedKategori != null ? _selectedKategori!.nama : "NULL"}',
+    );
+    Log.info('  - Gunakan Poin: $_gunakanPoin');
+    Log.info('  - Status Pembayaran: $_statusPembayaran');
 
     if (_selectedPelanggan == null ||
         selectedPaket == null ||
@@ -279,17 +522,30 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _selectedTime == null ||
         _selectedDompet == null ||
         _selectedKategori == null) {
-      developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Salah satu field utama null');
+      Log.warning(
+        'Salah satu field utama bernilai NULL. Penyimpanan tidak dapat dilanjutkan.',
+      );
       return HasilSimpanModel(
         sukses: false,
         pesan: 'Harap lengkapi semua data',
       );
     }
+    Log.info('Semua field utama terisi. Melanjutkan proses penyimpanan.');
 
     if (_gunakanPoin) {
-      developer.log('[FormPelangganAktif]-[_saveForm] 💡 : Menggunakan poin untuk aktivasi');
+      Log.info('========================================');
+      Log.info('VALIDASI PENGGUNAAN POIN');
+      Log.info('========================================');
+      Log.info('Pengguna memilih untuk menggunakan poin.');
+      Log.info(
+        'Poin penukaran yang dibutuhkan: ${selectedPaket.poinPenukaran}',
+      );
+      Log.info('Saldo poin pelanggan: $_saldoPoinPelanggan');
+
       if (selectedPaket.poinPenukaran <= 0) {
-        developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Paket tidak mendukung penukaran poin');
+        Log.warning(
+          'Paket "${selectedPaket.nama}" tidak mendukung penukaran poin. poinPenukaran = ${selectedPaket.poinPenukaran}',
+        );
         return HasilSimpanModel(
           sukses: false,
           pesan: 'Paket ini tidak mendukung penukaran poin',
@@ -297,12 +553,21 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       }
 
       if (_saldoPoinPelanggan < selectedPaket.poinPenukaran) {
-        developer.log('[FormPelangganAktif]-[_saveForm] ⚠️ : Poin pelanggan tidak cukup. Saldo: $_saldoPoinPelanggan, Dibutuhkan: ${selectedPaket.poinPenukaran}');
+        Log.warning(
+          'Poin pelanggan tidak mencukupi. Dibutuhkan: ${selectedPaket.poinPenukaran}, Tersedia: $_saldoPoinPelanggan',
+        );
         return HasilSimpanModel(sukses: false, pesan: 'Poin tidak cukup');
       }
+
+      Log.info('Validasi poin BERHASIL. Poin mencukupi untuk penukaran.');
     }
 
     try {
+      Log.info('========================================');
+      Log.info('MEMBUAT DATA PELANGGAN AKTIF DAN TRANSAKSI');
+      Log.info('========================================');
+
+      Log.info('Membuat objek DateTime untuk tanggal mulai...');
       final DateTime tanggalMulai = DateTime(
         _selectedDate!.year,
         _selectedDate!.month,
@@ -310,17 +575,29 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _selectedTime!.hour,
         _selectedTime!.minute,
       );
+      Log.info('Tanggal mulai: ${tanggalMulai.toIso8601String()}');
+      Log.info('Format: ${FormatTanggal.formatTanggalDanJam(tanggalMulai)}');
 
+      Log.info(
+        'Menghitung tanggal berakhir menggunakan fungsi hitungTanggalBerakhir...',
+      );
       final DateTime tanggalBerakhir = hitungTanggalBerakhir(
         tanggalMulai,
         selectedPaket,
       );
+      Log.info('Tanggal berakhir: ${tanggalBerakhir.toIso8601String()}');
+      Log.info('Format: ${FormatTanggal.formatTanggalDanJam(tanggalBerakhir)}');
 
+      Log.info('Menentukan ID transaksi...');
       final String transaksiId =
           _isEditMode && widget.pelangganAktif?.idTransaksi != null
           ? widget.pelangganAktif!.idTransaksi!
           : const Uuid().v4();
+      Log.info(
+        'ID Transaksi: $transaksiId (${_isEditMode && widget.pelangganAktif?.idTransaksi != null ? "Menggunakan ID lama" : "UUID baru digenerate"})',
+      );
 
+      Log.info('Membuat objek PelangganAktifModel...');
       final pelangganAktifData = PelangganAktifModel(
         id: _isEditMode ? widget.pelangganAktif!.id : '',
         idPelanggan: _selectedPelanggan!.id,
@@ -331,7 +608,16 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         diperbarui: DateTime.now(),
         idTransaksi: transaksiId,
       );
+      Log.info('PelangganAktifModel berhasil dibuat:');
+      Log.info('  - ID: ${pelangganAktifData.id}');
+      Log.info('  - ID Pelanggan: ${pelangganAktifData.idPelanggan}');
+      Log.info('  - ID Paket: ${pelangganAktifData.idPaket}');
+      Log.info('  - Tanggal Mulai: ${pelangganAktifData.tanggalMulai}');
+      Log.info('  - Tanggal Berakhir: ${pelangganAktifData.tanggalBerakhir}');
+      Log.info('  - Status: ${pelangganAktifData.status}');
+      Log.info('  - ID Transaksi: ${pelangganAktifData.idTransaksi}');
 
+      Log.info('Membuat objek TransaksiModel...');
       final transaksiData = TransaksiModel(
         id: transaksiId,
         tanggal: tanggalMulai,
@@ -354,38 +640,96 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         tanggalBerakhir: tanggalBerakhir,
         aktivasiPaket: true,
       );
+      Log.info('TransaksiModel berhasil dibuat:');
+      Log.info('  - ID: ${transaksiData.id}');
+      Log.info('  - Keterangan: ${transaksiData.keterangan}');
+      Log.info('  - Jumlah: ${transaksiData.jumlah}');
+      Log.info('  - Tipe: ${transaksiData.tipe}');
+      Log.info('  - Poin Dihasilkan: ${transaksiData.poinYangDihasilkan}');
+      Log.info('  - Poin Digunakan: ${transaksiData.poinYangDigunakan}');
+      Log.info('  - Status Pembayaran: ${transaksiData.statusPembayaran}');
 
       if (_isEditMode) {
-        developer.log('[FormPelangganAktif]-[_saveForm] 🔄 : Melakukan update data Pelanggan Aktif dan Transaksi');
+        Log.info('========================================');
+        Log.info('PROSES UPDATE DATA (MODE EDIT)');
+        Log.info('========================================');
+        Log.info('Memperbarui data Pelanggan Aktif di database...');
         await widget.pelangganAktifOperasi.updatePelangganAktif(
           pelangganAktifData,
         );
+        Log.info('Pelanggan Aktif berhasil diperbarui.');
+
+        Log.info('Memperbarui data Transaksi di database...');
         await widget.transaksiOperasi.updateTransaksi(
           transaksiId,
           transaksiData,
         );
+        Log.info('Transaksi berhasil diperbarui.');
       } else {
-        developer.log('[FormPelangganAktif]-[_saveForm] 📤 : Menambahkan data baru Pelanggan Aktif dan Transaksi');
+        Log.info('========================================');
+        Log.info('PROSES SIMPAN DATA BARU (MODE TAMBAH)');
+        Log.info('========================================');
+        Log.info('Menyimpan data Pelanggan Aktif baru ke database...');
         await widget.pelangganAktifOperasi.createPelangganAktif(
           pelangganAktifData,
         );
+        Log.info('Pelanggan Aktif baru berhasil disimpan.');
+
+        Log.info('Menyimpan data Transaksi baru ke database...');
         await widget.transaksiOperasi.tambahTransaksi(transaksiData);
+        Log.info('Transaksi baru berhasil disimpan.');
       }
 
-      developer.log('[FormPelangganAktif]-[_saveForm] 🎉 : Berhasil menyimpan data Pelanggan Aktif');
+      Log.info('========================================');
+      Log.info('PENYIMPANAN DATA BERHASIL');
+      Log.info('========================================');
       return HasilSimpanModel(sukses: true, pesan: 'Berhasil disimpan');
-    } catch (e) {
-      developer.log('[FormPelangganAktif]-[_saveForm] ❌ : Gagal saat eksekusi operasi database: $e');
+    } catch (e, s) {
+      Log.error(
+        'Gagal menyimpan data pelanggan aktif. '
+        'Proses ${_isEditMode ? "update" : "create"} mengalami kegagalan. '
+        'Kemungkinan penyebab: koneksi database gagal, constraint violation, '
+        'atau data tidak valid.',
+        error: e,
+        stackTrace: s,
+      );
       return HasilSimpanModel(sukses: false, pesan: 'Gagal menyimpan: $e');
     }
   }
 
   @override
+  void dispose() {
+    Log.info('========================================');
+    Log.info('LIFECYCLE: dispose() - Halaman FormPelangganAktif');
+    Log.info('Membersihkan resource halaman FormPelangganAktif.');
+    Log.info('========================================');
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    Log.info('========================================');
+    Log.info('LIFECYCLE: build() - Membangun UI FormPelangganAktif');
+    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    Log.info('Status Loading: $_isLoading');
+    Log.info('Menggunakan Poin: $_gunakanPoin');
+    Log.info('Saldo Poin: $_saldoPoinPelanggan');
+    Log.info('Status Pembayaran: $_statusPembayaran');
+    Log.info('========================================');
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Log.info(
+              'NAVIGASI: Tombol Kembali ditekan. Kembali dengan result false.',
+            );
+            Navigator.pop(context, false);
+          },
         ),
       ),
       body: _isLoading
@@ -437,15 +781,28 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             Switch(
                               value: _gunakanPoin,
                               onChanged: (bool value) {
-                                developer.log('[FormPelangganAktif]-[Switch] 🔘 : Perubahan status Gunakan Poin menjadi: $value');
+                                Log.info('SWITCH: Status Gunakan Poin diubah.');
+                                Log.info('  - Status Lama: $_gunakanPoin');
+                                Log.info('  - Status Baru: $value');
                                 setState(() {
                                   _gunakanPoin = value;
                                   if (!_kategoriList.contains(
                                     _selectedKategori,
                                   )) {
+                                    final kategoriSebelumnya =
+                                        _selectedKategori?.nama ?? "NULL";
                                     _selectedKategori = _kategoriList.isNotEmpty
                                         ? _kategoriList.first
                                         : null;
+                                    Log.info(
+                                      'Kategori direset karena perubahan mode poin.',
+                                    );
+                                    Log.info(
+                                      '  - Kategori sebelumnya: $kategoriSebelumnya',
+                                    );
+                                    Log.info(
+                                      '  - Kategori baru: ${_selectedKategori?.nama ?? "NULL"}',
+                                    );
                                   }
                                 });
                               },
@@ -469,22 +826,39 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                         }).toList(),
                         onChanged: (PelangganModel? newValue) async {
                           if (newValue == null) return;
-                          developer.log('[FormPelangganAktif]-[Dropdown] 👤 : Pelanggan dipilih: ${newValue.nama}');
+                          Log.info('DROPDOWN: Pelanggan dipilih.');
+                          Log.info('  - Nama: ${newValue.nama}');
+                          Log.info('  - ID: ${newValue.id}');
 
+                          Log.info(
+                            'Mengambil saldo poin pelanggan ${newValue.nama}...',
+                          );
                           final saldoPoin = await widget.transaksiOperasi
                               .getTotalPoin(newValue.id);
+                          Log.info('Saldo poin ${newValue.nama}: $saldoPoin');
 
-                          if (!mounted) return;
+                          if (!mounted) {
+                            Log.warning(
+                              'Widget tidak mounted setelah mengambil saldo poin.',
+                            );
+                            return;
+                          }
 
                           setState(() {
                             _selectedPelanggan = newValue;
                             _saldoPoinPelanggan = saldoPoin;
                           });
-                          developer.log('[FormPelangganAktif]-[Dropdown] 💰 : Saldo poin pelanggan ${newValue.nama} adalah $saldoPoin');
+                          Log.info(
+                            'State diperbarui: Pelanggan = ${newValue.nama}, Saldo Poin = $saldoPoin',
+                          );
                         },
-                        validator: (value) => value == null
-                            ? 'Pelanggan tidak boleh kosong'
-                            : null,
+                        validator: (value) {
+                          if (value == null) {
+                            Log.warning('VALIDASI: Pelanggan belum dipilih.');
+                            return 'Pelanggan tidak boleh kosong';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<PaketModel>(
@@ -501,13 +875,27 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           );
                         }).toList(),
                         onChanged: (PaketModel? newValue) {
-                          developer.log('[FormPelangganAktif]-[Dropdown] 📦 : Paket dipilih: ${newValue?.nama}');
+                          Log.info('DROPDOWN: Paket dipilih.');
+                          Log.info('  - Nama: ${newValue?.nama}');
+                          Log.info('  - Harga: ${newValue?.harga}');
+                          Log.info(
+                            '  - Durasi: ${newValue?.durasi} ${newValue?.tipe.displayName}',
+                          );
+                          Log.info('  - Poin Hadiah: ${newValue?.poinHadiah}');
+                          Log.info(
+                            '  - Poin Penukaran: ${newValue?.poinPenukaran}',
+                          );
                           setState(() {
                             _selectedPaket = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Paket tidak boleh kosong' : null,
+                        validator: (value) {
+                          if (value == null) {
+                            Log.warning('VALIDASI: Paket belum dipilih.');
+                            return 'Paket tidak boleh kosong';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<DompetModel>(
@@ -524,13 +912,20 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           );
                         }).toList(),
                         onChanged: (DompetModel? newValue) {
-                          developer.log('[FormPelangganAktif]-[Dropdown] 💳 : Dompet dipilih: ${newValue?.namaDompet}');
+                          Log.info('DROPDOWN: Dompet dipilih.');
+                          Log.info('  - Nama: ${newValue?.namaDompet}');
+                          Log.info('  - Saldo: ${newValue?.saldo}');
                           setState(() {
                             _selectedDompet = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Dompet tidak boleh kosong' : null,
+                        validator: (value) {
+                          if (value == null) {
+                            Log.warning('VALIDASI: Dompet belum dipilih.');
+                            return 'Dompet tidak boleh kosong';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<KategoriModel>(
@@ -547,14 +942,20 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                           );
                         }).toList(),
                         onChanged: (KategoriModel? newValue) {
-                          developer.log('[FormPelangganAktif]-[Dropdown] 📑 : Kategori dipilih: ${newValue?.nama}');
+                          Log.info('DROPDOWN: Kategori dipilih.');
+                          Log.info('  - Nama: ${newValue?.nama}');
+                          Log.info('  - Tipe: ${newValue?.tipe}');
                           setState(() {
                             _selectedKategori = newValue;
                           });
                         },
-                        validator: (value) => value == null
-                            ? 'Kategori tidak boleh kosong'
-                            : null,
+                        validator: (value) {
+                          if (value == null) {
+                            Log.warning('VALIDASI: Kategori belum dipilih.');
+                            return 'Kategori tidak boleh kosong';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -594,19 +995,28 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                    _statusPembayaran == StatusPembayaranEnum.lunas
+                                    _statusPembayaran ==
+                                        StatusPembayaranEnum.lunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
                                 foregroundColor:
-                                    _statusPembayaran == StatusPembayaranEnum.lunas
+                                    _statusPembayaran ==
+                                        StatusPembayaranEnum.lunas
                                     ? Colors.white
                                     : Colors.black,
                               ),
                               onPressed: () {
-                                developer.log('[FormPelangganAktif]-[Button] ✅ : Status pembayaran diatur ke LUNAS');
+                                Log.info(
+                                  'BUTTON: Status pembayaran diatur ke LUNAS.',
+                                );
+                                Log.info(
+                                  '  - Status sebelumnya: $_statusPembayaran',
+                                );
                                 setState(() {
-                                  _statusPembayaran = StatusPembayaranEnum.lunas;
+                                  _statusPembayaran =
+                                      StatusPembayaranEnum.lunas;
                                 });
+                                Log.info('  - Status baru: $_statusPembayaran');
                               },
                               child: const Text('Lunas'),
                             ),
@@ -627,11 +1037,17 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                     : Colors.black,
                               ),
                               onPressed: () {
-                                developer.log('[FormPelangganAktif]-[Button] ⏳ : Status pembayaran diatur ke BELUM LUNAS');
+                                Log.info(
+                                  'BUTTON: Status pembayaran diatur ke BELUM LUNAS.',
+                                );
+                                Log.info(
+                                  '  - Status sebelumnya: $_statusPembayaran',
+                                );
                                 setState(() {
                                   _statusPembayaran =
                                       StatusPembayaranEnum.belumLunas;
                                 });
+                                Log.info('  - Status baru: $_statusPembayaran');
                               },
                               child: const Text('Belum Lunas'),
                             ),
@@ -706,29 +1122,56 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: () async {
-            developer.log('[FormPelangganAktif]-[Action] 👆 : Tombol Simpan ditekan');
+            Log.info('========================================');
+            Log.info('AKSI: Tombol Simpan Ditekan');
+            Log.info('========================================');
+
             final navigator = Navigator.of(context);
             final messenger = ScaffoldMessenger.of(context);
 
+            Log.info('Memanggil _saveForm() untuk memproses penyimpanan...');
             final hasil = await _saveForm();
+            Log.info(
+              'Hasil penyimpanan: sukses=${hasil.sukses}, pesan="${hasil.pesan}"',
+            );
 
-            if (!mounted) return;
+            if (!mounted) {
+              Log.warning(
+                'Widget sudah tidak mounted setelah penyimpanan. Tidak dapat menampilkan SnackBar.',
+              );
+              return;
+            }
 
+            Log.info('Menampilkan SnackBar dengan hasil penyimpanan.');
             messenger.showSnackBar(
               SnackBar(
                 content: Text(hasil.pesan),
                 backgroundColor: hasil.sukses ? Colors.green : Colors.red,
               ),
             );
+            Log.info('SnackBar telah ditampilkan.');
 
             if (hasil.sukses) {
-              developer.log('[FormPelangganAktif]-[Action] 🚀 : Penyimpanan berhasil, kembali ke halaman sebelumnya');
+              Log.info(
+                'Penyimpanan berhasil. Menunggu 300ms sebelum navigasi kembali...',
+              );
               await Future.delayed(const Duration(milliseconds: 300));
 
-              if (!mounted) return;
+              if (!mounted) {
+                Log.warning(
+                  'Widget tidak mounted setelah delay. Tidak dapat melakukan navigasi.',
+                );
+                return;
+              }
+
+              Log.info(
+                'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+              );
               navigator.pop(true);
             } else {
-              developer.log('[FormPelangganAktif]-[Action] 🛑 : Penyimpanan gagal: ${hasil.pesan}');
+              Log.warning(
+                'Penyimpanan gagal. Tetap di halaman form. Pesan error: ${hasil.pesan}',
+              );
             }
           },
           style: ElevatedButton.styleFrom(

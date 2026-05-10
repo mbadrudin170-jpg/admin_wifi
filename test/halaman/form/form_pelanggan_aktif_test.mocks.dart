@@ -79,7 +79,6 @@ class MockPelangganOperasi extends _i1.Mock implements _i6.PelangganOperasi {
           )
           as _i2.DatabaseHelper);
 
-  @override
   String get fileName =>
       (super.noSuchMethod(
             Invocation.getter(#fileName),
