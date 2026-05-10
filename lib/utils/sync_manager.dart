@@ -1,75 +1,35 @@
-// lib/utils/sync_manager.dart
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:developer' as developer;
+// path: lib/utils/sync_manager.dart
+import 'package:admin_wifi/data/services/preferensi_service.dart';
 
+/// Kelas SyncManager sekarang bertindak sebagai fasad (facade) sederhana
+/// yang mendelegasikan semua panggilan ke PreferensiService.
+/// Perubahan ini memusatkan logika SharedPreferences di satu tempat (PreferensiService)
+/// dan membuat SyncManager lebih bersih dan fokus pada tugasnya sebagai "penjaga" timestamp sinkronisasi.
 class SyncManager {
-  static const _kLastSyncTimestampKey = 'last_sync_timestamp';
+  // --- LOGIKA TERAKHIR UNDUH ---
 
-  Future<DateTime> getLastSyncTimestamp() async {
-    developer.log(
-      '[SyncManager]-[getLastSyncTimestamp] 🔍 : Mencoba mengambil stempel waktu (timestamp) sinkronisasi terakhir...',
-    );
-
-    try {
-      developer.log(
-        '[SyncManager]-[getLastSyncTimestamp] 📡 : Membuka instance SharedPreferences...',
-      );
-      final prefs = await SharedPreferences.getInstance();
-      
-      final timestamp = prefs.getInt(_kLastSyncTimestampKey);
-      
-      // Jika belum pernah sinkronisasi, gunakan waktu yang sangat lampau
-      // agar semua data terambil saat pertama kali.
-      if (timestamp == null || timestamp == 0) {
-        developer.log(
-          '[SyncManager]-[getLastSyncTimestamp] ⚠️ : Timestamp tidak ditemukan atau bernilai 0. Mengembalikan nilai default (Epoch 0).',
-        );
-        return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-      }
-
-      final lastSync = DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true);
-      developer.log(
-        '[SyncManager]-[getLastSyncTimestamp] ✅ : Berhasil mendapatkan timestamp terakhir: $lastSync',
-      );
-      return lastSync;
-    } catch (e, s) {
-      // Log error atau fallback
-      developer.log(
-        '[SyncManager]-[getLastSyncTimestamp] ❌ : Gagal mengambil stempel waktu sinkronisasi',
-        name: 'SyncManager.getLastSync',
-        error: e,
-        stackTrace: s,
-      );
-      return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-    }
+  // diubah: Mendelegasikan pemanggilan ke PreferensiService
+  Future<DateTime> getTerakhirUnduh() async {
+    return PreferensiService.getTerakhirUnduh();
   }
 
-  Future<void> setLastSyncTimestamp(DateTime time) async {
-    developer.log(
-      '[SyncManager]-[setLastSyncTimestamp] 🚀 : Memulai penyimpanan timestamp baru: $time',
-    );
-
-    try {
-      developer.log(
-        '[SyncManager]-[setLastSyncTimestamp] 📡 : Menyiapkan penyimpanan data ke SharedPreferences...',
-      );
-      final prefs = await SharedPreferences.getInstance();
-      
-      final int millis = time.toUtc().millisecondsSinceEpoch;
-      await prefs.setInt(
-        _kLastSyncTimestampKey,
-        millis,
-      );
-
-      developer.log(
-        '[SyncManager]-[setLastSyncTimestamp] ✨ : Berhasil memperbarui timestamp sinkronisasi ke: $millis (UTC).',
-      );
-    } catch (e, s) {
-      developer.log(
-        '[SyncManager]-[setLastSyncTimestamp] ❌ : Gagal menyimpan stempel waktu sinkronisasi terbaru',
-        error: e,
-        stackTrace: s,
-      );
-    }
+  // diubah: Mendelegasikan pemanggilan ke PreferensiService
+  Future<void> setTerakhirUnduh(DateTime time) async {
+    await PreferensiService.setTerakhirUnduh(time);
   }
+
+  // --- LOGIKA TERAKHIR UNGGAH ---
+
+  // diubah: Mendelegasikan pemanggilan ke PreferensiService
+  Future<DateTime> getTerakhirUnggah() async {
+    return PreferensiService.getTerakhirUnggah();
+  }
+
+  // diubah: Mendelegasikan pemanggilan ke PreferensiService
+  Future<void> setTerakhirUnggah(DateTime time) async {
+    await PreferensiService.setTerakhirUnggah(time);
+  }
+
+  // dihapus: Metode helper privat (_getTimestamp, _setTimestamp) dan semua referensi
+  // ke SharedPreferences telah dihapus karena logikanya sekarang terpusat di PreferensiService.
 }

@@ -10,7 +10,6 @@ import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
-// import 'package:admin_wifi/model/riwayat_langganan_model.dart'; // Diomentari
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
