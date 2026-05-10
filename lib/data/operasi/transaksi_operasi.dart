@@ -1,6 +1,5 @@
 // path: lib/data/operasi/transaksi_operasi.dart
-import 'dart:developer' as developer;
-
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -14,9 +13,8 @@ class TransaksiOperasi {
 
   static void testSetInstance(DatabaseHelper dbHelper) {
     _dbHelper = dbHelper;
-    developer.log(
-      'DatabaseHelper instance manual ditetapkan untuk testing',
-      name: 'TransaksiOperasi.testSetInstance',
+    Log.info(
+      'DatabaseHelper instance manual ditetapkan untuk testing - method: testSetInstance',
     );
   }
 
@@ -31,9 +29,8 @@ class TransaksiOperasi {
     DatabaseExecutor txn,
   ) async {
     try {
-      developer.log(
-        'Memulai hitung ulang saldo untuk Dompet ID: $idDompet',
-        name: 'TransaksiOperasi.recalculate',
+      Log.info(
+        'Memulai hitung ulang saldo untuk Dompet ID: $idDompet - method: _recalculateAndUpdateDompetSaldo',
       );
 
       final totalResult = await txn.rawQuery(
@@ -76,15 +73,14 @@ class TransaksiOperasi {
         whereArgs: [idDompet],
       );
 
-      developer.log(
-        'Berhasil update saldo Dompet ID: $idDompet menjadi $totalSaldo',
-        name: 'TransaksiOperasi.recalculate',
+      Log.info(
+        'Berhasil update saldo Dompet ID: $idDompet menjadi $totalSaldo - method: _recalculateAndUpdateDompetSaldo',
       );
-    } catch (e) {
-      developer.log(
-        'Gagal hitung ulang saldo Dompet ID: $idDompet. Error: $e',
-        name: 'TransaksiOperasi.recalculate',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal hitung ulang saldo Dompet ID: $idDompet. Error: $e - method: _recalculateAndUpdateDompetSaldo',
         error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -95,9 +91,8 @@ class TransaksiOperasi {
     int id = 0;
     try {
       await db.transaction((txn) async {
-        developer.log(
-          'Memulai transaksi database untuk tambahTransaksi',
-          name: 'TransaksiOperasi.tambahTransaksi',
+        Log.info(
+          'Memulai transaksi database untuk tambahTransaksi - method: tambahTransaksi',
         );
         final data = transaksi.copyWith(diperbarui: DateTime.now());
 
@@ -106,31 +101,28 @@ class TransaksiOperasi {
           data.toSqlite(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        developer.log(
-          'Data transaksi berhasil masuk ke tabel dengan row ID: $id',
-          name: 'TransaksiOperasi.tambahTransaksi',
+        Log.info(
+          'Data transaksi berhasil masuk ke tabel dengan row ID: $id - method: tambahTransaksi',
         );
 
         await _recalculateAndUpdateDompetSaldo(data.idDompet, txn);
         if (data.tipe == TipeTransaksi.transfer &&
             data.idDompetTujuan != null) {
-          developer.log(
-            'Deteksi transaksi transfer, menghitung saldo dompet tujuan: ${data.idDompetTujuan}',
-            name: 'TransaksiOperasi.tambahTransaksi',
+          Log.info(
+            'Deteksi transaksi transfer, menghitung saldo dompet tujuan: ${data.idDompetTujuan} - method: tambahTransaksi',
           );
           await _recalculateAndUpdateDompetSaldo(data.idDompetTujuan!, txn);
         }
       });
-      developer.log(
-        'Seluruh proses tambah transaksi ID: ${transaksi.id} berhasil diselesaikan.',
-        name: 'TransaksiOperasi.tambahTransaksi',
+      Log.info(
+        'Seluruh proses tambah transaksi ID: ${transaksi.id} berhasil diselesaikan - method: tambahTransaksi',
       );
       return id;
-    } catch (e) {
-      developer.log(
-        'Gagal menambah transaksi ID: ${transaksi.id}. Error: $e',
-        name: 'TransaksiOperasi.tambahTransaksi',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal menambah transaksi ID: ${transaksi.id}. Error: $e - method: tambahTransaksi',
         error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -139,9 +131,8 @@ class TransaksiOperasi {
   Future<List<TransaksiModel>> ambilSemuaTransaksi() async {
     final db = await _dbHelper.database;
     try {
-      developer.log(
-        'Mengambil data semua transaksi (isDeleted = 0)',
-        name: 'TransaksiOperasi.ambilSemuaTransaksi',
+      Log.info(
+        'Mengambil data semua transaksi (isDeleted = 0) - method: ambilSemuaTransaksi',
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
@@ -150,18 +141,17 @@ class TransaksiOperasi {
         orderBy: 'tanggal DESC',
       );
 
-      developer.log(
-        'Berhasil mengambil ${maps.length} data transaksi dari SQLite',
-        name: 'TransaksiOperasi.ambilSemuaTransaksi',
+      Log.info(
+        'Berhasil mengambil ${maps.length} data transaksi dari SQLite - method: ambilSemuaTransaksi',
       );
       return List.generate(maps.length, (i) {
         return TransaksiModel.fromSqlite(maps[i]);
       });
-    } catch (e) {
-      developer.log(
-        'Gagal mengambil semua transaksi. Error: $e',
-        name: 'TransaksiOperasi.ambilSemuaTransaksi',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal mengambil semua transaksi. Error: $e - method: ambilSemuaTransaksi',
         error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }
@@ -170,9 +160,8 @@ class TransaksiOperasi {
   Future<TransaksiModel?> getTransaksiById(String id) async {
     final db = await _db;
     try {
-      developer.log(
-        'Mencari transaksi berdasarkan ID: $id',
-        name: 'TransaksiOperasi.getTransaksiById',
+      Log.info(
+        'Mencari transaksi berdasarkan ID: $id - method: getTransaksiById',
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
@@ -182,23 +171,19 @@ class TransaksiOperasi {
       );
 
       if (maps.isEmpty) {
-        developer.log(
-          'Transaksi dengan ID: $id tidak ditemukan',
-          name: 'TransaksiOperasi.getTransaksiById',
+        Log.warning(
+          'Transaksi dengan ID: $id tidak ditemukan - method: getTransaksiById',
         );
         return null;
       }
 
-      developer.log(
-        'Transaksi ID: $id ditemukan.',
-        name: 'TransaksiOperasi.getTransaksiById',
-      );
+      Log.info('Transaksi ID: $id ditemukan - method: getTransaksiById');
       return TransaksiModel.fromSqlite(maps.first);
-    } catch (e) {
-      developer.log(
-        'Gagal mengambil transaksi ID: $id. Error: $e',
-        name: 'TransaksiOperasi.getTransaksiById',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal mengambil transaksi ID: $id. Error: $e - method: getTransaksiById',
         error: e,
+        stackTrace: stackTrace,
       );
       return null;
     }
@@ -209,9 +194,8 @@ class TransaksiOperasi {
   ) async {
     final db = await _db;
     try {
-      developer.log(
-        'Mengambil transaksi untuk Pelanggan ID: $pelangganId',
-        name: 'TransaksiOperasi.ambilTransaksiByPelangganId',
+      Log.info(
+        'Mengambil transaksi untuk Pelanggan ID: $pelangganId - method: ambilTransaksiByPelangganId',
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
@@ -219,18 +203,17 @@ class TransaksiOperasi {
         whereArgs: [pelangganId, 0],
         orderBy: 'tanggal DESC',
       );
-      developer.log(
-        'Ditemukan ${maps.length} transaksi untuk Pelanggan ID: $pelangganId',
-        name: 'TransaksiOperasi.ambilTransaksiByPelangganId',
+      Log.info(
+        'Ditemukan ${maps.length} transaksi untuk Pelanggan ID: $pelangganId - method: ambilTransaksiByPelangganId',
       );
       return List.generate(maps.length, (i) {
         return TransaksiModel.fromSqlite(maps[i]);
       });
-    } catch (e) {
-      developer.log(
-        'Error ambil transaksi pelanggan: $e',
-        name: 'TransaksiOperasi.ambilTransaksiByPelangganId',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error ambil transaksi pelanggan: $e - method: ambilTransaksiByPelangganId',
         error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }
@@ -239,9 +222,8 @@ class TransaksiOperasi {
   Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
     final db = await _db;
     try {
-      developer.log(
-        'Mengambil transaksi terkait Dompet ID: $dompetId (asal/tujuan)',
-        name: 'TransaksiOperasi.ambilTransaksiByDompetId',
+      Log.info(
+        'Mengambil transaksi terkait Dompet ID: $dompetId (asal/tujuan) - method: ambilTransaksiByDompetId',
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
@@ -249,19 +231,18 @@ class TransaksiOperasi {
         whereArgs: [dompetId, dompetId, 0],
         orderBy: 'tanggal DESC',
       );
-      developer.log(
-        'Ditemukan ${maps.length} transaksi untuk Dompet ID: $dompetId',
-        name: 'TransaksiOperasi.ambilTransaksiByDompetId',
+      Log.info(
+        'Ditemukan ${maps.length} transaksi untuk Dompet ID: $dompetId - method: ambilTransaksiByDompetId',
       );
 
       return List.generate(maps.length, (i) {
         return TransaksiModel.fromSqlite(maps[i]);
       });
-    } catch (e) {
-      developer.log(
-        'Error ambil transaksi dompet: $e',
-        name: 'TransaksiOperasi.ambilTransaksiByDompetId',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error ambil transaksi dompet: $e - method: ambilTransaksiByDompetId',
         error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }
@@ -270,9 +251,8 @@ class TransaksiOperasi {
   Future<List<TransaksiModel>> getTransaksiByAktivasiPaket() async {
     final db = await _db;
     try {
-      developer.log(
-        'Mengambil transaksi dengan status aktivasi_paket = 1',
-        name: 'TransaksiOperasi.getTransaksiByAktivasiPaket',
+      Log.info(
+        'Mengambil transaksi dengan status aktivasi_paket = 1 - method: getTransaksiByAktivasiPaket',
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
@@ -280,18 +260,17 @@ class TransaksiOperasi {
         whereArgs: [1, 0],
         orderBy: 'tanggal DESC',
       );
-      developer.log(
-        'Berhasil mengambil ${maps.length} transaksi aktivasi paket.',
-        name: 'TransaksiOperasi.getTransaksiByAktivasiPaket',
+      Log.info(
+        'Berhasil mengambil ${maps.length} transaksi aktivasi paket - method: getTransaksiByAktivasiPaket',
       );
       return List.generate(maps.length, (i) {
         return TransaksiModel.fromSqlite(maps[i]);
       });
-    } catch (e) {
-      developer.log(
-        'Error saat mengambil transaksi aktivasi_paket: $e',
-        name: 'TransaksiOperasi.getTransaksiByAktivasiPaket',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error saat mengambil transaksi aktivasi_paket: $e - method: getTransaksiByAktivasiPaket',
         error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }
@@ -301,9 +280,8 @@ class TransaksiOperasi {
     final db = await _dbHelper.database;
     try {
       await db.transaction((txn) async {
-        developer.log(
-          'Memulai update transaksi database ID: $id',
-          name: 'TransaksiOperasi.updateTransaksi',
+        Log.info(
+          'Memulai update transaksi database ID: $id - method: updateTransaksi',
         );
         final maps = await txn.query(
           'transaksi',
@@ -321,9 +299,8 @@ class TransaksiOperasi {
             where: 'id = ?',
             whereArgs: [id],
           );
-          developer.log(
-            'Data transaksi ID: $id diperbarui di tabel transaksi',
-            name: 'TransaksiOperasi.updateTransaksi',
+          Log.info(
+            'Data transaksi ID: $id diperbarui di tabel transaksi - method: updateTransaksi',
           );
 
           final affectedWallets = <String>{};
@@ -337,29 +314,26 @@ class TransaksiOperasi {
             affectedWallets.add(dataUpdate.idDompetTujuan!);
           }
 
-          developer.log(
-            'Mengupdate saldo untuk dompet yang terpengaruh: $affectedWallets',
-            name: 'TransaksiOperasi.updateTransaksi',
+          Log.info(
+            'Mengupdate saldo untuk dompet yang terpengaruh: $affectedWallets - method: updateTransaksi',
           );
           for (final dompetId in affectedWallets) {
             await _recalculateAndUpdateDompetSaldo(dompetId, txn);
           }
         } else {
-          developer.log(
-            'Update gagal: Transaksi ID $id tidak ditemukan di DB.',
-            name: 'TransaksiOperasi.updateTransaksi',
+          Log.warning(
+            'Update gagal: Transaksi ID $id tidak ditemukan di DB - method: updateTransaksi',
           );
         }
       });
-      developer.log(
-        'Proses updateTransaksi ID: $id selesai.',
-        name: 'TransaksiOperasi.updateTransaksi',
+      Log.info(
+        'Proses updateTransaksi ID: $id selesai - method: updateTransaksi',
       );
-    } catch (e) {
-      developer.log(
-        'Gagal update transaksi ID: $id. Error: $e',
-        name: 'TransaksiOperasi.updateTransaksi',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal update transaksi ID: $id. Error: $e - method: updateTransaksi',
         error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -369,9 +343,8 @@ class TransaksiOperasi {
     final db = await _db;
     try {
       await db.transaction((txn) async {
-        developer.log(
-          'Memulai proses pengarsipan (Soft Delete) ID: $id',
-          name: 'TransaksiOperasi.arsipkanTransaksi',
+        Log.info(
+          'Memulai proses pengarsipan (Soft Delete) ID: $id - method: arsipkanTransaksi',
         );
         final maps = await txn.query(
           'transaksi',
@@ -388,9 +361,8 @@ class TransaksiOperasi {
             where: 'id = ?',
             whereArgs: [id],
           );
-          developer.log(
-            'Flag isDeleted diatur ke 1 untuk ID: $id',
-            name: 'TransaksiOperasi.arsipkanTransaksi',
+          Log.info(
+            'Flag isDeleted diatur ke 1 untuk ID: $id - method: arsipkanTransaksi',
           );
 
           await _recalculateAndUpdateDompetSaldo(transaksiLama.idDompet, txn);
@@ -402,21 +374,19 @@ class TransaksiOperasi {
             );
           }
         } else {
-          developer.log(
-            'Arsip gagal: Transaksi ID $id tidak ditemukan.',
-            name: 'TransaksiOperasi.arsipkanTransaksi',
+          Log.warning(
+            'Arsip gagal: Transaksi ID $id tidak ditemukan - method: arsipkanTransaksi',
           );
         }
       });
-      developer.log(
-        'Transaksi ID: $id berhasil diarsipkan.',
-        name: 'TransaksiOperasi.arsipkanTransaksi',
+      Log.info(
+        'Transaksi ID: $id berhasil diarsipkan - method: arsipkanTransaksi',
       );
-    } catch (e) {
-      developer.log(
-        'Gagal mengarsipkan transaksi ID: $id. Error: $e',
-        name: 'TransaksiOperasi.arsipkanTransaksi',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal mengarsipkan transaksi ID: $id. Error: $e - method: arsipkanTransaksi',
         error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -425,9 +395,8 @@ class TransaksiOperasi {
   Future<double> getTotalPemasukan() async {
     final db = await _db;
     try {
-      developer.log(
-        'Menghitung total seluruh pemasukan',
-        name: 'TransaksiOperasi.getTotalPemasukan',
+      Log.info(
+        'Menghitung total seluruh pemasukan - method: getTotalPemasukan',
       );
       final result = await db.rawQuery(
         "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND isDeleted = 0",
@@ -436,16 +405,13 @@ class TransaksiOperasi {
       if (result.isNotEmpty && result.first['jumlah'] != null) {
         total = (result.first['jumlah'] as num).toDouble();
       }
-      developer.log(
-        'Total pemasukan: $total',
-        name: 'TransaksiOperasi.getTotalPemasukan',
-      );
+      Log.info('Total pemasukan: $total - method: getTotalPemasukan');
       return total;
-    } catch (e) {
-      developer.log(
-        'Error hitung total pemasukan: $e',
-        name: 'TransaksiOperasi.getTotalPemasukan',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error hitung total pemasukan: $e - method: getTotalPemasukan',
         error: e,
+        stackTrace: stackTrace,
       );
       return 0.0;
     }
@@ -454,9 +420,8 @@ class TransaksiOperasi {
   Future<double> getTotalPengeluaran() async {
     final db = await _db;
     try {
-      developer.log(
-        'Menghitung total seluruh pengeluaran',
-        name: 'TransaksiOperasi.getTotalPengeluaran',
+      Log.info(
+        'Menghitung total seluruh pengeluaran - method: getTotalPengeluaran',
       );
       final result = await db.rawQuery(
         "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND isDeleted = 0",
@@ -465,58 +430,47 @@ class TransaksiOperasi {
       if (result.isNotEmpty && result.first['jumlah'] != null) {
         total = (result.first['jumlah'] as num).toDouble();
       }
-      developer.log(
-        'Total pengeluaran: $total',
-        name: 'TransaksiOperasi.getTotalPengeluaran',
-      );
+      Log.info('Total pengeluaran: $total - method: getTotalPengeluaran');
       return total;
-    } catch (e) {
-      developer.log(
-        'Error hitung total pengeluaran: $e',
-        name: 'TransaksiOperasi.getTotalPengeluaran',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error hitung total pengeluaran: $e - method: getTotalPengeluaran',
         error: e,
+        stackTrace: stackTrace,
       );
       return 0.0;
     }
   }
 
   Future<double> getNetTotal() async {
-    developer.log(
-      'Menghitung Net Total (Pemasukan - Pengeluaran)',
-      name: 'TransaksiOperasi.getNetTotal',
+    Log.info(
+      'Menghitung Net Total (Pemasukan - Pengeluaran) - method: getNetTotal',
     );
     final pemasukan = await getTotalPemasukan();
     final pengeluaran = await getTotalPengeluaran();
     final net = pemasukan - pengeluaran;
-    developer.log(
-      'Hasil Net Total: $net',
-      name: 'TransaksiOperasi.getNetTotal',
-    );
+    Log.info('Hasil Net Total: $net - method: getNetTotal');
     return net;
   }
 
   Future<int> getPoinYangDihasilkan(String idPelanggan) async {
     final db = await _dbHelper.database;
     try {
-      developer.log(
-        'Menghitung poin yang dihasilkan Pelanggan: $idPelanggan',
-        name: 'TransaksiOperasi.getPoinYangDihasilkan',
+      Log.info(
+        'Menghitung poin yang dihasilkan Pelanggan: $idPelanggan - method: getPoinYangDihasilkan',
       );
       final result = await db.rawQuery(
         'SELECT SUM(poin_yang_dihasilkan) as total FROM transaksi WHERE id_pelanggan = ? AND isDeleted = 0',
         [idPelanggan],
       );
       final total = result.first['total'] as int? ?? 0;
-      developer.log(
-        'Poin dihasilkan: $total',
-        name: 'TransaksiOperasi.getPoinYangDihasilkan',
-      );
+      Log.info('Poin dihasilkan: $total - method: getPoinYangDihasilkan');
       return total;
-    } catch (e) {
-      developer.log(
-        'Error hitung poin dihasilkan: $e',
-        name: 'TransaksiOperasi.getPoinYangDihasilkan',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error hitung poin dihasilkan: $e - method: getPoinYangDihasilkan',
         error: e,
+        stackTrace: stackTrace,
       );
       return 0;
     }
@@ -525,42 +479,34 @@ class TransaksiOperasi {
   Future<int> getPoinYangDigunakan(String idPelanggan) async {
     final db = await _dbHelper.database;
     try {
-      developer.log(
-        'Menghitung poin yang digunakan Pelanggan: $idPelanggan',
-        name: 'TransaksiOperasi.getPoinYangDigunakan',
+      Log.info(
+        'Menghitung poin yang digunakan Pelanggan: $idPelanggan - method: getPoinYangDigunakan',
       );
       final result = await db.rawQuery(
         'SELECT SUM(poin_yang_digunakan) as total FROM transaksi WHERE id_pelanggan = ? AND isDeleted = 0',
         [idPelanggan],
       );
       final total = result.first['total'] as int? ?? 0;
-      developer.log(
-        'Poin digunakan: $total',
-        name: 'TransaksiOperasi.getPoinYangDigunakan',
-      );
+      Log.info('Poin digunakan: $total - method: getPoinYangDigunakan');
       return total;
-    } catch (e) {
-      developer.log(
-        'Error hitung poin digunakan: $e',
-        name: 'TransaksiOperasi.getPoinYangDigunakan',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error hitung poin digunakan: $e - method: getPoinYangDigunakan',
         error: e,
+        stackTrace: stackTrace,
       );
       return 0;
     }
   }
 
   Future<int> getTotalPoin(String idPelanggan) async {
-    developer.log(
-      'Menghitung saldo poin akhir Pelanggan: $idPelanggan',
-      name: 'TransaksiOperasi.getTotalPoin',
+    Log.info(
+      'Menghitung saldo poin akhir Pelanggan: $idPelanggan - method: getTotalPoin',
     );
     final poinDihasilkan = await getPoinYangDihasilkan(idPelanggan);
     final poinDigunakan = await getPoinYangDigunakan(idPelanggan);
     final total = poinDihasilkan - poinDigunakan;
-    developer.log(
-      'Saldo poin akhir: $total',
-      name: 'TransaksiOperasi.getTotalPoin',
-    );
+    Log.info('Saldo poin akhir: $total - method: getTotalPoin');
     return total;
   }
 
@@ -570,9 +516,8 @@ class TransaksiOperasi {
 
     try {
       await db.transaction((txn) async {
-        developer.log(
-          'Memulai proses Batch insert/update untuk ${items.length} item',
-          name: 'TransaksiOperasi.batch',
+        Log.info(
+          'Memulai proses Batch insert/update untuk ${items.length} item - method: sisipkanAtauPerbaruiBatch',
         );
         final batch = txn.batch();
         for (var item in items) {
@@ -587,24 +532,22 @@ class TransaksiOperasi {
           }
         }
         await batch.commit(noResult: true);
-        developer.log(
-          'Batch commit selesai. Menghitung ulang saldo untuk dompet: $affectedWallets',
-          name: 'TransaksiOperasi.batch',
+        Log.info(
+          'Batch commit selesai. Menghitung ulang saldo untuk dompet: $affectedWallets - method: sisipkanAtauPerbaruiBatch',
         );
 
         for (String dompetId in affectedWallets) {
           await _recalculateAndUpdateDompetSaldo(dompetId, txn);
         }
       });
-      developer.log(
-        'Proses Batch transaksi berhasil sepenuhnya.',
-        name: 'TransaksiOperasi.batch',
+      Log.info(
+        'Proses Batch transaksi berhasil sepenuhnya - method: sisipkanAtauPerbaruiBatch',
       );
-    } catch (e) {
-      developer.log(
-        'Gagal menjalankan Batch transaksi. Error: $e',
-        name: 'TransaksiOperasi.batch',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal menjalankan Batch transaksi. Error: $e - method: sisipkanAtauPerbaruiBatch',
         error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -612,17 +555,15 @@ class TransaksiOperasi {
 
   Future<List<TransaksiModel>> getTransaksiByIds(List<String> ids) async {
     if (ids.isEmpty) {
-      developer.log(
-        'Pencarian Batch ID dibatalkan karena list ID kosong.',
-        name: 'TransaksiOperasi.getTransaksiByIds',
+      Log.warning(
+        'Pencarian Batch ID dibatalkan karena list ID kosong - method: getTransaksiByIds',
       );
       return [];
     }
     final db = await _db;
     try {
-      developer.log(
-        'Mengambil transaksi berdasarkan list ID: $ids',
-        name: 'TransaksiOperasi.getTransaksiByIds',
+      Log.info(
+        'Mengambil transaksi berdasarkan list ID: $ids - method: getTransaksiByIds',
       );
       final placeholders = List.filled(ids.length, '?').join(',');
       final List<Map<String, dynamic>> maps = await db.query(
@@ -630,18 +571,17 @@ class TransaksiOperasi {
         where: 'id IN ($placeholders)',
         whereArgs: ids,
       );
-      developer.log(
-        'Berhasil mengambil ${maps.length} transaksi dari list ID.',
-        name: 'TransaksiOperasi.getTransaksiByIds',
+      Log.info(
+        'Berhasil mengambil ${maps.length} transaksi dari list ID - method: getTransaksiByIds',
       );
       return List.generate(maps.length, (i) {
         return TransaksiModel.fromSqlite(maps[i]);
       });
-    } catch (e) {
-      developer.log(
-        'Error saat ambil transaksi by IDs: $e',
-        name: 'TransaksiOperasi.getTransaksiByIds',
+    } catch (e, stackTrace) {
+      Log.error(
+        'Error saat ambil transaksi by IDs: $e - method: getTransaksiByIds',
         error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }

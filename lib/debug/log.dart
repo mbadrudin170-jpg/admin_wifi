@@ -4,10 +4,20 @@ import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 
 class Log {
-  static const String _reset = '\x1B[0m';
+  //
+  // sebelum
+  // static const String _green = '\x1B[32m';
 
+  // setelah (bright green, kompatibel)
+  static const String _green = '\x1B[92m';
+
+  // atau (256-color, lebih halus)
+  // static const String _green = '\x1B[38;5;82m';
+  //
+
+  static const String _reset = '\x1B[0m';
   static const String _red = '\x1B[31m';
-  static const String _green = '\x1B[32m';
+  // static const String _green = '\x1B[32m';
   static const String _yellow = '\x1B[33m';
   static const String _cyan = '\x1B[36m';
 

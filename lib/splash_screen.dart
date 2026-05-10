@@ -234,8 +234,8 @@ class _SplashScreenState extends State<SplashScreen>
                         Brightness.dark;
                     Log.info('Mendeteksi mode tema. Dark mode: $isDarkMode.');
                     final logoAsset = isDarkMode
-                        ? 'assets/logo/ikon.ikon_apk.png'
-                        : 'assets/logo/ikon.ikon_apk.png';
+                        ? 'assets/logo/ikon/ikon_apk.png'
+                        : 'assets/logo/ikon/ikon_apk.png';
                     Log.info('Memilih aset logo berdasarkan tema: $logoAsset.');
                     return Image.asset(logoAsset, width: 300);
                   },

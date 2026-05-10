@@ -197,12 +197,12 @@ class _HalamanPoinState extends State<HalamanPoin> {
     ];
 
     Log.info('Jumlah hadiah tersedia: ${daftarHadiah.length}');
-    daftarHadiah.forEach((hadiah) {
+    for (var hadiah in daftarHadiah) {
       final cukupPoin = _totalPoin >= hadiah['poin'];
       Log.info(
         '  - ${hadiah['nama']}: ${hadiah['poin']} poin (Status: ${cukupPoin ? "DAPAT DITUKAR" : "POIN KURANG (butuh ${hadiah['poin'] - _totalPoin} poin lagi)"})',
       );
-    });
+    }
 
     return ListView.builder(
       itemCount: daftarHadiah.length,

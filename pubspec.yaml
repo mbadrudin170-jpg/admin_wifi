@@ -66,8 +66,6 @@ flutter:
     # diubah: Mendaftarkan folder logo ikon & splash screen secara spesifik
     - assets/logo/ikon/
     
-    - assets/logo/splash_screen/
-
   fonts:
     - family: Oswald
       fonts:
