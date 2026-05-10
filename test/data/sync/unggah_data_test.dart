@@ -65,7 +65,7 @@ void main() {
         () async {
           final lastSyncTime = DateTime(2023, 1, 1);
           when(
-            mockSyncManager.getLastSyncTimestamp(),
+            mockSyncManager.getTerakhirUnggah(),
           ).thenAnswer((_) async => lastSyncTime);
 
           final dompet = DompetModel(
@@ -75,14 +75,14 @@ void main() {
             diperbarui: DateTime(2023, 1, 2),
             isDeleted: false,
           );
-          
+
           await db.insert('dompet', dompet.toSqlite());
 
           await layananUnggahData.unggahDataGenerik<DompetModel>(
             'dompet',
             'dompet_col',
             DompetModel.fromSqlite,
-            (m) => m.toFirebase(), 
+            (m) => m.toFirebase(),
             lastSyncTime,
           );
 
@@ -115,7 +115,7 @@ void main() {
         final lastSyncTime = DateTime(2023, 1, 1);
         final newTimestamp = DateTime(2023, 1, 2);
         when(
-          mockSyncManager.getLastSyncTimestamp(),
+          mockSyncManager.getTerakhirUnggah(),
         ).thenAnswer((_) async => lastSyncTime);
 
         final kritikBaru = KritikSaranModel(
@@ -164,7 +164,7 @@ void main() {
         () async {
           final lastSyncTime = DateTime(2024, 1, 1);
           when(
-            mockSyncManager.getLastSyncTimestamp(),
+            mockSyncManager.getTerakhirUnggah(),
           ).thenAnswer((_) async => lastSyncTime);
 
           final pengaturan = PengaturanModel(

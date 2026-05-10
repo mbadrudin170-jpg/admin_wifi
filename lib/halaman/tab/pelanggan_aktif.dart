@@ -3,16 +3,17 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:admin_wifi/data/sync/unggah_data.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/halaman/form/form_pelanggan_aktif.dart';
-import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/model/model.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
@@ -43,7 +44,6 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final now = DateTime.now();
-
   List<PelangganAktifModel> _semuaPelanggan = [];
   List<PelangganAktifModel> _hasilFilter = [];
   Map<String, String> _mapNamaPelanggan = {};
@@ -96,6 +96,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       _isLoading = true;
     });
 
+    final syncManager = Provider.of<SyncManager>(context, listen: false);
+
     try {
       final koneksiTersedia = await _koneksiService.cekKoneksi();
 
@@ -114,14 +116,15 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
             throw 'Waktu sinkronisasi habis, periksa kembali koneksi internet Anda.';
           },
         );
-        await SyncManager().setLastSyncTimestamp(now);
+
+        await syncManager.setTerakhirUnggah(now);
         developer.log(
           '✅ [pelanggan_aktif.dart] -> [_loadData] -> Unggah data sukses',
           name: 'PelangganAktif.Sync',
         );
       } else if (!koneksiTersedia && forceRefresh) {
         developer.log(
-          '⚠️ [pelanggan_aktif.dart] -> [_loadData] -> Refresh gagal karena offline',
+          '⚠️ [pelanggan_aktif.dart] -> [_loadAwal] -> Refresh gagal karena offline',
           name: 'PelangganAktif.Info',
         );
         if (mounted) {
@@ -214,8 +217,9 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       case OpsiUrutkan.lunas:
       case OpsiUrutkan.belumLunas:
         comparator = (a, b) {
-          final isLunasA = a.status == StatusPembayaran.lunas;
-          final isLunasB = b.status == StatusPembayaran.lunas;
+          // diubah: Perbandingan kembali ke enum vs enum
+          final isLunasA = a.status == StatusPembayaranEnum.lunas;
+          final isLunasB = b.status == StatusPembayaranEnum.lunas;
           if (isLunasA == isLunasB) return 0;
           return (_urutanAktif == OpsiUrutkan.lunas)
               ? (isLunasA ? -1 : 1)
@@ -600,12 +604,8 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
                       itemCount: _hasilFilter.length,
                       itemBuilder: (context, index) {
                         final pelanggan = _hasilFilter[index];
-                        final statusPembayaranText =
-                            pelanggan.status.displayName;
-                        final statusPembayaranColor =
-                            pelanggan.status == StatusPembayaran.lunas
-                            ? Colors.green
-                            : Colors.red;
+                        // diubah: Tidak perlu konversi, langsung gunakan enum dari model
+                        final statusPembayaran = pelanggan.status;
 
                         return Card(
                           margin: const EdgeInsets.symmetric(
@@ -643,9 +643,13 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
                                   NamaPaketWidget(idPaket: pelanggan.idPaket),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Pembayaran: $statusPembayaranText',
+                                    'Pembayaran: ${statusPembayaran.displayName}',
                                     style: TextStyle(
-                                      color: statusPembayaranColor,
+                                      color:
+                                          statusPembayaran ==
+                                              StatusPembayaranEnum.lunas
+                                          ? Colors.green
+                                          : Colors.red,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

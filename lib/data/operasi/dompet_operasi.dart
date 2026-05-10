@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/enum/nama_tabel_enum.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DompetOperasi {
@@ -13,7 +12,10 @@ class DompetOperasi {
 
   Future<void> createDompet(DompetModel dompet) async {
     try {
-      developer.log('Memulai createDompet untuk ID: ${dompet.id}', name: fileName);
+      developer.log(
+        'Memulai createDompet untuk ID: ${dompet.id}',
+        name: fileName,
+      );
       final db = await dbHelper.database;
 
       final data = dompet.copyWith(diperbarui: DateTime.now()).toSqlite();
@@ -22,11 +24,6 @@ class DompetOperasi {
         data,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      
-      await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [
-        dompet.id,
-      ]);
-      developer.log('Berhasil createDompet dan perbarui status unggah ID: ${dompet.id}', name: fileName);
     } catch (e) {
       developer.log('Gagal createDompet: $e', name: fileName, error: e);
       rethrow;
@@ -35,14 +32,20 @@ class DompetOperasi {
 
   Future<List<DompetModel>> getDompet() async {
     try {
-      developer.log('Mengambil semua data dompet (isDeleted = 0)', name: fileName);
+      developer.log(
+        'Mengambil semua data dompet (isDeleted = 0)',
+        name: fileName,
+      );
       final db = await dbHelper.database;
       final List<Map<String, dynamic>> maps = await db.query(
         'dompet',
         where: 'isDeleted = 0',
       );
-      
-      developer.log('Berhasil mengambil ${maps.length} data dompet', name: fileName);
+
+      developer.log(
+        'Berhasil mengambil ${maps.length} data dompet',
+        name: fileName,
+      );
       return List.generate(maps.length, (i) {
         return DompetModel.fromSqlite(maps[i]);
       });
@@ -61,7 +64,7 @@ class DompetOperasi {
         where: 'id = ? AND isDeleted = 0',
         whereArgs: [id],
       );
-      
+
       if (maps.isNotEmpty) {
         developer.log('Dompet ditemukan untuk ID: $id', name: fileName);
         return DompetModel.fromSqlite(maps.first);
@@ -76,17 +79,20 @@ class DompetOperasi {
 
   Future<void> updateDompet(DompetModel dompet) async {
     try {
-      developer.log('Memulai updateDompet untuk ID: ${dompet.id}', name: fileName);
+      developer.log(
+        'Memulai updateDompet untuk ID: ${dompet.id}',
+        name: fileName,
+      );
       final db = await dbHelper.database;
       final now = DateTime.now();
-      
+
       final data = dompet.copyWith(diperbarui: now).toSqlite();
       await db.update('dompet', data, where: 'id = ?', whereArgs: [dompet.id]);
-      
-      await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [
-        dompet.id,
-      ]);
-      developer.log('Berhasil updateDompet dan perbarui status unggah ID: ${dompet.id}', name: fileName);
+
+      developer.log(
+        'Berhasil updateDompet dan perbarui status unggah ID: ${dompet.id}',
+        name: fileName,
+      );
     } catch (e) {
       developer.log('Gagal updateDompet: $e', name: fileName, error: e);
       rethrow;
@@ -98,7 +104,10 @@ class DompetOperasi {
       developer.log('Menghapus SEMUA data dompet dari tabel', name: fileName);
       final db = await dbHelper.database;
       int count = await db.delete('dompet');
-      developer.log('Berhasil hapusSemuaDompet. Total baris dihapus: $count', name: fileName);
+      developer.log(
+        'Berhasil hapusSemuaDompet. Total baris dihapus: $count',
+        name: fileName,
+      );
     } catch (e) {
       developer.log('Gagal hapusSemuaDompet: $e', name: fileName, error: e);
       rethrow;
@@ -107,7 +116,10 @@ class DompetOperasi {
 
   Future<void> arsipkanSatuDompet(String id) async {
     try {
-      developer.log('Mengarsipkan dompet (soft delete) ID: $id', name: fileName);
+      developer.log(
+        'Mengarsipkan dompet (soft delete) ID: $id',
+        name: fileName,
+      );
       final db = await dbHelper.database;
       final now = DateTime.now();
       await db.update(
@@ -120,7 +132,6 @@ class DompetOperasi {
         where: 'id = ?',
         whereArgs: [id],
       );
-      await statusUnggahOperasi.tambahIdDanUbahStatus(NamaTabel.dompet, [id]);
       developer.log('Berhasil mengarsipkan dompet ID: $id', name: fileName);
     } catch (e) {
       developer.log('Gagal arsipkanSatuDompet: $e', name: fileName, error: e);
@@ -187,7 +198,10 @@ class DompetOperasi {
 
   Future<void> sisipkanAtauPerbaruiBatch(List<DompetModel> items) async {
     try {
-      developer.log('Memulai batch insert/update untuk ${items.length} item dompet', name: fileName);
+      developer.log(
+        'Memulai batch insert/update untuk ${items.length} item dompet',
+        name: fileName,
+      );
       final db = await DatabaseHelper.instance.database;
       final batch = db.batch();
       for (var item in items) {
@@ -198,9 +212,16 @@ class DompetOperasi {
         );
       }
       await batch.commit(noResult: true);
-      developer.log('Berhasil menyelesaikan batch insert/update dompet', name: fileName);
+      developer.log(
+        'Berhasil menyelesaikan batch insert/update dompet',
+        name: fileName,
+      );
     } catch (e) {
-      developer.log('Gagal sisipkanAtauPerbaruiBatch: $e', name: fileName, error: e);
+      developer.log(
+        'Gagal sisipkanAtauPerbaruiBatch: $e',
+        name: fileName,
+        error: e,
+      );
       rethrow;
     }
   }
@@ -219,7 +240,10 @@ class DompetOperasi {
         where: 'id IN ($placeholders)',
         whereArgs: ids,
       );
-      developer.log('Berhasil mengambil ${maps.length} dompet dari list ID', name: fileName);
+      developer.log(
+        'Berhasil mengambil ${maps.length} dompet dari list ID',
+        name: fileName,
+      );
       return List.generate(maps.length, (i) {
         return DompetModel.fromSqlite(maps[i]);
       });

@@ -3,7 +3,7 @@
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
@@ -64,8 +64,8 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
       case OpsiUrutkan.lunas:
       case OpsiUrutkan.belumLunas:
         comparator = (a, b) {
-          final isLunasA = a.statusPembayaran == StatusPembayaran.lunas;
-          final isLunasB = b.statusPembayaran == StatusPembayaran.lunas;
+          final isLunasA = a.statusPembayaran == StatusPembayaranEnum.lunas;
+          final isLunasB = b.statusPembayaran == StatusPembayaranEnum.lunas;
           if (isLunasA == isLunasB) return 0;
           return (pilihan == OpsiUrutkan.lunas)
               ? (isLunasA ? -1 : 1)
@@ -175,7 +175,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
               itemBuilder: (context, index) {
                 final transaksi = snapshot.data![index];
                 final statusPembayaranColor =
-                    transaksi.statusPembayaran == StatusPembayaran.lunas
+                    transaksi.statusPembayaran == StatusPembayaranEnum.lunas
                     ? Colors.green
                     : Colors.red;
 

@@ -5,21 +5,16 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i9;
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart' as _i16;
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart' as _i18;
-import 'package:admin_wifi/data/operasi/paket_operasi.dart' as _i11;
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart' as _i13;
+import 'package:admin_wifi/data/operasi/operasi.dart' as _i5;
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart' as _i7;
-import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart' as _i5;
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i14;
 import 'package:admin_wifi/data/sqlite.dart' as _i2;
-import 'package:admin_wifi/model/dompet_model.dart' as _i17;
+import 'package:admin_wifi/model/dompet_model.dart' as _i13;
 import 'package:admin_wifi/model/kategori_model.dart' as _i6;
-import 'package:admin_wifi/model/paket_model.dart' as _i12;
+import 'package:admin_wifi/model/paket_model.dart' as _i11;
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart' as _i4;
 import 'package:admin_wifi/model/pelanggan_model.dart' as _i10;
-import 'package:admin_wifi/model/transaksi_model.dart' as _i15;
-import 'package:admin_wifi/services/notifikasi_servis.dart' as _i3;
+import 'package:admin_wifi/model/transaksi_model.dart' as _i12;
+import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i8;
 
@@ -200,7 +195,7 @@ class MockPelangganOperasi extends _i1.Mock implements _i7.PelangganOperasi {
 /// A class which mocks [PaketOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPaketOperasi extends _i1.Mock implements _i11.PaketOperasi {
+class MockPaketOperasi extends _i1.Mock implements _i5.PaketOperasi {
   MockPaketOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -228,7 +223,7 @@ class MockPaketOperasi extends _i1.Mock implements _i11.PaketOperasi {
           as String);
 
   @override
-  _i9.Future<void> createPaket(_i12.PaketModel? paket) =>
+  _i9.Future<void> createPaket(_i11.PaketModel? paket) =>
       (super.noSuchMethod(
             Invocation.method(#createPaket, [paket]),
             returnValue: _i9.Future<void>.value(),
@@ -237,25 +232,25 @@ class MockPaketOperasi extends _i1.Mock implements _i11.PaketOperasi {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i12.PaketModel>> getPaket() =>
+  _i9.Future<List<_i11.PaketModel>> getPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getPaket, []),
-            returnValue: _i9.Future<List<_i12.PaketModel>>.value(
-              <_i12.PaketModel>[],
+            returnValue: _i9.Future<List<_i11.PaketModel>>.value(
+              <_i11.PaketModel>[],
             ),
           )
-          as _i9.Future<List<_i12.PaketModel>>);
+          as _i9.Future<List<_i11.PaketModel>>);
 
   @override
-  _i9.Future<_i12.PaketModel?> getPaketById(String? id) =>
+  _i9.Future<_i11.PaketModel?> getPaketById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getPaketById, [id]),
-            returnValue: _i9.Future<_i12.PaketModel?>.value(),
+            returnValue: _i9.Future<_i11.PaketModel?>.value(),
           )
-          as _i9.Future<_i12.PaketModel?>);
+          as _i9.Future<_i11.PaketModel?>);
 
   @override
-  _i9.Future<void> updatePaket(_i12.PaketModel? paket) =>
+  _i9.Future<void> updatePaket(_i11.PaketModel? paket) =>
       (super.noSuchMethod(
             Invocation.method(#updatePaket, [paket]),
             returnValue: _i9.Future<void>.value(),
@@ -282,17 +277,17 @@ class MockPaketOperasi extends _i1.Mock implements _i11.PaketOperasi {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i12.PaketModel>> getPerubahan(DateTime? since) =>
+  _i9.Future<List<_i11.PaketModel>> getPerubahan(DateTime? since) =>
       (super.noSuchMethod(
             Invocation.method(#getPerubahan, [since]),
-            returnValue: _i9.Future<List<_i12.PaketModel>>.value(
-              <_i12.PaketModel>[],
+            returnValue: _i9.Future<List<_i11.PaketModel>>.value(
+              <_i11.PaketModel>[],
             ),
           )
-          as _i9.Future<List<_i12.PaketModel>>);
+          as _i9.Future<List<_i11.PaketModel>>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i12.PaketModel>? items) =>
+  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i11.PaketModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
             returnValue: _i9.Future<void>.value(),
@@ -301,21 +296,21 @@ class MockPaketOperasi extends _i1.Mock implements _i11.PaketOperasi {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i12.PaketModel>> getPaketByIds(List<String>? ids) =>
+  _i9.Future<List<_i11.PaketModel>> getPaketByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getPaketByIds, [ids]),
-            returnValue: _i9.Future<List<_i12.PaketModel>>.value(
-              <_i12.PaketModel>[],
+            returnValue: _i9.Future<List<_i11.PaketModel>>.value(
+              <_i11.PaketModel>[],
             ),
           )
-          as _i9.Future<List<_i12.PaketModel>>);
+          as _i9.Future<List<_i11.PaketModel>>);
 }
 
 /// A class which mocks [PelangganAktifOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPelangganAktifOperasi extends _i1.Mock
-    implements _i13.PelangganAktifOperasi {
+    implements _i5.PelangganAktifOperasi {
   MockPelangganAktifOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -462,13 +457,13 @@ class MockPelangganAktifOperasi extends _i1.Mock
 /// A class which mocks [TransaksiOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTransaksiOperasi extends _i1.Mock implements _i14.TransaksiOperasi {
+class MockTransaksiOperasi extends _i1.Mock implements _i5.TransaksiOperasi {
   MockTransaksiOperasi() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i9.Future<int> tambahTransaksi(_i15.TransaksiModel? transaksi) =>
+  _i9.Future<int> tambahTransaksi(_i12.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
             returnValue: _i9.Future<int>.value(0),
@@ -476,61 +471,61 @@ class MockTransaksiOperasi extends _i1.Mock implements _i14.TransaksiOperasi {
           as _i9.Future<int>);
 
   @override
-  _i9.Future<List<_i15.TransaksiModel>> ambilSemuaTransaksi() =>
+  _i9.Future<List<_i12.TransaksiModel>> ambilSemuaTransaksi() =>
       (super.noSuchMethod(
             Invocation.method(#ambilSemuaTransaksi, []),
-            returnValue: _i9.Future<List<_i15.TransaksiModel>>.value(
-              <_i15.TransaksiModel>[],
+            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
+              <_i12.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i15.TransaksiModel>>);
+          as _i9.Future<List<_i12.TransaksiModel>>);
 
   @override
-  _i9.Future<_i15.TransaksiModel?> getTransaksiById(String? id) =>
+  _i9.Future<_i12.TransaksiModel?> getTransaksiById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiById, [id]),
-            returnValue: _i9.Future<_i15.TransaksiModel?>.value(),
+            returnValue: _i9.Future<_i12.TransaksiModel?>.value(),
           )
-          as _i9.Future<_i15.TransaksiModel?>);
+          as _i9.Future<_i12.TransaksiModel?>);
 
   @override
-  _i9.Future<List<_i15.TransaksiModel>> ambilTransaksiByPelangganId(
+  _i9.Future<List<_i12.TransaksiModel>> ambilTransaksiByPelangganId(
     String? pelangganId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByPelangganId, [pelangganId]),
-            returnValue: _i9.Future<List<_i15.TransaksiModel>>.value(
-              <_i15.TransaksiModel>[],
+            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
+              <_i12.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i15.TransaksiModel>>);
+          as _i9.Future<List<_i12.TransaksiModel>>);
 
   @override
-  _i9.Future<List<_i15.TransaksiModel>> ambilTransaksiByDompetId(
+  _i9.Future<List<_i12.TransaksiModel>> ambilTransaksiByDompetId(
     String? dompetId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByDompetId, [dompetId]),
-            returnValue: _i9.Future<List<_i15.TransaksiModel>>.value(
-              <_i15.TransaksiModel>[],
+            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
+              <_i12.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i15.TransaksiModel>>);
+          as _i9.Future<List<_i12.TransaksiModel>>);
 
   @override
-  _i9.Future<List<_i15.TransaksiModel>> getTransaksiByAktivasiPaket() =>
+  _i9.Future<List<_i12.TransaksiModel>> getTransaksiByAktivasiPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiByAktivasiPaket, []),
-            returnValue: _i9.Future<List<_i15.TransaksiModel>>.value(
-              <_i15.TransaksiModel>[],
+            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
+              <_i12.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i15.TransaksiModel>>);
+          as _i9.Future<List<_i12.TransaksiModel>>);
 
   @override
   _i9.Future<void> updateTransaksi(
     String? id,
-    _i15.TransaksiModel? transaksiBaru,
+    _i12.TransaksiModel? transaksiBaru,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateTransaksi, [id, transaksiBaru]),
@@ -598,7 +593,7 @@ class MockTransaksiOperasi extends _i1.Mock implements _i14.TransaksiOperasi {
 
   @override
   _i9.Future<void> sisipkanAtauPerbaruiBatch(
-    List<_i15.TransaksiModel>? items,
+    List<_i12.TransaksiModel>? items,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
@@ -608,20 +603,20 @@ class MockTransaksiOperasi extends _i1.Mock implements _i14.TransaksiOperasi {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i15.TransaksiModel>> getTransaksiByIds(List<String>? ids) =>
+  _i9.Future<List<_i12.TransaksiModel>> getTransaksiByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiByIds, [ids]),
-            returnValue: _i9.Future<List<_i15.TransaksiModel>>.value(
-              <_i15.TransaksiModel>[],
+            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
+              <_i12.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i15.TransaksiModel>>);
+          as _i9.Future<List<_i12.TransaksiModel>>);
 }
 
 /// A class which mocks [DompetOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDompetOperasi extends _i1.Mock implements _i16.DompetOperasi {
+class MockDompetOperasi extends _i1.Mock implements _i5.DompetOperasi {
   MockDompetOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -660,7 +655,7 @@ class MockDompetOperasi extends _i1.Mock implements _i16.DompetOperasi {
           as String);
 
   @override
-  _i9.Future<void> createDompet(_i17.DompetModel? dompet) =>
+  _i9.Future<void> createDompet(_i13.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#createDompet, [dompet]),
             returnValue: _i9.Future<void>.value(),
@@ -669,25 +664,25 @@ class MockDompetOperasi extends _i1.Mock implements _i16.DompetOperasi {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i17.DompetModel>> getDompet() =>
+  _i9.Future<List<_i13.DompetModel>> getDompet() =>
       (super.noSuchMethod(
             Invocation.method(#getDompet, []),
-            returnValue: _i9.Future<List<_i17.DompetModel>>.value(
-              <_i17.DompetModel>[],
+            returnValue: _i9.Future<List<_i13.DompetModel>>.value(
+              <_i13.DompetModel>[],
             ),
           )
-          as _i9.Future<List<_i17.DompetModel>>);
+          as _i9.Future<List<_i13.DompetModel>>);
 
   @override
-  _i9.Future<_i17.DompetModel?> getDompetById(String? id) =>
+  _i9.Future<_i13.DompetModel?> getDompetById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getDompetById, [id]),
-            returnValue: _i9.Future<_i17.DompetModel?>.value(),
+            returnValue: _i9.Future<_i13.DompetModel?>.value(),
           )
-          as _i9.Future<_i17.DompetModel?>);
+          as _i9.Future<_i13.DompetModel?>);
 
   @override
-  _i9.Future<void> updateDompet(_i17.DompetModel? dompet) =>
+  _i9.Future<void> updateDompet(_i13.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#updateDompet, [dompet]),
             returnValue: _i9.Future<void>.value(),
@@ -738,7 +733,7 @@ class MockDompetOperasi extends _i1.Mock implements _i16.DompetOperasi {
           as _i9.Future<double>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i17.DompetModel>? items) =>
+  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i13.DompetModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
             returnValue: _i9.Future<void>.value(),
@@ -747,20 +742,20 @@ class MockDompetOperasi extends _i1.Mock implements _i16.DompetOperasi {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i17.DompetModel>> getDompetByIds(List<String>? ids) =>
+  _i9.Future<List<_i13.DompetModel>> getDompetByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getDompetByIds, [ids]),
-            returnValue: _i9.Future<List<_i17.DompetModel>>.value(
-              <_i17.DompetModel>[],
+            returnValue: _i9.Future<List<_i13.DompetModel>>.value(
+              <_i13.DompetModel>[],
             ),
           )
-          as _i9.Future<List<_i17.DompetModel>>);
+          as _i9.Future<List<_i13.DompetModel>>);
 }
 
 /// A class which mocks [KategoriOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockKategoriOperasi extends _i1.Mock implements _i18.KategoriOperasi {
+class MockKategoriOperasi extends _i1.Mock implements _i5.KategoriOperasi {
   MockKategoriOperasi() {
     _i1.throwOnMissingStub(this);
   }

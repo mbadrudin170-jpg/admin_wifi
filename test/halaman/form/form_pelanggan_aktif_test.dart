@@ -12,7 +12,7 @@ import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/enum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,7 +90,7 @@ void main() {
     idPaket: 'pkt1',
     tanggalMulai: DateTime.now(),
     tanggalBerakhir: DateTime.now().add(const Duration(hours: 1)),
-    status: StatusPembayaran.lunas,
+    status: StatusPembayaranEnum.lunas,
   );
 
   Future<void> pumpForm(
@@ -122,29 +122,29 @@ void main() {
     mockDompetOperasi = MockDompetOperasi();
     mockKategoriOperasi = MockKategoriOperasi();
 
-    when(mockPelangganOperasi.getPelanggan())
-        .thenAnswer((_) async => pelangganDummy);
+    when(
+      mockPelangganOperasi.getPelanggan(),
+    ).thenAnswer((_) async => pelangganDummy);
 
-    when(mockPaketOperasi.getPaket())
-        .thenAnswer((_) async => paketDummy);
+    when(mockPaketOperasi.getPaket()).thenAnswer((_) async => paketDummy);
 
-    when(mockDompetOperasi.getDompet())
-        .thenAnswer((_) async => dompetDummy);
+    when(mockDompetOperasi.getDompet()).thenAnswer((_) async => dompetDummy);
 
-    when(mockKategoriOperasi.getKategori())
-        .thenAnswer((_) async => kategoriDummy);
+    when(
+      mockKategoriOperasi.getKategori(),
+    ).thenAnswer((_) async => kategoriDummy);
 
-    when(mockTransaksiOperasi.getTotalPoin(any))
-        .thenAnswer((_) async => 1000);
+    when(mockTransaksiOperasi.getTotalPoin(any)).thenAnswer((_) async => 1000);
 
-    when(mockPelangganAktifOperasi.createPelangganAktif(any))
-        .thenAnswer((_) async => pelangganAktifDummy);
+    when(
+      mockPelangganAktifOperasi.createPelangganAktif(any),
+    ).thenAnswer((_) async => pelangganAktifDummy);
 
-    when(mockPelangganAktifOperasi.updatePelangganAktif(any))
-        .thenAnswer((_) async => pelangganAktifDummy);
+    when(
+      mockPelangganAktifOperasi.updatePelangganAktif(any),
+    ).thenAnswer((_) async => pelangganAktifDummy);
 
-    when(mockTransaksiOperasi.tambahTransaksi(any))
-        .thenAnswer((_) async => 1);
+    when(mockTransaksiOperasi.tambahTransaksi(any)).thenAnswer((_) async => 1);
   });
 
   testWidgets('simpan sukses (lunas)', (tester) async {
@@ -168,8 +168,7 @@ void main() {
   });
 
   testWidgets('simpan gagal karena poin tidak cukup', (tester) async {
-    when(mockTransaksiOperasi.getTotalPoin(any))
-        .thenAnswer((_) async => 0);
+    when(mockTransaksiOperasi.getTotalPoin(any)).thenAnswer((_) async => 0);
 
     await pumpForm(tester);
     await tester.pumpAndSettle();

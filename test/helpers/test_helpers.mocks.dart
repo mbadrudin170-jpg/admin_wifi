@@ -3,21 +3,22 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+// ignore_for_file: must_be_immutable
 import 'dart:async' as _i3;
-import 'dart:typed_data' as _i12;
+import 'dart:typed_data' as _i9;
 
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart' as _i13;
 import 'package:admin_wifi/data/sqlite.dart' as _i7;
-import 'package:admin_wifi/data/sync/unggah_data.dart' as _i9;
+import 'package:admin_wifi/data/sync/unggah_data.dart' as _i10;
 import 'package:admin_wifi/model/versi_apk_user_model.dart' as _i14;
-import 'package:admin_wifi/services/cek_koneksi_internet.dart' as _i8;
-import 'package:admin_wifi/utils/sync_manager.dart' as _i10;
+import 'package:admin_wifi/services/cek_koneksi_internet.dart' as _i11;
+import 'package:admin_wifi/utils/sync_manager.dart' as _i12;
 import 'package:cloud_firestore/cloud_firestore.dart' as _i6;
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as _i5;
 import 'package:firebase_core/firebase_core.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i11;
+import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as _i2;
 
 // ignore_for_file: type=lint
@@ -28,7 +29,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart' as _i2;
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: implementation_imports
 // ignore_for_file: invalid_use_of_visible_for_testing_member
-// ignore_for_file: must_be_immutable
 // ignore_for_file: prefer_const_constructors
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
@@ -129,29 +129,6 @@ class _FakeDateTime_16 extends _i1.SmartFake implements DateTime {
     : super(parent, parentInvocation);
 }
 
-class _FakeDatabaseHelper_17 extends _i1.SmartFake
-    implements _i7.DatabaseHelper {
-  _FakeDatabaseHelper_17(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeKoneksiInternetService_18 extends _i1.SmartFake
-    implements _i8.KoneksiInternetService {
-  _FakeKoneksiInternetService_18(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeLayananUnggahData_19 extends _i1.SmartFake
-    implements _i9.LayananUnggahData {
-  _FakeLayananUnggahData_19(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeSyncManager_20 extends _i1.SmartFake implements _i10.SyncManager {
-  _FakeSyncManager_20(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
 /// A class which mocks [DatabaseHelper].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -192,10 +169,7 @@ class MockDatabase extends _i1.Mock implements _i2.Database {
   String get path =>
       (super.noSuchMethod(
             Invocation.getter(#path),
-            returnValue: _i11.dummyValue<String>(
-              this,
-              Invocation.getter(#path),
-            ),
+            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#path)),
           )
           as String);
 
@@ -229,8 +203,8 @@ class MockDatabase extends _i1.Mock implements _i2.Database {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action], {#exclusive: exclusive}),
             returnValue:
-                _i11.ifNotNull(
-                  _i11.dummyValueOrNull<T>(
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
                     this,
                     Invocation.method(
                       #transaction,
@@ -258,8 +232,8 @@ class MockDatabase extends _i1.Mock implements _i2.Database {
       (super.noSuchMethod(
             Invocation.method(#readTransaction, [action]),
             returnValue:
-                _i11.ifNotNull(
-                  _i11.dummyValueOrNull<T>(
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#readTransaction, [action]),
                   ),
@@ -277,8 +251,8 @@ class MockDatabase extends _i1.Mock implements _i2.Database {
       (super.noSuchMethod(
             Invocation.method(#devInvokeMethod, [method, arguments]),
             returnValue:
-                _i11.ifNotNull(
-                  _i11.dummyValueOrNull<T>(
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#devInvokeMethod, [method, arguments]),
                   ),
@@ -300,8 +274,8 @@ class MockDatabase extends _i1.Mock implements _i2.Database {
       (super.noSuchMethod(
             Invocation.method(#devInvokeSqlMethod, [method, sql, arguments]),
             returnValue:
-                _i11.ifNotNull(
-                  _i11.dummyValueOrNull<T>(
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#devInvokeSqlMethod, [
                       method,
@@ -570,7 +544,7 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
   String get databaseId =>
       (super.noSuchMethod(
             Invocation.getter(#databaseId),
-            returnValue: _i11.dummyValue<String>(
+            returnValue: _i8.dummyValue<String>(
               this,
               Invocation.getter(#databaseId),
             ),
@@ -642,7 +616,7 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
           as _i3.Future<void>);
 
   @override
-  _i6.LoadBundleTask loadBundle(_i12.Uint8List? bundle) =>
+  _i6.LoadBundleTask loadBundle(_i9.Uint8List? bundle) =>
       (super.noSuchMethod(
             Invocation.method(#loadBundle, [bundle]),
             returnValue: _FakeLoadBundleTask_8(
@@ -783,8 +757,8 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
               {#timeout: timeout, #maxAttempts: maxAttempts},
             ),
             returnValue:
-                _i11.ifNotNull(
-                  _i11.dummyValueOrNull<T>(
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
                     this,
                     Invocation.method(
                       #runTransaction,
@@ -847,7 +821,6 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
 /// A class which mocks [CollectionReference].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable
 class MockCollectionReference<T extends Object?> extends _i1.Mock
     implements _i6.CollectionReference<T> {
   MockCollectionReference() {
@@ -858,7 +831,7 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
   String get id =>
       (super.noSuchMethod(
             Invocation.getter(#id),
-            returnValue: _i11.dummyValue<String>(this, Invocation.getter(#id)),
+            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#id)),
           )
           as String);
 
@@ -866,10 +839,7 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
   String get path =>
       (super.noSuchMethod(
             Invocation.getter(#path),
-            returnValue: _i11.dummyValue<String>(
-              this,
-              Invocation.getter(#path),
-            ),
+            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#path)),
           )
           as String);
 
@@ -1262,7 +1232,6 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
 /// A class which mocks [DocumentReference].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable
 class MockDocumentReference<T extends Object?> extends _i1.Mock
     implements _i6.DocumentReference<T> {
   MockDocumentReference() {
@@ -1284,7 +1253,7 @@ class MockDocumentReference<T extends Object?> extends _i1.Mock
   String get id =>
       (super.noSuchMethod(
             Invocation.getter(#id),
-            returnValue: _i11.dummyValue<String>(this, Invocation.getter(#id)),
+            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#id)),
           )
           as String);
 
@@ -1303,10 +1272,7 @@ class MockDocumentReference<T extends Object?> extends _i1.Mock
   String get path =>
       (super.noSuchMethod(
             Invocation.getter(#path),
-            returnValue: _i11.dummyValue<String>(
-              this,
-              Invocation.getter(#path),
-            ),
+            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#path)),
           )
           as String);
 
@@ -1444,7 +1410,7 @@ class MockWriteBatch extends _i1.Mock implements _i6.WriteBatch {
 /// A class which mocks [LayananUnggahData].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLayananUnggahData extends _i1.Mock implements _i9.LayananUnggahData {
+class MockLayananUnggahData extends _i1.Mock implements _i10.LayananUnggahData {
   MockLayananUnggahData() {
     _i1.throwOnMissingStub(this);
   }
@@ -1583,7 +1549,7 @@ class MockLayananUnggahData extends _i1.Mock implements _i9.LayananUnggahData {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockKoneksiInternetService extends _i1.Mock
-    implements _i8.KoneksiInternetService {
+    implements _i11.KoneksiInternetService {
   MockKoneksiInternetService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1600,28 +1566,44 @@ class MockKoneksiInternetService extends _i1.Mock
 /// A class which mocks [SyncManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSyncManager extends _i1.Mock implements _i10.SyncManager {
+class MockSyncManager extends _i1.Mock implements _i12.SyncManager {
   MockSyncManager() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<DateTime> getLastSyncTimestamp() =>
+  _i3.Future<DateTime> getTerakhirUnduh() =>
       (super.noSuchMethod(
-            Invocation.method(#getLastSyncTimestamp, []),
+            Invocation.method(#getTerakhirUnduh, []),
             returnValue: _i3.Future<DateTime>.value(
-              _FakeDateTime_16(
-                this,
-                Invocation.method(#getLastSyncTimestamp, []),
-              ),
+              _FakeDateTime_16(this, Invocation.method(#getTerakhirUnduh, [])),
             ),
           )
           as _i3.Future<DateTime>);
 
   @override
-  _i3.Future<void> setLastSyncTimestamp(DateTime? time) =>
+  _i3.Future<void> setTerakhirUnduh(DateTime? time) =>
       (super.noSuchMethod(
-            Invocation.method(#setLastSyncTimestamp, [time]),
+            Invocation.method(#setTerakhirUnduh, [time]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<DateTime> getTerakhirUnggah() =>
+      (super.noSuchMethod(
+            Invocation.method(#getTerakhirUnggah, []),
+            returnValue: _i3.Future<DateTime>.value(
+              _FakeDateTime_16(this, Invocation.method(#getTerakhirUnggah, [])),
+            ),
+          )
+          as _i3.Future<DateTime>);
+
+  @override
+  _i3.Future<void> setTerakhirUnggah(DateTime? time) =>
+      (super.noSuchMethod(
+            Invocation.method(#setTerakhirUnggah, [time]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -1638,62 +1620,18 @@ class MockVersiApkUserOperasi extends _i1.Mock
   }
 
   @override
-  _i7.DatabaseHelper get dbHelper =>
+  _i3.Future<void> tambahVersiApkUser(_i14.VersiApkUserModel? versiApkUser) =>
       (super.noSuchMethod(
-            Invocation.getter(#dbHelper),
-            returnValue: _FakeDatabaseHelper_17(
-              this,
-              Invocation.getter(#dbHelper),
-            ),
-          )
-          as _i7.DatabaseHelper);
-
-  @override
-  _i8.KoneksiInternetService get koneksiService =>
-      (super.noSuchMethod(
-            Invocation.getter(#koneksiService),
-            returnValue: _FakeKoneksiInternetService_18(
-              this,
-              Invocation.getter(#koneksiService),
-            ),
-          )
-          as _i8.KoneksiInternetService);
-
-  @override
-  _i9.LayananUnggahData get unggahService =>
-      (super.noSuchMethod(
-            Invocation.getter(#unggahService),
-            returnValue: _FakeLayananUnggahData_19(
-              this,
-              Invocation.getter(#unggahService),
-            ),
-          )
-          as _i9.LayananUnggahData);
-
-  @override
-  _i10.SyncManager get syncManager =>
-      (super.noSuchMethod(
-            Invocation.getter(#syncManager),
-            returnValue: _FakeSyncManager_20(
-              this,
-              Invocation.getter(#syncManager),
-            ),
-          )
-          as _i10.SyncManager);
-
-  @override
-  _i3.Future<void> tambahVersiApkUser(_i14.VersiApkUserModel? data) =>
-      (super.noSuchMethod(
-            Invocation.method(#tambahVersiApkUser, [data]),
+            Invocation.method(#tambahVersiApkUser, [versiApkUser]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
           as _i3.Future<void>);
 
   @override
-  _i3.Future<void> perbaruiVersiApkUser(_i14.VersiApkUserModel? data) =>
+  _i3.Future<void> perbaruiVersiApkUser(_i14.VersiApkUserModel? versiApkUser) =>
       (super.noSuchMethod(
-            Invocation.method(#perbaruiVersiApkUser, [data]),
+            Invocation.method(#perbaruiVersiApkUser, [versiApkUser]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -1703,6 +1641,17 @@ class MockVersiApkUserOperasi extends _i1.Mock
   _i3.Future<void> arsipkanVersiApkUser(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanVersiApkUser, [id]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> sisipkanAtauPerbaruiBatch(
+    List<_i14.VersiApkUserModel>? daftarModel,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#sisipkanAtauPerbaruiBatch, [daftarModel]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -1729,14 +1678,6 @@ class MockVersiApkUserOperasi extends _i1.Mock
           as _i3.Future<List<_i14.VersiApkUserModel>>);
 
   @override
-  _i3.Future<_i14.VersiApkUserModel?> ambilVersiApkById(String? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#ambilVersiApkById, [id]),
-            returnValue: _i3.Future<_i14.VersiApkUserModel?>.value(),
-          )
-          as _i3.Future<_i14.VersiApkUserModel?>);
-
-  @override
   _i3.Future<_i14.VersiApkUserModel?> ambilVersiApkTerbaru() =>
       (super.noSuchMethod(
             Invocation.method(#ambilVersiApkTerbaru, []),
@@ -1745,25 +1686,10 @@ class MockVersiApkUserOperasi extends _i1.Mock
           as _i3.Future<_i14.VersiApkUserModel?>);
 
   @override
-  _i3.Future<void> sisipkanAtauPerbaruiBatch(
-    List<_i14.VersiApkUserModel>? daftarVersi,
-  ) =>
+  _i3.Future<_i14.VersiApkUserModel?> ambilVersiApkById(String? id) =>
       (super.noSuchMethod(
-            Invocation.method(#sisipkanAtauPerbaruiBatch, [daftarVersi]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#ambilVersiApkById, [id]),
+            returnValue: _i3.Future<_i14.VersiApkUserModel?>.value(),
           )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<List<_i14.VersiApkUserModel>> getVersiApkUserByIds(
-    List<String>? ids,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#getVersiApkUserByIds, [ids]),
-            returnValue: _i3.Future<List<_i14.VersiApkUserModel>>.value(
-              <_i14.VersiApkUserModel>[],
-            ),
-          )
-          as _i3.Future<List<_i14.VersiApkUserModel>>);
+          as _i3.Future<_i14.VersiApkUserModel?>);
 }

@@ -1,14 +1,12 @@
 // path: lib/splash_screen.dart
 
 import 'dart:async';
-import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/halaman/tab/fungsi_menampilkan_notifikasi.dart';
-import 'package:admin_wifi/services/servis_sinkronisasi.dart';
+// diubah: path import diperbaiki ke nama file yang benar
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:developer' as developer;
@@ -140,41 +138,44 @@ class _SplashScreenState extends State<SplashScreen>
       isOnline = await _koneksiService.cekKoneksi();
       if (!mounted) return;
 
-      final sinkronisasiService = Provider.of<SinkronisasiService>(
-        context,
-        listen: false,
-      );
+      // final sinkronisasiService = Provider.of<SinkronisasiService>(
+      //   context,
+      //   listen: false,
+      // );
 
-      if (isOnline) {
-        _updateLoading("Memeriksa & mengunduh data...");
-        try {
-          await sinkronisasiService.jalankanProsesUnduh();
-          _updateLoading("Unduh data selesai.");
-        } catch (e, s) {
-          developer.log(
-            '❌ [SplashScreen] -> [_initializeAndNavigate] -> Gagal mengunduh data cloud',
-            name: 'SplashScreen.Error',
-            error: e,
-            stackTrace: s,
-          );
-          _updateLoading("Gagal mengunduh data, melanjutkan offline...");
-        }
-      }
+      // // TODO: Logika sinkronisasi di splash screen perlu ditinjau ulang
+      // // Logika di bawah ini mungkin sudah usang setelah refactoring
 
-      try {
-        final pengaturan = await PengaturanOperasi().getPengaturan();
-        sinkronisasiService.mulaiUnduhOtomatis(
-          interval: Duration(hours: pengaturan.intervalSinkronisasiOtomatis),
-        );
-      } catch (e) {
-        developer.log(
-          '⚠️ [SplashScreen] -> [_initializeAndNavigate] -> Gagal memuat interval custom, gunakan default 24 jam',
-          name: 'SplashScreen.Alert',
-        );
-        sinkronisasiService.mulaiUnduhOtomatis(
-          interval: const Duration(hours: 24),
-        );
-      }
+      // if (isOnline) {
+      //   _updateLoading("Memeriksa & mengunduh data...");
+      //   try {
+      //     await sinkronisasiService.jalankanProsesUnduh();
+      //     _updateLoading("Unduh data selesai.");
+      //   } catch (e, s) {
+      //     developer.log(
+      //       '❌ [SplashScreen] -> [_initializeAndNavigate] -> Gagal mengunduh data cloud',
+      //       name: 'SplashScreen.Error',
+      //       error: e,
+      //       stackTrace: s,
+      //     );
+      //     _updateLoading("Gagal mengunduh data, melanjutkan offline...");
+      //   }
+      // }
+
+      // try {
+      //   final pengaturan = await PengaturanOperasi().getPengaturan();
+      //   sinkronisasiService.mulaiUnduhOtomatis(
+      //     interval: Duration(hours: pengaturan.intervalSinkronisasiOtomatis),
+      //   );
+      // } catch (e) {
+      //   developer.log(
+      //     '⚠️ [SplashScreen] -> [_initializeAndNavigate] -> Gagal memuat interval custom, gunakan default 24 jam',
+      //     name: 'SplashScreen.Alert',
+      //   );
+      //   sinkronisasiService.mulaiUnduhOtomatis(
+      //     interval: const Duration(hours: 24),
+      //   );
+      // }
 
       _updateLoading("Selesai, membuka aplikasi...");
       await Future.delayed(const Duration(milliseconds: 500));
@@ -267,7 +268,6 @@ class _SplashScreenState extends State<SplashScreen>
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      // Menggunakan withAlpha (0-255) sebagai pengganti withOpacity (0.0-1.0)
                       color: Colors.grey[800]?.withAlpha(242),
                       borderRadius: BorderRadius.circular(12),
                     ),

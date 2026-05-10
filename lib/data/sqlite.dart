@@ -10,8 +10,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // Menaikkan versi database karena ada perubahan skema (tabel transaksi)
-  static const int _databaseVersion = 39;
+  // diubah: Versi dinaikkan ke 40 untuk memicu migrasi pembuatan tabel baru.
+  static const int _databaseVersion = 40;
 
   DatabaseHelper._internal();
 
@@ -70,7 +70,7 @@ class DatabaseHelper {
       )
     ''';
 
-  static const String tabelStatusUnggah = '''
+  static const String _tabelStatusUnggah = '''
     CREATE TABLE status_unggah(
       tabel TEXT PRIMARY KEY,
       status INTEGER NOT NULL,
@@ -79,7 +79,23 @@ class DatabaseHelper {
     )
   ''';
 
-  // ... (Tabel lainnya tetap sama seperti di bawah)
+  // ditambah: tabel untuk status aplikasi
+  static const String _tabelStatusAplikasi = '''
+    CREATE TABLE status_aplikasi(
+      id TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  ''';
+
+  // ditambah: tabel untuk pesan
+  static const String _tabelPesan = '''
+    CREATE TABLE pesan(
+      id TEXT PRIMARY KEY,
+      isi TEXT NOT NULL,
+      tanggal TEXT NOT NULL,
+      status TEXT NOT NULL
+    )
+  ''';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -116,7 +132,6 @@ class DatabaseHelper {
     final batch = db.batch();
 
     if (oldVersion < 39) {
-      // List migrasi untuk menyamakan database lama dengan skema v39
       final List<String> migrations = [
         'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT',
         'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT',
@@ -138,9 +153,13 @@ class DatabaseHelper {
           log('⚠️ Migration skip (mungkin kolom sudah ada): $sql');
         }
       }
-
-      // Hapus tabel riwayat_langganan jika masih ada
       batch.execute('DROP TABLE IF EXISTS riwayat_langganan');
+    }
+
+    // ditambah: Migrasi untuk v40, membuat tabel yang hilang.
+    if (oldVersion < 40) {
+      batch.execute(_tabelStatusAplikasi);
+      batch.execute(_tabelPesan);
     }
 
     await batch.commit(noResult: true);
@@ -159,7 +178,9 @@ class DatabaseHelper {
     await db.execute(_tabelPesanan);
     await db.execute(tabelVersiApkUser);
     await db.execute(_tabelPengaturan);
-    await db.execute(tabelStatusUnggah);
+    await db.execute(_tabelStatusUnggah);
+    await db.execute(_tabelStatusAplikasi); // ditambah: Eksekusi pembuatan tabel baru
+    await db.execute(_tabelPesan); // ditambah: Eksekusi pembuatan tabel baru
 
     // Indexes
     await db.execute(
@@ -174,8 +195,6 @@ class DatabaseHelper {
   }
 
   // --- STATIC STRINGS UNTUK TABEL LAIN ---
-  // (Sesuai dengan kode yang Anda berikan di atas: _tabelKategori, _tabelSubKategori, dll.)
-
   static const String _tabelPengaturan = '''
     CREATE TABLE pengaturan(
       interval_sinkronisasi_otomatis INTEGER NOT NULL DEFAULT 24,

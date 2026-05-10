@@ -1,13 +1,13 @@
 // lib/main.dart
 import 'dart:developer' as developer;
-import 'package:admin_wifi/services/servis_sinkronisasi.dart';
+// diubah: path import diperbaiki ke nama file yang benar
+import 'package:admin_wifi/utils/sync_manager.dart'; 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
 
 void main() {
-  // Logging titik awal aplikasi
   developer.log('🎬 [System] -> [main] -> Aplikasi Admin WiFi dimulai', name: 'App.Lifecycle');
   
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,17 +21,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<SinkronisasiService>(
+        Provider<SyncManager>(
           create: (_) {
-            developer.log('🏗️ [MyApp] -> [Provider<SinkronisasiService>] -> Inisialisasi SinkronisasiService', name: 'App.Provider');
-            return SinkronisasiService();
-          },
-          dispose: (_, service) {
-            developer.log('🗑️ [MyApp] -> [Provider<SinkronisasiService>] -> Menghapus (dispose) SinkronisasiService', name: 'App.Provider');
-            service.dispose();
+            developer.log('🏗️ [MyApp] -> [Provider<SyncManager>] -> Inisialisasi SyncManager', name: 'App.Provider');
+            return SyncManager();
           },
         ),
-        // Tambahkan provider lain di sini jika perlu
       ],
       child: const AppMaterial(),
     );

@@ -1,6 +1,6 @@
 // path: lib/model/transaksi_model.dart
 // diubah: Model digabungkan dengan RiwayatLanggananModel dan denormalisasi data dihapus.
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/model/paket_model.dart'; // Impor untuk TipeDurasi
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,7 +19,7 @@ class TransaksiModel {
   final String? idPelanggan;
   final String? idPaket;
   final String? idSubKategori;
-  final StatusPembayaran statusPembayaran;
+  final StatusPembayaranEnum statusPembayaran;
   final int poinYangDihasilkan;
   final int poinYangDigunakan;
   final DateTime? diperbarui;
@@ -45,7 +45,7 @@ class TransaksiModel {
     this.idPelanggan,
     this.idPaket,
     this.idSubKategori,
-    this.statusPembayaran = StatusPembayaran.belumLunas,
+    this.statusPembayaran = StatusPembayaranEnum.belumLunas,
     this.poinYangDihasilkan = 0,
     this.poinYangDigunakan = 0,
     this.diperbarui,
@@ -82,9 +82,9 @@ class TransaksiModel {
       idPelanggan: map['id_pelanggan'],
       idPaket: map['id_paket'],
       idSubKategori: map['id_sub_kategori'],
-      statusPembayaran: StatusPembayaran.values.firstWhere(
+      statusPembayaran: StatusPembayaranEnum.values.firstWhere(
         (e) => e.name == map['status_pembayaran'],
-        orElse: () => StatusPembayaran.belumLunas,
+        orElse: () => StatusPembayaranEnum.belumLunas,
       ),
       poinYangDihasilkan: (map['poin_yang_dihasilkan'] as num? ?? 0).toInt(),
       poinYangDigunakan: (map['poin_yang_digunakan'] as num? ?? 0).toInt(),
@@ -144,9 +144,9 @@ class TransaksiModel {
       idPelanggan: data['id_pelanggan'],
       idPaket: data['id_paket'],
       idSubKategori: data['id_sub_kategori'],
-      statusPembayaran: StatusPembayaran.values.firstWhere(
+      statusPembayaran: StatusPembayaranEnum.values.firstWhere(
         (e) => e.name == data['status_pembayaran'],
-        orElse: () => StatusPembayaran.belumLunas,
+        orElse: () => StatusPembayaranEnum.belumLunas,
       ),
       poinYangDihasilkan: (data['poin_yang_dihasilkan'] as num? ?? 0).toInt(),
       poinYangDigunakan: (data['poin_yang_digunakan'] as num? ?? 0).toInt(),
@@ -206,7 +206,7 @@ class TransaksiModel {
     String? idPelanggan,
     String? idPaket,
     String? idSubKategori,
-    StatusPembayaran? statusPembayaran,
+    StatusPembayaranEnum? statusPembayaran,
     int? poinYangDihasilkan,
     int? poinYangDigunakan,
     DateTime? diperbarui,

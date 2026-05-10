@@ -3,7 +3,7 @@
 // diubah: Menghapus impor yang tidak digunakan.
 // ignore_for_file: prefer_const_constructors
 
-import 'package:admin_wifi/services/notifikasi_servis.dart';
+import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';

@@ -4,10 +4,10 @@
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
-import 'package:admin_wifi/services/notifikasi_servis.dart';
+import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -62,7 +62,7 @@ void main() {
         tanggalBerakhir: kadaluarsa
             ? DateTime.now().subtract(const Duration(days: 1))
             : DateTime.now().add(const Duration(days: 30)),
-        status: StatusPembayaran.lunas,
+        status: StatusPembayaranEnum.lunas,
       );
     }
 

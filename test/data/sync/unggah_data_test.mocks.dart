@@ -72,22 +72,38 @@ class MockSyncManager extends _i1.Mock implements _i5.SyncManager {
   }
 
   @override
-  _i4.Future<DateTime> getLastSyncTimestamp() =>
+  _i4.Future<DateTime> getTerakhirUnduh() =>
       (super.noSuchMethod(
-            Invocation.method(#getLastSyncTimestamp, []),
+            Invocation.method(#getTerakhirUnduh, []),
             returnValue: _i4.Future<DateTime>.value(
-              _FakeDateTime_1(
-                this,
-                Invocation.method(#getLastSyncTimestamp, []),
-              ),
+              _FakeDateTime_1(this, Invocation.method(#getTerakhirUnduh, [])),
             ),
           )
           as _i4.Future<DateTime>);
 
   @override
-  _i4.Future<void> setLastSyncTimestamp(DateTime? time) =>
+  _i4.Future<void> setTerakhirUnduh(DateTime? time) =>
       (super.noSuchMethod(
-            Invocation.method(#setLastSyncTimestamp, [time]),
+            Invocation.method(#setTerakhirUnduh, [time]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<DateTime> getTerakhirUnggah() =>
+      (super.noSuchMethod(
+            Invocation.method(#getTerakhirUnggah, []),
+            returnValue: _i4.Future<DateTime>.value(
+              _FakeDateTime_1(this, Invocation.method(#getTerakhirUnggah, [])),
+            ),
+          )
+          as _i4.Future<DateTime>);
+
+  @override
+  _i4.Future<void> setTerakhirUnggah(DateTime? time) =>
+      (super.noSuchMethod(
+            Invocation.method(#setTerakhirUnggah, [time]),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

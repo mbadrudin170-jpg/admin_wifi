@@ -157,7 +157,9 @@ class VersiApkUserModel {
       for (final item in mapData.entries) {
         final arsitektur = _arsitekturDariString(item.key.toString());
         if (arsitektur != null) {
-          hasil[arsitektur] = item.value is num ? (item.value as num).toInt() : 0;
+          hasil[arsitektur] = item.value is num
+              ? (item.value as num).toInt()
+              : 0;
         }
       }
     }

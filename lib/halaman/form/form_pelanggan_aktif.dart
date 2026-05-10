@@ -26,7 +26,7 @@ import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
-import 'package:admin_wifi/enum/status_pembayaran.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
@@ -105,7 +105,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  StatusPembayaran _statusPembayaran = StatusPembayaran.lunas;
+  StatusPembayaranEnum _statusPembayaran = StatusPembayaranEnum.lunas;
 
   bool get _isEditMode => widget.pelangganAktif != null;
   int hitungPoinEfektif() {
@@ -594,18 +594,18 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                    _statusPembayaran == StatusPembayaran.lunas
+                                    _statusPembayaran == StatusPembayaranEnum.lunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
                                 foregroundColor:
-                                    _statusPembayaran == StatusPembayaran.lunas
+                                    _statusPembayaran == StatusPembayaranEnum.lunas
                                     ? Colors.white
                                     : Colors.black,
                               ),
                               onPressed: () {
                                 developer.log('[FormPelangganAktif]-[Button] ✅ : Status pembayaran diatur ke LUNAS');
                                 setState(() {
-                                  _statusPembayaran = StatusPembayaran.lunas;
+                                  _statusPembayaran = StatusPembayaranEnum.lunas;
                                 });
                               },
                               child: const Text('Lunas'),
@@ -617,12 +617,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     _statusPembayaran ==
-                                        StatusPembayaran.belumLunas
+                                        StatusPembayaranEnum.belumLunas
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey[200],
                                 foregroundColor:
                                     _statusPembayaran ==
-                                        StatusPembayaran.belumLunas
+                                        StatusPembayaranEnum.belumLunas
                                     ? Colors.white
                                     : Colors.black,
                               ),
@@ -630,7 +630,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                                 developer.log('[FormPelangganAktif]-[Button] ⏳ : Status pembayaran diatur ke BELUM LUNAS');
                                 setState(() {
                                   _statusPembayaran =
-                                      StatusPembayaran.belumLunas;
+                                      StatusPembayaranEnum.belumLunas;
                                 });
                               },
                               child: const Text('Belum Lunas'),
