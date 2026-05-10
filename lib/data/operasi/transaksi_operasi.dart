@@ -1,5 +1,6 @@
 // path: lib/data/operasi/transaksi_operasi.dart
 import 'package:admin_wifi/debug/log.dart';
+import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -8,6 +9,7 @@ import 'package:admin_wifi/data/sqlite.dart';
 
 class TransaksiOperasi {
   static DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final OperasiDasar _operasiDasar = OperasiDasar();
 
   TransaksiOperasi();
 
@@ -87,22 +89,20 @@ class TransaksiOperasi {
   }
 
   Future<int> tambahTransaksi(TransaksiModel transaksi) async {
-    final db = await _db;
-    int id = 0;
     try {
-      await db.transaction((txn) async {
+      final id = await _operasiDasar.jalankanOperasiKompleks<int>((txn) async {
         Log.info(
           'Memulai transaksi database untuk tambahTransaksi - method: tambahTransaksi',
         );
         final data = transaksi.copyWith(diperbarui: DateTime.now());
 
-        id = await txn.insert(
+        final newId = await txn.insert(
           'transaksi',
           data.toSqlite(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         Log.info(
-          'Data transaksi berhasil masuk ke tabel dengan row ID: $id - method: tambahTransaksi',
+          'Data transaksi berhasil masuk ke tabel dengan row ID: $newId - method: tambahTransaksi',
         );
 
         await _recalculateAndUpdateDompetSaldo(data.idDompet, txn);
@@ -113,6 +113,7 @@ class TransaksiOperasi {
           );
           await _recalculateAndUpdateDompetSaldo(data.idDompetTujuan!, txn);
         }
+        return newId;
       });
       Log.info(
         'Seluruh proses tambah transaksi ID: ${transaksi.id} berhasil diselesaikan - method: tambahTransaksi',
@@ -277,9 +278,8 @@ class TransaksiOperasi {
   }
 
   Future<void> updateTransaksi(String id, TransaksiModel transaksiBaru) async {
-    final db = await _dbHelper.database;
     try {
-      await db.transaction((txn) async {
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
         Log.info(
           'Memulai update transaksi database ID: $id - method: updateTransaksi',
         );
@@ -340,9 +340,8 @@ class TransaksiOperasi {
   }
 
   Future<void> arsipkanTransaksi(String id) async {
-    final db = await _db;
     try {
-      await db.transaction((txn) async {
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
         Log.info(
           'Memulai proses pengarsipan (Soft Delete) ID: $id - method: arsipkanTransaksi',
         );
@@ -511,11 +510,10 @@ class TransaksiOperasi {
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
-    final db = await _db;
     Set<String> affectedWallets = {};
 
     try {
-      await db.transaction((txn) async {
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
         Log.info(
           'Memulai proses Batch insert/update untuk ${items.length} item - method: sisipkanAtauPerbaruiBatch',
         );

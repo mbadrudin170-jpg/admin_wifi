@@ -1,28 +1,26 @@
 // path: lib/data/operasi/pelanggan_operasi.dart
 import 'package:admin_wifi/debug/log.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 
 class PelangganOperasi {
   final dbHelper = DatabaseHelper.instance;
+  final OperasiDasar _operasiDasar = OperasiDasar();
 
   Future<void> createPelanggan(PelangganModel pelanggan) async {
     Log.info('Memulai pembuatan pelanggan dengan ID: ${pelanggan.id}');
     try {
-      final db = await dbHelper.database;
       final pelangganUntukDisimpan = pelanggan.copyWith(
         diperbarui: DateTime.now(),
       );
       final data = pelangganUntukDisimpan.toSqlite();
 
-      await db.insert(
-        'pelanggan',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await _operasiDasar.sisipkan('pelanggan', data);
 
-      Log.info('Pelanggan (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat di database lokal.');
+      Log.info(
+        'Pelanggan (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat di database lokal.',
+      );
     } catch (e, s) {
       Log.error('Gagal membuat pelanggan.', error: e, stackTrace: s);
       rethrow;
@@ -30,7 +28,9 @@ class PelangganOperasi {
   }
 
   Future<List<PelangganModel>> getPelanggan() async {
-    Log.info('Mengambil semua pelanggan yang aktif (tidak diarsipkan dan tidak dihapus).');
+    Log.info(
+      'Mengambil semua pelanggan yang aktif (tidak diarsipkan dan tidak dihapus).',
+    );
     try {
       final db = await dbHelper.database;
       final List<Map<String, dynamic>> maps = await db.query(
@@ -60,7 +60,11 @@ class PelangganOperasi {
         return PelangganModel.fromSqlite(maps[i]);
       });
     } catch (e, s) {
-      Log.error('Gagal mengambil semua data pelanggan.', error: e, stackTrace: s);
+      Log.error(
+        'Gagal mengambil semua data pelanggan.',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -82,7 +86,11 @@ class PelangganOperasi {
       Log.warning('Pelanggan dengan ID: $id tidak ditemukan.');
       return null;
     } catch (e, s) {
-      Log.error('Gagal mencari pelanggan berdasarkan ID.', error: e, stackTrace: s);
+      Log.error(
+        'Gagal mencari pelanggan berdasarkan ID.',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -90,17 +98,11 @@ class PelangganOperasi {
   Future<void> updatePelanggan(PelangganModel pelanggan) async {
     Log.info('Memulai pembaruan untuk pelanggan ID: ${pelanggan.id}');
     try {
-      final db = await dbHelper.database;
       final data = pelanggan.copyWith(diperbarui: DateTime.now()).toSqlite();
 
-      int count = await db.update(
-        'pelanggan',
-        data,
-        where: 'id = ?',
-        whereArgs: [pelanggan.id],
-      );
+      await _operasiDasar.perbarui('pelanggan', data, pelanggan.id);
 
-      Log.info('Berhasil memperbarui pelanggan ID: ${pelanggan.id}. Jumlah baris terpengaruh: $count');
+      Log.info('Berhasil memperbarui pelanggan ID: ${pelanggan.id}.');
     } catch (e, s) {
       Log.error('Gagal memperbarui pelanggan.', error: e, stackTrace: s);
       rethrow;
@@ -108,20 +110,21 @@ class PelangganOperasi {
   }
 
   Future<void> deletePelanggan(String id, {bool softDelete = true}) async {
-    Log.info('Memulai proses penghapusan untuk pelanggan ID: $id (softDelete: $softDelete)');
+    Log.info(
+      'Memulai proses penghapusan untuk pelanggan ID: $id (softDelete: $softDelete)',
+    );
     try {
-      final db = await dbHelper.database;
       if (softDelete) {
-        await db.update(
-          'pelanggan',
-          {'isDeleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
-          where: 'id = ?',
-          whereArgs: [id],
-        );
+        await _operasiDasar.perbarui('pelanggan', {
+          'isDeleted': 1,
+          'diperbarui': DateTime.now().toIso8601String(),
+        }, id);
         Log.info('Berhasil melakukan soft delete pada pelanggan ID: $id.');
       } else {
-        await db.delete('pelanggan', where: 'id = ?', whereArgs: [id]);
-        Log.warning('Berhasil melakukan hard delete (penghapusan permanen) pada pelanggan ID: $id.');
+        await _operasiDasar.hapus('pelanggan', id);
+        Log.warning(
+          'Berhasil melakukan hard delete (penghapusan permanen) pada pelanggan ID: $id.',
+        );
       }
     } catch (e, s) {
       Log.error('Gagal menghapus pelanggan.', error: e, stackTrace: s);
@@ -138,13 +141,19 @@ class PelangganOperasi {
         where: 'diperbarui > ?',
         whereArgs: [since.toIso8601String()],
       );
-      Log.info('Ditemukan ${maps.length} perubahan pelanggan sejak waktu yang ditentukan.');
+      Log.info(
+        'Ditemukan ${maps.length} perubahan pelanggan sejak waktu yang ditentukan.',
+      );
       return List.generate(
         maps.length,
         (i) => PelangganModel.fromSqlite(maps[i]),
       );
     } catch (e, s) {
-      Log.error('Gagal mengambil perubahan pelanggan.', error: e, stackTrace: s);
+      Log.error(
+        'Gagal mengambil perubahan pelanggan.',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -152,18 +161,12 @@ class PelangganOperasi {
   Future<void> arsipkanPelanggan(String id) async {
     Log.info('Mengarsipkan pelanggan ID: $id');
     try {
-      final db = await dbHelper.database;
       final now = DateTime.now();
-      await db.update(
-        'pelanggan',
-        {
-          'isDeleted': 1,
-          'diarsipkan': now.toIso8601String(),
-          'diperbarui': now.toIso8601String(),
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await _operasiDasar.perbarui('pelanggan', {
+        'isDeleted': 1,
+        'diarsipkan': now.toIso8601String(),
+        'diperbarui': now.toIso8601String(),
+      }, id);
       Log.info('Berhasil mengarsipkan pelanggan ID: $id.');
     } catch (e, s) {
       Log.error('Gagal mengarsipkan pelanggan.', error: e, stackTrace: s);
@@ -178,18 +181,15 @@ class PelangganOperasi {
     }
     Log.info('Memulai batch insert/update untuk ${items.length} pelanggan.');
     try {
-      final db = await dbHelper.database;
-      final batch = db.batch();
-      for (var item in items) {
+      final data = items.map((item) {
         final itemToSave = item.copyWith(diperbarui: DateTime.now());
-        batch.insert(
-          'pelanggan',
-          itemToSave.toSqlite(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-      await batch.commit(noResult: true);
-      Log.info('Berhasil menyelesaikan operasi batch untuk ${items.length} pelanggan.');
+        return itemToSave.toSqlite();
+      }).toList();
+
+      await _operasiDasar.sisipkanAtauPerbaruiBatch('pelanggan', data);
+      Log.info(
+        'Berhasil menyelesaikan operasi batch untuk ${items.length} pelanggan.',
+      );
     } catch (e, s) {
       Log.error('Gagal menjalankan operasi batch.', error: e, stackTrace: s);
       rethrow;
@@ -204,20 +204,24 @@ class PelangganOperasi {
     Log.info('Mengambil data pelanggan untuk ${ids.length} ID.');
     try {
       final db = await dbHelper.database;
-      // Untuk menghindari masalah batasan variabel di SQL, kita pecah menjadi beberapa query jika perlu.
-      // SQflite umumnya menangani ini dengan baik, jadi kita coba langsung.
       final placeholders = List.filled(ids.length, '?').join(',');
       final List<Map<String, dynamic>> maps = await db.query(
         'pelanggan',
         where: 'id IN ($placeholders)',
         whereArgs: ids,
       );
-      Log.info('Berhasil mengambil ${maps.length} pelanggan berdasarkan list ID yang diberikan.');
+      Log.info(
+        'Berhasil mengambil ${maps.length} pelanggan berdasarkan list ID yang diberikan.',
+      );
       return List.generate(maps.length, (i) {
         return PelangganModel.fromSqlite(maps[i]);
       });
     } catch (e, s) {
-      Log.error('Gagal mengambil pelanggan berdasarkan list ID.', error: e, stackTrace: s);
+      Log.error(
+        'Gagal mengambil pelanggan berdasarkan list ID.',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

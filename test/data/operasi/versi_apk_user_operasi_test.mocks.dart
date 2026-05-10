@@ -3,10 +3,12 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i2;
 
-import 'package:admin_wifi/data/operasi/operasi_dasar.dart' as _i2;
+import 'package:admin_wifi/data/operasi/operasi_dasar.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i5;
+import 'package:sqflite/sqflite.dart' as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -23,54 +25,80 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeFuture_0<T1> extends _i1.SmartFake implements _i2.Future<T1> {
+  _FakeFuture_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [OperasiDasar].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockOperasiDasar extends _i1.Mock implements _i2.OperasiDasar {
+class MockOperasiDasar extends _i1.Mock implements _i3.OperasiDasar {
   MockOperasiDasar() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> sisipkan(String? tabel, Map<String, dynamic>? data) =>
+  _i2.Future<T> jalankanOperasiKompleks<T>(
+    _i2.Future<T> Function(_i4.Transaction)? aksiKustom,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#sisipkan, [tabel, data]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#jalankanOperasiKompleks, [aksiKustom]),
+            returnValue:
+                _i5.ifNotNull(
+                  _i5.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(#jalankanOperasiKompleks, [aksiKustom]),
+                  ),
+                  (T v) => _i2.Future<T>.value(v),
+                ) ??
+                _FakeFuture_0<T>(
+                  this,
+                  Invocation.method(#jalankanOperasiKompleks, [aksiKustom]),
+                ),
           )
-          as _i3.Future<void>);
+          as _i2.Future<T>);
 
   @override
-  _i3.Future<void> perbarui(
+  _i2.Future<void> sisipkan(String? tabel, Map<String, dynamic>? data) =>
+      (super.noSuchMethod(
+            Invocation.method(#sisipkan, [tabel, data]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> perbarui(
     String? tabel,
     Map<String, dynamic>? data,
     String? id,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#perbarui, [tabel, data, id]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i2.Future<void>);
 
   @override
-  _i3.Future<void> hapus(String? tabel, String? id) =>
+  _i2.Future<void> hapus(String? tabel, String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hapus, [tabel, id]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i2.Future<void>);
 
   @override
-  _i3.Future<void> sisipkanAtauPerbaruiBatch(
+  _i2.Future<void> sisipkanAtauPerbaruiBatch(
     String? tabel,
     List<Map<String, dynamic>>? daftarData,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [tabel, daftarData]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i2.Future<void>);
 }
