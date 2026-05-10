@@ -6,6 +6,21 @@ Dokumen ini adalah sumber kebenaran tunggal untuk arsitektur, fitur, dan rencana
 
 ## Catatan Pekerjaan
 
+### v1.0.4 (Standardisasi Logging Proyek)
+- **lib/debug/log.dart**:
+  - **Tujuan**: Memperbaiki dan memperluas kelas `Log` kustom agar lebih fleksibel dan dapat menerima konteks nama log dari pemanggil.
+  - **Perubahan**:
+    1.  Menambahkan parameter opsional `{String? name}` pada semua metode publik (`info`, `warning`, `error`, `api`).
+    2.  Jika parameter `name` diberikan, ia akan digunakan sebagai nama logger. Jika tidak, akan digunakan nilai default (misalnya, 'INFO', 'WARN').
+  - **Alasan**: Untuk memperbaiki serangkaian error `undefined_named_parameter` yang terjadi setelah proses refactoring. Ini memungkinkan kita mempertahankan konteks log yang berharga yang sudah ada di seluruh aplikasi sambil tetap menggunakan pembungkus (wrapper) kustom kita.
+
+- **Proyek-lebar (Semua file di `lib/`)**:
+  - **Tujuan**: Menyeragamkan seluruh sistem logging aplikasi agar mematuhi aturan #1.2.3 ("Gunakan `developer.log`") melalui kelas pembungkus terpusat.
+  - **Perubahan**:
+    1.  Secara sistematis mengganti semua pemanggilan `import 'dart:developer' as developer;` dengan `import 'package:admin_wifi/debug/log.dart';`.
+    2.  Mengganti semua pemanggilan `developer.log(...)` dengan metode yang sesuai dari kelas `Log`, seperti `Log.info(...)`, `Log.warning(...)`, dan `Log.error(...)`.
+  - **Alasan**: Untuk menciptakan sistem logging yang konsisten, terpusat, dan mudah dikelola. Dengan perubahan ini, semua format dan perilaku log dapat diubah dari satu file tunggal (`lib/debug/log.dart`), meningkatkan pemeliharaan dan keterbacaan kode.
+
 ### v1.0.3 (Perbaikan Kritis & Efisiensi Sinkronisasi)
 - **lib/data/sync/unduh_data.dart**:
   - **Tujuan**: Mengoptimalkan proses unduh data agar hanya mengambil data yang benar-benar baru dari server, serta memperbaiki logika khusus pada tabel `pengaturan`.
@@ -71,6 +86,7 @@ Dokumen ini adalah sumber kebenaran tunggal untuk arsitektur, fitur, dan rencana
 ```
 lib/:
 data
+debug
 enum
 firebase_options.dart
 halaman
@@ -118,6 +134,9 @@ lib/data/sync:
 unduhan_awal.dart
 unduh_data.dart
 unggah_data.dart
+
+lib/debug:
+log.dart
 
 lib/enum:
 arsitektur_apk_enum.dart
@@ -241,6 +260,25 @@ transaksi_list_widgets.dart
 
 ## Dokumentasi File
 
+### Folder: `lib/debug/`
+**File**: `lib/debug/log.dart`
+**Fitur**: Utilitas Logging Kustom
+**Tujuan file ini dibuat**: Untuk menyediakan sebuah kelas pembungkus (wrapper) di atas `dart:developer` yang terpusat dan dapat dikonfigurasi. Ini memungkinkan logging yang konsisten, berwarna, dan informatif di seluruh aplikasi, yang hanya aktif pada mode debug.
+**Kode A**: `class Log`
+- **Penjelasan**: Kelas statis yang berisi semua metode logging, sehingga tidak perlu diinstansiasi untuk digunakan.
+**Kode B**: `static void info(String message, {String? name})`
+- **Penjelasan**: Mencatat pesan informasi (level 800) dengan ikon centang hijau. Menerima `name` opsional untuk memberikan konteks tambahan pada log, yang sangat berguna untuk pemfilteran di konsol developer.
+**Kode C**: `static void warning(String message, {String? name})`
+- **Penjelasan**: Mencatat pesan peringatan (level 900) dengan ikon peringatan kuning. Berguna untuk menandai kondisi yang tidak terduga tetapi tidak menyebabkan aplikasi crash.
+**Kode D**: `static void error(String message, {Object? error, StackTrace? stackTrace, String? name})`
+- **Penjelasan**: Mencatat pesan kesalahan fatal (level 1000) dengan ikon silang merah. Metode ini juga menerima objek `error` dan `stackTrace` untuk memberikan detail lengkap tentang sumber masalah.
+**Kode E**: `static void _logCustom(...)`
+- **Penjelasan**: Metode pribadi internal yang menjadi inti dari semua logging. Ia bertanggung jawab untuk:
+  - Menambahkan kode warna ANSI untuk membedakan tipe log.
+  - Menambahkan ikon emoji sebagai penanda visual.
+  - Secara otomatis mendeteksi lokasi pemanggil (nama file dan metode) untuk memudahkan pelacakan.
+  - Meneruskan semua informasi ke `dart:developer.log`.
+
 ### Folder: `lib/data/sync/`
 
 **File**: `lib/data/sync/unduh_data.dart`
@@ -295,7 +333,7 @@ transaksi_list_widgets.dart
 **Kode B**: `Future<void> _cekDanJalankanUnggah()`
 - **Penjelasan**: Metode ini memanggil `_pengecekanDataBaru.apakahSqliteAdaDataBaru()`. Jika hasilnya `true`, maka ia akan memicu `LayananUnggahData` untuk memulai proses unggah ke server.
 **Kode C**: `Future<void> _cekDanJalankanUnduh()`
-- **Penjelasan**: Metode ini memanggil `_pengecekanDataBaru.apakahFirebaseAdaDataBaru(...)`. Jika hasilnya `true`, maka ia akan memicu `LayananUnduhData` untuk memulai proses unduh dari server.
+- **Penjelasan**: Metode ini memanggil `_pengecekanDataBaru.apakahFirebaseAdaDataBaru(...)`. Jika hasilnya `true`, maka ia akan memicu `LayananUnguhData` untuk memulai proses unduh dari server.
 
 **File**: `lib/data/services/preferensi_service.dart`
 **Fitur**: Manajemen Penyimpanan Lokal

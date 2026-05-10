@@ -22,32 +22,40 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🚀 [KritikSaranPage] initState: Memulai halaman', name: 'APP.KritikSaran');
-    _kritikSaranOperasi.debugCekTabel();
+    developer.log(
+      '🚀 [KritikSaranPage] initState: Memulai halaman',
+      name: 'APP.KritikSaran',
+    );
     _loadKritikSaran();
   }
 
   void _loadKritikSaran() {
-    developer.log('🔄 [KritikSaranPage] _loadKritikSaran: Memanggil getKritikSaran()', name: 'APP.KritikSaran');
+    developer.log(
+      '🔄 [KritikSaranPage] _loadKritikSaran: Memanggil getKritikSaran()',
+      name: 'APP.KritikSaran',
+    );
     setState(() {
       _kritikSaranFuture = _kritikSaranOperasi
           .getKritikSaran()
           .then((data) {
-            developer.log('📊 [KritikSaranPage] Berhasil memuat ${data.length} data', name: 'APP.KritikSaran');
+            developer.log(
+              '📊 [KritikSaranPage] Berhasil memuat ${data.length} data',
+              name: 'APP.KritikSaran',
+            );
             for (var item in data) {
               developer.log(
                 '📝 Item ID: ${item.id} | User: ${item.userId} | Tanggal: ${item.tanggal}',
-                name: 'APP.KritikSaran'
+                name: 'APP.KritikSaran',
               );
             }
             return data;
           })
           .catchError((error, stackTrace) {
             developer.log(
-              '❌ [KritikSaranPage] Error ambil data', 
-              error: error, 
+              '❌ [KritikSaranPage] Error ambil data',
+              error: error,
               stackTrace: stackTrace,
-              name: 'APP.KritikSaran'
+              name: 'APP.KritikSaran',
             );
             throw error;
           });
@@ -55,8 +63,11 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
   }
 
   Future<void> _hapusKritikSaran(KritikSaranModel item) async {
-    developer.log('⚠️ [KritikSaranPage] Mencoba menghapus Item ID: ${item.id}', name: 'APP.KritikSaran');
-    
+    developer.log(
+      '⚠️ [KritikSaranPage] Mencoba menghapus Item ID: ${item.id}',
+      name: 'APP.KritikSaran',
+    );
+
     final konfirmasi = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -67,14 +78,20 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
         actions: [
           TextButton(
             onPressed: () {
-              developer.log('🔘 [KritikSaranPage] Dialog Hapus: User memilih Batal', name: 'APP.KritikSaran');
+              developer.log(
+                '🔘 [KritikSaranPage] Dialog Hapus: User memilih Batal',
+                name: 'APP.KritikSaran',
+              );
               Navigator.of(context).pop(false);
             },
             child: const Text('Batal'),
           ),
           TextButton(
             onPressed: () {
-              developer.log('🔘 [KritikSaranPage] Dialog Hapus: User memilih Hapus', name: 'APP.KritikSaran');
+              developer.log(
+                '🔘 [KritikSaranPage] Dialog Hapus: User memilih Hapus',
+                name: 'APP.KritikSaran',
+              );
               Navigator.of(context).pop(true);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -86,11 +103,17 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
     if (konfirmasi == true && mounted) {
       try {
-        developer.log('🔨 [KritikSaranPage] Menjalankan operasi hapus ke database...', name: 'APP.KritikSaran');
+        developer.log(
+          '🔨 [KritikSaranPage] Menjalankan operasi hapus ke database...',
+          name: 'APP.KritikSaran',
+        );
         await _kritikSaranOperasi.hapusKritikSaran(item.id);
-        
-        developer.log('✅ [KritikSaranPage] Item ID: ${item.id} berhasil dihapus', name: 'APP.KritikSaran');
-        
+
+        developer.log(
+          '✅ [KritikSaranPage] Item ID: ${item.id} berhasil dihapus',
+          name: 'APP.KritikSaran',
+        );
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -102,10 +125,10 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
         _loadKritikSaran();
       } catch (e, stackTrace) {
         developer.log(
-          '❌ [KritikSaranPage] Gagal menghapus item', 
-          error: e, 
+          '❌ [KritikSaranPage] Gagal menghapus item',
+          error: e,
           stackTrace: stackTrace,
-          name: 'APP.KritikSaran'
+          name: 'APP.KritikSaran',
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,7 +144,10 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
   @override
   Widget build(BuildContext context) {
-    developer.log('🏗️ [KritikSaranPage] Building UI...', name: 'APP.KritikSaran');
+    developer.log(
+      '🏗️ [KritikSaranPage] Building UI...',
+      name: 'APP.KritikSaran',
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('Kritik & Saran')),
       body: FutureBuilder<List<KritikSaranModel>>(
@@ -149,7 +175,10 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () async {
-                      developer.log('🔗 [KritikSaranPage] Navigasi ke detail ID: ${item.id}', name: 'APP.KritikSaran');
+                      developer.log(
+                        '🔗 [KritikSaranPage] Navigasi ke detail ID: ${item.id}',
+                        name: 'APP.KritikSaran',
+                      );
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -159,7 +188,10 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                       );
 
                       if (result == true) {
-                        developer.log('🔄 [KritikSaranPage] Kembali dari detail dengan result true, refresh data', name: 'APP.KritikSaran');
+                        developer.log(
+                          '🔄 [KritikSaranPage] Kembali dari detail dengan result true, refresh data',
+                          name: 'APP.KritikSaran',
+                        );
                         _loadKritikSaran();
                       }
                     },

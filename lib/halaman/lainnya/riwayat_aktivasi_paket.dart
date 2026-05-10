@@ -8,7 +8,7 @@ import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 
 enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
@@ -28,28 +28,28 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('[RiwayatAktivasiPaketPage]-[initState] 🏁 : Menginisialisasi halaman riwayat', name: 'RiwayatAktivasiPaket');
+    Log.info('Menginisialisasi halaman riwayat aktivasi paket');
     _loadRiwayat();
   }
 
   Future<void> _loadRiwayat() async {
-    developer.log('[RiwayatAktivasiPaketPage]-[_loadRiwayat] 🔄 : Memulai fetch data transaksi aktivasi paket', name: 'RiwayatAktivasiPaket');
+    Log.info('Memulai fetch data transaksi aktivasi paket');
     setState(() {
       _listTransaksiFuture = _transaksiOperasi
           .getTransaksiByAktivasiPaket()
           .then((list) {
-            developer.log('[RiwayatAktivasiPaketPage]-[_loadRiwayat] 📥 : Berhasil mengambil ${list.length} data transaksi', name: 'RiwayatAktivasiPaket');
+            Log.info('Berhasil mengambil ${list.length} data transaksi');
             _urutkanList(list, _urutanAktif);
             return list;
-          }).catchError((error) {
-            developer.log('[RiwayatAktivasiPaketPage]-[_loadRiwayat] ❌ : Error saat mengambil data', error: error, name: 'RiwayatAktivasiPaket');
+          }).catchError((error, st) {
+            Log.error('Error saat mengambil data riwayat aktivasi', error: error, stackTrace: st);
             throw error;
           });
     });
   }
 
   void _urutkanList(List<TransaksiModel> list, OpsiUrutkan pilihan) {
-    developer.log('[RiwayatAktivasiPaketPage]-[_urutkanList] ⚖️ : Mengurutkan list berdasarkan $pilihan', name: 'RiwayatAktivasiPaket');
+    Log.info('Mengurutkan list riwayat aktivasi berdasarkan: $pilihan');
     int Function(TransaksiModel, TransaksiModel) comparator;
 
     switch (pilihan) {
@@ -94,11 +94,11 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
         break;
     }
     list.sort(comparator);
-    developer.log('[RiwayatAktivasiPaketPage]-[_urutkanList] ✅ : Proses pengurutan selesai', name: 'RiwayatAktivasiPaket');
+    Log.info('Proses pengurutan riwayat aktivasi selesai.');
   }
 
   void _showUrutkanDialog() async {
-    developer.log('[RiwayatAktivasiPaketPage]-[_showUrutkanDialog] 🗣️ : Menampilkan dialog urutkan', name: 'RiwayatAktivasiPaket');
+    Log.info('Menampilkan dialog urutkan riwayat aktivasi');
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
       context: context,
       builder: (BuildContext context) {
@@ -106,7 +106,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
           final bool isSelected = _urutanAktif == value;
           return SimpleDialogOption(
             onPressed: () {
-              developer.log('[RiwayatAktivasiPaketPage]-[_showUrutkanDialog] 👆 : User memilih opsi $value', name: 'RiwayatAktivasiPaket');
+              Log.info('User memilih opsi urutkan: $value');
               Navigator.pop(context, value);
             },
             child: Text(
@@ -132,7 +132,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
     );
 
     if (pilihan != null) {
-      developer.log('[RiwayatAktivasiPaketPage]-[_showUrutkanDialog] 🔃 : Memproses perubahan urutan ke $pilihan', name: 'RiwayatAktivasiPaket');
+      Log.info('Memproses perubahan urutan ke: $pilihan');
       final list = await _listTransaksiFuture;
       setState(() {
         _urutanAktif = pilihan;
@@ -144,7 +144,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
 
   @override
   Widget build(BuildContext context) {
-    developer.log('[RiwayatAktivasiPaketPage]-[build] 🏗️ : Membangun UI riwayat', name: 'RiwayatAktivasiPaket');
+    Log.info('Membangun UI halaman riwayat aktivasi paket');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Riwayat Langganan'),
@@ -162,10 +162,10 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            developer.log('[RiwayatAktivasiPaketPage]-[FutureBuilder] ⚠️ : Menampilkan error di UI', error: snapshot.error, name: 'RiwayatAktivasiPaket');
+            Log.error('FutureBuilder menampilkan error di UI', error: snapshot.error, stackTrace: snapshot.stackTrace);
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            developer.log('[RiwayatAktivasiPaketPage]-[FutureBuilder] 📭 : Data kosong/null', name: 'RiwayatAktivasiPaket');
+            Log.info('Data riwayat aktivasi kosong atau tidak ditemukan.');
             return const Center(
               child: Text('Tidak ada riwayat langganan ditemukan.'),
             );
@@ -186,7 +186,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                   ),
                   child: ListTile(
                     onTap: () async {
-                      developer.log('[RiwayatAktivasiPaketPage]-[ListView] 🔍 : Menuju detail transaksi ID: ${transaksi.id}', name: 'RiwayatAktivasiPaket');
+                      Log.info('Menuju detail transaksi ID: ${transaksi.id}');
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -196,7 +196,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                         ),
                       );
                       if (result == true) {
-                        developer.log('[RiwayatAktivasiPaketPage]-[ListView] 🔄 : Kembali dari detail, me-refresh data', name: 'RiwayatAktivasiPaket');
+                        Log.info('Kembali dari detail, me-refresh data riwayat aktivasi');
                         _loadRiwayat();
                       }
                     },

@@ -1,10 +1,10 @@
 // path: lib/data/sqlite.dart
 
-import 'dart:developer';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:admin_wifi/debug/log.dart'; // ditambah: import custom logger
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -97,102 +97,146 @@ class DatabaseHelper {
     )
   ''';
 
+  // diubah: ditambah logging info dan error
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB();
-    return _database!;
-  }
-
-  Future<Database> _initDB() async {
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-      return await databaseFactory.openDatabase(
-        inMemoryDatabasePath,
-        options: OpenDatabaseOptions(
-          version: _databaseVersion,
-          onCreate: createTables,
-          onUpgrade: _onUpgrade,
-        ),
-      );
+    Log.info('Memulai akses database.');
+    if (_database != null) {
+      Log.info('Database sudah ada, mengembalikan instance yang ada.');
+      return _database!;
     }
-
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, 'mydatabase.db');
-    return await openDatabase(
-      path,
-      version: _databaseVersion,
-      onCreate: createTables,
-      onUpgrade: _onUpgrade,
-    );
+    try {
+      Log.info('Database belum diinisialisasi, memanggil _initDB.');
+      _database = await _initDB();
+      Log.info('Inisialisasi database berhasil.');
+      return _database!;
+    } catch (e, st) {
+      Log.error('Gagal total mendapatkan instance database.', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
+  // diubah: ditambah logging info dan error
+  Future<Database> _initDB() async {
+    Log.info('Memulai proses inisialisasi database (_initDB).');
+    try {
+      if (Platform.environment.containsKey('FLUTTER_TEST')) {
+        Log.info('Mode TEST terdeteksi. Menggunakan database in-memory (sqflite_ffi).');
+        sqfliteFfiInit();
+        databaseFactory = databaseFactoryFfi;
+        return await databaseFactory.openDatabase(
+          inMemoryDatabasePath,
+          options: OpenDatabaseOptions(
+            version: _databaseVersion,
+            onCreate: createTables,
+            onUpgrade: _onUpgrade,
+          ),
+        );
+      }
+
+      Log.info('Mode Produksi/Debug. Menggunakan database fisik.');
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      String path = join(documentsDirectory.path, 'mydatabase.db');
+      Log.info('Path database: $path');
+      return await openDatabase(
+        path,
+        version: _databaseVersion,
+        onCreate: createTables,
+        onUpgrade: _onUpgrade,
+      );
+    } catch (e, st) {
+      Log.error('Gagal membuka atau membuat database.', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
+  // diubah: diganti log lama dengan custom logger
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    log('🛠️ Upgrading database from $oldVersion to $newVersion');
+    Log.info('Memulai proses upgrade database dari versi $oldVersion ke $newVersion.');
     final batch = db.batch();
 
-    if (oldVersion < 39) {
-      final List<String> migrations = [
-        'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT',
-        'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT',
-        'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet ON transaksi(id_dompet)',
-        'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
-        'CREATE INDEX IF NOT EXISTS idx_transaksi_isDeleted ON transaksi(isDeleted)',
-        'ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT',
-        'ALTER TABLE transaksi ADD COLUMN durasi_paket INTEGER',
-        'ALTER TABLE transaksi ADD COLUMN tipe_durasi_paket TEXT',
-        'ALTER TABLE transaksi ADD COLUMN tanggal_mulai TEXT',
-        'ALTER TABLE transaksi ADD COLUMN tanggal_berakhir TEXT',
-        'ALTER TABLE transaksi ADD COLUMN aktivasi_paket INTEGER DEFAULT 0',
-      ];
+    try {
+      if (oldVersion < 39) {
+        Log.info('Melakukan migrasi untuk versi < 39.');
+        final List<String> migrations = [
+          'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT',
+          'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT',
+          'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet ON transaksi(id_dompet)',
+          'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
+          'CREATE INDEX IF NOT EXISTS idx_transaksi_isDeleted ON transaksi(isDeleted)',
+          'ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT',
+          'ALTER TABLE transaksi ADD COLUMN durasi_paket INTEGER',
+          'ALTER TABLE transaksi ADD COLUMN tipe_durasi_paket TEXT',
+          'ALTER TABLE transaksi ADD COLUMN tanggal_mulai TEXT',
+          'ALTER TABLE transaksi ADD COLUMN tanggal_berakhir TEXT',
+          'ALTER TABLE transaksi ADD COLUMN aktivasi_paket INTEGER DEFAULT 0',
+        ];
 
-      for (final sql in migrations) {
-        try {
-          batch.execute(sql);
-        } catch (e) {
-          log('⚠️ Migration skip (mungkin kolom sudah ada): $sql');
+        for (final sql in migrations) {
+          try {
+            Log.info('Eksekusi migrasi: $sql');
+            batch.execute(sql);
+          } catch (e) {
+            Log.warning('Gagal mengeksekusi migrasi (mungkin sudah ada): $sql. Error: $e');
+          }
         }
+        Log.info('Menghapus tabel usang: riwayat_langganan.');
+        batch.execute('DROP TABLE IF EXISTS riwayat_langganan');
       }
-      batch.execute('DROP TABLE IF EXISTS riwayat_langganan');
-    }
 
-    // ditambah: Migrasi untuk v40, membuat tabel yang hilang.
-    if (oldVersion < 40) {
-      batch.execute(_tabelStatusAplikasi);
-      batch.execute(_tabelPesan);
-    }
+      if (oldVersion < 40) {
+        Log.info('Melakukan migrasi untuk versi < 40. Membuat tabel _tabelStatusAplikasi dan _tabelPesan.');
+        batch.execute(_tabelStatusAplikasi);
+        batch.execute(_tabelPesan);
+      }
 
-    await batch.commit(noResult: true);
-    log('✅ Database upgrade complete.');
+      await batch.commit(noResult: true);
+      Log.info('Proses upgrade database berhasil diselesaikan.');
+    } catch (e, st) {
+      Log.error('Gagal melakukan upgrade database.', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
+  // diubah: ditambah logging info dan error
   Future<void> createTables(Database db, int version) async {
-    await db.execute(_tabelKategori);
-    await db.execute(_tabelSubKategori);
-    await db.execute(_tabelPaket);
-    await db.execute(_tabelPelanggan);
-    await db.execute(_tabelPelangganAktif);
-    await db.execute(tabelTransaksi);
-    await db.execute(tabelDompet);
-    await db.execute(_tabelKritikSaran);
-    await db.execute(_tabelPesanan);
-    await db.execute(tabelVersiApkUser);
-    await db.execute(_tabelPengaturan);
-    await db.execute(_tabelStatusUnggah);
-    await db.execute(_tabelStatusAplikasi); // ditambah: Eksekusi pembuatan tabel baru
-    await db.execute(_tabelPesan); // ditambah: Eksekusi pembuatan tabel baru
+    Log.info('Memulai pembuatan tabel-tabel database (onCreate).');
+    try {
+      await db.execute(_tabelKategori);
+      await db.execute(_tabelSubKategori);
+      await db.execute(_tabelPaket);
+      await db.execute(_tabelPelanggan);
+      await db.execute(_tabelPelangganAktif);
+      await db.execute(tabelTransaksi);
+      await db.execute(tabelDompet);
+      await db.execute(_tabelKritikSaran);
+      await db.execute(_tabelPesanan);
+      await db.execute(tabelVersiApkUser);
+      await db.execute(_tabelPengaturan);
+      await db.execute(_tabelStatusUnggah);
+      await db.execute(_tabelStatusAplikasi); // ditambah: Eksekusi pembuatan tabel baru
+      await db.execute(_tabelPesan); // ditambah: Eksekusi pembuatan tabel baru
+      Log.info('Semua tabel utama berhasil dibuat.');
 
-    // Indexes
-    await db.execute(
-      'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)',
-    );
-    await db.execute(
-      'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
-    );
-    await db.execute(
-      'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)',
-    );
+      Log.info('Membuat indexes...');
+      // Indexes
+      await db.execute(
+        'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)',
+      );
+      Log.info('Indexes berhasil dibuat.');
+      Log.info('Pembuatan tabel dan index selesai.');
+
+    } catch (e, st) {
+      Log.error('Gagal total saat membuat tabel atau index database.', error: e, stackTrace: st);
+      rethrow;
+    }
   }
+
 
   // --- STATIC STRINGS UNTUK TABEL LAIN ---
   static const String _tabelPengaturan = '''

@@ -1,5 +1,5 @@
 // path: lib/halaman_utama.dart
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
@@ -27,7 +27,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   ];
 
   void _onItemTapped(int index) {
-    developer.log(
+    Log.info(
       '👆 [HalamanUtama] -> [_onItemTapped] -> Berpindah ke tab indeks: $index',
       name: 'HalamanUtama.Navigation',
     );
@@ -39,7 +39,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   @override
   void initState() {
     super.initState();
-    developer.log(
+    Log.info(
       '🏠 [HalamanUtama] -> [initState] -> Inisialisasi Halaman Utama',
       name: 'HalamanUtama.Lifecycle',
     );
@@ -47,7 +47,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _cekDanTampilkanPesanOffline();
 
-      developer.log(
+      Log.info(
         '⏳ [HalamanUtama] -> [PostFrameCallback] -> Menjalankan pengecekan langganan kadaluarsa',
         name: 'HalamanUtama.BackgroundJob',
       );
@@ -57,7 +57,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
 
   void _cekDanTampilkanPesanOffline() {
     if (widget.isOffline) {
-      developer.log(
+      Log.warning(
         '⚠️ [HalamanUtama] -> [_cekDanTampilkanPesanOffline] -> Status: OFFLINE. Menampilkan SnackBar peringatan.',
         name: 'HalamanUtama.Network',
       );
@@ -69,7 +69,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
         ),
       );
     } else {
-      developer.log(
+      Log.info(
         '🌐 [HalamanUtama] -> [_cekDanTampilkanPesanOffline] -> Status: ONLINE.',
         name: 'HalamanUtama.Network',
       );

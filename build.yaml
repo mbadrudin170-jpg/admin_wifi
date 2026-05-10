@@ -1,0 +1,16 @@
+
+# Konfigurasi untuk build_runner.
+# Lihat https://github.com/dart-lang/build/blob/master/build_config/README.md
+
+targets:
+  $default:
+    builders:
+      # Konfigurasi untuk builder dari paket mockito.
+      mockito|mockBuilder:
+        options:
+          # Memberitahu builder untuk tidak menambahkan komentar ignore
+          # untuk aturan lint `must_be_immutable` di file yang dihasilkan.
+          # Ini untuk menghindari peringatan `duplicate_ignore` ketika
+          # kelas yang di-mock sudah immutable.
+          ignore_for_file:
+            - must_be_immutable

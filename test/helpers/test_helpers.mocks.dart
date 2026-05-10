@@ -3,7 +3,6 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-// ignore_for_file: must_be_immutable
 import 'dart:async' as _i3;
 import 'dart:typed_data' as _i9;
 
@@ -29,6 +28,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart' as _i2;
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: implementation_imports
 // ignore_for_file: invalid_use_of_visible_for_testing_member
+// ignore_for_file: must_be_immutable
 // ignore_for_file: prefer_const_constructors
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types

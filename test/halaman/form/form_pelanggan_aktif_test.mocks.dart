@@ -3,20 +3,24 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i9;
+import 'dart:async' as _i8;
 
-import 'package:admin_wifi/data/operasi/operasi.dart' as _i5;
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart' as _i7;
+import 'package:admin_wifi/data/operasi/dompet_operasi.dart' as _i15;
+import 'package:admin_wifi/data/operasi/kategori_operasi.dart' as _i17;
+import 'package:admin_wifi/data/operasi/paket_operasi.dart' as _i10;
+import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart' as _i12;
+import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart' as _i6;
+import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i13;
 import 'package:admin_wifi/data/sqlite.dart' as _i2;
-import 'package:admin_wifi/model/dompet_model.dart' as _i13;
-import 'package:admin_wifi/model/kategori_model.dart' as _i6;
+import 'package:admin_wifi/model/dompet_model.dart' as _i16;
+import 'package:admin_wifi/model/kategori_model.dart' as _i5;
 import 'package:admin_wifi/model/paket_model.dart' as _i11;
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart' as _i4;
-import 'package:admin_wifi/model/pelanggan_model.dart' as _i10;
-import 'package:admin_wifi/model/transaksi_model.dart' as _i12;
+import 'package:admin_wifi/model/pelanggan_model.dart' as _i9;
+import 'package:admin_wifi/model/transaksi_model.dart' as _i14;
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:mockito/src/dummies.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -51,21 +55,15 @@ class _FakePelangganAktifModel_2 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeStatusUnggahOperasi_3 extends _i1.SmartFake
-    implements _i5.StatusUnggahOperasi {
-  _FakeStatusUnggahOperasi_3(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeKategoriModel_4 extends _i1.SmartFake implements _i6.KategoriModel {
-  _FakeKategoriModel_4(Object parent, Invocation parentInvocation)
+class _FakeKategoriModel_3 extends _i1.SmartFake implements _i5.KategoriModel {
+  _FakeKategoriModel_3(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
 /// A class which mocks [PelangganOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPelangganOperasi extends _i1.Mock implements _i7.PelangganOperasi {
+class MockPelangganOperasi extends _i1.Mock implements _i6.PelangganOperasi {
   MockPelangganOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -85,7 +83,7 @@ class MockPelangganOperasi extends _i1.Mock implements _i7.PelangganOperasi {
   String get fileName =>
       (super.noSuchMethod(
             Invocation.getter(#fileName),
-            returnValue: _i8.dummyValue<String>(
+            returnValue: _i7.dummyValue<String>(
               this,
               Invocation.getter(#fileName),
             ),
@@ -93,109 +91,107 @@ class MockPelangganOperasi extends _i1.Mock implements _i7.PelangganOperasi {
           as String);
 
   @override
-  _i9.Future<void> createPelanggan(_i10.PelangganModel? pelanggan) =>
+  _i8.Future<void> createPelanggan(_i9.PelangganModel? pelanggan) =>
       (super.noSuchMethod(
             Invocation.method(#createPelanggan, [pelanggan]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i10.PelangganModel>> getPelanggan() =>
+  _i8.Future<List<_i9.PelangganModel>> getPelanggan() =>
       (super.noSuchMethod(
             Invocation.method(#getPelanggan, []),
-            returnValue: _i9.Future<List<_i10.PelangganModel>>.value(
-              <_i10.PelangganModel>[],
+            returnValue: _i8.Future<List<_i9.PelangganModel>>.value(
+              <_i9.PelangganModel>[],
             ),
           )
-          as _i9.Future<List<_i10.PelangganModel>>);
+          as _i8.Future<List<_i9.PelangganModel>>);
 
   @override
-  _i9.Future<List<_i10.PelangganModel>> getAllPelanggan() =>
+  _i8.Future<List<_i9.PelangganModel>> getAllPelanggan() =>
       (super.noSuchMethod(
             Invocation.method(#getAllPelanggan, []),
-            returnValue: _i9.Future<List<_i10.PelangganModel>>.value(
-              <_i10.PelangganModel>[],
+            returnValue: _i8.Future<List<_i9.PelangganModel>>.value(
+              <_i9.PelangganModel>[],
             ),
           )
-          as _i9.Future<List<_i10.PelangganModel>>);
+          as _i8.Future<List<_i9.PelangganModel>>);
 
   @override
-  _i9.Future<_i10.PelangganModel?> getPelangganById(String? id) =>
+  _i8.Future<_i9.PelangganModel?> getPelangganById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getPelangganById, [id]),
-            returnValue: _i9.Future<_i10.PelangganModel?>.value(),
+            returnValue: _i8.Future<_i9.PelangganModel?>.value(),
           )
-          as _i9.Future<_i10.PelangganModel?>);
+          as _i8.Future<_i9.PelangganModel?>);
 
   @override
-  _i9.Future<void> updatePelanggan(_i10.PelangganModel? pelanggan) =>
+  _i8.Future<void> updatePelanggan(_i9.PelangganModel? pelanggan) =>
       (super.noSuchMethod(
             Invocation.method(#updatePelanggan, [pelanggan]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> deletePelanggan(String? id, {bool? softDelete = true}) =>
+  _i8.Future<void> deletePelanggan(String? id, {bool? softDelete = true}) =>
       (super.noSuchMethod(
             Invocation.method(
               #deletePelanggan,
               [id],
               {#softDelete: softDelete},
             ),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i10.PelangganModel>> getPerubahan(DateTime? since) =>
+  _i8.Future<List<_i9.PelangganModel>> getPerubahan(DateTime? since) =>
       (super.noSuchMethod(
             Invocation.method(#getPerubahan, [since]),
-            returnValue: _i9.Future<List<_i10.PelangganModel>>.value(
-              <_i10.PelangganModel>[],
+            returnValue: _i8.Future<List<_i9.PelangganModel>>.value(
+              <_i9.PelangganModel>[],
             ),
           )
-          as _i9.Future<List<_i10.PelangganModel>>);
+          as _i8.Future<List<_i9.PelangganModel>>);
 
   @override
-  _i9.Future<void> arsipkanPelanggan(String? id) =>
+  _i8.Future<void> arsipkanPelanggan(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanPelanggan, [id]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(
-    List<_i10.PelangganModel>? items,
-  ) =>
+  _i8.Future<void> sisipkanAtauPerbaruiBatch(List<_i9.PelangganModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i10.PelangganModel>> getPelangganByIds(List<String>? ids) =>
+  _i8.Future<List<_i9.PelangganModel>> getPelangganByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getPelangganByIds, [ids]),
-            returnValue: _i9.Future<List<_i10.PelangganModel>>.value(
-              <_i10.PelangganModel>[],
+            returnValue: _i8.Future<List<_i9.PelangganModel>>.value(
+              <_i9.PelangganModel>[],
             ),
           )
-          as _i9.Future<List<_i10.PelangganModel>>);
+          as _i8.Future<List<_i9.PelangganModel>>);
 }
 
 /// A class which mocks [PaketOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPaketOperasi extends _i1.Mock implements _i5.PaketOperasi {
+class MockPaketOperasi extends _i1.Mock implements _i10.PaketOperasi {
   MockPaketOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -215,7 +211,7 @@ class MockPaketOperasi extends _i1.Mock implements _i5.PaketOperasi {
   String get fileName =>
       (super.noSuchMethod(
             Invocation.getter(#fileName),
-            returnValue: _i8.dummyValue<String>(
+            returnValue: _i7.dummyValue<String>(
               this,
               Invocation.getter(#fileName),
             ),
@@ -223,94 +219,94 @@ class MockPaketOperasi extends _i1.Mock implements _i5.PaketOperasi {
           as String);
 
   @override
-  _i9.Future<void> createPaket(_i11.PaketModel? paket) =>
+  _i8.Future<void> createPaket(_i11.PaketModel? paket) =>
       (super.noSuchMethod(
             Invocation.method(#createPaket, [paket]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i11.PaketModel>> getPaket() =>
+  _i8.Future<List<_i11.PaketModel>> getPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getPaket, []),
-            returnValue: _i9.Future<List<_i11.PaketModel>>.value(
+            returnValue: _i8.Future<List<_i11.PaketModel>>.value(
               <_i11.PaketModel>[],
             ),
           )
-          as _i9.Future<List<_i11.PaketModel>>);
+          as _i8.Future<List<_i11.PaketModel>>);
 
   @override
-  _i9.Future<_i11.PaketModel?> getPaketById(String? id) =>
+  _i8.Future<_i11.PaketModel?> getPaketById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getPaketById, [id]),
-            returnValue: _i9.Future<_i11.PaketModel?>.value(),
+            returnValue: _i8.Future<_i11.PaketModel?>.value(),
           )
-          as _i9.Future<_i11.PaketModel?>);
+          as _i8.Future<_i11.PaketModel?>);
 
   @override
-  _i9.Future<void> updatePaket(_i11.PaketModel? paket) =>
+  _i8.Future<void> updatePaket(_i11.PaketModel? paket) =>
       (super.noSuchMethod(
             Invocation.method(#updatePaket, [paket]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> hapusPaket(String? id) =>
+  _i8.Future<void> hapusPaket(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hapusPaket, [id]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> hapusSemuaPaket() =>
+  _i8.Future<void> hapusSemuaPaket() =>
       (super.noSuchMethod(
             Invocation.method(#hapusSemuaPaket, []),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i11.PaketModel>> getPerubahan(DateTime? since) =>
+  _i8.Future<List<_i11.PaketModel>> getPerubahan(DateTime? since) =>
       (super.noSuchMethod(
             Invocation.method(#getPerubahan, [since]),
-            returnValue: _i9.Future<List<_i11.PaketModel>>.value(
+            returnValue: _i8.Future<List<_i11.PaketModel>>.value(
               <_i11.PaketModel>[],
             ),
           )
-          as _i9.Future<List<_i11.PaketModel>>);
+          as _i8.Future<List<_i11.PaketModel>>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i11.PaketModel>? items) =>
+  _i8.Future<void> sisipkanAtauPerbaruiBatch(List<_i11.PaketModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i11.PaketModel>> getPaketByIds(List<String>? ids) =>
+  _i8.Future<List<_i11.PaketModel>> getPaketByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getPaketByIds, [ids]),
-            returnValue: _i9.Future<List<_i11.PaketModel>>.value(
+            returnValue: _i8.Future<List<_i11.PaketModel>>.value(
               <_i11.PaketModel>[],
             ),
           )
-          as _i9.Future<List<_i11.PaketModel>>);
+          as _i8.Future<List<_i11.PaketModel>>);
 }
 
 /// A class which mocks [PelangganAktifOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPelangganAktifOperasi extends _i1.Mock
-    implements _i5.PelangganAktifOperasi {
+    implements _i12.PelangganAktifOperasi {
   MockPelangganAktifOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -344,279 +340,279 @@ class MockPelangganAktifOperasi extends _i1.Mock
   );
 
   @override
-  _i9.Future<_i4.PelangganAktifModel> createPelangganAktif(
+  _i8.Future<_i4.PelangganAktifModel> createPelangganAktif(
     _i4.PelangganAktifModel? pelangganAktif,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#createPelangganAktif, [pelangganAktif]),
-            returnValue: _i9.Future<_i4.PelangganAktifModel>.value(
+            returnValue: _i8.Future<_i4.PelangganAktifModel>.value(
               _FakePelangganAktifModel_2(
                 this,
                 Invocation.method(#createPelangganAktif, [pelangganAktif]),
               ),
             ),
           )
-          as _i9.Future<_i4.PelangganAktifModel>);
+          as _i8.Future<_i4.PelangganAktifModel>);
 
   @override
-  _i9.Future<List<_i4.PelangganAktifModel>> ambilSemuaPelangganAktif() =>
+  _i8.Future<List<_i4.PelangganAktifModel>> ambilSemuaPelangganAktif() =>
       (super.noSuchMethod(
             Invocation.method(#ambilSemuaPelangganAktif, []),
-            returnValue: _i9.Future<List<_i4.PelangganAktifModel>>.value(
+            returnValue: _i8.Future<List<_i4.PelangganAktifModel>>.value(
               <_i4.PelangganAktifModel>[],
             ),
           )
-          as _i9.Future<List<_i4.PelangganAktifModel>>);
+          as _i8.Future<List<_i4.PelangganAktifModel>>);
 
   @override
-  _i9.Future<_i4.PelangganAktifModel?> ambilSatuPelangganAktif(String? id) =>
+  _i8.Future<_i4.PelangganAktifModel?> ambilSatuPelangganAktif(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#ambilSatuPelangganAktif, [id]),
-            returnValue: _i9.Future<_i4.PelangganAktifModel?>.value(),
+            returnValue: _i8.Future<_i4.PelangganAktifModel?>.value(),
           )
-          as _i9.Future<_i4.PelangganAktifModel?>);
+          as _i8.Future<_i4.PelangganAktifModel?>);
 
   @override
-  _i9.Future<void> updatePelangganAktif(
+  _i8.Future<void> updatePelangganAktif(
     _i4.PelangganAktifModel? pelangganAktif,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updatePelangganAktif, [pelangganAktif]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(
+  _i8.Future<void> sisipkanAtauPerbaruiBatch(
     List<_i4.PelangganAktifModel>? items,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> arsipkanPelangganAktif(String? id) =>
+  _i8.Future<void> arsipkanPelangganAktif(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanPelangganAktif, [id]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> hapusPermanenPelangganYangDiArsipkan() =>
+  _i8.Future<void> hapusPermanenPelangganYangDiArsipkan() =>
       (super.noSuchMethod(
             Invocation.method(#hapusPermanenPelangganYangDiArsipkan, []),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> hapusSemuaPelangganAktif() =>
+  _i8.Future<void> hapusSemuaPelangganAktif() =>
       (super.noSuchMethod(
             Invocation.method(#hapusSemuaPelangganAktif, []),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<int> arsipkanPelangganKadaluarsa() =>
+  _i8.Future<int> arsipkanPelangganKadaluarsa() =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanPelangganKadaluarsa, []),
-            returnValue: _i9.Future<int>.value(0),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i9.Future<int>);
+          as _i8.Future<int>);
 
   @override
-  _i9.Future<int> arsipkanSemuaPelangganAktif() =>
+  _i8.Future<int> arsipkanSemuaPelangganAktif() =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanSemuaPelangganAktif, []),
-            returnValue: _i9.Future<int>.value(0),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i9.Future<int>);
+          as _i8.Future<int>);
 
   @override
-  _i9.Future<List<_i4.PelangganAktifModel>> getPelangganAktifByIds(
+  _i8.Future<List<_i4.PelangganAktifModel>> getPelangganAktifByIds(
     List<String>? ids,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getPelangganAktifByIds, [ids]),
-            returnValue: _i9.Future<List<_i4.PelangganAktifModel>>.value(
+            returnValue: _i8.Future<List<_i4.PelangganAktifModel>>.value(
               <_i4.PelangganAktifModel>[],
             ),
           )
-          as _i9.Future<List<_i4.PelangganAktifModel>>);
+          as _i8.Future<List<_i4.PelangganAktifModel>>);
 }
 
 /// A class which mocks [TransaksiOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTransaksiOperasi extends _i1.Mock implements _i5.TransaksiOperasi {
+class MockTransaksiOperasi extends _i1.Mock implements _i13.TransaksiOperasi {
   MockTransaksiOperasi() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i9.Future<int> tambahTransaksi(_i12.TransaksiModel? transaksi) =>
+  _i8.Future<int> tambahTransaksi(_i14.TransaksiModel? transaksi) =>
       (super.noSuchMethod(
             Invocation.method(#tambahTransaksi, [transaksi]),
-            returnValue: _i9.Future<int>.value(0),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i9.Future<int>);
+          as _i8.Future<int>);
 
   @override
-  _i9.Future<List<_i12.TransaksiModel>> ambilSemuaTransaksi() =>
+  _i8.Future<List<_i14.TransaksiModel>> ambilSemuaTransaksi() =>
       (super.noSuchMethod(
             Invocation.method(#ambilSemuaTransaksi, []),
-            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
-              <_i12.TransaksiModel>[],
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i12.TransaksiModel>>);
+          as _i8.Future<List<_i14.TransaksiModel>>);
 
   @override
-  _i9.Future<_i12.TransaksiModel?> getTransaksiById(String? id) =>
+  _i8.Future<_i14.TransaksiModel?> getTransaksiById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiById, [id]),
-            returnValue: _i9.Future<_i12.TransaksiModel?>.value(),
+            returnValue: _i8.Future<_i14.TransaksiModel?>.value(),
           )
-          as _i9.Future<_i12.TransaksiModel?>);
+          as _i8.Future<_i14.TransaksiModel?>);
 
   @override
-  _i9.Future<List<_i12.TransaksiModel>> ambilTransaksiByPelangganId(
+  _i8.Future<List<_i14.TransaksiModel>> ambilTransaksiByPelangganId(
     String? pelangganId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByPelangganId, [pelangganId]),
-            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
-              <_i12.TransaksiModel>[],
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i12.TransaksiModel>>);
+          as _i8.Future<List<_i14.TransaksiModel>>);
 
   @override
-  _i9.Future<List<_i12.TransaksiModel>> ambilTransaksiByDompetId(
+  _i8.Future<List<_i14.TransaksiModel>> ambilTransaksiByDompetId(
     String? dompetId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#ambilTransaksiByDompetId, [dompetId]),
-            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
-              <_i12.TransaksiModel>[],
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i12.TransaksiModel>>);
+          as _i8.Future<List<_i14.TransaksiModel>>);
 
   @override
-  _i9.Future<List<_i12.TransaksiModel>> getTransaksiByAktivasiPaket() =>
+  _i8.Future<List<_i14.TransaksiModel>> getTransaksiByAktivasiPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiByAktivasiPaket, []),
-            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
-              <_i12.TransaksiModel>[],
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i12.TransaksiModel>>);
+          as _i8.Future<List<_i14.TransaksiModel>>);
 
   @override
-  _i9.Future<void> updateTransaksi(
+  _i8.Future<void> updateTransaksi(
     String? id,
-    _i12.TransaksiModel? transaksiBaru,
+    _i14.TransaksiModel? transaksiBaru,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateTransaksi, [id, transaksiBaru]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> arsipkanTransaksi(String? id) =>
+  _i8.Future<void> arsipkanTransaksi(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanTransaksi, [id]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<double> getTotalPemasukan() =>
+  _i8.Future<double> getTotalPemasukan() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalPemasukan, []),
-            returnValue: _i9.Future<double>.value(0.0),
+            returnValue: _i8.Future<double>.value(0.0),
           )
-          as _i9.Future<double>);
+          as _i8.Future<double>);
 
   @override
-  _i9.Future<double> getTotalPengeluaran() =>
+  _i8.Future<double> getTotalPengeluaran() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalPengeluaran, []),
-            returnValue: _i9.Future<double>.value(0.0),
+            returnValue: _i8.Future<double>.value(0.0),
           )
-          as _i9.Future<double>);
+          as _i8.Future<double>);
 
   @override
-  _i9.Future<double> getNetTotal() =>
+  _i8.Future<double> getNetTotal() =>
       (super.noSuchMethod(
             Invocation.method(#getNetTotal, []),
-            returnValue: _i9.Future<double>.value(0.0),
+            returnValue: _i8.Future<double>.value(0.0),
           )
-          as _i9.Future<double>);
+          as _i8.Future<double>);
 
   @override
-  _i9.Future<int> getPoinYangDihasilkan(String? idPelanggan) =>
+  _i8.Future<int> getPoinYangDihasilkan(String? idPelanggan) =>
       (super.noSuchMethod(
             Invocation.method(#getPoinYangDihasilkan, [idPelanggan]),
-            returnValue: _i9.Future<int>.value(0),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i9.Future<int>);
+          as _i8.Future<int>);
 
   @override
-  _i9.Future<int> getPoinYangDigunakan(String? idPelanggan) =>
+  _i8.Future<int> getPoinYangDigunakan(String? idPelanggan) =>
       (super.noSuchMethod(
             Invocation.method(#getPoinYangDigunakan, [idPelanggan]),
-            returnValue: _i9.Future<int>.value(0),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i9.Future<int>);
+          as _i8.Future<int>);
 
   @override
-  _i9.Future<int> getTotalPoin(String? idPelanggan) =>
+  _i8.Future<int> getTotalPoin(String? idPelanggan) =>
       (super.noSuchMethod(
             Invocation.method(#getTotalPoin, [idPelanggan]),
-            returnValue: _i9.Future<int>.value(0),
+            returnValue: _i8.Future<int>.value(0),
           )
-          as _i9.Future<int>);
+          as _i8.Future<int>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(
-    List<_i12.TransaksiModel>? items,
+  _i8.Future<void> sisipkanAtauPerbaruiBatch(
+    List<_i14.TransaksiModel>? items,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i12.TransaksiModel>> getTransaksiByIds(List<String>? ids) =>
+  _i8.Future<List<_i14.TransaksiModel>> getTransaksiByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getTransaksiByIds, [ids]),
-            returnValue: _i9.Future<List<_i12.TransaksiModel>>.value(
-              <_i12.TransaksiModel>[],
+            returnValue: _i8.Future<List<_i14.TransaksiModel>>.value(
+              <_i14.TransaksiModel>[],
             ),
           )
-          as _i9.Future<List<_i12.TransaksiModel>>);
+          as _i8.Future<List<_i14.TransaksiModel>>);
 }
 
 /// A class which mocks [DompetOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDompetOperasi extends _i1.Mock implements _i5.DompetOperasi {
+class MockDompetOperasi extends _i1.Mock implements _i15.DompetOperasi {
   MockDompetOperasi() {
     _i1.throwOnMissingStub(this);
   }
@@ -633,234 +629,232 @@ class MockDompetOperasi extends _i1.Mock implements _i5.DompetOperasi {
           as _i2.DatabaseHelper);
 
   @override
-  _i5.StatusUnggahOperasi get statusUnggahOperasi =>
-      (super.noSuchMethod(
-            Invocation.getter(#statusUnggahOperasi),
-            returnValue: _FakeStatusUnggahOperasi_3(
-              this,
-              Invocation.getter(#statusUnggahOperasi),
-            ),
-          )
-          as _i5.StatusUnggahOperasi);
-
-  @override
-  String get fileName =>
-      (super.noSuchMethod(
-            Invocation.getter(#fileName),
-            returnValue: _i8.dummyValue<String>(
-              this,
-              Invocation.getter(#fileName),
-            ),
-          )
-          as String);
-
-  @override
-  _i9.Future<void> createDompet(_i13.DompetModel? dompet) =>
+  _i8.Future<void> createDompet(_i16.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#createDompet, [dompet]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i13.DompetModel>> getDompet() =>
+  _i8.Future<List<_i16.DompetModel>> getDompet() =>
       (super.noSuchMethod(
             Invocation.method(#getDompet, []),
-            returnValue: _i9.Future<List<_i13.DompetModel>>.value(
-              <_i13.DompetModel>[],
+            returnValue: _i8.Future<List<_i16.DompetModel>>.value(
+              <_i16.DompetModel>[],
             ),
           )
-          as _i9.Future<List<_i13.DompetModel>>);
+          as _i8.Future<List<_i16.DompetModel>>);
 
   @override
-  _i9.Future<_i13.DompetModel?> getDompetById(String? id) =>
+  _i8.Future<_i16.DompetModel?> getDompetById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getDompetById, [id]),
-            returnValue: _i9.Future<_i13.DompetModel?>.value(),
+            returnValue: _i8.Future<_i16.DompetModel?>.value(),
           )
-          as _i9.Future<_i13.DompetModel?>);
+          as _i8.Future<_i16.DompetModel?>);
 
   @override
-  _i9.Future<void> updateDompet(_i13.DompetModel? dompet) =>
+  _i8.Future<void> updateDompet(_i16.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#updateDompet, [dompet]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> hapusSemuaDompet() =>
+  _i8.Future<void> hapusSemuaDompet() =>
       (super.noSuchMethod(
             Invocation.method(#hapusSemuaDompet, []),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> arsipkanSatuDompet(String? id) =>
+  _i8.Future<void> arsipkanSatuDompet(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#arsipkanSatuDompet, [id]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<double> getTotalSaldo() =>
+  _i8.Future<double> getTotalSaldo() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalSaldo, []),
-            returnValue: _i9.Future<double>.value(0.0),
+            returnValue: _i8.Future<double>.value(0.0),
           )
-          as _i9.Future<double>);
+          as _i8.Future<double>);
 
   @override
-  _i9.Future<double> getTotalSaldoPositif() =>
+  _i8.Future<double> getTotalSaldoPositif() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalSaldoPositif, []),
-            returnValue: _i9.Future<double>.value(0.0),
+            returnValue: _i8.Future<double>.value(0.0),
           )
-          as _i9.Future<double>);
+          as _i8.Future<double>);
 
   @override
-  _i9.Future<double> getTotalSaldoNegatif() =>
+  _i8.Future<double> getTotalSaldoNegatif() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalSaldoNegatif, []),
-            returnValue: _i9.Future<double>.value(0.0),
+            returnValue: _i8.Future<double>.value(0.0),
           )
-          as _i9.Future<double>);
+          as _i8.Future<double>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i13.DompetModel>? items) =>
+  _i8.Future<void> sisipkanAtauPerbaruiBatch(List<_i16.DompetModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i13.DompetModel>> getDompetByIds(List<String>? ids) =>
+  _i8.Future<List<_i16.DompetModel>> getDompetByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getDompetByIds, [ids]),
-            returnValue: _i9.Future<List<_i13.DompetModel>>.value(
-              <_i13.DompetModel>[],
+            returnValue: _i8.Future<List<_i16.DompetModel>>.value(
+              <_i16.DompetModel>[],
             ),
           )
-          as _i9.Future<List<_i13.DompetModel>>);
+          as _i8.Future<List<_i16.DompetModel>>);
 }
 
 /// A class which mocks [KategoriOperasi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockKategoriOperasi extends _i1.Mock implements _i5.KategoriOperasi {
+class MockKategoriOperasi extends _i1.Mock implements _i17.KategoriOperasi {
   MockKategoriOperasi() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i9.Future<_i6.KategoriModel> createKategori(_i6.KategoriModel? kategori) =>
+  _i2.DatabaseHelper get dbHelper =>
+      (super.noSuchMethod(
+            Invocation.getter(#dbHelper),
+            returnValue: _FakeDatabaseHelper_0(
+              this,
+              Invocation.getter(#dbHelper),
+            ),
+          )
+          as _i2.DatabaseHelper);
+
+  @override
+  _i8.Future<_i5.KategoriModel> createKategori(_i5.KategoriModel? kategori) =>
       (super.noSuchMethod(
             Invocation.method(#createKategori, [kategori]),
-            returnValue: _i9.Future<_i6.KategoriModel>.value(
-              _FakeKategoriModel_4(
+            returnValue: _i8.Future<_i5.KategoriModel>.value(
+              _FakeKategoriModel_3(
                 this,
                 Invocation.method(#createKategori, [kategori]),
               ),
             ),
           )
-          as _i9.Future<_i6.KategoriModel>);
+          as _i8.Future<_i5.KategoriModel>);
 
   @override
-  _i9.Future<List<_i6.KategoriModel>> getKategori() =>
+  _i8.Future<List<_i5.KategoriModel>> getKategori() =>
       (super.noSuchMethod(
             Invocation.method(#getKategori, []),
-            returnValue: _i9.Future<List<_i6.KategoriModel>>.value(
-              <_i6.KategoriModel>[],
+            returnValue: _i8.Future<List<_i5.KategoriModel>>.value(
+              <_i5.KategoriModel>[],
             ),
           )
-          as _i9.Future<List<_i6.KategoriModel>>);
+          as _i8.Future<List<_i5.KategoriModel>>);
 
   @override
-  _i9.Future<_i6.KategoriModel> getKategoriById(String? id) =>
+  _i8.Future<_i5.KategoriModel> getKategoriById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getKategoriById, [id]),
-            returnValue: _i9.Future<_i6.KategoriModel>.value(
-              _FakeKategoriModel_4(
+            returnValue: _i8.Future<_i5.KategoriModel>.value(
+              _FakeKategoriModel_3(
                 this,
                 Invocation.method(#getKategoriById, [id]),
               ),
             ),
           )
-          as _i9.Future<_i6.KategoriModel>);
+          as _i8.Future<_i5.KategoriModel>);
 
   @override
-  _i9.Future<List<_i6.KategoriModel>> getKategoriByTipe(
-    _i6.TipeKategori? tipe,
+  _i8.Future<List<_i5.KategoriModel>> getKategoriByTipe(
+    _i5.TipeKategori? tipe,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getKategoriByTipe, [tipe]),
-            returnValue: _i9.Future<List<_i6.KategoriModel>>.value(
-              <_i6.KategoriModel>[],
+            returnValue: _i8.Future<List<_i5.KategoriModel>>.value(
+              <_i5.KategoriModel>[],
             ),
           )
-          as _i9.Future<List<_i6.KategoriModel>>);
+          as _i8.Future<List<_i5.KategoriModel>>);
 
   @override
-  _i9.Future<void> update(_i6.KategoriModel? kategori) =>
+  _i8.Future<void> update(_i5.KategoriModel? kategori) =>
       (super.noSuchMethod(
             Invocation.method(#update, [kategori]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> delete(String? id) =>
+  _i8.Future<void> delete(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#delete, [id]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<void> bersihkanDanSisipkanSemua(List<_i6.KategoriModel>? items) =>
+  _i8.Future<void> arsipkanSatuKategori(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#arsipkanSatuKategori, [id]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> bersihkanDanSisipkanSemua(List<_i5.KategoriModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#bersihkanDanSisipkanSemua, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i6.KategoriModel>> getPerubahan(DateTime? since) =>
+  _i8.Future<List<_i5.KategoriModel>> getPerubahan(DateTime? since) =>
       (super.noSuchMethod(
             Invocation.method(#getPerubahan, [since]),
-            returnValue: _i9.Future<List<_i6.KategoriModel>>.value(
-              <_i6.KategoriModel>[],
+            returnValue: _i8.Future<List<_i5.KategoriModel>>.value(
+              <_i5.KategoriModel>[],
             ),
           )
-          as _i9.Future<List<_i6.KategoriModel>>);
+          as _i8.Future<List<_i5.KategoriModel>>);
 
   @override
-  _i9.Future<void> sisipkanAtauPerbaruiBatch(List<_i6.KategoriModel>? items) =>
+  _i8.Future<void> sisipkanAtauPerbaruiBatch(List<_i5.KategoriModel>? items) =>
       (super.noSuchMethod(
             Invocation.method(#sisipkanAtauPerbaruiBatch, [items]),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i9.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i9.Future<List<_i6.KategoriModel>> getKategoriByIds(List<String>? ids) =>
+  _i8.Future<List<_i5.KategoriModel>> getKategoriByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getKategoriByIds, [ids]),
-            returnValue: _i9.Future<List<_i6.KategoriModel>>.value(
-              <_i6.KategoriModel>[],
+            returnValue: _i8.Future<List<_i5.KategoriModel>>.value(
+              <_i5.KategoriModel>[],
             ),
           )
-          as _i9.Future<List<_i6.KategoriModel>>);
+          as _i8.Future<List<_i5.KategoriModel>>);
 }
