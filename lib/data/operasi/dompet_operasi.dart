@@ -20,15 +20,20 @@ class DompetOperasi {
     }
   }
 
-  Future<List<DompetModel>> getDompet() async {
+  // diubah: Menambahkan parameter untuk memfilter dompet yang diarsipkan
+  Future<List<DompetModel>> getDompet({bool tampilkanDiarsipkan = false}) async {
     Log.info(
-      'Memulai getDompet (mengambil semua dompet yang tidak di-soft delete).',
+      'Memulai getDompet (tampilkanDiarsipkan: $tampilkanDiarsipkan).',
     );
     try {
       final db = await dbHelper.database;
+      // diubah: query disesuaikan berdasarkan parameter
+      final query = tampilkanDiarsipkan
+          ? 'isDeleted = 0'
+          : 'isDeleted = 0 AND diarsipkan IS NULL';
       final List<Map<String, dynamic>> maps = await db.query(
         'dompet',
-        where: 'isDeleted = 0',
+        where: query,
       );
 
       final listDompet = List.generate(
@@ -80,6 +85,32 @@ class DompetOperasi {
     } catch (e, st) {
       Log.error(
         'Gagal saat updateDompet untuk ID: ${dompet.id}',
+        error: e,
+        stackTrace: st,
+      );
+      rethrow;
+    }
+  }
+  
+  // ditambah: Fungsi baru untuk mengarsipkan semua dompet
+  /// Mengarsipkan semua dompet yang belum diarsipkan.
+  Future<void> arsipSemuaDompet() async {
+    Log.info('Memulai proses pengarsipan untuk semua dompet.');
+    try {
+      // 1. Ambil semua dompet yang aktif (belum diarsipkan)
+      final daftarDompetAktif = await getDompet(tampilkanDiarsipkan: false);
+      Log.info('Ditemukan ${daftarDompetAktif.length} dompet aktif untuk diarsipkan.');
+
+      // 2. Loop melalui setiap dompet dan arsipkan
+      for (final dompet in daftarDompetAktif) {
+        // 3. Panggil `updateDompet` untuk mengarsipkan satu per satu
+        await updateDompet(dompet.copyWith(diarsipkan: DateTime.now()));
+      }
+      
+      Log.info('Proses pengarsipan semua dompet telah selesai.');
+    } catch (e, st) {
+      Log.error(
+        'Gagal saat proses pengarsipan massal dompet.',
         error: e,
         stackTrace: st,
       );

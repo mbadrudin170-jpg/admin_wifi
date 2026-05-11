@@ -3,10 +3,11 @@
 // File ini bertanggung jawab untuk menampilkan informasi tentang aplikasi,
 // seperti versi, nama, dan deskripsi singkat.
 
+import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart'; // diubah/ditambah: untuk info perangkat
-import 'dart:io'; // diubah/ditambah: untuk mengecek platform
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
 
 // Halaman yang menampilkan detail tentang aplikasi.
 class TentangAplikasiPage extends StatefulWidget {
@@ -25,55 +26,81 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
     buildNumber: 'Unknown',
   );
 
-  // diubah/ditambah: Tambahan state untuk menyimpan informasi perangkat
-  String _minSDK = '21'; // diubah/ditambah: default minSdkVersion
+  String _minSDK = 'Android 5.0 (Lollipop)';
   String _deviceArch = 'Unknown';
 
   @override
   void initState() {
     super.initState();
-    // Memuat informasi paket saat halaman diinisialisasi.
-    _initInfo(); // diubah/ditambah: Menggabungkan semua inisialisasi
+    Log.info('Menginisialisasi halaman Tentang Aplikasi');
+    _initInfo();
   }
 
-  // diubah/ditambah: Mengambil semua informasi yang diperlukan
   Future<void> _initInfo() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    String deviceArch = 'Unknown';
+    Log.info('Memulai pengambilan informasi aplikasi dan perangkat');
+    
+    try {
+      Log.info('Mengambil PackageInfo dari platform');
+      final packageInfo = await PackageInfo.fromPlatform();
+      
+      Log.info('PackageInfo berhasil diambil - Nama: ${packageInfo.appName}, Versi: ${packageInfo.version}, Build: ${packageInfo.buildNumber}, Package: ${packageInfo.packageName}');
+      
+      String deviceArch = 'Unknown';
 
-    // untuk mendapatkan arsitektur perangkat
-    if (Platform.isAndroid) {
-      final deviceInfo = DeviceInfoPlugin();
-      final androidInfo = await deviceInfo.androidInfo;
-      // Menampilkan semua ABI yang didukung
-      deviceArch = androidInfo.supportedAbis.join(', ');
+      if (Platform.isAndroid) {
+        Log.info('Platform terdeteksi: Android, mengambil DeviceInfo');
+        final deviceInfo = DeviceInfoPlugin();
+        final androidInfo = await deviceInfo.androidInfo;
+        
+        deviceArch = androidInfo.supportedAbis.join(', ');
+        Log.info('Device info Android berhasil diambil - Arsitektur: $deviceArch, Android Version: ${androidInfo.version.release} (SDK ${androidInfo.version.sdkInt}), Pabrikan: ${androidInfo.manufacturer}, Model: ${androidInfo.model}');
+      } else if (Platform.isIOS) {
+        Log.info('Platform terdeteksi: iOS');
+        deviceArch = 'iOS (arm64)';
+      } else {
+        Log.info('Platform tidak dikenal: ${Platform.operatingSystem}');
+        deviceArch = Platform.operatingSystem;
+      }
+
+      setState(() {
+        _packageInfo = packageInfo;
+        _deviceArch = deviceArch;
+        _minSDK = 'Android 5.0 (Lollipop)';
+        Log.info('State diperbarui - MinSDK: $_minSDK, Arsitektur: $_deviceArch');
+      });
+      
+      Log.info('Proses inisialisasi informasi aplikasi selesai');
+    } catch (e, stackTrace) {
+      Log.error(
+        'Gagal mengambil informasi aplikasi atau perangkat',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
-
-    setState(() {
-      _packageInfo = packageInfo;
-      _deviceArch = deviceArch;
-      // diubah/ditambah: Secara manual mengatur minimal OS berdasarkan build.gradle
-      // Android 5.0 (Lollipop) adalah API level 21
-      _minSDK = 'Android 5.0 (Lollipop)';
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI halaman Tentang Aplikasi');
+    Log.info('Informasi yang ditampilkan - App: ${_packageInfo.appName}, Versi: ${_packageInfo.version}, Build: ${_packageInfo.buildNumber}');
+    
     return Scaffold(
       appBar: AppBar(
-        // Judul halaman.
         title: const Text('Tentang Aplikasi'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Log.info('Kembali ke halaman sebelumnya dari Tentang Aplikasi');
+            Navigator.of(context).pop();
+          },
+        ),
       ),
-      // diubah/ditambah: Ganti Center dengan ListView agar bisa di-scroll
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: <Widget>[
           const SizedBox(height: 20),
-          // Menampilkan ikon aplikasi.
           const Icon(Icons.wifi_tethering, size: 80, color: Colors.deepPurple),
           const SizedBox(height: 20),
-          // Menampilkan nama aplikasi.
           Text(
             _packageInfo.appName,
             style: Theme.of(
@@ -82,21 +109,18 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          // Menampilkan versi aplikasi.
           Text(
             'Versi ${_packageInfo.version}',
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          // Deskripsi singkat tentang aplikasi.
           const Text(
             'Aplikasi ini membantu Anda mengelola pelanggan dan layanan WiFi dengan lebih mudah. Lacak pembayaran, kelola paket, dan dapatkan notifikasi penting langsung di perangkat Anda.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16),
           ),
           const SizedBox(height: 30),
-          // diubah/ditambah: Container untuk info teknis
           Card(
             elevation: 2,
             child: Padding(
@@ -117,7 +141,6 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
             ),
           ),
           const SizedBox(height: 40),
-          // Copyright atau informasi tambahan.
           const Text(
             '© 2024 Dibuat dengan Penuh Semangat',
             style: TextStyle(color: Colors.grey, fontSize: 12),
@@ -129,8 +152,8 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
     );
   }
 
-  // diubah/ditambah: Widget helper untuk membuat baris info
   Widget _buildInfoRow(String label, String value) {
+    Log.info('Membangun baris info teknis - $label: $value');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

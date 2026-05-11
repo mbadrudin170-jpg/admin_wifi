@@ -1,18 +1,23 @@
 // path: lib/halaman/detail/detail_transaksi.dart
 // Halaman ini menampilkan detail dari satu transaksi.
-// diubah: Mengubah menjadi StatefulWidget untuk mengambil data nama secara asinkron.
-// diubah: Memperbaiki kesalahan pemanggilan dengan menggunakan SubKategoriOperasi yang benar.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
+import 'package:admin_wifi/debug/log.dart';
+// ditambah: Navigasi ke form edit
+import 'package:admin_wifi/halaman/form/form_transaksi.dart';
+import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'dart:developer' as developer; // Tambahkan import developer
 
 class DetailTransaksiPage extends StatefulWidget {
   final TransaksiModel transaksi;
@@ -33,46 +38,93 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('[DetailTransaksi] 🔍 : Membuka detail untuk ID: ${widget.transaksi.id}');
+    Log.info('Membuka halaman Detail Transaksi ID: ${widget.transaksi.id}');
+    Log.info(
+      'Ringkasan transaksi - Tipe: ${widget.transaksi.tipe.name}, Jumlah: ${widget.transaksi.jumlah}, Tanggal: ${widget.transaksi.tanggal.toIso8601String()}, Status: ${widget.transaksi.statusPembayaran.name}',
+    );
+    Log.info(
+      'Relasi transaksi - Dompet: ${widget.transaksi.idDompet}, Kategori: ${widget.transaksi.idKategori}, SubKategori: ${widget.transaksi.idSubKategori ?? "N/A"}, Pelanggan: ${widget.transaksi.idPelanggan ?? "N/A"}, Paket: ${widget.transaksi.idPaket ?? "N/A"}',
+    );
   }
 
+  // DIUBAH: Logika diperkuat dengan pengecekan tipe eksplisit untuk mencegah error.
   Future<String?> _getNama(
     Future<dynamic> Function(String) getModel,
     String id,
-    String konteks, // Tambahkan konteks untuk logging
+    String konteks,
   ) async {
-    if (id.isEmpty) return null;
+    if (id.isEmpty) {
+      Log.info('ID $konteks kosong, mengembalikan null');
+      return null;
+    }
+
     try {
-      developer.log('[DetailTransaksi] 📡 : Mengambil data $konteks dengan ID: $id');
+      Log.info('Mengambil data $konteks dengan ID: $id');
       final model = await getModel(id);
-      
+
       if (model != null) {
-        // diubah: Logika ini sekarang lebih fleksibel untuk menangani properti nama yang berbeda.
-        if (model.nama is String) {
-          developer.log('[DetailTransaksi] ✅ : Data $konteks ditemukan: ${model.nama}');
-          return model.nama;
+        String? nama;
+        // diubah: Menggunakan pengecekan tipe eksplisit (is) untuk keamanan akses properti.
+        if (model is DompetModel) {
+          nama = model.namaDompet;
+        } else if (model is KategoriModel) {
+          nama = model.nama;
+        } else if (model is SubKategoriModel) {
+          nama = model.nama;
+        } else if (model is PelangganModel) {
+          nama = model.nama;
+        } else if (model is PaketModel) {
+          nama = model.nama;
         }
-        if (model.namaDompet is String) {
-          developer.log('[DetailTransaksi] ✅ : Data $konteks ditemukan: ${model.namaDompet}');
-          return model.namaDompet;
+
+        if (nama != null) {
+          Log.info('Data $konteks ID: $id ditemukan: $nama');
+          return nama;
+        } else {
+          Log.warning(
+            'Model untuk $konteks ID: $id ditemukan, tetapi properti nama yang relevan tidak dapat diakses atau null. Tipe model: ${model.runtimeType}',
+          );
+          return 'Nama tidak tersedia';
         }
       }
-      developer.log('[DetailTransaksi] ⚠️ : Data $konteks tidak ditemukan untuk ID: $id');
+
+      Log.warning('Data $konteks dengan ID: $id tidak ditemukan di database');
+      return 'Data tidak ditemukan';
     } catch (e, stackTrace) {
-      developer.log(
-        '[DetailTransaksi] ❌ : Error saat mengambil $konteks',
-        name: 'detail_transaksi.getNama',
+      Log.error(
+        'Gagal mengambil data $konteks dengan ID: $id',
         error: e,
         stackTrace: stackTrace,
       );
-      return 'Error: $e';
+      return 'Error Memuat';
     }
-    return 'Tidak Ditemukan';
+  }
+
+  // ditambah: fungsi untuk membuka form edit
+  void _bukaFormEdit() {
+    Log.info(
+      'Navigasi ke FormTransaksiPage mode edit untuk ID: ${widget.transaksi.id}',
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FormTransaksiPage(transaksi: widget.transaksi),
+      ),
+    ).then((berhasil) {
+      if (berhasil == true) {
+        // TODO: Tambahkan logika untuk refresh data jika diperlukan setelah edit
+        Log.info('Kembali dari form edit, data mungkin telah berubah.');
+        setState(() {
+          // Rebuild untuk menampilkan data baru jika ada perubahan
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final TransaksiModel transaksi = widget.transaksi;
+    Log.info('Membangun UI Detail Transaksi ID: ${transaksi.id}');
 
     return Scaffold(
       appBar: AppBar(
@@ -80,10 +132,20 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            developer.log('[DetailTransaksi] ⬅️ : Kembali dari detail');
+            Log.info(
+              'Kembali ke halaman sebelumnya dari Detail Transaksi ID: ${transaksi.id}',
+            );
             Navigator.pop(context);
           },
         ),
+        // ditambah: tombol aksi untuk edit
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _bukaFormEdit,
+            tooltip: 'Edit Transaksi',
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -103,7 +165,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
               ).format(transaksi.jumlah),
             ),
             _buildDetailRow('Tipe', transaksi.tipe.name.toUpperCase()),
-            
+
             _buildFutureDetailRow(
               'Dompet',
               _getNama(
@@ -112,8 +174,9 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                 'Dompet',
               ),
             ),
-            
-            if (transaksi.idDompetTujuan != null && transaksi.idDompetTujuan!.isNotEmpty)
+
+            if (transaksi.idDompetTujuan != null &&
+                transaksi.idDompetTujuan!.isNotEmpty)
               _buildFutureDetailRow(
                 'Dompet Tujuan',
                 _getNama(
@@ -122,7 +185,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                   'Dompet Tujuan',
                 ),
               ),
-              
+
             _buildFutureDetailRow(
               'Kategori',
               _getNama(
@@ -131,8 +194,9 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                 'Kategori',
               ),
             ),
-            
-            if (transaksi.idSubKategori != null && transaksi.idSubKategori!.isNotEmpty)
+
+            if (transaksi.idSubKategori != null &&
+                transaksi.idSubKategori!.isNotEmpty)
               _buildFutureDetailRow(
                 'Sub Kategori',
                 _getNama(
@@ -141,8 +205,9 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                   'Sub-Kategori',
                 ),
               ),
-              
-            if (transaksi.idPelanggan != null && transaksi.idPelanggan!.isNotEmpty)
+
+            if (transaksi.idPelanggan != null &&
+                transaksi.idPelanggan!.isNotEmpty)
               _buildFutureDetailRow(
                 'Pelanggan',
                 _getNama(
@@ -151,7 +216,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                   'Pelanggan',
                 ),
               ),
-              
+
             if (transaksi.idPaket != null && transaksi.idPaket!.isNotEmpty)
               _buildFutureDetailRow(
                 'Paket',
@@ -161,7 +226,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                   'Paket',
                 ),
               ),
-              
+
             _buildDetailRow(
               'Status Pembayaran',
               transaksi.statusPembayaran.name.toUpperCase(),
@@ -174,7 +239,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
               'Poin Digunakan',
               transaksi.poinYangDigunakan.toString(),
             ),
-            
+
             if (transaksi.tanggalMulai != null)
               _buildDetailRow(
                 'Masa Aktif Mulai',
@@ -192,6 +257,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   }
 
   Widget _buildDetailRow(String label, String value) {
+    Log.info('Membangun baris detail - $label: $value');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -207,16 +273,25 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   }
 
   Widget _buildFutureDetailRow(String label, Future<String?> future) {
+    Log.info('Membangun FutureBuilder untuk: $label');
     return FutureBuilder<String?>(
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          Log.info('FutureBuilder $label: masih loading');
           return _buildDetailRow(label, 'Memuat...');
         }
         if (snapshot.hasError) {
+          Log.error(
+            'FutureBuilder $label: error',
+            error: snapshot.error,
+            stackTrace: snapshot.stackTrace,
+          );
           return _buildDetailRow(label, 'Error Data');
         }
-        return _buildDetailRow(label, snapshot.data ?? '-');
+        final data = snapshot.data ?? '-';
+        Log.info('FutureBuilder $label: selesai dengan data "$data"');
+        return _buildDetailRow(label, data);
       },
     );
   }

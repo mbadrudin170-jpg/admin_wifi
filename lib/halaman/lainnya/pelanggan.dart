@@ -5,7 +5,7 @@ import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_pelanggan.dart';
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart'; // diubah: Menggunakan Log kustom
 
 class PelangganPage extends StatefulWidget {
   const PelangganPage({super.key});
@@ -26,14 +26,14 @@ class _PelangganPageState extends State<PelangganPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('[PelangganPage]-[initState] 🏁 : Menginisialisasi halaman Pelanggan', name: 'Pelanggan');
+    Log.info('Menginisialisasi state untuk PelangganPage. Memanggil _refreshPelangganList untuk pertama kali.');
     _refreshPelangganList();
     _searchController.addListener(_filterPelanggan);
   }
 
   @override
   void dispose() {
-    developer.log('[PelangganPage]-[dispose] 🚮 : Menghapus controller dan membersihkan resource', name: 'Pelanggan');
+    Log.info('Membersihkan resource di PelangganPage. _searchController di-dispose.');
     _searchController.dispose();
     super.dispose();
   }
@@ -45,22 +45,25 @@ class _PelangganPageState extends State<PelangganPage> {
               controller: _searchController,
               autofocus: true,
               decoration: const InputDecoration(
-                hintText: 'Cari pelanggan...',
+                hintText: 'Cari nama pelanggan...',
                 border: InputBorder.none,
                 hintStyle: TextStyle(color: Colors.white70),
               ),
               style: const TextStyle(color: Colors.white),
             )
-          : const Text('Pelanggan'),
+          : const Text('Daftar Pelanggan'),
       actions: [
         IconButton(
           icon: Icon(_isSearching ? Icons.close : Icons.search),
           onPressed: () {
-            developer.log('[PelangganPage]-[AppBar] 🔍 : Toggle search mode -> ${_isSearching ? 'Nonaktif' : 'Aktif'}', name: 'Pelanggan');
+            Log.info('Tombol search/close ditekan. Mengubah state _isSearching.');
             setState(() {
               _isSearching = !_isSearching;
               if (!_isSearching) {
+                Log.info('Mode pencarian dinonaktifkan. Membersihkan search controller.');
                 _searchController.clear();
+              } else {
+                Log.info('Mode pencarian diaktifkan.');
               }
             });
           },
@@ -70,54 +73,65 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   Future<void> _refreshPelangganList() async {
-    developer.log('[PelangganPage]-[_refreshPelangganList] 🔄 : Memuat ulang daftar pelanggan', name: 'Pelanggan');
-    setState(() => _isLoading = true);
-    
+    Log.info('Memulai proses refresh daftar pelanggan. Mengatur _isLoading ke true.');
+    if (mounted) setState(() => _isLoading = true);
+
     try {
       final list = await _pelangganOperasi.getPelanggan();
       list.sort((a, b) => a.nama.compareTo(b.nama));
-      
-      developer.log('[PelangganPage]-[_refreshPelangganList] 📥 : Berhasil mengambil ${list.length} pelanggan', name: 'Pelanggan');
-      
+
+      Log.info('Berhasil mengambil dan menyortir ${list.length} data pelanggan.');
+
       if (mounted) {
         setState(() {
           _allPelanggan = list;
           _filteredPelanggan = list;
           _isLoading = false;
+          Log.info('State diperbarui dengan daftar pelanggan yang baru. _isLoading diatur ke false.');
         });
       }
     } catch (e, s) {
-      developer.log('[PelangganPage]-[_refreshPelangganList] ❌ : Error saat memuat data', error: e, stackTrace: s, name: 'Pelanggan');
-      if (mounted) setState(() => _isLoading = false);
+      Log.error('Gagal total saat memuat daftar pelanggan.', error: e, stackTrace: s);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal memuat data pelanggan. Silakan coba lagi.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   void _filterPelanggan() {
     final query = _searchController.text.toLowerCase();
-    developer.log('[PelangganPage]-[_filterPelanggan] ⌨️ : Mencari dengan keyword: "$query"', name: 'Pelanggan');
-    
+    Log.info('Listener _searchController aktif. Memfilter daftar dengan query: "$query".');
+
     setState(() {
       _filteredPelanggan = _allPelanggan
           .where((p) => p.nama.toLowerCase().contains(query))
           .toList();
-      developer.log('[PelangganPage]-[_filterPelanggan] 🎯 : Hasil filter -> ${_filteredPelanggan.length} item', name: 'Pelanggan');
+      Log.info('Filter selesai. Ditemukan ${_filteredPelanggan.length} pelanggan yang cocok.');
     });
   }
 
   void _tambahPelanggan() async {
-    developer.log('[PelangganPage]-[_tambahPelanggan] ➕ : Menuju form tambah pelanggan', name: 'Pelanggan');
+    Log.info('Tombol FAB (+) ditekan. Menavigasi ke FormPelanggan untuk menambah data baru.');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormPelanggan()),
     );
     if (result == true) {
-      developer.log('[PelangganPage]-[_tambahPelanggan] ✅ : Pelanggan baru ditambahkan, menyegarkan list', name: 'Pelanggan');
+      Log.info('Kembali dari FormPelanggan dengan hasil sukses (true). Memanggil _refreshPelangganList untuk memuat ulang data.');
       _refreshPelangganList();
+    } else {
+      Log.info('Kembali dari FormPelanggan tanpa hasil (false atau null). Tidak ada aksi yang diambil.');
     }
   }
 
   void _showDialogOpsi(PelangganModel pelanggan) {
-    developer.log('[PelangganPage]-[_showDialogOpsi] 📂 : Menampilkan opsi untuk pelanggan: ${pelanggan.nama}', name: 'Pelanggan');
+    Log.info('Menampilkan dialog opsi (Edit/Arsipkan) untuk pelanggan: ${pelanggan.nama} (ID: ${pelanggan.id}).');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -130,7 +144,7 @@ class _PelangganPageState extends State<PelangganPage> {
                 leading: const Icon(Icons.edit),
                 title: const Text('Edit Pelanggan'),
                 onTap: () {
-                  developer.log('[PelangganPage]-[_showDialogOpsi] ✏️ : Memilih edit pelanggan', name: 'Pelanggan');
+                  Log.info('Opsi "Edit Pelanggan" dipilih. Menutup dialog dan menavigasi ke FormPelanggan dengan data yang ada.');
                   Navigator.of(dialogContext).pop();
                   Navigator.push(
                     context,
@@ -144,7 +158,7 @@ class _PelangganPageState extends State<PelangganPage> {
                 leading: const Icon(Icons.archive_outlined),
                 title: const Text('Arsipkan Pelanggan'),
                 onTap: () {
-                  developer.log('[PelangganPage]-[_showDialogOpsi] 📦 : Memilih arsipkan pelanggan', name: 'Pelanggan');
+                  Log.info('Opsi "Arsipkan Pelanggan" dipilih. Menutup dialog dan memanggil _showDialogArsipkan.');
                   Navigator.of(dialogContext).pop();
                   _showDialogArsipkan(pelanggan);
                 },
@@ -157,7 +171,7 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   void _showDialogArsipkan(PelangganModel pelanggan) {
-    developer.log('[PelangganPage]-[_showDialogArsipkan] ❓ : Menampilkan konfirmasi arsip untuk ${pelanggan.id}', name: 'Pelanggan');
+    Log.info('Menampilkan dialog konfirmasi pengarsipan untuk pelanggan "${pelanggan.nama}".');
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -170,14 +184,14 @@ class _PelangganPageState extends State<PelangganPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                developer.log('[PelangganPage]-[_showDialogArsipkan] 🔙 : Pengarsipan dibatalkan', name: 'Pelanggan');
+                Log.info('Pengguna membatalkan proses pengarsipan.');
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Arsipkan'),
+              child: const Text('Arsipkan', style: TextStyle(color: Colors.red)),
               onPressed: () {
-                developer.log('[PelangganPage]-[_showDialogArsipkan] 🆗 : Konfirmasi arsip diterima', name: 'Pelanggan');
+                Log.info('Pengguna mengonfirmasi pengarsipan. Memanggil _arsipkanPelanggan dengan ID: ${pelanggan.id}.');
                 Navigator.of(context).pop();
                 _arsipkanPelanggan(pelanggan.id);
               },
@@ -189,10 +203,10 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   void _arsipkanPelanggan(String id) async {
-    developer.log('[PelangganPage]-[_arsipkanPelanggan] 🔨 : Memulai proses pengarsipan di database', name: 'Pelanggan');
+    Log.info('Memulai proses pengarsipan untuk ID pelanggan: $id.');
     try {
       await _pelangganOperasi.arsipkanPelanggan(id);
-      developer.log('[PelangganPage]-[_arsipkanPelanggan] ✅ : Berhasil mengarsipkan ID: $id', name: 'Pelanggan');
+      Log.info('Berhasil mengarsipkan pelanggan dengan ID: $id. Memuat ulang daftar dan menampilkan SnackBar.');
       _refreshPelangganList();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -203,63 +217,80 @@ class _PelangganPageState extends State<PelangganPage> {
         );
       }
     } catch (e, s) {
-      developer.log('[PelangganPage]-[_arsipkanPelanggan] ❌ : Gagal mengarsipkan', error: e, stackTrace: s, name: 'Pelanggan');
+      Log.error('Gagal mengarsipkan pelanggan dengan ID: $id.', error: e, stackTrace: s);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal mengarsipkan pelanggan.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    developer.log('[PelangganPage]-[build] 🏗️ : Membangun UI PelangganPage', name: 'Pelanggan');
+    Log.info('Membangun UI PelangganPage. Status loading: $_isLoading.');
     return Scaffold(
       appBar: _buildAppBar(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _filteredPelanggan.isEmpty
-          ? Center(
-              child: Text(
-                _allPelanggan.isEmpty
-                    ? 'Tidak ada pelanggan terdaftar.'
-                    : 'Pelanggan tidak ditemukan.',
-              ),
-            )
-          : ListView.builder(
-              itemCount: _filteredPelanggan.length,
-              itemBuilder: (context, index) {
-                final pelanggan = _filteredPelanggan[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      pelanggan.nama,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(pelanggan.macAddress),
-                    onTap: () {
-                      developer.log('[PelangganPage]-[ListView] 👆 : Menuju detail pelanggan: ${pelanggan.nama}', name: 'Pelanggan');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DetailPelangganPage(idPelanggan: pelanggan.id),
-                        ),
-                      );
-                    },
-                    onLongPress: () {
-                      developer.log('[PelangganPage]-[ListView] 🖐️ : Long press pada pelanggan: ${pelanggan.nama}', name: 'Pelanggan');
-                      _showDialogOpsi(pelanggan);
-                    },
-                  ),
-                );
-              },
-            ),
+      body: RefreshIndicator(
+        onRefresh: _refreshPelangganList,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _buildContent(),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahPelanggan,
         tooltip: 'Tambah Pelanggan',
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (_filteredPelanggan.isEmpty) {
+      Log.info('Membangun UI content: Daftar pelanggan kosong.');
+      return Center(
+        child: Text(
+          _isSearching
+              ? 'Pelanggan tidak ditemukan untuk pencarian ini.'
+              : 'Belum ada pelanggan. Tekan tombol + untuk menambah.',
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    Log.info('Membangun UI content: Menampilkan ListView dengan ${_filteredPelanggan.length} pelanggan.');
+    return ListView.builder(
+      itemCount: _filteredPelanggan.length,
+      itemBuilder: (context, index) {
+        final pelanggan = _filteredPelanggan[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: ListTile(
+            title: Text(
+              pelanggan.nama,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(pelanggan.macAddress),
+            onTap: () {
+              Log.info('ListTile untuk pelanggan "${pelanggan.nama}" ditekan. Menavigasi ke DetailPelangganPage.');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DetailPelangganPage(idPelanggan: pelanggan.id),
+                ),
+              );
+            },
+            onLongPress: () {
+              Log.info('ListTile untuk pelanggan "${pelanggan.nama}" ditekan lama (long press). Memanggil _showDialogOpsi.');
+              _showDialogOpsi(pelanggan);
+            },
+          ),
+        );
+      },
     );
   }
 }

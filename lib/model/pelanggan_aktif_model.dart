@@ -30,6 +30,25 @@ class PelangganAktifModel {
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
+  // =========================
+  // JSON SERIALIZATION (FOR LOGGING)
+  // ditambahkan: karena butuh serialisasi untuk logging
+  // =========================
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'idPelanggan': idPelanggan,
+      'idPaket': idPaket,
+      'idTransaksi': idTransaksi,
+      'tanggalMulai': tanggalMulai.toIso8601String(),
+      'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
+      'status': status.name,
+      'diperbarui': diperbarui?.toIso8601String(),
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan?.toIso8601String(),
+    };
+  }
+
   // --- Parsing Helpers ---
 
   static DateTime? _parseDateTime(dynamic value) {

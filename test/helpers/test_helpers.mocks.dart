@@ -178,7 +178,7 @@ class MockDatabase extends _i1.Mock implements _i2.Database {
       (super.noSuchMethod(Invocation.getter(#isOpen), returnValue: false)
           as bool);
 
-  @override
+  
   _i2.Database get database =>
       (super.noSuchMethod(
             Invocation.getter(#database),
@@ -821,7 +821,7 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
 /// A class which mocks [CollectionReference].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable
+
 class MockCollectionReference<T extends Object?> extends _i1.Mock
     implements _i6.CollectionReference<T> {
   MockCollectionReference() {
@@ -1233,7 +1233,7 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
 /// A class which mocks [DocumentReference].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable
+
 class MockDocumentReference<T extends Object?> extends _i1.Mock
     implements _i6.DocumentReference<T> {
   MockDocumentReference() {

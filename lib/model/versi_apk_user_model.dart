@@ -31,6 +31,25 @@ class VersiApkUserModel {
   });
 
   // =========================
+  // JSON SERIALIZATION (FOR LOGGING)
+  // ditambahkan: karena butuh serialisasi untuk logging
+  // =========================
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'catatanRilis': catatanRilis,
+      'nomorBuildTerbaru': nomorBuildTerbaru.map((key, value) => MapEntry(key.name, value)),
+      'tautanUnduhan': tautanUnduhan.map((key, value) => MapEntry(key.name, value)),
+      'versiTerbaru': versiTerbaru,
+      'wajibUpdate': wajibUpdate,
+      'youtubeTutorial': youtubeTutorial,
+      'isDeleted': isDeleted,
+      'diarsipkan': diarsipkan?.toIso8601String(),
+      'diperbarui': diperbarui?.toIso8601String(),
+    };
+  }
+
+  // =========================
   // SQLITE
   // =========================
   factory VersiApkUserModel.fromSqlite(Map<String, dynamic> map) {

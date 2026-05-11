@@ -1,6 +1,6 @@
 // path: lib/data/sync/unduhan_awal.dart
 
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/data/sync/unduh_data.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:sqflite/sqflite.dart';
@@ -13,11 +13,7 @@ class UnduhanAwalService {
 
   /// Menjalankan pengecekan dan pengunduhan data awal untuk seluruh tabel.
   Future<void> jalankanUnduhanAwal() async {
-    developer.log(
-      '🚀 Memulai sinkronisasi awal: Mengecek tabel lokal yang kosong...',
-      name: 'APP.SyncInitial',
-      level: 800, // INFO
-    );
+    Log.info('Memulai sinkronisasi awal: Mengecek tabel lokal yang kosong...');
 
     final stopwatch = Stopwatch()..start();
 
@@ -35,11 +31,7 @@ class UnduhanAwalService {
     await _unduhDataPesananJikaKosong();
 
     stopwatch.stop();
-    developer.log(
-      '✅ Proses unduhan awal selesai dalam ${stopwatch.elapsed.inSeconds} detik.',
-      name: 'APP.SyncInitial',
-      level: 800,
-    );
+    Log.info('Proses unduhan awal selesai dalam ${stopwatch.elapsed.inSeconds} detik.');
   }
 
   /// Memeriksa apakah sebuah tabel kosong.
@@ -51,17 +43,12 @@ class UnduhanAwalService {
       );
       final jumlah = Sqflite.firstIntValue(hasil) ?? 0;
 
-      developer.log(
-        "📊 Tabel '$namaTabel': $jumlah baris.",
-        name: 'APP.SyncInitial.Check',
-      );
+      Log.info("Tabel '$namaTabel': $jumlah baris.");
       return jumlah == 0;
     } catch (e) {
-      developer.log(
-        "❌ Gagal mengecek tabel '$namaTabel'.",
-        name: 'APP.SyncInitial.Check',
+      Log.error(
+        "Gagal mengecek tabel '$namaTabel'.",
         error: e,
-        level: 1000,
       );
       return false;
     }
@@ -74,28 +61,17 @@ class UnduhanAwalService {
   }) async {
     try {
       if (await _apakahTabelKosong(namaTabel)) {
-        developer.log(
-          "📡 Memulai unduh data untuk '$namaTabel'...",
-          name: 'APP.SyncInitial.Action',
-        );
+        Log.info("Memulai unduh data untuk '$namaTabel'...");
         await fungsiUnduh();
-        developer.log(
-          "💾 Data '$namaTabel' berhasil disimpan ke lokal.",
-          name: 'APP.SyncInitial.Action',
-        );
+        Log.info("Data '$namaTabel' berhasil disimpan ke lokal.");
       } else {
-        developer.log(
-          "⏭️ Skip '$namaTabel' (Sudah ada data).",
-          name: 'APP.SyncInitial.Action',
-        );
+        Log.info("Skip '$namaTabel' (Sudah ada data).");
       }
     } catch (e, s) {
-      developer.log(
-        "🚨 ERROR saat mengunduh '$namaTabel'",
-        name: 'APP.SyncInitial.Action',
+      Log.error(
+        "ERROR saat mengunduh '$namaTabel'",
         error: e,
         stackTrace: s,
-        level: 1000,
       );
     }
   }

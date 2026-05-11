@@ -8,7 +8,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  static const int _databaseVersion = 40;
+  // dinaikkan dari 41 ke 42 untuk migrasi penambahan kolom tanggal_mulai
+  static const int _databaseVersion = 42;
 
   DatabaseHelper._internal() {
     Log.info('DatabaseHelper instance dibuat (singleton _internal).');
@@ -182,69 +183,35 @@ class DatabaseHelper {
     Log.info('Versi database baru: $newVersion');
     Log.info('========================================');
     
-    Log.info('Membuat batch operation untuk menjalankan multiple query migrasi secara atomik.');
     final batch = db.batch();
 
     try {
-      if (oldVersion < 39) {
-        Log.info('Detected: oldVersion ($oldVersion) < 39. Melakukan migrasi struktur database untuk mencapai versi 39.');
-        
-        final List<String> migrations = [
-          'ALTER TABLE status_unggah ADD COLUMN diperbarui TEXT',
-          'ALTER TABLE pelanggan_aktif ADD COLUMN id_transaksi TEXT',
-          'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet ON transaksi(id_dompet)',
-          'CREATE INDEX IF NOT EXISTS idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
-          'CREATE INDEX IF NOT EXISTS idx_transaksi_isDeleted ON transaksi(isDeleted)',
-          'ALTER TABLE transaksi ADD COLUMN status_pembayaran TEXT',
-          'ALTER TABLE transaksi ADD COLUMN durasi_paket INTEGER',
-          'ALTER TABLE transaksi ADD COLUMN tipe_durasi_paket TEXT',
-          'ALTER TABLE transaksi ADD COLUMN tanggal_mulai TEXT',
-          'ALTER TABLE transaksi ADD COLUMN tanggal_berakhir TEXT',
-          'ALTER TABLE transaksi ADD COLUMN aktivasi_paket INTEGER DEFAULT 0',
-        ];
-
-        Log.info('Total ${migrations.length} query migrasi akan dieksekusi untuk versi < 39.');
-        
-        int successCount = 0;
-        int warningCount = 0;
-        
-        for (int i = 0; i < migrations.length; i++) {
-          final sql = migrations[i];
-          Log.info('Menjalankan migrasi ke-${i + 1}/${migrations.length}: $sql');
-          try {
-            batch.execute(sql);
-            successCount++;
-            Log.info('Migrasi ke-${i + 1} berhasil ditambahkan ke batch: $sql');
-          } catch (e) {
-            warningCount++;
-            Log.warning(
-              'Gagal mengeksekusi migrasi ke-${i + 1}: $sql. '
-              'Kemungkinan kolom atau index sudah ada sebelumnya. Error detail: $e. '
-              'Melanjutkan ke migrasi berikutnya.'
-            );
-          }
+       if (oldVersion < 41) {
+        Log.info('Detected: oldVersion ($oldVersion) < 41. Melakukan migrasi untuk mencapai versi 41.');
+        try {
+          batch.execute('ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_berakhir TEXT');
+          Log.info('Migrasi berhasil ditambahkan ke batch: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_berakhir TEXT');
+        } catch (e) {
+          Log.warning(
+            'Gagal mengeksekusi migrasi: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_berakhir TEXT. '
+            'Kemungkinan kolom sudah ada sebelumnya. Error detail: $e. '
+            'Melanjutkan ke migrasi berikutnya.'
+          );
         }
-        
-        Log.info('Ringkasan migrasi versi < 39: $successCount berhasil, $warningCount warning/gagal (mungkin sudah ada).');
-        
-        Log.info('Menghapus tabel usang riwayat_langganan yang sudah tidak digunakan.');
-        batch.execute('DROP TABLE IF EXISTS riwayat_langganan');
-        Log.info('Query DROP TABLE IF EXISTS riwayat_langganan ditambahkan ke batch.');
-      } else {
-        Log.info('oldVersion ($oldVersion) >= 39. Tidak perlu menjalankan migrasi untuk versi < 39.');
       }
 
-      if (oldVersion < 40) {
-        Log.info('Detected: oldVersion ($oldVersion) < 40. Melakukan migrasi untuk mencapai versi 40.');
-        Log.info('Membuat tabel status_aplikasi untuk menyimpan status aplikasi (key-value pairs).');
-        batch.execute(_tabelStatusAplikasi);
-        Log.info('Query CREATE TABLE status_aplikasi ditambahkan ke batch.');
-        
-        Log.info('Membuat tabel pesan untuk menyimpan notifikasi atau pesan sistem.');
-        batch.execute(_tabelPesan);
-        Log.info('Query CREATE TABLE pesan ditambahkan ke batch.');
-      } else {
-        Log.info('oldVersion ($oldVersion) >= 40. Tidak perlu menjalankan migrasi untuk versi < 40.');
+      if (oldVersion < 42) {
+        Log.info('Detected: oldVersion ($oldVersion) < 42. Melakukan migrasi untuk mencapai versi 42.');
+        try {
+          batch.execute('ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_mulai TEXT');
+          Log.info('Migrasi berhasil ditambahkan ke batch: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_mulai TEXT');
+        } catch (e) {
+          Log.warning(
+            'Gagal mengeksekusi migrasi: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_mulai TEXT. '
+            'Kemungkinan kolom sudah ada sebelumnya. Error detail: $e. '
+            'Melanjutkan ke migrasi berikutnya.'
+          );
+        }
       }
 
       Log.info('Melakukan commit seluruh batch operation. Semua query migrasi akan dieksekusi secara atomik.');
@@ -443,8 +410,8 @@ class DatabaseHelper {
         id_pelanggan TEXT NOT NULL,
         id_paket TEXT NOT NULL,
         id_transaksi TEXT,
-        tanggalMulai TEXT NOT NULL,
-        tanggalBerakhir TEXT NOT NULL,
+        tanggal_mulai TEXT NOT NULL,
+        tanggal_berakhir TEXT NOT NULL,
         status TEXT NOT NULL,
         diperbarui TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,

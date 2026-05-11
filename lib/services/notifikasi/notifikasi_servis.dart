@@ -1,6 +1,6 @@
 // path: lib/services/notifikasi_servis.dart
 // diubah: Memperbaiki semua pemanggilan metode ke plugin untuk menggunakan argumen bernama yang benar.
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -14,8 +14,8 @@ class NotifikasiServis {
   NotifikasiServis.internal(this.plugin);
 
   Future<void> inisialisasi() async {
-    developer.log('[NotifikasiServis]-[inisialisasi] 🔍 : Memulai proses inisialisasi pengaturan notifikasi...');
-    
+    Log.info('Memulai proses inisialisasi pengaturan notifikasi...');
+
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: ios);
@@ -24,15 +24,15 @@ class NotifikasiServis {
       await plugin.initialize(
         settings: settings, // diubah: menggunakan argumen bernama
         onDidReceiveNotificationResponse: (response) {
-          developer.log(
-            '[NotifikasiServis]-[onDidReceiveNotificationResponse] 📩 : Notifikasi diklik oleh pengguna. Payload: ${response.payload}',
+          Log.info(
+            'Notifikasi diklik oleh pengguna. Payload: ${response.payload}',
           );
         },
       );
-      developer.log('[NotifikasiServis]-[inisialisasi] ✅ : Layanan Notifikasi berhasil diinisialisasi.');
+      Log.info('Layanan Notifikasi berhasil diinisialisasi.');
     } catch (e, s) {
-      developer.log(
-        '[NotifikasiServis]-[inisialisasi] ❌ : Gagal melakukan inisialisasi layanan notifikasi',
+      Log.error(
+        'Gagal melakukan inisialisasi layanan notifikasi',
         error: e,
         stackTrace: s,
       );
@@ -40,15 +40,16 @@ class NotifikasiServis {
   }
 
   Future<NotificationAppLaunchDetails?> getDetailPeluncuranNotifikasi() async {
-    developer.log('[NotifikasiServis]-[getDetailPeluncuranNotifikasi] 📱 : Memeriksa apakah aplikasi diluncurkan melalui notifikasi...');
+    Log.info('Memeriksa apakah aplikasi diluncurkan melalui notifikasi...');
     final details = await plugin.getNotificationAppLaunchDetails();
-    
+
     if (details != null && details.didNotificationLaunchApp) {
-      developer.log('[NotifikasiServis]-[getDetailPeluncuranNotifikasi] 🚀 : Aplikasi diluncurkan dari notifikasi dengan ID: ${details.notificationResponse?.id}');
+      Log.info(
+          'Aplikasi diluncurkan dari notifikasi dengan ID: ${details.notificationResponse?.id}');
     } else {
-      developer.log('[NotifikasiServis]-[getDetailPeluncuranNotifikasi] 🏠 : Aplikasi diluncurkan secara normal (bukan dari notifikasi).');
+      Log.info('Aplikasi diluncurkan secara normal (bukan dari notifikasi).');
     }
-    
+
     return details;
   }
 
@@ -58,8 +59,8 @@ class NotifikasiServis {
     required String body,
     String? payload,
   }) async {
-    developer.log('[NotifikasiServis]-[tampilkanNotifikasiLangsung] 🔔 : Mengirim notifikasi langsung (ID: $id, Judul: $title)');
-    
+    Log.info('Mengirim notifikasi langsung (ID: $id, Judul: $title)');
+
     const androidDetails = AndroidNotificationDetails(
       'notifikasi_langsung',
       'Notifikasi Langsung',
@@ -68,7 +69,7 @@ class NotifikasiServis {
       priority: Priority.high,
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
-    
+
     try {
       await plugin.show(
         id: id, // diubah: menggunakan argumen bernama
@@ -77,10 +78,10 @@ class NotifikasiServis {
         notificationDetails: notificationDetails,
         payload: payload,
       );
-      developer.log('[NotifikasiServis]-[tampilkanNotifikasiLangsung] ✨ : Notifikasi langsung berhasil ditampilkan di layar.');
+      Log.info('Notifikasi langsung berhasil ditampilkan di layar.');
     } catch (e, s) {
-      developer.log(
-        '[NotifikasiServis]-[tampilkanNotifikasiLangsung] ❌ : Gagal menampilkan notifikasi langsung',
+      Log.error(
+        'Gagal menampilkan notifikasi langsung',
         error: e,
         stackTrace: s,
       );
@@ -94,8 +95,8 @@ class NotifikasiServis {
     required DateTime jadwal,
     String? payload,
   }) async {
-    developer.log('[NotifikasiServis]-[jadwalNotifikasi] 📅 : Merencanakan notifikasi terjadwal (ID: $id) pada waktu: $jadwal');
-    
+    Log.info('Merencanakan notifikasi terjadwal (ID: $id) pada waktu: $jadwal');
+
     const androidDetails = AndroidNotificationDetails(
       'notifikasi_terjadwal',
       'Notifikasi Terjadwal',
@@ -116,10 +117,10 @@ class NotifikasiServis {
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         // dihapus: uiLocalNotificationDateInterpretation karena tidak ada di signature utama
       );
-      developer.log('[NotifikasiServis]-[jadwalNotifikasi] ✅ : Notifikasi terjadwal berhasil didaftarkan ke sistem.');
+      Log.info('Notifikasi terjadwal berhasil didaftarkan ke sistem.');
     } catch (e, s) {
-      developer.log(
-        '[NotifikasiServis]-[jadwalNotifikasi] ❌ : Gagal mendaftarkan jadwal notifikasi',
+      Log.error(
+        'Gagal mendaftarkan jadwal notifikasi',
         error: e,
         stackTrace: s,
       );
@@ -133,8 +134,8 @@ class NotifikasiServis {
     required DateTime jadwal,
     String? payload,
   }) async {
-    developer.log('[NotifikasiServis]-[perbaruiJadwalNotifikasi] 🔄 : Memulai pembaruan jadwal notifikasi untuk ID: $id');
-    
+    Log.info('Memulai pembaruan jadwal notifikasi untuk ID: $id');
+
     await batalNotifikasi(id);
     await jadwalNotifikasi(
       id: id,
@@ -143,18 +144,18 @@ class NotifikasiServis {
       jadwal: jadwal,
       payload: payload,
     );
-    
-    developer.log('[NotifikasiServis]-[perbaruiJadwalNotifikasi] ✨ : Pembaruan jadwal selesai dilakukan.');
+
+    Log.info('Pembaruan jadwal selesai dilakukan.');
   }
 
   Future<void> batalNotifikasi(int id) async {
-    developer.log('[NotifikasiServis]-[batalNotifikasi] 🗑️ : Membatalkan notifikasi aktif/terjadwal dengan ID: $id');
+    Log.info('Membatalkan notifikasi aktif/terjadwal dengan ID: $id');
     try {
       await plugin.cancel(id: id); // diubah: menggunakan argumen bernama
-      developer.log('[NotifikasiServis]-[batalNotifikasi] ✅ : Notifikasi ID: $id telah dihapus.');
+      Log.info('Notifikasi ID: $id telah dihapus.');
     } catch (e, s) {
-      developer.log(
-        '[NotifikasiServis]-[batalNotifikasi] ❌ : Gagal membatalkan notifikasi ID: $id',
+      Log.error(
+        'Gagal membatalkan notifikasi ID: $id',
         error: e,
         stackTrace: s,
       );
@@ -162,13 +163,13 @@ class NotifikasiServis {
   }
 
   Future<void> batalSemuaNotifikasi() async {
-    developer.log('[NotifikasiServis]-[batalSemuaNotifikasi] 🧹 : Membersihkan semua notifikasi yang ada (aktif maupun terjadwal)...');
+    Log.info('Membersihkan semua notifikasi yang ada (aktif maupun terjadwal)...');
     try {
       await plugin.cancelAll();
-      developer.log('[NotifikasiServis]-[batalSemuaNotifikasi] ✅ : Seluruh notifikasi berhasil dibersihkan.');
+      Log.info('Seluruh notifikasi berhasil dibersihkan.');
     } catch (e, s) {
-      developer.log(
-        '[NotifikasiServis]-[batalSemuaNotifikasi] ❌ : Terjadi kesalahan saat membersihkan semua notifikasi',
+      Log.error(
+        'Terjadi kesalahan saat membersihkan semua notifikasi',
         error: e,
         stackTrace: s,
       );

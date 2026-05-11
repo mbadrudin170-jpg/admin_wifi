@@ -1,10 +1,10 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
 import 'package:sqflite/sqflite.dart';
-import 'dart:developer' as developer;
 import 'package:uuid/uuid.dart';
 
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
@@ -20,9 +20,8 @@ class PelangganAktifOperasi {
 
   PelangganAktifOperasi({NotifikasiServis? notifikasiServis}) {
     this.notifikasiServis = notifikasiServis ?? NotifikasiServis();
-    developer.log(
-      '🔧 [LOKAL] PelangganAktifOperasi diinisialisasi.',
-      name: 'PelangganAktifOperasi',
+    Log.info(
+      'PelangganAktifOperasi diinisialisasi dengan NotifikasiServis: ${notifikasiServis != null ? "dari parameter" : "instance baru"}',
     );
   }
 
@@ -30,37 +29,40 @@ class PelangganAktifOperasi {
     PelangganAktifModel pelangganAktif,
   ) async {
     try {
+      final idBaru = pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id;
       final pelangganUntukDisimpan = pelangganAktif.copyWith(
-        id: pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id,
+        id: idBaru,
         diperbarui: DateTime.now(),
+      );
+
+      Log.info(
+        'Membuat pelanggan aktif baru - ID: $idBaru, ID Pelanggan: ${pelangganUntukDisimpan.idPelanggan}, ID Paket: ${pelangganUntukDisimpan.idPaket}, Berakhir: ${pelangganUntukDisimpan.tanggalBerakhir.toIso8601String()}',
       );
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final data = pelangganUntukDisimpan.toSqlite();
-        developer.log(
-          '📝 [LOKAL] Mencoba membuat pelanggan aktif dengan ID: ${pelangganUntukDisimpan.id}',
-          name: 'PelangganAktifOperasi',
-        );
+        Log.info('Menyisipkan data pelanggan aktif ke tabel pelanggan_aktif');
 
         await txn.insert(
           'pelanggan_aktif',
           data,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+
+        Log.info('Data berhasil disisipkan, menjadwalkan notifikasi...');
         await _jadwalkanNotifikasi(pelangganUntukDisimpan);
+
+        Log.info('Mengirim rincian paket via WhatsApp...');
         await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
       });
 
-      developer.log(
-        '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat.',
-        name: 'PelangganAktifOperasi',
+      Log.info(
+        'Pelanggan aktif ID: $idBaru berhasil dibuat dengan notifikasi dan WhatsApp',
       );
-
       return pelangganUntukDisimpan;
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal membuat pelanggan aktif. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal membuat pelanggan aktif - ID Pelanggan: ${pelangganAktif.idPelanggan}, ID Paket: ${pelangganAktif.idPaket}',
         error: e,
         stackTrace: stackTrace,
       );
@@ -71,10 +73,8 @@ class PelangganAktifOperasi {
   Future<List<PelangganAktifModel>> ambilSemuaPelangganAktif() async {
     try {
       final db = await dbHelper.database;
-
-      developer.log(
-        '🔍 [LOKAL] Mengambil semua pelanggan aktif (isDeleted = 0)',
-        name: 'PelangganAktifOperasi',
+      Log.info(
+        'Mengambil semua pelanggan aktif (isDeleted = 0) dari database lokal',
       );
 
       final List<Map<String, dynamic>> maps = await db.query(
@@ -83,19 +83,37 @@ class PelangganAktifOperasi {
         whereArgs: [0],
       );
 
-      developer.log(
-        '✅ [LOKAL] Berhasil mengambil ${maps.length} pelanggan aktif.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Berhasil mengambil ${maps.length} pelanggan aktif');
+
+      // Log ringkasan
+      int jumlahMendekatiBerakhir = 0;
+      final sekarang = DateTime.now();
+      final tigaHariLagi = sekarang.add(const Duration(days: 3));
+
+      for (var map in maps) {
+        final tanggalBerakhirString = map['tanggal_berakhir'] as String? ?? '';
+        if (tanggalBerakhirString.isNotEmpty) {
+          final tanggalBerakhir = DateTime.parse(tanggalBerakhirString);
+          if (tanggalBerakhir.isBefore(tigaHariLagi) &&
+              tanggalBerakhir.isAfter(sekarang)) {
+            jumlahMendekatiBerakhir++;
+          }
+        }
+      }
+
+      if (jumlahMendekatiBerakhir > 0) {
+        Log.info(
+          '$jumlahMendekatiBerakhir pelanggan aktif akan berakhir dalam 3 hari ke depan',
+        );
+      }
 
       return List.generate(
         maps.length,
         (i) => PelangganAktifModel.fromSqlite(maps[i]),
       );
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal mengambil semua pelanggan aktif. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal mengambil semua pelanggan aktif dari database lokal',
         error: e,
         stackTrace: stackTrace,
       );
@@ -106,11 +124,7 @@ class PelangganAktifOperasi {
   Future<PelangganAktifModel?> ambilSatuPelangganAktif(String id) async {
     try {
       final db = await dbHelper.database;
-
-      developer.log(
-        '🔍 [LOKAL] Mencari pelanggan aktif dengan ID: $id',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Mencari pelanggan aktif dengan ID: $id');
 
       final List<Map<String, dynamic>> maps = await db.query(
         'pelanggan_aktif',
@@ -119,22 +133,18 @@ class PelangganAktifOperasi {
       );
 
       if (maps.isNotEmpty) {
-        developer.log(
-          '✅ [LOKAL] Pelanggan aktif dengan ID: $id ditemukan.',
-          name: 'PelangganAktifOperasi',
+        final pelangganAktif = PelangganAktifModel.fromSqlite(maps.first);
+        Log.info(
+          'Pelanggan aktif ID: $id ditemukan - ID Pelanggan: ${pelangganAktif.idPelanggan}, ID Paket: ${pelangganAktif.idPaket}',
         );
-        return PelangganAktifModel.fromSqlite(maps.first);
+        return pelangganAktif;
       }
 
-      developer.log(
-        '⚠️ [LOKAL] Pelanggan aktif dengan ID: $id tidak ditemukan.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Pelanggan aktif ID: $id tidak ditemukan di database');
       return null;
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal mengambil pelanggan aktif dengan ID: $id. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal mengambil pelanggan aktif ID: $id',
         error: e,
         stackTrace: stackTrace,
       );
@@ -144,12 +154,14 @@ class PelangganAktifOperasi {
 
   Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
     try {
+      Log.info(
+        'Memperbarui pelanggan aktif ID: ${pelangganAktif.id} - ID Pelanggan: ${pelangganAktif.idPelanggan}, ID Paket: ${pelangganAktif.idPaket}',
+      );
+
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final data = pelangganAktif.toSqlite();
-
-        developer.log(
-          '📝 [LOKAL] Memperbarui pelanggan aktif dengan ID: ${pelangganAktif.id}',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Menjalankan update di tabel pelanggan_aktif dengan conflict replace',
         );
 
         await txn.update(
@@ -159,18 +171,17 @@ class PelangganAktifOperasi {
           whereArgs: [pelangganAktif.id],
         );
 
+        Log.info('Update berhasil, menjadwalkan ulang notifikasi...');
         await _jadwalkanNotifikasi(pelangganAktif);
+
+        Log.info('Mengirim ulang rincian paket via WhatsApp...');
         await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
       });
 
-      developer.log(
-        '✅ [LOKAL] Pelanggan aktif (ID: ${pelangganAktif.id}) berhasil diperbarui.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Pelanggan aktif ID: ${pelangganAktif.id} berhasil diperbarui');
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal memperbarui pelanggan aktif (ID: ${pelangganAktif.id}). Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal memperbarui pelanggan aktif ID: ${pelangganAktif.id}',
         error: e,
         stackTrace: stackTrace,
       );
@@ -180,42 +191,42 @@ class PelangganAktifOperasi {
 
   Future<void> _jadwalkanNotifikasi(PelangganAktifModel pelangganAktif) async {
     try {
-      developer.log(
-        '🔔 [LOKAL] Menjadwalkan notifikasi untuk pelanggan aktif (ID: ${pelangganAktif.id})',
-        name: 'PelangganAktifOperasi',
+      Log.info(
+        'Menjadwalkan notifikasi untuk pelanggan aktif ID: ${pelangganAktif.id}',
+      );
+      Log.info(
+        'Tanggal berakhir: ${pelangganAktif.tanggalBerakhir.toIso8601String()}',
       );
 
       final pelanggan = await _pelangganOperasi.getPelangganById(
         pelangganAktif.idPelanggan,
       );
       final namaPelanggan = pelanggan?.nama ?? 'Tanpa Nama';
+      Log.info('Nama pelanggan: $namaPelanggan');
 
-      // Batalkan notifikasi lama (ID HashCode dasar, +1, dan +2 untuk yang baru)
+      // Batalkan notifikasi lama
+      Log.info(
+        'Membatalkan notifikasi lama untuk hash ID: ${pelangganAktif.id.hashCode}, ${pelangganAktif.id.hashCode + 1}, ${pelangganAktif.id.hashCode + 2}',
+      );
       await notifikasiServis.batalNotifikasi(pelangganAktif.id.hashCode);
       await notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 1));
-      await notifikasiServis.batalNotifikasi(
-        (pelangganAktif.id.hashCode + 2), 
-      ); 
+      await notifikasiServis.batalNotifikasi((pelangganAktif.id.hashCode + 2));
 
-      // --- 1. NOTIFIKASI TEPAT SAAT BERAKHIR (Paling Penting) ---
+      // --- 1. NOTIFIKASI TEPAT SAAT BERAKHIR ---
       final jadwalTepatWaktu = pelangganAktif.tanggalBerakhir;
       if (jadwalTepatWaktu.isAfter(DateTime.now())) {
         await notifikasiServis.jadwalNotifikasi(
-          id:
-              (pelangganAktif.id.hashCode +
-              2), // Gunakan offset +2 agar tidak bentrok
+          id: (pelangganAktif.id.hashCode + 2),
           title: 'Masa Aktif Habis!',
           body: 'Paket WiFi untuk $namaPelanggan telah berakhir sekarang.',
           jadwal: jadwalTepatWaktu,
         );
-        developer.log(
-          '✅ [LOKAL] Notifikasi TEPAT WAKTU dijadwalkan untuk ${jadwalTepatWaktu.toIso8601String()}',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Notifikasi TEPAT WAKTU dijadwalkan untuk ${jadwalTepatWaktu.toIso8601String()} (${jadwalTepatWaktu.difference(DateTime.now()).inHours} jam dari sekarang)',
         );
       } else {
-        developer.log(
-          '⏭️ [LOKAL] Notifikasi tepat waktu dilewati karena sudah kadaluarsa.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Notifikasi tepat waktu dilewati karena tanggal berakhir ${jadwalTepatWaktu.toIso8601String()} sudah lewat (${DateTime.now().difference(jadwalTepatWaktu).inHours} jam yang lalu)',
         );
       }
 
@@ -230,9 +241,12 @@ class PelangganAktifOperasi {
           body: 'Paket untuk pelanggan $namaPelanggan akan berakhir besok.',
           jadwal: jadwalNotifikasiH1,
         );
-        developer.log(
-          '✅ [LOKAL] Notifikasi H-1 dijadwalkan.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Notifikasi H-1 dijadwalkan untuk ${jadwalNotifikasiH1.toIso8601String()} (${jadwalNotifikasiH1.difference(DateTime.now()).inHours} jam dari sekarang)',
+        );
+      } else {
+        Log.info(
+          'Notifikasi H-1 dilewati karena jadwal ${jadwalNotifikasiH1.toIso8601String()} sudah lewat',
         );
       }
 
@@ -248,15 +262,21 @@ class PelangganAktifOperasi {
               'Paket untuk pelanggan $namaPelanggan akan berakhir dalam 3 hari.',
           jadwal: jadwalNotifikasiH3,
         );
-        developer.log(
-          '✅ [LOKAL] Notifikasi H-3 dijadwalkan.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Notifikasi H-3 dijadwalkan untuk ${jadwalNotifikasiH3.toIso8601String()} (${jadwalNotifikasiH3.difference(DateTime.now()).inHours} jam dari sekarang)',
+        );
+      } else {
+        Log.info(
+          'Notifikasi H-3 dilewati karena jadwal ${jadwalNotifikasiH3.toIso8601String()} sudah lewat',
         );
       }
+
+      Log.info(
+        'Penjadwalan notifikasi selesai untuk pelanggan aktif ID: ${pelangganAktif.id}',
+      );
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal menjadwalkan notifikasi. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal menjadwalkan notifikasi untuk pelanggan aktif ID: ${pelangganAktif.id}',
         error: e,
         stackTrace: stackTrace,
       );
@@ -267,21 +287,17 @@ class PelangganAktifOperasi {
     List<PelangganAktifModel> items,
   ) async {
     try {
-      developer.log(
-        '📦 [LOKAL] Memproses batch ${items.length} pelanggan aktif.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Memproses batch ${items.length} pelanggan aktif');
+
       final data = items.map((item) => item.toSqlite()).toList();
+      Log.info('Mengonversi ${data.length} item ke format SQLite');
+
       await _operasiDasar.sisipkanAtauPerbaruiBatch('pelanggan_aktif', data);
 
-      developer.log(
-        '✅ [LOKAL] Batch ${items.length} pelanggan aktif berhasil diproses.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Batch ${items.length} pelanggan aktif berhasil diproses');
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal memproses batch pelanggan aktif. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal memproses batch ${items.length} pelanggan aktif',
         error: e,
         stackTrace: stackTrace,
       );
@@ -291,19 +307,19 @@ class PelangganAktifOperasi {
 
   Future<void> arsipkanPelangganAktif(String id) async {
     try {
-      developer.log(
-        '📦 [LOKAL] Mencoba mengarsipkan pelanggan aktif dengan ID: $id',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Mengarsipkan pelanggan aktif ID: $id');
 
       final pelangganAktif = await ambilSatuPelangganAktif(id);
       if (pelangganAktif == null) {
-        developer.log(
-          '⚠️ [LOKAL] Pelanggan aktif dengan ID: $id tidak ditemukan untuk diarsipkan.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Pelanggan aktif ID: $id tidak ditemukan, tidak dapat mengarsipkan',
         );
         return;
       }
+
+      Log.info(
+        'Data sebelum arsip - ID Pelanggan: ${pelangganAktif.idPelanggan}, ID Paket: ${pelangganAktif.idPaket}, Berakhir: ${pelangganAktif.tanggalBerakhir.toIso8601String()}',
+      );
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final pelangganDiarsipkan = pelangganAktif.copyWith(
@@ -311,6 +327,9 @@ class PelangganAktifOperasi {
           diarsipkan: DateTime.now(),
         );
 
+        Log.info(
+          'Menandai isDeleted=true, diarsipkan=${pelangganDiarsipkan.diarsipkan?.toIso8601String()}',
+        );
         await txn.update(
           'pelanggan_aktif',
           pelangganDiarsipkan.toSqlite(),
@@ -318,19 +337,18 @@ class PelangganAktifOperasi {
           whereArgs: [id],
         );
 
+        Log.info('Membatalkan notifikasi terkait...');
         await notifikasiServis.batalNotifikasi(id.hashCode);
         await notifikasiServis.batalNotifikasi((id.hashCode + 1));
         await notifikasiServis.batalNotifikasi((id.hashCode + 2));
       });
 
-      developer.log(
-        '✅ [LOKAL] Pelanggan aktif (ID: $id) berhasil diarsipkan.',
-        name: 'PelangganAktifOperasi',
+      Log.info(
+        'Pelanggan aktif ID: $id berhasil diarsipkan dengan notifikasi dibatalkan',
       );
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal mengarsipkan pelanggan aktif (ID: $id). Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal mengarsipkan pelanggan aktif ID: $id',
         error: e,
         stackTrace: stackTrace,
       );
@@ -342,10 +360,8 @@ class PelangganAktifOperasi {
     try {
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
-
-        developer.log(
-          '🧹 [LOKAL] Mencari pelanggan diarsipkan sebelum ${batasWaktu.toIso8601String()}',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Mencari pelanggan diarsipkan sebelum ${batasWaktu.toIso8601String()} (30 hari yang lalu)',
         );
 
         final List<Map<String, dynamic>> pelangganKadaluarsa = await txn.query(
@@ -355,10 +371,7 @@ class PelangganAktifOperasi {
         );
 
         if (pelangganKadaluarsa.isEmpty) {
-          developer.log(
-            'ℹ️ [LOKAL] Tidak ada pelanggan aktif yang diarsipkan lebih dari 30 hari untuk dihapus.',
-            name: 'PelangganAktifOperasi',
-          );
+          Log.info('Tidak ada pelanggan aktif diarsipkan lebih dari 30 hari');
           return;
         }
 
@@ -366,26 +379,24 @@ class PelangganAktifOperasi {
             .map((map) => map['id'] as String)
             .toList();
 
-        developer.log(
-          '🗑️ [LOKAL] Menghapus ${idsUntukDihapus.length} pelanggan diarsipkan.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'Ditemukan ${idsUntukDihapus.length} pelanggan diarsipkan kadaluarsa, menghapus permanen...',
         );
 
         final count = await txn.delete(
           'pelanggan_aktif',
-          where: 'id IN (${List.filled(idsUntukDihapus.length, '?').join(',')})',
+          where:
+              'id IN (${List.filled(idsUntukDihapus.length, '?').join(',')})',
           whereArgs: idsUntukDihapus,
         );
 
-        developer.log(
-          '🧹 [LOKAL] $count pelanggan aktif yang diarsipkan lebih dari 30 hari telah dihapus permanen.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          '$count pelanggan aktif diarsipkan lebih dari 30 hari telah dihapus permanen',
         );
       });
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal menghapus permanen pelanggan diarsipkan. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal menghapus permanen pelanggan diarsipkan',
         error: e,
         stackTrace: stackTrace,
       );
@@ -395,23 +406,17 @@ class PelangganAktifOperasi {
 
   Future<void> hapusSemuaPelangganAktif() async {
     try {
+      Log.info('PERINGATAN: Menghapus SEMUA pelanggan aktif secara permanen');
+
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
-        developer.log(
-          '⚠️ [LOKAL] Menghapus SEMUA pelanggan aktif secara permanen!',
-          name: 'PelangganAktifOperasi',
-        );
-
         await txn.delete('pelanggan_aktif');
-
-        developer.log(
-          '🗑️ [LOKAL] Semua pelanggan aktif telah dihapus permanen.',
-          name: 'PelangganAktifOperasi',
-        );
+        Log.info('Semua data di tabel pelanggan_aktif telah dihapus permanen');
       });
+
+      Log.info('Operasi hapus semua pelanggan aktif selesai');
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal menghapus semua pelanggan aktif. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal menghapus semua pelanggan aktif',
         error: e,
         stackTrace: stackTrace,
       );
@@ -421,10 +426,7 @@ class PelangganAktifOperasi {
 
   Future<int> arsipkanPelangganKadaluarsa() async {
     try {
-      developer.log(
-        '🔍 [LOKAL] Memeriksa pelanggan kadaluarsa untuk diarsipkan.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Memeriksa pelanggan kadaluarsa untuk diarsipkan');
       final db = await dbHelper.database;
       final sekarang = DateTime.now();
 
@@ -435,22 +437,23 @@ class PelangganAktifOperasi {
       );
 
       if (pelangganKadaluarsa.isEmpty) {
-        developer.log(
-          'ℹ️ [LOKAL] Tidak ada pelanggan kadaluarsa untuk diarsipkan.',
-          name: 'PelangganAktifOperasi',
-        );
+        Log.info('Tidak ada pelanggan kadaluarsa yang perlu diarsipkan');
         return 0;
       }
 
-      final idsToArchive = pelangganKadaluarsa.map((p) => p['id'] as String).toList();
-
-      developer.log(
-        '📦 [LOKAL] Ditemukan ${idsToArchive.length} pelanggan kadaluarsa. Mulai mengarsipkan...',
-        name: 'PelangganAktifOperasi',
+      final idsToArchive = pelangganKadaluarsa
+          .map((p) => p['id'] as String)
+          .toList();
+      Log.info(
+        'Ditemukan ${idsToArchive.length} pelanggan kadaluarsa (berakhir sebelum ${sekarang.toIso8601String()})',
       );
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final now = DateTime.now().toIso8601String();
+        Log.info(
+          'Menandai ${idsToArchive.length} pelanggan sebagai isDeleted=1, diarsipkan=$now',
+        );
+
         await txn.update(
           'pelanggan_aktif',
           {'isDeleted': 1, 'diarsipkan': now, 'diperbarui': now},
@@ -458,6 +461,9 @@ class PelangganAktifOperasi {
           whereArgs: idsToArchive,
         );
 
+        Log.info(
+          'Membatalkan notifikasi untuk ${idsToArchive.length} pelanggan kadaluarsa...',
+        );
         for (final id in idsToArchive) {
           await notifikasiServis.batalNotifikasi(id.hashCode);
           await notifikasiServis.batalNotifikasi((id.hashCode + 1));
@@ -465,16 +471,11 @@ class PelangganAktifOperasi {
         }
       });
 
-      developer.log(
-        '🗂️ [LOKAL] ${idsToArchive.length} pelanggan kadaluarsa telah diarsipkan.',
-        name: 'PelangganAktifOperasi',
-      );
-
+      Log.info('${idsToArchive.length} pelanggan kadaluarsa telah diarsipkan');
       return idsToArchive.length;
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal mengarsipkan pelanggan kadaluarsa. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal mengarsipkan pelanggan kadaluarsa',
         error: e,
         stackTrace: stackTrace,
       );
@@ -484,30 +485,23 @@ class PelangganAktifOperasi {
 
   Future<int> arsipkanSemuaPelangganAktif() async {
     try {
-      developer.log(
-        '📦 [LOKAL] Mengarsipkan semua pelanggan aktif.',
-        name: 'PelangganAktifOperasi',
-      );
-
+      Log.info('Mengarsipkan SEMUA pelanggan aktif');
       final semuaPelanggan = await ambilSemuaPelangganAktif();
 
       if (semuaPelanggan.isEmpty) {
-        developer.log(
-          'ℹ️ [LOKAL] Tidak ada pelanggan aktif untuk diarsipkan.',
-          name: 'PelangganAktifOperasi',
-        );
+        Log.info('Tidak ada pelanggan aktif untuk diarsipkan');
         return 0;
       }
 
       final idsToArchive = semuaPelanggan.map((p) => p.id).toList();
-
-      developer.log(
-        '📊 [LOKAL] Mengarsipkan ${idsToArchive.length} pelanggan aktif...',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Mengarsipkan ${idsToArchive.length} pelanggan aktif');
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final now = DateTime.now().toIso8601String();
+        Log.info(
+          'Menandai ${idsToArchive.length} pelanggan sebagai isDeleted=1, diarsipkan=$now',
+        );
+
         await txn.update(
           'pelanggan_aktif',
           {'isDeleted': 1, 'diarsipkan': now, 'diperbarui': now},
@@ -515,6 +509,9 @@ class PelangganAktifOperasi {
           whereArgs: idsToArchive,
         );
 
+        Log.info(
+          'Membatalkan notifikasi untuk ${idsToArchive.length} pelanggan...',
+        );
         for (final id in idsToArchive) {
           await notifikasiServis.batalNotifikasi(id.hashCode);
           await notifikasiServis.batalNotifikasi((id.hashCode + 1));
@@ -522,16 +519,11 @@ class PelangganAktifOperasi {
         }
       });
 
-      developer.log(
-        '🗂️ [LOKAL] ${idsToArchive.length} pelanggan aktif telah diarsipkan.',
-        name: 'PelangganAktifOperasi',
-      );
-
+      Log.info('${idsToArchive.length} pelanggan aktif telah diarsipkan');
       return idsToArchive.length;
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal mengarsipkan semua pelanggan aktif. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal mengarsipkan semua pelanggan aktif',
         error: e,
         stackTrace: stackTrace,
       );
@@ -544,19 +536,14 @@ class PelangganAktifOperasi {
   ) async {
     try {
       if (ids.isEmpty) {
-        developer.log(
-          'ℹ️ [LOKAL] getPelangganAktifByIds dipanggil dengan list ID kosong.',
-          name: 'PelangganAktifOperasi',
+        Log.info(
+          'getPelangganAktifByIds dipanggil dengan list ID kosong, mengembalikan list kosong',
         );
         return [];
       }
 
       final db = await dbHelper.database;
-
-      developer.log(
-        '🔍 [LOKAL] Mencari ${ids.length} pelanggan aktif berdasarkan IDs.',
-        name: 'PelangganAktifOperasi',
-      );
+      Log.info('Mencari ${ids.length} pelanggan aktif berdasarkan IDs');
 
       final placeholders = List.filled(ids.length, '?').join(',');
       final List<Map<String, dynamic>> maps = await db.query(
@@ -565,18 +552,16 @@ class PelangganAktifOperasi {
         whereArgs: ids,
       );
 
-      developer.log(
-        '✅ [LOKAL] Ditemukan ${maps.length} dari ${ids.length} pelanggan aktif yang dicari.',
-        name: 'PelangganAktifOperasi',
+      Log.info(
+        'Ditemukan ${maps.length} dari ${ids.length} pelanggan aktif yang dicari (${ids.length - maps.length} tidak ditemukan)',
       );
 
       return List.generate(maps.length, (i) {
         return PelangganAktifModel.fromSqlite(maps[i]);
       });
     } catch (e, stackTrace) {
-      developer.log(
-        '❌ [LOKAL] Gagal mengambil pelanggan aktif berdasarkan IDs. Error: $e',
-        name: 'PelangganAktifOperasi',
+      Log.error(
+        'Gagal mengambil pelanggan aktif berdasarkan IDs (${ids.length} ID)',
         error: e,
         stackTrace: stackTrace,
       );

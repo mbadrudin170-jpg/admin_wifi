@@ -1,6 +1,6 @@
 // path: lib/halaman/lainnya/kritik_saran_page.dart
 
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/detail/detail_kritik_saran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
@@ -22,40 +22,27 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
   @override
   void initState() {
     super.initState();
-    developer.log(
-      '🚀 [KritikSaranPage] initState: Memulai halaman',
-      name: 'APP.KritikSaran',
-    );
+    Log.info('Menginisialisasi halaman Kritik & Saran');
     _loadKritikSaran();
   }
 
   void _loadKritikSaran() {
-    developer.log(
-      '🔄 [KritikSaranPage] _loadKritikSaran: Memanggil getKritikSaran()',
-      name: 'APP.KritikSaran',
-    );
+    Log.info('Memuat data kritik dan saran dari database');
     setState(() {
       _kritikSaranFuture = _kritikSaranOperasi
           .getKritikSaran()
           .then((data) {
-            developer.log(
-              '📊 [KritikSaranPage] Berhasil memuat ${data.length} data',
-              name: 'APP.KritikSaran',
-            );
+            Log.info('Berhasil memuat ${data.length} data kritik dan saran');
             for (var item in data) {
-              developer.log(
-                '📝 Item ID: ${item.id} | User: ${item.userId} | Tanggal: ${item.tanggal}',
-                name: 'APP.KritikSaran',
-              );
+              Log.info('Data kritik/saran - ID: ${item.id}, User ID: ${item.userId}, Tanggal: ${item.tanggal}, Isi: ${item.isi.length > 50 ? '${item.isi.substring(0, 50)}...' : item.isi}');
             }
             return data;
           })
           .catchError((error, stackTrace) {
-            developer.log(
-              '❌ [KritikSaranPage] Error ambil data',
+            Log.error(
+              'Gagal memuat data kritik dan saran dari database',
               error: error,
               stackTrace: stackTrace,
-              name: 'APP.KritikSaran',
             );
             throw error;
           });
@@ -63,10 +50,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
   }
 
   Future<void> _hapusKritikSaran(KritikSaranModel item) async {
-    developer.log(
-      '⚠️ [KritikSaranPage] Mencoba menghapus Item ID: ${item.id}',
-      name: 'APP.KritikSaran',
-    );
+    Log.info('Menampilkan konfirmasi hapus untuk kritik/saran ID: ${item.id}, User ID: ${item.userId}');
 
     final konfirmasi = await showDialog<bool>(
       context: context,
@@ -78,20 +62,14 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
         actions: [
           TextButton(
             onPressed: () {
-              developer.log(
-                '🔘 [KritikSaranPage] Dialog Hapus: User memilih Batal',
-                name: 'APP.KritikSaran',
-              );
+              Log.info('Dialog hapus kritik/saran ID: ${item.id} - User memilih Batal');
               Navigator.of(context).pop(false);
             },
             child: const Text('Batal'),
           ),
           TextButton(
             onPressed: () {
-              developer.log(
-                '🔘 [KritikSaranPage] Dialog Hapus: User memilih Hapus',
-                name: 'APP.KritikSaran',
-              );
+              Log.info('Dialog hapus kritik/saran ID: ${item.id} - User memilih Hapus');
               Navigator.of(context).pop(true);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -103,16 +81,10 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
     if (konfirmasi == true && mounted) {
       try {
-        developer.log(
-          '🔨 [KritikSaranPage] Menjalankan operasi hapus ke database...',
-          name: 'APP.KritikSaran',
-        );
+        Log.info('Menjalankan operasi hapus kritik/saran ID: ${item.id} dari database');
         await _kritikSaranOperasi.hapusKritikSaran(item.id);
 
-        developer.log(
-          '✅ [KritikSaranPage] Item ID: ${item.id} berhasil dihapus',
-          name: 'APP.KritikSaran',
-        );
+        Log.info('Kritik/saran ID: ${item.id} berhasil dihapus dari database');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -124,11 +96,10 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
         }
         _loadKritikSaran();
       } catch (e, stackTrace) {
-        developer.log(
-          '❌ [KritikSaranPage] Gagal menghapus item',
+        Log.error(
+          'Gagal menghapus kritik/saran ID: ${item.id} dari database',
           error: e,
           stackTrace: stackTrace,
-          name: 'APP.KritikSaran',
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -144,10 +115,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
 
   @override
   Widget build(BuildContext context) {
-    developer.log(
-      '🏗️ [KritikSaranPage] Building UI...',
-      name: 'APP.KritikSaran',
-    );
+    Log.info('Membangun UI halaman Kritik & Saran');
     return Scaffold(
       appBar: AppBar(title: const Text('Kritik & Saran')),
       body: FutureBuilder<List<KritikSaranModel>>(
@@ -156,11 +124,18 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            Log.error(
+              'Terjadi error saat memuat data kritik dan saran di FutureBuilder',
+              error: snapshot.error,
+              stackTrace: snapshot.stackTrace,
+            );
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            Log.info('Data kritik dan saran kosong, belum ada kritik dan saran');
             return const Center(child: Text('Belum ada kritik dan saran.'));
           } else {
             final listKritikSaran = snapshot.data!;
+            Log.info('Menampilkan ${listKritikSaran.length} item kritik dan saran dalam daftar');
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: listKritikSaran.length,
@@ -175,10 +150,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () async {
-                      developer.log(
-                        '🔗 [KritikSaranPage] Navigasi ke detail ID: ${item.id}',
-                        name: 'APP.KritikSaran',
-                      );
+                      Log.info('Navigasi ke halaman Detail Kritik/Saran ID: ${item.id}');
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -188,14 +160,16 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                       );
 
                       if (result == true) {
-                        developer.log(
-                          '🔄 [KritikSaranPage] Kembali dari detail dengan result true, refresh data',
-                          name: 'APP.KritikSaran',
-                        );
+                        Log.info('Kembali dari halaman Detail Kritik/Saran dengan perubahan data, menyegarkan daftar');
                         _loadKritikSaran();
+                      } else {
+                        Log.info('Kembali dari halaman Detail Kritik/Saran tanpa perubahan data');
                       }
                     },
-                    onLongPress: () => _hapusKritikSaran(item),
+                    onLongPress: () {
+                      Log.info('Long press pada kritik/saran ID: ${item.id}, menampilkan menu hapus');
+                      _hapusKritikSaran(item);
+                    },
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(

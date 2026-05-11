@@ -2,61 +2,59 @@
 
 import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
+import 'dart:convert'; // Tambahkan untuk memformat data Map/List
 
 class Log {
-  //
-  // sebelum
-  // static const String _green = '\x1B[32m';
-
-  // setelah (bright green, kompatibel)
-  static const String _green = '\x1B[92m';
-
-  // atau (256-color, lebih halus)
-  // static const String _green = '\x1B[38;5;82m';
-  //
-
+  static const String _green = '\x1B[38;5;76m';
   static const String _reset = '\x1B[0m';
   static const String _red = '\x1B[31m';
-  // static const String _green = '\x1B[32m';
   static const String _yellow = '\x1B[33m';
   static const String _cyan = '\x1B[36m';
 
+  /// Helper untuk memformat data agar rapi jika berupa Map atau List
+  static String _formatData(Object? data) {
+    if (data == null) return '';
+    try {
+      if (data is Map || data is List) {
+        // Menggunakan JsonEncoder agar tampilan di console berbaris rapi (pretty print)
+        return '\nData: ${const JsonEncoder.withIndent('  ').convert(data)}';
+      }
+      return '\nData: $data';
+    } catch (_) {
+      return '\nData: $data';
+    }
+  }
+
   /// ✅ Log Informasi
-  /// Digunakan untuk alur normal aplikasi
-  static void info(String message) {
-    // diubah: Tambah parameter name
+  static void info(String message, [Object? data]) {
     _logCustom(
-      message,
+      '$message${_formatData(data)}',
       name: '✅',
       color: _green,
       level: 800,
-    ); // diubah: Teruskan name
+    );
   }
 
   /// ⚠️ Log Warning
-  /// Digunakan untuk kondisi tidak ideal tapi bukan error fatal
-  static void warning(String message, {String? name}) {
-    // diubah: Tambah parameter name
+  static void warning(String message, [Object? data]) {
     _logCustom(
-      message,
+      '$message${_formatData(data)}',
       name: '⚠️',
       color: _yellow,
       level: 900,
-    ); // diubah: Teruskan name
+    );
   }
 
   /// ❌ Log Error
-  /// Digunakan untuk try-catch / error fatal
   static void error(
     String message, {
     Object? error,
     StackTrace? stackTrace,
-    String? name,
+    Object? data,
   }) {
-    // diubah: Tambah parameter name
     _logCustom(
-      message,
-      name: '❌', // diubah: Teruskan name
+      '$message${_formatData(data)}',
+      name: '❌',
       color: _red,
       level: 1000,
       error: error,
@@ -65,16 +63,14 @@ class Log {
   }
 
   /// 🌐 Log API / Firestore
-  /// Digunakan untuk monitoring request dan response data
   static void api(
     String path,
     Map<String, dynamic> data, {
     required String method,
-    String? name, // diubah: Tambah parameter name
   }) {
     _logCustom(
-      '[$method] $path | Data: $data',
-      name: '🌐', // diubah: Teruskan name
+      '[$method] $path${_formatData(data)}',
+      name: '🌐',
       color: _cyan,
       level: 500,
     );
@@ -89,28 +85,19 @@ class Log {
     Object? error,
     StackTrace? st,
   }) {
-    // Logger hanya aktif saat debug mode
     if (!kDebugMode) return;
 
-    // Ambil stack trace saat ini
     final trace = StackTrace.current.toString().split('\n');
-
-    // Ambil caller asli
     final String callerRow = trace.length > 2 ? trace[2] : 'Unknown';
-
-    // Regex untuk parsing lokasi caller
     final match = RegExp(r'#2\s+(.+)\s+\((.+)\)').firstMatch(callerRow);
 
     String location = '';
-
     if (match != null) {
       final methodCaller = match.group(1);
       final fileInfo = match.group(2);
-
       location = '[ $methodCaller ] - $fileInfo';
     }
 
-    // Output log
     dev.log(
       '$color $message - $location$_reset',
       name: name,

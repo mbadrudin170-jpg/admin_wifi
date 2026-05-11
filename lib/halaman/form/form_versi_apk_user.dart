@@ -1,6 +1,6 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
-import 'dart:developer' as developer;
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
@@ -12,14 +12,13 @@ class FormVersiApkUser extends StatefulWidget {
   final VersiApkUserOperasi operasi;
 
   FormVersiApkUser({super.key, this.versiApkUser, VersiApkUserOperasi? operasi})
-    : operasi = operasi ?? VersiApkUserOperasi();
+      : operasi = operasi ?? VersiApkUserOperasi();
 
   @override
   State<FormVersiApkUser> createState() => _FormVersiApkUserState();
 }
 
 class _FormVersiApkUserState extends State<FormVersiApkUser> {
-  final String fileName = 'form_versi_apk_user.dart';
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool get _isEdit => widget.versiApkUser != null;
@@ -39,10 +38,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   @override
   void initState() {
     super.initState();
-    developer.log(
-      '🚀 Inisialisasi FormVersiApkUser (Mode: ${_isEdit ? 'Edit' : 'Tambah'})',
-      name: fileName,
-    );
+    Log.info('Menginisialisasi FormVersiApkUser (Mode: ${_isEdit ? 'Edit' : 'Tambah'})');
 
     _catatanRilisController = TextEditingController();
     _versiTerbaruController = TextEditingController();
@@ -64,43 +60,27 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   }
 
   void _muatDataVersiTerakhir() async {
-    developer.log(
-      '📡 Memuat data rilis terakhir untuk otomatisasi input...',
-      name: fileName,
-    );
+    Log.info('Memuat data rilis terakhir untuk otomatisasi input.');
     setState(() => _isLoading = true);
     try {
       final versiTerakhir = await widget.operasi.ambilVersiApkTerbaru();
       if (versiTerakhir != null && mounted) {
         _versiTerbaruController.text = versiTerakhir.versiTerbaru;
         final buildBerikutnya =
-            (versiTerakhir.nomorBuildTerbaru[ArsitekturApkEnum.universal] ??
-                0) +
-            1;
+            (versiTerakhir.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0) + 1;
         _buildUniversalController.text = buildBerikutnya.toString();
 
-        developer.log(
-          '✨ Data rilis sebelumnya ditemukan. Menyarankan build: $buildBerikutnya',
-          name: fileName,
-        );
+        Log.info('Data rilis sebelumnya ditemukan. Menyarankan build: $buildBerikutnya');
       }
     } catch (e, s) {
-      developer.log(
-        '❌ Gagal memuat data versi terakhir',
-        name: fileName,
-        error: e,
-        stackTrace: s,
-      );
+      Log.error('Gagal memuat data versi terakhir', error: e, stackTrace: s);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _populateControllers(VersiApkUserModel data) {
-    developer.log(
-      '📝 Memasukkan data model ke dalam form controller (ID: ${data.id})',
-      name: fileName,
-    );
+    Log.info('Memasukkan data model ke dalam form controller (ID: ${data.id})');
     _catatanRilisController.text = data.catatanRilis;
     _versiTerbaruController.text = data.versiTerbaru;
     _youtubeTutorialController.text = data.youtubeTutorial;
@@ -108,22 +88,17 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
     _buildUniversalController.text =
         data.nomorBuildTerbaru[ArsitekturApkEnum.universal]?.toString() ?? '';
-    _build32Controller.text =
-        data.nomorBuildTerbaru[ArsitekturApkEnum.bit_32]?.toString() ?? '';
-    _build64Controller.text =
-        data.nomorBuildTerbaru[ArsitekturApkEnum.bit_64]?.toString() ?? '';
+    _build32Controller.text = data.nomorBuildTerbaru[ArsitekturApkEnum.bit_32]?.toString() ?? '';
+    _build64Controller.text = data.nomorBuildTerbaru[ArsitekturApkEnum.bit_64]?.toString() ?? '';
 
-    _tautanUniversalController.text =
-        data.tautanUnduhan[ArsitekturApkEnum.universal] ?? '';
-    _tautan32Controller.text =
-        data.tautanUnduhan[ArsitekturApkEnum.bit_32] ?? '';
-    _tautan64Controller.text =
-        data.tautanUnduhan[ArsitekturApkEnum.bit_64] ?? '';
+    _tautanUniversalController.text = data.tautanUnduhan[ArsitekturApkEnum.universal] ?? '';
+    _tautan32Controller.text = data.tautanUnduhan[ArsitekturApkEnum.bit_32] ?? '';
+    _tautan64Controller.text = data.tautanUnduhan[ArsitekturApkEnum.bit_64] ?? '';
   }
 
   @override
   void dispose() {
-    developer.log('🔌 Menghapus semua controller (dispose)', name: fileName);
+    Log.info('Menghapus semua controller (dispose)');
     _catatanRilisController.dispose();
     _versiTerbaruController.dispose();
     _youtubeTutorialController.dispose();
@@ -138,10 +113,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      developer.log(
-        '❓ Menampilkan dialog konfirmasi kepada pengguna',
-        name: fileName,
-      );
+      Log.info('Menampilkan dialog konfirmasi kepada pengguna');
 
       final konfirmasi = await showDialog<bool>(
         context: context,
@@ -153,9 +125,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
               Text('Konfirmasi Simpan'),
             ],
           ),
-          content: const Text(
-            'Apakah data versi aplikasi yang Anda masukkan sudah benar?',
-          ),
+          content: const Text('Apakah data versi aplikasi yang Anda masukkan sudah benar?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -170,18 +140,12 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
       );
 
       if (konfirmasi != true) {
-        developer.log(
-          '🚫 Pengguna membatalkan proses penyimpanan',
-          name: fileName,
-        );
+        Log.info('Pengguna membatalkan proses penyimpanan');
         return;
       }
 
       setState(() => _isLoading = true);
-      developer.log(
-        '💾 Sedang memproses penyimpanan ke database...',
-        name: fileName,
-      );
+      Log.info('Sedang memproses penyimpanan ke database...');
 
       final nomorBuild = <ArsitekturApkEnum, int>{};
       if (_buildUniversalController.text.isNotEmpty) {
@@ -202,8 +166,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
       final tautanUnduhan = <ArsitekturApkEnum, String>{};
       if (_tautanUniversalController.text.isNotEmpty) {
-        tautanUnduhan[ArsitekturApkEnum.universal] =
-            _tautanUniversalController.text;
+        tautanUnduhan[ArsitekturApkEnum.universal] = _tautanUniversalController.text;
       }
       if (_tautan32Controller.text.isNotEmpty) {
         tautanUnduhan[ArsitekturApkEnum.bit_32] = _tautan32Controller.text;
@@ -222,25 +185,18 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         tautanUnduhan: tautanUnduhan,
       );
 
+      Log.info('Model Versi APK yang akan disimpan: ${dataToSave.toJson()}');
+
       try {
         if (_isEdit) {
-          developer.log(
-            '🆙 Menjalankan perintah update data...',
-            name: fileName,
-          );
+          Log.info('Menjalankan perintah update data...');
           await widget.operasi.perbaruiVersiApkUser(dataToSave);
         } else {
-          developer.log(
-            '🆕 Menjalankan perintah tambah data baru...',
-            name: fileName,
-          );
+          Log.info('Menjalankan perintah tambah data baru...');
           await widget.operasi.tambahVersiApkUser(dataToSave);
         }
 
-        developer.log(
-          '✅ Proses penyimpanan berhasil diselesaikan',
-          name: fileName,
-        );
+        Log.info('Proses penyimpanan berhasil diselesaikan');
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -252,12 +208,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         );
         Navigator.of(context).pop(dataToSave);
       } catch (e, s) {
-        developer.log(
-          '❌ Terjadi kesalahan saat menyimpan data',
-          name: fileName,
-          error: e,
-          stackTrace: s,
-        );
+        Log.error('Terjadi kesalahan saat menyimpan data', error: e, stackTrace: s);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -275,7 +226,6 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ✅ Diperbaiki: dari app_bar ke appBar
         title: Text(_isEdit ? 'Edit Versi APK' : 'Tambah Versi APK'),
       ),
       body: Stack(
@@ -291,9 +241,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                     controller: _versiTerbaruController,
                     decoration: const InputDecoration(
                       labelText: 'Versi Terbaru (Contoh: 1.0.0)',
-                      prefixIcon: Icon(
-                        Icons.info_outline,
-                      ), // ✅ Diperbaiki: Ikon yang valid
+                      prefixIcon: Icon(Icons.info_outline),
                       border: OutlineInputBorder(),
                     ),
                     validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
@@ -340,10 +288,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                     title: const Text('Wajib Update'),
                     value: _wajibUpdate,
                     onChanged: (bool value) {
-                      developer.log(
-                        '🔔 Switch Wajib Update diubah ke: $value',
-                        name: fileName,
-                      );
+                      Log.info('Switch Wajib Update diubah ke: $value');
                       setState(() => _wajibUpdate = value);
                     },
                   ),
@@ -361,9 +306,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withAlpha(
-                128,
-              ), // ✅ Diperbaiki: withAlpha menggantikan opacity manual
+              color: Colors.black.withAlpha(128),
               child: const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

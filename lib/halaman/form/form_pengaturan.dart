@@ -1,6 +1,6 @@
 // path: lib/halaman/form/form_pengaturan.dart
 
-import 'dart:developer' as developer; // Tambahkan import log
+import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
@@ -30,10 +30,9 @@ class _FormPengaturanState extends State<FormPengaturan> {
   @override
   void initState() {
     super.initState();
-    developer.log(
-      '📝 [FormPengaturan] -> [initState] -> Inisialisasi formulir dengan data awal',
-      name: 'FormPengaturan.Lifecycle',
-    );
+    Log.info('Menginisialisasi Form Edit Pengaturan');
+    Log.info('Data awal - Interval: ${widget.pengaturan.intervalSinkronisasiOtomatis} jam, Hapus arsip: ${widget.pengaturan.hapusOtomatisDataArsip} hari, Mode pemeliharaan: ${widget.pengaturan.modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${widget.pengaturan.infoPemeliharaan.isNotEmpty ? widget.pengaturan.infoPemeliharaan : "(kosong)"}');
+    
     _intervalController = TextEditingController(
       text: widget.pengaturan.intervalSinkronisasiOtomatis.toString(),
     );
@@ -44,31 +43,32 @@ class _FormPengaturanState extends State<FormPengaturan> {
       text: widget.pengaturan.infoPemeliharaan,
     );
     _modePemeliharaan = widget.pengaturan.modePemeliharaan;
+    
+    Log.info('Controller berhasil diinisialisasi dengan data awal');
   }
 
   @override
   void dispose() {
-    developer.log(
-      '🗑️ [FormPengaturan] -> [dispose] -> Membersihkan controller formulir',
-      name: 'FormPengaturan.Lifecycle',
-    );
+    Log.info('Membersihkan controller Form Edit Pengaturan');
     _intervalController.dispose();
     _hapusArsipController.dispose();
     _infoController.dispose();
     super.dispose();
+    Log.info('Controller berhasil dibersihkan, Form Edit Pengaturan di-dispose');
   }
 
   void _simpanForm() async {
-    developer.log(
-      '🔘 [FormPengaturan] -> [_simpanForm] -> Mencoba memvalidasi dan menyimpan data',
-      name: 'FormPengaturan.Action',
-    );
+    Log.info('Memvalidasi dan menyimpan data pengaturan');
 
     if (_formKey.currentState!.validate()) {
+      Log.info('Validasi form berhasil');
       setState(() => _isLoading = true);
+      Log.info('Loading state diaktifkan');
 
       final interval = int.tryParse(_intervalController.text) ?? 0;
       final hapusArsip = int.tryParse(_hapusArsipController.text) ?? 0;
+
+      Log.info('Nilai dari form - Interval: $interval jam, Hapus arsip: $hapusArsip hari, Mode pemeliharaan: ${_modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${_infoController.text.isNotEmpty ? _infoController.text : "(kosong)"}');
 
       final pengaturanBaru = PengaturanModel(
         intervalSinkronisasiOtomatis: interval,
@@ -78,30 +78,27 @@ class _FormPengaturanState extends State<FormPengaturan> {
       );
 
       try {
-        developer.log(
-          '💾 [FormPengaturan] -> [_simpanForm] -> Mengirim data baru ke database',
-          name: 'FormPengaturan.Database',
-        );
+        Log.info('Menyimpan pengaturan baru ke database - Interval: $interval, Hapus Arsip: $hapusArsip, Mode: $_modePemeliharaan');
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturanBaru);
+        Log.info('Pengaturan berhasil disimpan ke database');
         
         if (mounted) {
-          developer.log(
-            '✅ [FormPengaturan] -> [_simpanForm] -> Pengaturan berhasil diperbarui',
-            name: 'FormPengaturan.Success',
-          );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Pengaturan berhasil disimpan.'),
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context, true); // Kembali dengan sinyal sukses
+          Log.info('SnackBar sukses ditampilkan, navigasi kembali dengan result true');
+          Navigator.pop(context, true);
+        } else {
+          Log.info('Widget tidak mounted setelah simpan berhasil, tidak dapat navigasi');
         }
-      } catch (e) {
-        developer.log(
-          '❌ [FormPengaturan] -> [_simpanForm] -> Error saat menyimpan: $e',
-          name: 'FormPengaturan.Error',
+      } catch (e, stackTrace) {
+        Log.error(
+          'Gagal menyimpan pengaturan ke database',
           error: e,
+          stackTrace: stackTrace,
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -110,24 +107,37 @@ class _FormPengaturanState extends State<FormPengaturan> {
               backgroundColor: Colors.red,
             ),
           );
+          Log.info('SnackBar error ditampilkan');
         }
       } finally {
         if (mounted) {
           setState(() => _isLoading = false);
+          Log.info('Loading state dinonaktifkan');
         }
       }
     } else {
-      developer.log(
-        '⚠️ [FormPengaturan] -> [_simpanForm] -> Validasi gagal, periksa inputan user',
-        name: 'FormPengaturan.Validation',
-      );
+      Log.info('Validasi form gagal, periksa inputan user');
+      // Log detail error validasi
+      final intervalValue = _intervalController.text;
+      final hapusArsipValue = _hapusArsipController.text;
+      Log.info('Input tidak valid - Interval: "$intervalValue", Hapus Arsip: "$hapusArsipValue"');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI Form Edit Pengaturan');
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Pengaturan')),
+      appBar: AppBar(
+        title: const Text('Edit Pengaturan'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Log.info('Kembali ke halaman Pengaturan tanpa menyimpan');
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       body: Stack(
         children: [
           Padding(
@@ -153,17 +163,24 @@ class _FormPengaturanState extends State<FormPengaturan> {
                       'Mode Pemeliharaan',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
+                    subtitle: Text(
+                      _modePemeliharaan
+                          ? 'Aplikasi dalam mode pemeliharaan'
+                          : 'Aplikasi berjalan normal',
+                    ),
                     value: _modePemeliharaan,
                     onChanged: (bool value) {
-                      developer.log(
-                        '🔄 [FormPengaturan] -> [onChanged Mode] -> Mengubah status pemeliharaan ke: $value',
-                        name: 'FormPengaturan.UI',
-                      );
+                      Log.info('Mode pemeliharaan diubah dari ${_modePemeliharaan ? "Aktif" : "Nonaktif"} menjadi ${value ? "Aktif" : "Nonaktif"}');
                       setState(() {
                         _modePemeliharaan = value;
                       });
                     },
-                    secondary: const Icon(Icons.construction_outlined),
+                    secondary: Icon(
+                      _modePemeliharaan
+                          ? Icons.construction
+                          : Icons.check_circle_outline,
+                      color: _modePemeliharaan ? Colors.orange : Colors.green,
+                    ),
                   ),
                   if (_modePemeliharaan)
                     Padding(
@@ -178,6 +195,9 @@ class _FormPengaturanState extends State<FormPengaturan> {
                           prefixIcon: Icon(Icons.info_outline),
                         ),
                         maxLines: 3,
+                        onChanged: (value) {
+                          Log.info('Info pemeliharaan diubah: ${value.length > 50 ? value.substring(0, 50) : value}');
+                        },
                       ),
                     ),
                   const SizedBox(height: 32),
@@ -187,7 +207,13 @@ class _FormPengaturanState extends State<FormPengaturan> {
                       minimumSize: const Size(double.infinity, 50),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Simpan'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Simpan'),
                   ),
                 ],
               ),
@@ -208,6 +234,7 @@ class _FormPengaturanState extends State<FormPengaturan> {
     required String label,
     required IconData icon,
   }) {
+    Log.info('Membangun TextFormField untuk: $label');
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -217,16 +244,23 @@ class _FormPengaturanState extends State<FormPengaturan> {
       ),
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      onChanged: (value) {
+        Log.info('Input $label berubah: $value');
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
+          Log.info('Validasi $label gagal: field kosong');
           return 'Field ini tidak boleh kosong.';
         }
         if (int.tryParse(value) == null) {
+          Log.info('Validasi $label gagal: bukan angka valid ("$value")');
           return 'Harap masukkan angka yang valid.';
         }
         if (int.parse(value) <= 0) {
+          Log.info('Validasi $label gagal: nilai <= 0 ($value)');
           return 'Nilai harus lebih besar dari 0';
         }
+        Log.info('Validasi $label berhasil: $value');
         return null;
       },
     );

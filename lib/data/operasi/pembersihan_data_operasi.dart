@@ -5,12 +5,10 @@ import 'package:admin_wifi/debug/log.dart';
 
 class PembersihanDataOperasi {
   final dbHelper = DatabaseHelper.instance;
-  final String _fileName = 'pembersihan_data_operasi.dart';
 
   /// Fungsi utama untuk menghapus semua data arsip
   /// yang sudah lebih tua dari [batasHari] di semua tabel yang relevan.
   Future<int> hapusSemuaDataArsipKadaluarsa({required int batasHari}) async {
-    final name = '$_fileName.hapusSemuaDataArsipKadaluarsa';
     Log.info(
       'Memulai proses pembersihan data arsip yang lebih tua dari $batasHari hari.',
     );
@@ -51,12 +49,7 @@ class PembersihanDataOperasi {
 
         totalTerhapus += hasil;
       } catch (e, s) {
-        Log.error(
-          'Gagal membersihkan tabel $tabel.',
-          error: e,
-          stackTrace: s,
-          name: '$name.Error',
-        );
+        Log.error('Gagal membersihkan tabel $tabel.', error: e, stackTrace: s);
         // Lanjutkan ke tabel berikutnya meskipun ada error di satu tabel
         continue;
       }

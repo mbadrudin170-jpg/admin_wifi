@@ -1,6 +1,6 @@
 // path: lib/halaman/form/form_pelanggan.dart
 
-import 'dart:developer' as developer; // Import logging
+import 'package:admin_wifi/debug/log.dart'; // diubah: Menggunakan Log kustom
 import 'package:flutter/material.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
@@ -28,17 +28,16 @@ class _FormPelangganState extends State<FormPelanggan> {
   final _passwordFocusNode = FocusNode();
   final _macAddressFocusNode = FocusNode();
 
+  bool get _isEditMode => widget.pelanggan != null;
   bool _isPasswordVisible = false;
-  bool _isSaving = false; // Status loading saat simpan
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    developer.log(
-      '🎬 [FormPelanggan] -> [initState] -> Membuka formulir (${widget.pelanggan != null ? 'Mode Edit' : 'Mode Tambah'})',
-      name: 'FormPelanggan.Lifecycle',
-    );
-    if (widget.pelanggan != null) {
+    Log.info('Membuka FormPelanggan dalam mode: ${_isEditMode ? "Edit" : "Tambah"}.');
+    if (_isEditMode) {
+      Log.info('Mode Edit: Mempopulasikan form dengan data pelanggan ID: ${widget.pelanggan!.id}');
       _namaController.text = widget.pelanggan!.nama;
       _teleponController.text = widget.pelanggan!.telepon;
       _alamatController.text = widget.pelanggan!.alamat;
@@ -49,7 +48,7 @@ class _FormPelangganState extends State<FormPelanggan> {
 
   @override
   void dispose() {
-    developer.log('🗑️ [FormPelanggan] -> [dispose] -> Menutup halaman', name: 'FormPelanggan.Lifecycle');
+    Log.info('Menjalankan dispose di FormPelanggan. Membersihkan semua controllers dan focus nodes.');
     _namaController.dispose();
     _teleponController.dispose();
     _alamatController.dispose();
@@ -64,59 +63,71 @@ class _FormPelangganState extends State<FormPelanggan> {
   }
 
   void _simpanForm() async {
+    Log.info('Tombol "Simpan" ditekan.');
     if (_formKey.currentState!.validate()) {
+      Log.info('Form valid. Memulai proses penyimpanan.');
       setState(() => _isSaving = true);
       
       final newPelanggan = PelangganModel(
-        id: widget.pelanggan?.id ?? const Uuid().v4(),
+        id: _isEditMode ? widget.pelanggan!.id : const Uuid().v4(),
         nama: _namaController.text.trim(),
         telepon: _teleponController.text.trim(),
         alamat: _alamatController.text.trim(),
-        password: _passwordController.text,
+        password: _passwordController.text, // No trim for password
         macAddress: _macAddressController.text.trim().toUpperCase(),
         diperbarui: DateTime.now(),
       );
 
+      Log.info('Model Pelanggan yang akan disimpan: ${newPelanggan.toJson()}');
+
       try {
-        if (widget.pelanggan == null) {
-          developer.log('💾 [FormPelanggan] -> [_simpanForm] -> Membuat pelanggan baru: ${newPelanggan.nama}', name: 'FormPelanggan.Database');
+        if (!_isEditMode) {
+          Log.info('Menjalankan operasi CREATE untuk pelanggan baru: ${newPelanggan.nama}');
           await PelangganOperasi().createPelanggan(newPelanggan);
         } else {
-          developer.log('💾 [FormPelanggan] -> [_simpanForm] -> Memperbarui data ID: ${newPelanggan.id}', name: 'FormPelanggan.Database');
+          Log.info('Menjalankan operasi UPDATE untuk pelanggan ID: ${newPelanggan.id}');
           await PelangganOperasi().updatePelanggan(newPelanggan);
         }
 
         if (mounted) {
-          developer.log('✅ [FormPelanggan] -> [_simpanForm] -> Berhasil disimpan', name: 'FormPelanggan.Success');
+          Log.info('Penyimpanan berhasil. Menutup form dan kembali dengan hasil true.');
           Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Data pelanggan berhasil disimpan.'),
+              backgroundColor: Colors.green,
+            ),
+          );
         }
-      } catch (e) {
-        developer.log('❌ [FormPelanggan] -> [_simpanForm] -> Gagal menyimpan: $e', name: 'FormPelanggan.Error', error: e);
+      } catch (e, s) {
+        Log.error('Gagal menyimpan data pelanggan ke database.', error: e, stackTrace: s);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Terjadi kesalahan: $e')),
+            SnackBar(content: Text('Gagal menyimpan data: $e')),
           );
         }
       } finally {
-        if (mounted) setState(() => _isSaving = false);
+        if (mounted) {
+          setState(() => _isSaving = false);
+          Log.info('Proses penyimpanan selesai. isSaving diatur ke false.');
+        }
       }
     } else {
-      developer.log('⚠️ [FormPelanggan] -> [_simpanForm] -> Validasi form gagal', name: 'FormPelanggan.Validation');
+      Log.warning('Form tidak valid. Proses penyimpanan dibatalkan.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    Log.info('Membangun UI FormPelanggan. isSaving: $_isSaving');
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.pelanggan == null ? 'Tambah Pelanggan' : 'Edit Pelanggan',
+          _isEditMode ? 'Edit Pelanggan' : 'Tambah Pelanggan',
         ),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
         leading: BackButton(
           onPressed: () {
-            developer.log('⬅️ [FormPelanggan] -> [BackButton] -> Kembali tanpa menyimpan', name: 'FormPelanggan.UI');
+            Log.info('Tombol "Back" ditekan. Kembali tanpa menyimpan.');
             Navigator.pop(context, false);
           },
         ),
@@ -127,75 +138,83 @@ class _FormPelangganState extends State<FormPelanggan> {
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildTextField(
                   controller: _namaController,
                   focusNode: _namaFocusNode,
-                  label: 'Nama',
-                  icon: Icons.person,
+                  label: 'Nama Pelanggan',
+                  icon: Icons.person_outline,
                   nextFocus: _teleponFocusNode,
                   validator: (v) => (v == null || v.isEmpty) ? 'Nama tidak boleh kosong' : null,
                 ),
+                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _teleponController,
                   focusNode: _teleponFocusNode,
-                  label: 'Telepon',
-                  icon: Icons.phone,
+                  label: 'Nomor Telepon (WhatsApp)',
+                  icon: Icons.phone_android_outlined,
                   keyboard: TextInputType.phone,
                   nextFocus: _alamatFocusNode,
                   validator: (v) => (v == null || v.isEmpty) ? 'Telepon tidak boleh kosong' : null,
                 ),
+                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _alamatController,
                   focusNode: _alamatFocusNode,
-                  label: 'Alamat',
-                  icon: Icons.home,
+                  label: 'Alamat Lengkap',
+                  icon: Icons.home_outlined,
                   nextFocus: _passwordFocusNode,
                   validator: (v) => (v == null || v.isEmpty) ? 'Alamat tidak boleh kosong' : null,
                 ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   focusNode: _passwordFocusNode,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        _isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                       ),
-                      onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                      onPressed: () {
+                        Log.info('Visibilitas password diubah.');
+                        setState(() => _isPasswordVisible = !_isPasswordVisible);
+                      }
                     ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   obscureText: !_isPasswordVisible,
                   textInputAction: TextInputAction.next,
                   onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_macAddressFocusNode),
                   validator: (v) => (v == null || v.isEmpty) ? 'Password tidak boleh kosong' : null,
                 ),
+                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _macAddressController,
                   focusNode: _macAddressFocusNode,
                   label: 'MAC Address',
-                  icon: Icons.router,
+                  icon: Icons.router_outlined,
                   hint: 'XX:XX:XX:XX:XX:XX',
                   action: TextInputAction.done,
                   onSubmitted: (_) => _macAddressFocusNode.unfocus(),
                   validator: (v) => (v == null || v.isEmpty) ? 'MAC Address tidak boleh kosong' : null,
                 ),
-                const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _simpanForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: _isSaving
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('SIMPAN DATA', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: _isSaving ? null : _simpanForm,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                        )
+                      : const Text('SIMPAN', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -205,7 +224,6 @@ class _FormPelangganState extends State<FormPelanggan> {
     );
   }
 
-  // Helper widget untuk merapikan kode TextFormField
   Widget _buildTextField({
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -225,6 +243,7 @@ class _FormPelangganState extends State<FormPelanggan> {
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
       keyboardType: keyboard,
       textInputAction: action,

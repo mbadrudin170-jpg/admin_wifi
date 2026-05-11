@@ -1,64 +1,51 @@
 // path: lib/services/kontrol_aplikasi_service.dart
+import 'package:admin_wifi/debug/log.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:developer' as developer;
 
 // untuk mengontrol status aplikasi pengguna dari jarak jauh
 class KontrolAplikasiService {
   // Mendapatkan referensi ke koleksi 'pengaturan' di Firestore.
-  // ditambah: Menambahkan referensi koleksi untuk Firestore
   final CollectionReference _pengaturanRef = FirebaseFirestore.instance
       .collection('pengaturan');
 
   // untuk mendapatkan status maintenance dari firestore
   Future<bool> dapatkanStatusMaintenance() async {
-    developer.log(
-      '[KontrolAplikasiService]-[dapatkanStatusMaintenance] 🔍 : Memulai pengambilan status maintenance dari Firestore...',
-    );
+    Log.info('Memulai pengambilan status maintenance dari Firestore...');
 
     try {
       // Mendapatkan dokumen 'status_aplikasi' dari koleksi.
-      // ditambah: Mengambil data dari dokumen spesifik
       final doc = await _pengaturanRef.doc('status_aplikasi').get();
 
-      developer.log(
-        '[KontrolAplikasiService]-[dapatkanStatusMaintenance] 📡 : Dokumen "status_aplikasi" berhasil ditarik dari server.',
-      );
+      Log.info('Dokumen "status_aplikasi" berhasil ditarik dari server');
 
       // Jika dokumen ada dan berisi field 'sedang_maintenance', kembalikan nilainya.
-      // ditambah: Logika untuk memeriksa keberadaan data dan mengembalikan nilai
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
+
         if (data.containsKey('sedang_maintenance')) {
           final bool status = data['sedang_maintenance'] as bool;
-          developer.log(
-            '[KontrolAplikasiService]-[dapatkanStatusMaintenance] ✅ : Data ditemukan. Status maintenance saat ini: $status',
-          );
+          Log.info('Data ditemukan. Status maintenance saat ini: $status');
           return status;
         } else {
-          developer.log(
-            '[KontrolAplikasiService]-[dapatkanStatusMaintenance] ⚠️ : Dokumen ada, tetapi field "sedang_maintenance" tidak ditemukan.',
+          Log.warning(
+            'Dokumen ada, tetapi field "sedang_maintenance" tidak ditemukan. Data: $data',
           );
         }
       } else {
-        developer.log(
-          '[KontrolAplikasiService]-[dapatkanStatusMaintenance] 📥 : Dokumen "status_aplikasi" belum dibuat di Firestore.',
+        Log.warning(
+          'Dokumen "status_aplikasi" belum dibuat di Firestore. Menggunakan default false.',
         );
       }
 
       // Jika dokumen tidak ada atau field tidak ada, default ke false (tidak maintenance).
-      // ditambah: Nilai default jika data tidak ditemukan
-      developer.log(
-        '[KontrolAplikasiService]-[dapatkanStatusMaintenance] 💡 : Menggunakan nilai default (false).',
-      );
+      Log.info('Menggunakan nilai default (false)');
       return false;
     } catch (e, s) {
       // Mencatat error jika gagal mengambil data.
-      // ditambah: Penanganan error
-      developer.log(
-        '[KontrolAplikasiService]-[dapatkanStatusMaintenance] ❌ : Gagal mengambil status maintenance dari database',
+      Log.error(
+        'Gagal mengambil status maintenance dari database',
         error: e,
         stackTrace: s,
-        name: 'KontrolAplikasiService',
       );
       // Mengembalikan false sebagai fallback jika terjadi error.
       return false;
@@ -67,29 +54,24 @@ class KontrolAplikasiService {
 
   // untuk mengubah status maintenance di firestore
   Future<void> aturStatusMaintenance(bool status) async {
-    developer.log(
-      '[KontrolAplikasiService]-[aturStatusMaintenance] 🚀 : Memproses perubahan status maintenance menjadi: $status',
-    );
+    Log.info('Memproses perubahan status maintenance menjadi: $status');
 
     try {
       // Mengatur (atau membuat jika belum ada) dokumen 'status_aplikasi'
       // dengan field 'sedang_maintenance'.
-      // ditambah: Menyimpan atau memperbarui data di Firestore
       await _pengaturanRef.doc('status_aplikasi').set({
         'sedang_maintenance': status,
       });
 
-      developer.log(
-        '[KontrolAplikasiService]-[aturStatusMaintenance] ✨ : Berhasil memperbarui status maintenance di Firestore.',
+      Log.info(
+        '✨ Berhasil memperbarui status maintenance di Firestore menjadi: $status',
       );
     } catch (e, s) {
       // Mencatat error jika gagal menyimpan data.
-      // ditambah: Penanganan error
-      developer.log(
-        '[KontrolAplikasiService]-[aturStatusMaintenance] ❌ : Gagal mengatur status maintenance ke database',
+      Log.error(
+        'Gagal mengatur status maintenance ke database: $status',
         error: e,
         stackTrace: s,
-        name: 'KontrolAplikasiService',
       );
       // Melempar kembali error agar bisa ditangani di UI jika perlu.
       rethrow;

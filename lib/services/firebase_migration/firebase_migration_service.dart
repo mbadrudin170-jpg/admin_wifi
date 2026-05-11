@@ -1,5 +1,5 @@
-// // path: lib/services/firebase_migration/firebase_migration_service.dart
-// import 'dart:developer' as developer;
+// path: lib/services/firebase_migration/firebase_migration_service.dart
+// import 'package:admin_wifi/debug/log.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 
 // class FirebaseMigrationService {
@@ -70,12 +70,11 @@
 //       bool buildPerluMigrasi = false;
 //       bool tautanPerluMigrasi = false;
 
-//       // ✅ Migrasi nomor_build_terbaru
+//       // Migrasi nomor_build_terbaru
 //       if (nomorBuildLama != null && nomorBuildLama is! Map) {
 //         buildPerluMigrasi = true;
 
 //         if (nomorBuildLama is int) {
-//           // Data lama berupa int, konversi ke Map dengan key 'universal'
 //           updateData['nomor_build_terbaru'] = {
 //             'universal': nomorBuildLama,
 //             'bit_32': 0,
@@ -83,14 +82,12 @@
 //           };
 //         } else if (nomorBuildLama is String &&
 //             int.tryParse(nomorBuildLama) != null) {
-//           // Data lama berupa String angka, konversi ke Map dengan key 'universal'
 //           updateData['nomor_build_terbaru'] = {
 //             'universal': int.parse(nomorBuildLama),
 //             'bit_32': 0,
 //             'bit_64': 0,
 //           };
 //         } else {
-//           // Data tidak valid, set default
 //           updateData['nomor_build_terbaru'] = {
 //             'universal': 0,
 //             'bit_32': 0,
@@ -99,19 +96,17 @@
 //         }
 //       }
 
-//       // ✅ Migrasi tautan_unduhan
+//       // Migrasi tautan_unduhan
 //       if (tautanUnduhanLama != null && tautanUnduhanLama is! Map) {
 //         tautanPerluMigrasi = true;
 
 //         if (tautanUnduhanLama is String && tautanUnduhanLama.isNotEmpty) {
-//           // Data lama berupa String, konversi ke Map dengan key 'universal'
 //           updateData['tautan_unduhan'] = {
 //             'universal': tautanUnduhanLama,
 //             'bit_32': '',
 //             'bit_64': '',
 //           };
 //         } else {
-//           // Data kosong atau tidak valid, set default
 //           updateData['tautan_unduhan'] = {
 //             'universal': '',
 //             'bit_32': '',
@@ -120,7 +115,6 @@
 //         }
 //       }
 
-//       // ✅ Update jika ada yang perlu dimigrasi
 //       if (updateData.isNotEmpty) {
 //         batch.update(docRef, updateData);
 
@@ -134,7 +128,6 @@
 //       }
 //     }
 
-//     // ✅ Log hasil migrasi
 //     if (migratedBuildCount > 0) {
 //       logs.add(
 //         '  - [nomor_build_terbaru] $migratedBuildCount dokumen akan dimigrasi.',
@@ -168,7 +161,6 @@
 //     final List<String> logs = [];
 //     int totalMigrations = 0;
 
-//     // 1. Jalankan migrasi 'isDeleted' untuk semua koleksi terkait
 //     onProgress('Menganalisis migrasi `isDeleted`...');
 //     for (final collectionName in _isDeletedCollections) {
 //       try {
@@ -180,8 +172,8 @@
 //         }
 //       } catch (e, s) {
 //         final message =
-//             '❌ Error saat menganalisis migrasi isDeleted untuk $collectionName: $e';
-//         developer.log(message, name: 'Migration', error: e, stackTrace: s);
+//             'Error saat menganalisis migrasi isDeleted untuk $collectionName: $e';
+//         Log.error(message, error: e, stackTrace: s);
 //         onProgress(message);
 //         throw Exception(
 //           'Migrasi dihentikan karena error pada koleksi $collectionName.',
@@ -193,7 +185,6 @@
 //     }
 
 //     int versiApkMigrations = 0;
-//     // 2. Jalankan migrasi `versi_apk_user`
 //     onProgress('Menganalisis migrasi `versi_apk_user`...');
 //     try {
 //       List<String> versiApkLogs = [];
@@ -203,8 +194,8 @@
 //         versiApkMigrations++;
 //       }
 //     } catch (e, s) {
-//       final message = '❌ Error saat menganalisis migrasi versi_apk_user: $e';
-//       developer.log(message, name: 'Migration', error: e, stackTrace: s);
+//       final message = 'Error saat menganalisis migrasi versi_apk_user: $e';
+//       Log.error(message, error: e, stackTrace: s);
 //       onProgress(message);
 //       throw Exception(
 //         'Migrasi dihentikan karena error pada koleksi versi_apk_user.',
@@ -215,16 +206,14 @@
 //     }
 
 //     if (totalMigrations > 0 || versiApkMigrations > 0) {
-//       // 3. Commit semua perubahan
 //       onProgress('Menjalankan semua perubahan...');
 //       try {
 //         await batch.commit();
-//         onProgress('🎉 Semua migrasi telah selesai dengan sukses!');
+//         onProgress('Semua migrasi telah selesai dengan sukses!');
 //       } catch (e, s) {
-//         final message = '❌ Gagal melakukan commit perubahan: $e';
-//         developer.log(
+//         final message = 'Gagal melakukan commit perubahan: $e';
+//         Log.error(
 //           message,
-//           name: 'Migration.Commit',
 //           error: e,
 //           stackTrace: s,
 //         );
@@ -232,7 +221,7 @@
 //         throw Exception('Gagal menyimpan perubahan ke Firestore.');
 //       }
 //     } else {
-//       onProgress('ℹ️ Tidak ada data yang perlu dimigrasi.');
+//       onProgress('Tidak ada data yang perlu dimigrasi.');
 //     }
 
 //     return logs;

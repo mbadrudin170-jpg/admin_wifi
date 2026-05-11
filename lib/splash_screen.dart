@@ -237,7 +237,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ? 'assets/logo/ikon/ikon_apk.png'
                         : 'assets/logo/ikon/ikon_apk.png';
                     Log.info('Memilih aset logo berdasarkan tema: $logoAsset.');
-                    return Image.asset(logoAsset, width: 300);
+                    return Image.asset(logoAsset, width: 150);
                   },
                 ),
                 const SizedBox(height: 24),

@@ -1,11 +1,11 @@
 // path: lib/halaman/lainnya/paket.dart
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/detail/detail_paket.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 
 class PaketPage extends StatefulWidget {
   const PaketPage({super.key});
@@ -21,19 +21,19 @@ class _PaketPageState extends State<PaketPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('[PaketPage]-[initState] 🏁 : Menginisialisasi halaman Paket', name: 'Paket');
+    Log.info('Menginisialisasi halaman Paket');
     _refreshPaketList();
   }
 
   void _refreshPaketList() {
-    developer.log('[PaketPage]-[_refreshPaketList] 🔄 : Memperbarui daftar paket dari database', name: 'Paket');
+    Log.info('Memperbarui daftar paket dari database');
     setState(() {
       _paketFuture = _paketOperasi.getPaket();
     });
   }
 
   void _showEditDeleteDialog(PaketModel paket) {
-    developer.log('[PaketPage]-[_showEditDeleteDialog] 📂 : Menampilkan dialog opsi untuk paket: ${paket.nama}', name: 'Paket');
+    Log.info('Menampilkan dialog opsi untuk paket: ${paket.nama}');
     showDialog(
       context: context,
       builder: (context) {
@@ -43,7 +43,9 @@ class _PaketPageState extends State<PaketPage> {
           actions: [
             TextButton(
               onPressed: () {
-                developer.log('[PaketPage]-[_showEditDeleteDialog] ✏️ : Memilih navigasi ke Form Edit', name: 'Paket');
+                Log.info(
+                  'Memilih navigasi ke Form Edit untuk paket: ${paket.nama}',
+                );
                 Navigator.pop(context);
                 Navigator.push(
                   context,
@@ -51,7 +53,7 @@ class _PaketPageState extends State<PaketPage> {
                     builder: (context) => FormPaket(paket: paket),
                   ),
                 ).then((_) {
-                  developer.log('[PaketPage]-[_showEditDeleteDialog] ✅ : Kembali dari Form Edit, menyegarkan list', name: 'Paket');
+                  Log.info('Kembali dari Form Edit, menyegarkan daftar paket');
                   _refreshPaketList();
                 });
               },
@@ -59,7 +61,7 @@ class _PaketPageState extends State<PaketPage> {
             ),
             TextButton(
               onPressed: () {
-                developer.log('[PaketPage]-[_showEditDeleteDialog] 🗑️ : Memilih opsi Hapus', name: 'Paket');
+                Log.info('Memilih opsi Hapus untuk paket: ${paket.nama}');
                 Navigator.pop(context);
                 _showDeleteConfirmationDialog(paket);
               },
@@ -72,7 +74,9 @@ class _PaketPageState extends State<PaketPage> {
   }
 
   void _showDeleteConfirmationDialog(PaketModel paket) {
-    developer.log('[PaketPage]-[_showDeleteConfirmationDialog] ❓ : Konfirmasi hapus untuk ID: ${paket.id}', name: 'Paket');
+    Log.info(
+      'Menampilkan konfirmasi hapus untuk paket ID: ${paket.id}, nama: ${paket.nama}',
+    );
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -85,7 +89,9 @@ class _PaketPageState extends State<PaketPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                developer.log('[PaketPage]-[_showDeleteConfirmationDialog] 🔙 : Penghapusan dibatalkan user', name: 'Paket');
+                Log.info(
+                  'Penghapusan paket ${paket.nama} dibatalkan oleh user',
+                );
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -97,9 +103,13 @@ class _PaketPageState extends State<PaketPage> {
                 Navigator.of(dialogContext).pop();
 
                 try {
-                  developer.log('[PaketPage]-[_showDeleteConfirmationDialog] 🔨 : Menjalankan operasi hapus di database', name: 'Paket');
+                  Log.info(
+                    'Menjalankan operasi hapus paket ID: ${paket.id}, nama: ${paket.nama}',
+                  );
                   await _paketOperasi.hapusPaket(paket.id);
-                  developer.log('[PaketPage]-[_showDeleteConfirmationDialog] ✅ : Paket ${paket.id} berhasil dihapus', name: 'Paket');
+                  Log.info(
+                    'Paket ID: ${paket.id} berhasil dihapus dari database',
+                  );
                   _refreshPaketList();
 
                   messenger.showSnackBar(
@@ -109,11 +119,10 @@ class _PaketPageState extends State<PaketPage> {
                     ),
                   );
                 } catch (e, s) {
-                  developer.log(
-                    '[PaketPage]-[_showDeleteConfirmationDialog] ❌ : Gagal menghapus paket',
+                  Log.error(
+                    'Gagal menghapus paket ID: ${paket.id}, nama: ${paket.nama}',
                     error: e,
                     stackTrace: s,
-                    name: 'Paket',
                   );
                   messenger.showSnackBar(
                     SnackBar(
@@ -131,34 +140,36 @@ class _PaketPageState extends State<PaketPage> {
   }
 
   void _hapusSemuaPaket() {
-    developer.log('[PaketPage]-[_hapusSemuaPaket] ⚠️ : User menekan tombol hapus semua paket', name: 'Paket');
+    Log.info('User menekan tombol hapus semua paket');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Konfirmasi Hapus'),
+          title: const Text('Konfirmasi Hapus Semua'),
           content: const Text(
-            'Apakah Anda yakin ingin menghapus semua paket? Tindakan ini tidak dapat dibatalkan.',
+            'Apakah Anda yakin ingin menghapus SEMUA paket? Tindakan ini tidak dapat dibatalkan.',
           ),
           actions: <Widget>[
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                developer.log('[PaketPage]-[_hapusSemuaPaket] 🔙 : Penghapusan massal dibatalkan', name: 'Paket');
+                Log.info('Penghapusan massal semua paket dibatalkan oleh user');
                 Navigator.of(dialogContext).pop();
               },
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Hapus'),
+              child: const Text('Hapus Semua'),
               onPressed: () async {
                 final messenger = ScaffoldMessenger.of(context);
                 Navigator.of(dialogContext).pop();
 
                 try {
-                  developer.log('[PaketPage]-[_hapusSemuaPaket] 💣 : Menjalankan operasi hapus semua paket', name: 'Paket');
+                  Log.info(
+                    'Menjalankan operasi hapus semua paket dari database',
+                  );
                   await _paketOperasi.hapusSemuaPaket();
-                  developer.log('[PaketPage]-[_hapusSemuaPaket] ✅ : Semua paket berhasil dibersihkan', name: 'Paket');
+                  Log.info('Semua paket berhasil dihapus dari database');
                   _refreshPaketList();
 
                   messenger.showSnackBar(
@@ -168,11 +179,10 @@ class _PaketPageState extends State<PaketPage> {
                     ),
                   );
                 } catch (e, s) {
-                  developer.log(
-                    '[PaketPage]-[_hapusSemuaPaket] ❌ : Gagal menghapus semua paket',
+                  Log.error(
+                    'Gagal menghapus semua paket dari database',
                     error: e,
                     stackTrace: s,
-                    name: 'Paket',
                   );
                   messenger.showSnackBar(
                     SnackBar(
@@ -191,7 +201,7 @@ class _PaketPageState extends State<PaketPage> {
 
   @override
   Widget build(BuildContext context) {
-    developer.log('[PaketPage]-[build] 🏗️ : Membangun UI PaketPage', name: 'Paket');
+    Log.info('Membangun UI halaman Daftar Paket');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daftar Paket'),
@@ -210,35 +220,45 @@ class _PaketPageState extends State<PaketPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            developer.log('[PaketPage]-[FutureBuilder] ⚠️ : Snapshot memiliki error', error: snapshot.error, name: 'Paket');
+            Log.error(
+              'Terjadi error saat memuat data paket',
+              error: snapshot.error,
+              stackTrace: snapshot.stackTrace,
+            );
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            developer.log('[PaketPage]-[FutureBuilder] 📭 : Data paket kosong', name: 'Paket');
+            Log.info('Data paket kosong, tidak ada paket yang tersedia');
             return const Center(child: Text('Tidak ada paket yang tersedia.'));
           }
           final paketList = snapshot.data!;
-          developer.log('[PaketPage]-[FutureBuilder] 📜 : Menampilkan ${paketList.length} paket', name: 'Paket');
-          
+          Log.info('Menampilkan ${paketList.length} paket dalam daftar');
+
           return ListView.builder(
             itemCount: paketList.length,
             itemBuilder: (context, index) {
               final paket = paketList[index];
               return InkWell(
                 onTap: () {
-                  developer.log('[PaketPage]-[ListView] 👆 : Navigasi ke Detail Paket: ${paket.nama}', name: 'Paket');
+                  Log.info(
+                    'Navigasi ke halaman Detail Paket: ${paket.nama} (ID: ${paket.id})',
+                  );
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => DetailPaketPage(paket: paket),
                     ),
                   ).then((_) {
-                    developer.log('[PaketPage]-[ListView] ✅ : Kembali dari Detail, menyegarkan list', name: 'Paket');
+                    Log.info(
+                      'Kembali dari halaman Detail Paket, menyegarkan daftar',
+                    );
                     _refreshPaketList();
                   });
                 },
                 onLongPress: () {
-                  developer.log('[PaketPage]-[ListView] 🖐️ : Long press pada paket: ${paket.nama}', name: 'Paket');
+                  Log.info(
+                    'Long press pada paket: ${paket.nama} (ID: ${paket.id}), menampilkan menu edit/hapus',
+                  );
                   _showEditDeleteDialog(paket);
                 },
                 child: Card(
@@ -263,12 +283,12 @@ class _PaketPageState extends State<PaketPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          developer.log('[PaketPage]-[FAB] ➕ : Navigasi ke Form Tambah Paket', name: 'Paket');
+          Log.info('Navigasi ke Form Tambah Paket');
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const FormPaket()),
           ).then((_) {
-            developer.log('[PaketPage]-[FAB] ✅ : Kembali dari Form Tambah, menyegarkan list', name: 'Paket');
+            Log.info('Kembali dari Form Tambah Paket, menyegarkan daftar');
             _refreshPaketList();
           });
         },
