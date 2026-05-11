@@ -1,6 +1,7 @@
 // path: lib/halaman/detail/detail_pelanggan.dart
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/halaman/form/form_pelanggan.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,12 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       'Menjalankan fungsi _loadData(). Mencoba melakukan pengambilan data paralel untuk profil pelanggan dan akumulasi poin dari database.',
     );
     try {
+      // diubah: agar lebih ringkas
+      if (mounted) {
+        setState(() {
+          isLoading = true;
+        });
+      }
       Log.info(
         'Memulai request asinkron ke PelangganOperasi untuk mencari data dengan ID: ${widget.idPelanggan}',
       );
@@ -87,6 +94,25 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
           'State isLoading telah diatur ke false meskipun terjadi error agar spinner berhenti berputar.',
         );
       }
+    }
+  }
+
+  // ditambahkan: fungsi untuk navigasi ke halaman edit
+  void _editPelanggan() async {
+    if (pelanggan == null) return;
+    Log.info('Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${pelanggan!.id}');
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FormPelanggan(pelanggan: pelanggan),
+      ),
+    );
+
+    if (result == true && mounted) {
+      Log.info('Kembali dari FormPelanggan dengan hasil true. Memuat ulang data pelanggan.');
+      _loadData(); // Muat ulang data untuk menampilkan perubahan
+    } else {
+      Log.info('Kembali dari FormPelanggan tanpa menyimpan perubahan.');
     }
   }
 
@@ -144,7 +170,7 @@ MAC : ${pelanggan.macAddress}
         'Merender tampilan CircularProgressIndicator karena status isLoading masih true.',
       );
       return Scaffold(
-        appBar: AppBar(title: const Text('Detail Pelanggan')),
+        appBar: AppBar(title: const Text('Memuat Detail...')), // diubah: judul appbar saat loading
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -161,7 +187,17 @@ MAC : ${pelanggan.macAddress}
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Pelanggan')),
+      appBar: AppBar(
+        title: const Text('Detail Pelanggan'),
+        // ditambahkan: tombol edit di appbar
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit Pelanggan',
+            onPressed: _editPelanggan,
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -187,6 +223,7 @@ MAC : ${pelanggan.macAddress}
                     Log.info(
                       'Kembali dari HalamanPoin ke DetailPelangganPage.',
                     );
+                    _loadData(); // ditambahkan: muat ulang data poin jika ada perubahan
                   });
                 },
                 child: Padding(

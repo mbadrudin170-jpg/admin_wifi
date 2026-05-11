@@ -1,4 +1,5 @@
 // path: lib/data/operasi/pelanggan_aktif_operasi.dart
+// diubah: Menggunakan UTC untuk perbandingan waktu di arsipkanPelangganKadaluarsa dan hapusPermanenPelangganYangDiArsipkan untuk mencegah bug zona waktu.
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,7 +9,6 @@ import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
-import 'package:admin_wifi/whatsapp/info_paket.dart';
 
 const uuid = Uuid();
 
@@ -32,7 +32,7 @@ class PelangganAktifOperasi {
       final idBaru = pelangganAktif.id.isEmpty ? uuid.v4() : pelangganAktif.id;
       final pelangganUntukDisimpan = pelangganAktif.copyWith(
         id: idBaru,
-        diperbarui: DateTime.now(),
+        diperbarui: DateTime.now().toUtc(), // diubah: simpan dalam UTC
       );
 
       Log.info(
@@ -48,16 +48,14 @@ class PelangganAktifOperasi {
           data,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-
-        Log.info('Data berhasil disisipkan, menjadwalkan notifikasi...');
-        await _jadwalkanNotifikasi(pelangganUntukDisimpan);
-
-        Log.info('Mengirim rincian paket via WhatsApp...');
-        await PesanInfoPaket.kirimRincianPaket(pelangganUntukDisimpan);
       });
 
+      Log.info('Transaksi database berhasil. Menjadwalkan notifikasi...');
+
+      await _jadwalkanNotifikasi(pelangganUntukDisimpan);
+
       Log.info(
-        'Pelanggan aktif ID: $idBaru berhasil dibuat dengan notifikasi dan WhatsApp',
+        'Pelanggan aktif ID: $idBaru berhasil dibuat dan notifikasi dijadwalkan.',
       );
       return pelangganUntukDisimpan;
     } catch (e, stackTrace) {
@@ -85,7 +83,6 @@ class PelangganAktifOperasi {
 
       Log.info('Berhasil mengambil ${maps.length} pelanggan aktif');
 
-      // Log ringkasan
       int jumlahMendekatiBerakhir = 0;
       final sekarang = DateTime.now();
       final tigaHariLagi = sekarang.add(const Duration(days: 3));
@@ -152,14 +149,20 @@ class PelangganAktifOperasi {
     }
   }
 
-  Future<void> updatePelangganAktif(PelangganAktifModel pelangganAktif) async {
+  Future<PelangganAktifModel> updatePelangganAktif(
+    PelangganAktifModel pelangganAktif,
+  ) async {
     try {
+      final pelangganUntukDisimpan = pelangganAktif.copyWith(
+        diperbarui: DateTime.now().toUtc(), // diubah: simpan dalam UTC
+      );
+
       Log.info(
-        'Memperbarui pelanggan aktif ID: ${pelangganAktif.id} - ID Pelanggan: ${pelangganAktif.idPelanggan}, ID Paket: ${pelangganAktif.idPaket}',
+        'Memperbarui pelanggan aktif ID: ${pelangganUntukDisimpan.id} - ID Pelanggan: ${pelangganUntukDisimpan.idPelanggan}, ID Paket: ${pelangganUntukDisimpan.idPaket}',
       );
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
-        final data = pelangganAktif.toSqlite();
+        final data = pelangganUntukDisimpan.toSqlite();
         Log.info(
           'Menjalankan update di tabel pelanggan_aktif dengan conflict replace',
         );
@@ -168,17 +171,15 @@ class PelangganAktifOperasi {
           'pelanggan_aktif',
           data,
           where: 'id = ?',
-          whereArgs: [pelangganAktif.id],
+          whereArgs: [pelangganUntukDisimpan.id],
         );
-
-        Log.info('Update berhasil, menjadwalkan ulang notifikasi...');
-        await _jadwalkanNotifikasi(pelangganAktif);
-
-        Log.info('Mengirim ulang rincian paket via WhatsApp...');
-        await PesanInfoPaket.kirimRincianPaket(pelangganAktif);
       });
 
-      Log.info('Pelanggan aktif ID: ${pelangganAktif.id} berhasil diperbarui');
+      Log.info('Update database berhasil. Menjadwalkan ulang notifikasi...');
+      await _jadwalkanNotifikasi(pelangganUntukDisimpan);
+
+      Log.info('Pelanggan aktif ID: ${pelangganUntukDisimpan.id} berhasil diperbarui');
+      return pelangganUntukDisimpan;
     } catch (e, stackTrace) {
       Log.error(
         'Gagal memperbarui pelanggan aktif ID: ${pelangganAktif.id}',
@@ -324,7 +325,7 @@ class PelangganAktifOperasi {
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final pelangganDiarsipkan = pelangganAktif.copyWith(
           isDeleted: true,
-          diarsipkan: DateTime.now(),
+          diarsipkan: DateTime.now().toUtc(), // diubah: simpan dalam UTC
         );
 
         Log.info(
@@ -359,7 +360,8 @@ class PelangganAktifOperasi {
   Future<void> hapusPermanenPelangganYangDiArsipkan() async {
     try {
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
-        final batasWaktu = DateTime.now().subtract(const Duration(days: 30));
+        // diubah: Menggunakan UTC untuk konsistensi
+        final batasWaktu = DateTime.now().toUtc().subtract(const Duration(days: 30));
         Log.info(
           'Mencari pelanggan diarsipkan sebelum ${batasWaktu.toIso8601String()} (30 hari yang lalu)',
         );
@@ -367,7 +369,7 @@ class PelangganAktifOperasi {
         final List<Map<String, dynamic>> pelangganKadaluarsa = await txn.query(
           'pelanggan_aktif',
           where: 'diarsipkan IS NOT NULL AND diarsipkan < ?',
-          whereArgs: [batasWaktu.toIso8601String()],
+          whereArgs: [batasWaktu.toIso8601String()], // diubah: Membandingkan dengan string UTC
         );
 
         if (pelangganKadaluarsa.isEmpty) {
@@ -428,12 +430,12 @@ class PelangganAktifOperasi {
     try {
       Log.info('Memeriksa pelanggan kadaluarsa untuk diarsipkan');
       final db = await dbHelper.database;
-      final sekarang = DateTime.now();
+      final sekarang = DateTime.now().toUtc(); // diubah: Menggunakan UTC untuk konsistensi
 
       final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
         'pelanggan_aktif',
         where: 'tanggal_berakhir < ? AND isDeleted = 0',
-        whereArgs: [sekarang.toIso8601String()],
+        whereArgs: [sekarang.toIso8601String()], // diubah: Membandingkan dengan string UTC
       );
 
       if (pelangganKadaluarsa.isEmpty) {
@@ -449,7 +451,7 @@ class PelangganAktifOperasi {
       );
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
-        final now = DateTime.now().toIso8601String();
+        final now = DateTime.now().toUtc().toIso8601String(); // diubah: simpan dalam UTC
         Log.info(
           'Menandai ${idsToArchive.length} pelanggan sebagai isDeleted=1, diarsipkan=$now',
         );
@@ -497,7 +499,7 @@ class PelangganAktifOperasi {
       Log.info('Mengarsipkan ${idsToArchive.length} pelanggan aktif');
 
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
-        final now = DateTime.now().toIso8601String();
+        final now = DateTime.now().toUtc().toIso8601String(); // diubah: simpan dalam UTC
         Log.info(
           'Menandai ${idsToArchive.length} pelanggan sebagai isDeleted=1, diarsipkan=$now',
         );

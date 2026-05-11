@@ -205,9 +205,29 @@ class MockPaketOperasi extends _i1.Mock implements _i9.PaketOperasi {
           as _i7.Future<void>);
 
   @override
+  _i7.Future<List<_i10.PaketModel>> getAllPaket() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllPaket, []),
+            returnValue: _i7.Future<List<_i10.PaketModel>>.value(
+              <_i10.PaketModel>[],
+            ),
+          )
+          as _i7.Future<List<_i10.PaketModel>>);
+
+  @override
   _i7.Future<List<_i10.PaketModel>> getPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getPaket, []),
+            returnValue: _i7.Future<List<_i10.PaketModel>>.value(
+              <_i10.PaketModel>[],
+            ),
+          )
+          as _i7.Future<List<_i10.PaketModel>>);
+
+  @override
+  _i7.Future<List<_i10.PaketModel>> getPaketByIsPublic() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPaketByIsPublic, []),
             returnValue: _i7.Future<List<_i10.PaketModel>>.value(
               <_i10.PaketModel>[],
             ),
@@ -350,15 +370,19 @@ class MockPelangganAktifOperasi extends _i1.Mock
           as _i7.Future<_i4.PelangganAktifModel?>);
 
   @override
-  _i7.Future<void> updatePelangganAktif(
+  _i7.Future<_i4.PelangganAktifModel> updatePelangganAktif(
     _i4.PelangganAktifModel? pelangganAktif,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updatePelangganAktif, [pelangganAktif]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i7.Future<_i4.PelangganAktifModel>.value(
+              _FakePelangganAktifModel_2(
+                this,
+                Invocation.method(#updatePelangganAktif, [pelangganAktif]),
+              ),
+            ),
           )
-          as _i7.Future<void>);
+          as _i7.Future<_i4.PelangganAktifModel>);
 
   @override
   _i7.Future<void> sisipkanAtauPerbaruiBatch(
@@ -615,9 +639,13 @@ class MockDompetOperasi extends _i1.Mock implements _i14.DompetOperasi {
           as _i7.Future<void>);
 
   @override
-  _i7.Future<List<_i15.DompetModel>> getDompet() =>
+  _i7.Future<List<_i15.DompetModel>> getDompet({
+    bool? tampilkanDiarsipkan = false,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getDompet, []),
+            Invocation.method(#getDompet, [], {
+              #tampilkanDiarsipkan: tampilkanDiarsipkan,
+            }),
             returnValue: _i7.Future<List<_i15.DompetModel>>.value(
               <_i15.DompetModel>[],
             ),
@@ -636,6 +664,15 @@ class MockDompetOperasi extends _i1.Mock implements _i14.DompetOperasi {
   _i7.Future<void> updateDompet(_i15.DompetModel? dompet) =>
       (super.noSuchMethod(
             Invocation.method(#updateDompet, [dompet]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> arsipSemuaDompet() =>
+      (super.noSuchMethod(
+            Invocation.method(#arsipSemuaDompet, []),
             returnValue: _i7.Future<void>.value(),
             returnValueForMissingStub: _i7.Future<void>.value(),
           )

@@ -1,34 +1,34 @@
+
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "myapp",
-      "request": "launch",
-      "type": "dart"
-    },
-    {
-      "name": "myapp (profile mode)",
+      "name": "Admin WiFi (DEV)",
       "request": "launch",
       "type": "dart",
+      "program": "lib/main_dev.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Admin WiFi (PROD)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_prod.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Admin WiFi (Profile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_prod.dart",
       "flutterMode": "profile"
     },
     {
-      "name": "myapp (release mode)",
+      "name": "Admin WiFi (Release)",
       "request": "launch",
       "type": "dart",
+      "program": "lib/main_prod.dart",
       "flutterMode": "release"
-    },
-    {
-      "name": "myapp (web)",
-      "request": "launch",
-      "type": "dart",
-      "args": [
-        "--web-hostname",
-        "0.0.0.0"
-      ]
     }
   ]
 }

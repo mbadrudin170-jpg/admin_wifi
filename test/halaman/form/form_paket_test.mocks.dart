@@ -60,9 +60,29 @@ class MockPaketOperasi extends _i1.Mock implements _i3.PaketOperasi {
           as _i4.Future<void>);
 
   @override
+  _i4.Future<List<_i5.PaketModel>> getAllPaket() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllPaket, []),
+            returnValue: _i4.Future<List<_i5.PaketModel>>.value(
+              <_i5.PaketModel>[],
+            ),
+          )
+          as _i4.Future<List<_i5.PaketModel>>);
+
+  @override
   _i4.Future<List<_i5.PaketModel>> getPaket() =>
       (super.noSuchMethod(
             Invocation.method(#getPaket, []),
+            returnValue: _i4.Future<List<_i5.PaketModel>>.value(
+              <_i5.PaketModel>[],
+            ),
+          )
+          as _i4.Future<List<_i5.PaketModel>>);
+
+  @override
+  _i4.Future<List<_i5.PaketModel>> getPaketByIsPublic() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPaketByIsPublic, []),
             returnValue: _i4.Future<List<_i5.PaketModel>>.value(
               <_i5.PaketModel>[],
             ),

@@ -1,4 +1,4 @@
-// path: lib/models/pelanggan_aktif_model.dart
+// path: lib/model/pelanggan_aktif_model.dart
 
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
@@ -30,10 +30,6 @@ class PelangganAktifModel {
     this.diarsipkan,
   }) : id = id ?? const Uuid().v4();
 
-  // =========================
-  // JSON SERIALIZATION (FOR LOGGING)
-  // ditambahkan: karena butuh serialisasi untuk logging
-  // =========================
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -48,8 +44,6 @@ class PelangganAktifModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
-
-  // --- Parsing Helpers ---
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
@@ -71,18 +65,27 @@ class PelangganAktifModel {
     return false;
   }
 
-  // --- Factories ---
-
   factory PelangganAktifModel.fromSqlite(Map<String, dynamic> map) {
     try {
+      // diubah: Menggunakan key snake_case 'tanggal_mulai' dan 'tanggal_berakhir' agar cocok dengan database.
+      final tanggalMulai = _parseDateTime(map['tanggal_mulai']);
+      final tanggalBerakhir = _parseDateTime(map['tanggal_berakhir']);
+
+      // diubah: Menghapus fallback DateTime.now() yang berbahaya dan menggantinya dengan validasi.
+      if (tanggalMulai == null) {
+        throw ArgumentError.notNull('tanggal_mulai dari SQLite');
+      }
+      if (tanggalBerakhir == null) {
+        throw ArgumentError.notNull('tanggal_berakhir dari SQLite');
+      }
+
       final model = PelangganAktifModel(
         id: map['id'] as String,
         idPelanggan: map['id_pelanggan'] as String? ?? '',
         idPaket: map['id_paket'] as String? ?? '',
         idTransaksi: map['id_transaksi'] as String?,
-        tanggalMulai: _parseDateTime(map['tanggalMulai']) ?? DateTime.now(),
-        tanggalBerakhir:
-            _parseDateTime(map['tanggalBerakhir']) ?? DateTime.now(),
+        tanggalMulai: tanggalMulai,
+        tanggalBerakhir: tanggalBerakhir,
         status: StatusPembayaranEnum.values.firstWhere(
           (e) => e.name == map['status'],
           orElse: () => StatusPembayaranEnum.lunas,
@@ -95,7 +98,7 @@ class PelangganAktifModel {
       Log.info('Data dimuat dari SQLite');
       return model;
     } catch (e, stack) {
-      Log.error('Gagal parsing SQLite', error: e, stackTrace: stack);
+      Log.error('Gagal parsing SQLite: $map', error: e, stackTrace: stack);
       rethrow;
     }
   }
@@ -105,14 +108,24 @@ class PelangganAktifModel {
     Map<String, dynamic> data,
   ) {
     try {
+      // diubah: Menghapus fallback DateTime.now() yang berbahaya dan menggantinya dengan validasi.
+      final tanggalMulai = _parseDateTime(data['tanggalMulai']);
+      final tanggalBerakhir = _parseDateTime(data['tanggalBerakhir']);
+
+      if (tanggalMulai == null) {
+        throw ArgumentError.notNull('tanggalMulai dari Firebase');
+      }
+      if (tanggalBerakhir == null) {
+        throw ArgumentError.notNull('tanggalBerakhir dari Firebase');
+      }
+
       final model = PelangganAktifModel(
         id: id,
         idPelanggan: data['id_pelanggan'] as String? ?? '',
         idPaket: data['id_paket'] as String? ?? '',
         idTransaksi: data['id_transaksi'] as String?,
-        tanggalMulai: _parseDateTime(data['tanggalMulai']) ?? DateTime.now(),
-        tanggalBerakhir:
-            _parseDateTime(data['tanggalBerakhir']) ?? DateTime.now(),
+        tanggalMulai: tanggalMulai,
+        tanggalBerakhir: tanggalBerakhir,
         status: StatusPembayaranEnum.values.firstWhere(
           (e) => e.name == data['status'],
           orElse: () => StatusPembayaranEnum.lunas,
@@ -125,12 +138,10 @@ class PelangganAktifModel {
       Log.info('Data ditarik dari Firebase');
       return model;
     } catch (e, stack) {
-      Log.error('Gagal parsing Firebase', error: e, stackTrace: stack);
+      Log.error('Gagal parsing Firebase: $data', error: e, stackTrace: stack);
       rethrow;
     }
   }
-
-  // --- Mappers ---
 
   Map<String, dynamic> toSqlite() {
     return {
@@ -138,8 +149,8 @@ class PelangganAktifModel {
       'id_pelanggan': idPelanggan,
       'id_paket': idPaket,
       'id_transaksi': idTransaksi,
-      'tanggalMulai': tanggalMulai.toIso8601String(),
-      'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
+      'tanggal_mulai': tanggalMulai.toIso8601String(), // snake_case
+      'tanggal_berakhir': tanggalBerakhir.toIso8601String(), // snake_case
       'status': status.name,
       'diperbarui': diperbarui?.toIso8601String(),
       'isDeleted': isDeleted ? 1 : 0,
@@ -153,8 +164,8 @@ class PelangganAktifModel {
       'id_pelanggan': idPelanggan,
       'id_paket': idPaket,
       'id_transaksi': idTransaksi,
-      'tanggalMulai': Timestamp.fromDate(tanggalMulai),
-      'tanggalBerakhir': Timestamp.fromDate(tanggalBerakhir),
+      'tanggalMulai': Timestamp.fromDate(tanggalMulai), // camelCase
+      'tanggalBerakhir': Timestamp.fromDate(tanggalBerakhir), // camelCase
       'status': status.name,
       'isDeleted': isDeleted,
       'diperbarui': FieldValue.serverTimestamp(),

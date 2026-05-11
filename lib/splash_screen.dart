@@ -4,13 +4,11 @@ import 'dart:async';
 import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/tab/fungsi_menampilkan_notifikasi.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'package:admin_wifi/firebase_options.dart';
 import 'package:admin_wifi/halaman_utama.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
@@ -124,13 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
     bool isOnline = false;
 
     try {
-      _updateLoading("Menghubungkan ke layanan Google...");
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      Log.info('Koneksi dan inisialisasi Firebase berhasil.');
-      if (!mounted) return;
-
+      // diubah: Inisialisasi Firebase ganda dihapus karena sudah dilakukan di main_dev.dart.
       _updateLoading("Mengonfigurasi pengaturan lokal...");
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));

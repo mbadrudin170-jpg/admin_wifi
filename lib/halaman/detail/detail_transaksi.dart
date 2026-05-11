@@ -35,15 +35,18 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   final PaketOperasi _paketOperasi = PaketOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
 
+  late TransaksiModel _transaksiSaatIni; // ditambah: Variabel state untuk menampung data transaksi
+
   @override
   void initState() {
     super.initState();
-    Log.info('Membuka halaman Detail Transaksi ID: ${widget.transaksi.id}');
+    _transaksiSaatIni = widget.transaksi; // ditambah: Inisialisasi dengan data awal
+    Log.info('Membuka halaman Detail Transaksi ID: ${_transaksiSaatIni.id}');
     Log.info(
-      'Ringkasan transaksi - Tipe: ${widget.transaksi.tipe.name}, Jumlah: ${widget.transaksi.jumlah}, Tanggal: ${widget.transaksi.tanggal.toIso8601String()}, Status: ${widget.transaksi.statusPembayaran.name}',
+      'Ringkasan transaksi - Tipe: ${_transaksiSaatIni.tipe.name}, Jumlah: ${_transaksiSaatIni.jumlah}, Tanggal: ${_transaksiSaatIni.tanggal.toIso8601String()}, Status: ${_transaksiSaatIni.statusPembayaran.name}',
     );
     Log.info(
-      'Relasi transaksi - Dompet: ${widget.transaksi.idDompet}, Kategori: ${widget.transaksi.idKategori}, SubKategori: ${widget.transaksi.idSubKategori ?? "N/A"}, Pelanggan: ${widget.transaksi.idPelanggan ?? "N/A"}, Paket: ${widget.transaksi.idPaket ?? "N/A"}',
+      'Relasi transaksi - Dompet: ${_transaksiSaatIni.idDompet}, Kategori: ${_transaksiSaatIni.idKategori}, SubKategori: ${_transaksiSaatIni.idSubKategori ?? "N/A"}, Pelanggan: ${_transaksiSaatIni.idPelanggan ?? "N/A"}, Paket: ${_transaksiSaatIni.idPaket ?? "N/A"}',
     );
   }
 
@@ -100,30 +103,31 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
     }
   }
 
-  // ditambah: fungsi untuk membuka form edit
+  // diubah: me-refresh data transaksi setelah kembali dari halaman edit
   void _bukaFormEdit() {
     Log.info(
-      'Navigasi ke FormTransaksiPage mode edit untuk ID: ${widget.transaksi.id}',
+      'Navigasi ke FormTransaksiPage mode edit untuk ID: ${_transaksiSaatIni.id}',
     );
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FormTransaksiPage(transaksi: widget.transaksi),
+        builder: (context) => FormTransaksiPage(transaksi: _transaksiSaatIni),
       ),
-    ).then((berhasil) {
-      if (berhasil == true) {
-        // TODO: Tambahkan logika untuk refresh data jika diperlukan setelah edit
-        Log.info('Kembali dari form edit, data mungkin telah berubah.');
+    ).then((transaksiYangDiperbarui) {
+      if (transaksiYangDiperbarui != null && transaksiYangDiperbarui is TransaksiModel) {
+        Log.info('Kembali dari form edit, data telah berubah. Memperbarui UI.');
         setState(() {
-          // Rebuild untuk menampilkan data baru jika ada perubahan
+          _transaksiSaatIni = transaksiYangDiperbarui;
         });
+      } else {
+        Log.info('Kembali dari form edit, tidak ada perubahan data.');
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final TransaksiModel transaksi = widget.transaksi;
+    final TransaksiModel transaksi = _transaksiSaatIni; // diubah: Menggunakan data dari state
     Log.info('Membangun UI Detail Transaksi ID: ${transaksi.id}');
 
     return Scaffold(

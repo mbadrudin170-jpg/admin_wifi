@@ -14,25 +14,41 @@ class OperasiDasar {
   Future<T> _jalankanDalamTransaksi<T>(
     Future<T> Function(Transaction) aksi,
   ) async {
-    Log.info('Memulai transaksi database');
+    Log.info('[TRANSAKSI DIMULAI] Memulai proses eksekusi dalam wrapper transaksi.');
 
     try {
+      Log.info('[TRANSAKSI] Mengambil instance database dari DatabaseHelper.');
       final db = await _dbHelper.database;
+      Log.info('[TRANSAKSI] Instance database berhasil didapatkan. Tipe: ${db.runtimeType}');
 
+      Log.info('[TRANSAKSI] Memanggil db.transaction() untuk memulai blok transaksi.');
       return await db.transaction((txn) async {
-        Log.info('Transaksi dibuka, menandai status "perlu_unggah"');
+        Log.info('[TRANSAKSI AKTIF] Blok transaksi telah dimulai. Instance Transaction: ${txn.runtimeType}');
+        
+        try {
+          Log.info('[TRANSAKSI AKTIF] Menandai status `perlu_unggah` menjadi TRUE.');
+          await _statusUnggahOperasi.setPerluUnggah(true, transaction: txn);
+          Log.info('[TRANSAKSI AKTIF] Status `perlu_unggah` berhasil ditandai.');
 
-        await _statusUnggahOperasi.setPerluUnggah(true, transaction: txn);
+          Log.info('[TRANSAKSI AKTIF] Mengeksekusi aksi utama (callback) yang diberikan.');
+          final result = await aksi(txn);
+          Log.info('[TRANSAKSI AKTIF] Aksi utama berhasil dieksekusi. Hasil: ${result.runtimeType}');
 
-        Log.info('Menjalankan aksi operasi dalam transaksi');
-        final result = await aksi(txn);
-
-        Log.info('Aksi berhasil, transaksi akan di-commit');
-        return result;
+          Log.info('[TRANSAKSI COMMIT] Transaksi akan di-commit karena semua langkah berhasil.');
+          return result;
+        } catch (e, stackTrace) {
+          Log.error(
+            '[TRANSAKSI GAGAL DI DALAM] Terjadi error saat menjalankan aksi di dalam blok transaksi.',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          // Penting: Rethrow agar transaksi di-rollback oleh sqflite
+          rethrow; 
+        }
       });
     } catch (e, stackTrace) {
       Log.error(
-        'Gagal menjalankan transaksi database',
+        '[TRANSAKSI GAGAL DI LUAR] Gagal saat memulai atau menyelesaikan transaksi.',
         error: e,
         stackTrace: stackTrace,
       );

@@ -1,25 +1,10 @@
-// lib/main.dart
+// path: lib/app.dart
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/utils/sync_manager.dart'; 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
-
-void main() {
-  Log.info('Titik masuk aplikasi dimulai.');
-  
-  try {
-    Log.info('Memastikan Flutter-bindings telah diinisialisasi.');
-    WidgetsFlutterBinding.ensureInitialized();
-    Log.info('Flutter-bindings berhasil diinisialisasi.');
-
-    Log.info('Menjalankan root aplikasi (MyApp).');
-    runApp(const MyApp());
-  } catch (e, s) {
-    Log.error('Terjadi error fatal saat inisialisasi aplikasi.', error: e, stackTrace: s);
-  }
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

@@ -8,11 +8,26 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // dinaikkan dari 41 ke 42 untuk migrasi penambahan kolom tanggal_mulai
-  static const int _databaseVersion = 42;
+  // dinaikkan ke 43 untuk memaksa migrasi ulang yang aman dan idempoten
+  static const int _databaseVersion = 43;
 
   DatabaseHelper._internal() {
     Log.info('DatabaseHelper instance dibuat (singleton _internal).');
+  }
+
+  /// Fungsi utilitas aman untuk menambahkan kolom jika belum ada.
+  /// Mencegah error 'duplicate column'.
+  Future<void> _addColumnIfNotExists(Database db, String tableName, String columnName, String columnType) async {
+    final dbClient = db;
+    final List<Map<String, dynamic>> tableInfo = await dbClient.rawQuery('PRAGMA table_info($tableName)');
+    bool columnExists = tableInfo.any((column) => column['name'] == columnName);
+
+    if (!columnExists) {
+      await dbClient.execute('ALTER TABLE $tableName ADD COLUMN $columnName $columnType');
+      Log.info('[MIGRASI SUKSES] Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.');
+    } else {
+      Log.info('[MIGRASI DILEWATI] Kolom `$columnName` sudah ada di tabel `$tableName`.');
+    }
   }
 
   // --- DEFINISI TABEL ---
@@ -97,137 +112,72 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     Log.info('Memulai proses akses properti database getter.');
-    Log.info('Memeriksa apakah instance database (_database) sudah ada sebelumnya.');
-    
     if (_database != null) {
-      Log.info('Instance database sudah ada di memori. Mengembalikan instance yang sudah terinisialisasi tanpa membuat koneksi baru.');
+      Log.info('Instance database sudah ada di memori, mengembalikan...');
       return _database!;
     }
     
-    Log.info('Instance database belum ada (null). Akan memanggil metode _initDB() untuk membuat atau membuka koneksi database baru.');
-    
+    Log.info('Instance database belum ada, memanggil _initDB().');
     try {
-      Log.info('Memanggil _initDB() untuk inisialisasi database.');
       _database = await _initDB();
-      Log.info('Database berhasil diinisialisasi dan disimpan di variabel _database. Koneksi database siap digunakan.');
+      Log.info('Database berhasil diinisialisasi dan di-cache.');
       return _database!;
     } catch (e, st) {
-      Log.error(
-        'Gagal total mendapatkan instance database. Database tidak dapat diinisialisasi atau dibuka. '
-        'Aplikasi mungkin tidak dapat berfungsi dengan baik tanpa akses database.',
-        error: e,
-        stackTrace: st
-      );
+      Log.error('Gagal total mendapatkan instance database.', error: e, stackTrace: st);
       rethrow;
     }
   }
 
   Future<Database> _initDB() async {
-    Log.info('Memulai proses inisialisasi database (_initDB).');
-    Log.info('Memeriksa environment untuk menentukan mode database (TEST atau PRODUKSI/DEBUG).');
-    
+    Log.info('Memulai inisialisasi database (_initDB).');
     try {
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        Log.info('Environment variable FLUTTER_TEST terdeteksi. Aplikasi berjalan dalam mode pengujian (TEST).');
-        Log.info('Menginisialisasi sqflite_ffi untuk database SQLite di environment test.');
+        Log.info('Mode TEST terdeteksi. Menggunakan database in-memory.');
         sqfliteFfiInit();
-        
-        Log.info('Mengganti databaseFactory standar dengan databaseFactoryFfi untuk mode test.');
         databaseFactory = databaseFactoryFfi;
-        
-        Log.info('Membuka database in-memory menggunakan databaseFactoryFfi. Database hanya akan ada selama sesi pengujian berlangsung.');
         return await databaseFactory.openDatabase(
           inMemoryDatabasePath,
-          options: OpenDatabaseOptions(
-            version: _databaseVersion,
-            onCreate: createTables,
-            onUpgrade: _onUpgrade,
-          ),
+          options: OpenDatabaseOptions(version: _databaseVersion, onCreate: createTables, onUpgrade: _onUpgrade),
         );
       }
 
-      Log.info('Mode Produksi/Debug terdeteksi. Akan menggunakan database fisik yang disimpan di perangkat.');
-      Log.info('Mendapatkan direktori dokumen aplikasi untuk menyimpan file database.');
+      Log.info('Mode PRODUKSI/DEBUG. Menggunakan database fisik.');
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      
-      Log.info('Direktori dokumen berhasil didapatkan: ${documentsDirectory.path}');
       String path = join(documentsDirectory.path, 'mydatabase.db');
-      Log.info('Path lengkap file database yang akan digunakan: $path');
+      Log.info('Path database: $path');
       
-      Log.info('Memeriksa apakah file database sudah ada di path tersebut.');
-      bool dbExists = await File(path).exists();
-      Log.info('Status keberadaan file database: ${dbExists ? "Sudah ada" : "Belum ada, akan dibuat baru"}.');
-      
-      Log.info('Membuka koneksi database dengan konfigurasi versi $_databaseVersion dan callback onCreate serta onUpgrade.');
-      return await openDatabase(
-        path,
-        version: _databaseVersion,
-        onCreate: createTables,
-        onUpgrade: _onUpgrade,
-      );
+      Log.info('Membuka database dengan versi $_databaseVersion...');
+      return await openDatabase(path, version: _databaseVersion, onCreate: createTables, onUpgrade: _onUpgrade);
     } catch (e, st) {
-      Log.error(
-        'Gagal membuka atau membuat database. Proses inisialisasi database mengalami kegagalan. '
-        'Pastikan perangkat memiliki ruang penyimpanan yang cukup dan izin akses penyimpanan telah diberikan.',
-        error: e,
-        stackTrace: st
-      );
+      Log.error('Gagal membuka atau membuat database.', error: e, stackTrace: st);
       rethrow;
     }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     Log.info('========================================');
-    Log.info('MEMULAI PROSES UPGRADE DATABASE');
+    Log.info('MEMULAI PROSES UPGRADE DATABASE (IDEMPOTEN)');
     Log.info('Versi database lama: $oldVersion');
     Log.info('Versi database baru: $newVersion');
     Log.info('========================================');
-    
-    final batch = db.batch();
 
     try {
-       if (oldVersion < 41) {
-        Log.info('Detected: oldVersion ($oldVersion) < 41. Melakukan migrasi untuk mencapai versi 41.');
-        try {
-          batch.execute('ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_berakhir TEXT');
-          Log.info('Migrasi berhasil ditambahkan ke batch: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_berakhir TEXT');
-        } catch (e) {
-          Log.warning(
-            'Gagal mengeksekusi migrasi: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_berakhir TEXT. '
-            'Kemungkinan kolom sudah ada sebelumnya. Error detail: $e. '
-            'Melanjutkan ke migrasi berikutnya.'
-          );
-        }
-      }
+      // Pendekatan idempoten: pastikan semua kolom yang diperlukan ada,
+      // tanpa mempedulikan versi lama secara spesifik.
+      // Ini menyelesaikan masalah migrasi yang terjebak atau tidak lengkap.
+      await _addColumnIfNotExists(db, 'pelanggan_aktif', 'tanggal_berakhir', 'TEXT');
+      await _addColumnIfNotExists(db, 'pelanggan_aktif', 'tanggal_mulai', 'TEXT');
+      
+      // Tambahkan pengecekan kolom lain di masa depan di sini jika perlu.
 
-      if (oldVersion < 42) {
-        Log.info('Detected: oldVersion ($oldVersion) < 42. Melakukan migrasi untuk mencapai versi 42.');
-        try {
-          batch.execute('ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_mulai TEXT');
-          Log.info('Migrasi berhasil ditambahkan ke batch: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_mulai TEXT');
-        } catch (e) {
-          Log.warning(
-            'Gagal mengeksekusi migrasi: ALTER TABLE pelanggan_aktif ADD COLUMN tanggal_mulai TEXT. '
-            'Kemungkinan kolom sudah ada sebelumnya. Error detail: $e. '
-            'Melanjutkan ke migrasi berikutnya.'
-          );
-        }
-      }
-
-      Log.info('Melakukan commit seluruh batch operation. Semua query migrasi akan dieksekusi secara atomik.');
-      await batch.commit(noResult: true);
-      Log.info('Batch commit berhasil. Semua migrasi telah diterapkan ke database.');
       Log.info('========================================');
       Log.info('PROSES UPGRADE DATABASE SELESAI');
       Log.info('Database berhasil diupgrade dari versi $oldVersion ke versi $newVersion.');
       Log.info('========================================');
     } catch (e, st) {
       Log.error(
-        'Gagal melakukan upgrade database dari versi $oldVersion ke versi $newVersion. '
-        'Proses migrasi database mengalami error fatal. '
-        'Kemungkinan penyebab: query SQL tidak valid, constraint violation, atau database corrupt.',
-        error: e,
-        stackTrace: st
+        'Gagal melakukan upgrade database dari versi $oldVersion ke versi $newVersion.',
+        error: e, stackTrace: st
       );
       rethrow;
     }
@@ -235,109 +185,43 @@ class DatabaseHelper {
 
   Future<void> createTables(Database db, int version) async {
     Log.info('========================================');
-    Log.info('MEMULAI PEMBUATAN TABEL DATABASE (onCreate)');
-    Log.info('Versi database yang akan dibuat: $version');
+    Log.info('MEMULAI PEMBUATAN TABEL DATABASE (onCreate) UNTUK VERSI $version');
     Log.info('========================================');
     
     try {
-      Log.info('Membuat tabel kategori untuk menyimpan data kategori transaksi (pemasukan/pengeluaran).');
       await db.execute(_tabelKategori);
-      Log.info('Tabel kategori berhasil dibuat.');
-      
-      Log.info('Membuat tabel sub_kategori untuk menyimpan sub kategori dari kategori utama.');
       await db.execute(_tabelSubKategori);
-      Log.info('Tabel sub_kategori berhasil dibuat.');
-      
-      Log.info('Membuat tabel paket untuk menyimpan data paket layanan/langganan yang tersedia.');
       await db.execute(_tabelPaket);
-      Log.info('Tabel paket berhasil dibuat.');
-      
-      Log.info('Membuat tabel pelanggan untuk menyimpan data pelanggan beserta informasi login mereka.');
       await db.execute(_tabelPelanggan);
-      Log.info('Tabel pelanggan berhasil dibuat.');
-      
-      Log.info('Membuat tabel pelanggan_aktif untuk melacak pelanggan yang sedang memiliki langganan aktif.');
       await db.execute(_tabelPelangganAktif);
-      Log.info('Tabel pelanggan_aktif berhasil dibuat.');
-      
-      Log.info('Membuat tabel transaksi untuk menyimpan semua riwayat transaksi keuangan.');
       await db.execute(tabelTransaksi);
-      Log.info('Tabel transaksi berhasil dibuat.');
-      
-      Log.info('Membuat tabel dompet untuk menyimpan data dompet/akun keuangan.');
       await db.execute(tabelDompet);
-      Log.info('Tabel dompet berhasil dibuat.');
-      
-      Log.info('Membuat tabel kritik_saran untuk menyimpan feedback dari pengguna.');
       await db.execute(_tabelKritikSaran);
-      Log.info('Tabel kritik_saran berhasil dibuat.');
-      
-      Log.info('Membuat tabel pesanan untuk menyimpan data pemesanan/pembelian paket oleh pelanggan.');
       await db.execute(_tabelPesanan);
-      Log.info('Tabel pesanan berhasil dibuat.');
-      
-      Log.info('Membuat tabel versi_apk_user untuk manajemen versi aplikasi dan update.');
       await db.execute(tabelVersiApkUser);
-      Log.info('Tabel versi_apk_user berhasil dibuat.');
-      
-      Log.info('Membuat tabel pengaturan untuk menyimpan konfigurasi/preferensi aplikasi.');
       await db.execute(_tabelPengaturan);
-      Log.info('Tabel pengaturan berhasil dibuat.');
-      
-      Log.info('Membuat tabel status_unggah untuk melacak status sinkronisasi data ke server.');
       await db.execute(_tabelStatusUnggah);
-      Log.info('Tabel status_unggah berhasil dibuat.');
-      
-      Log.info('Membuat tabel status_aplikasi untuk menyimpan berbagai status internal aplikasi dalam format key-value.');
       await db.execute(_tabelStatusAplikasi);
-      Log.info('Tabel status_aplikasi berhasil dibuat.');
-      
-      Log.info('Membuat tabel pesan untuk menyimpan pesan atau notifikasi yang diterima.');
       await db.execute(_tabelPesan);
-      Log.info('Tabel pesan berhasil dibuat.');
-      
-      Log.info('Semua tabel utama (total 14 tabel) berhasil dibuat.');
-      Log.info('');
-      Log.info('MEMULAI PEMBUATAN INDEX DATABASE');
-      Log.info('Index digunakan untuk mempercepat query pencarian dan pengurutan data.');
-      
-      Log.info('Membuat index idx_transaksi_dompet pada kolom id_dompet di tabel transaksi untuk mempercepat pencarian transaksi berdasarkan dompet.');
-      await db.execute(
-        'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)',
-      );
-      Log.info('Index idx_transaksi_dompet berhasil dibuat.');
-      
-      Log.info('Membuat index idx_transaksi_dompet_tujuan pada kolom id_dompet_tujuan di tabel transaksi untuk mempercepat pencarian transaksi transfer antar dompet.');
-      await db.execute(
-        'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
-      );
-      Log.info('Index idx_transaksi_dompet_tujuan berhasil dibuat.');
-      
-      Log.info('Membuat index idx_transaksi_isDeleted pada kolom isDeleted di tabel transaksi untuk mempercepat filter data yang belum dihapus.');
-      await db.execute(
-        'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)',
-      );
-      Log.info('Index idx_transaksi_isDeleted berhasil dibuat.');
-      
-      Log.info('Semua index (total 3 index) berhasil dibuat.');
+      Log.info('Semua 14 tabel utama berhasil dibuat.');
+
+      Log.info('Memulai pembuatan index...');
+      await db.execute('CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)');
+      await db.execute('CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)');
+      await db.execute('CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)');
+      Log.info('Semua 3 index berhasil dibuat.');
+
       Log.info('========================================');
-      Log.info('PROSES PEMBUATAN TABEL DAN INDEX SELESAI');
-      Log.info('Database versi $version berhasil dibuat dengan semua tabel dan index yang diperlukan.');
+      Log.info('PROSES PEMBUATAN TABEL & INDEX SELESAI');
       Log.info('========================================');
     } catch (e, st) {
-      Log.error(
-        'Gagal total saat membuat tabel atau index database. '
-        'Proses pembuatan struktur database awal mengalami kegagalan. '
-        'Kemungkinan penyebab: query SQL tidak valid, constraint violation, atau masalah izin akses file.',
-        error: e,
-        stackTrace: st
-      );
+      Log.error('Gagal total saat membuat tabel atau index.', error: e, stackTrace: st);
       rethrow;
     }
   }
 
 
-  // --- STATIC STRINGS UNTUK TABEL LAIN ---
+  // --- DEFINISI SKEMA TABEL ---
   static const String _tabelPengaturan = '''
     CREATE TABLE pengaturan(
       interval_sinkronisasi_otomatis INTEGER NOT NULL DEFAULT 24,
@@ -410,8 +294,8 @@ class DatabaseHelper {
         id_pelanggan TEXT NOT NULL,
         id_paket TEXT NOT NULL,
         id_transaksi TEXT,
-        tanggal_mulai TEXT NOT NULL,
-        tanggal_berakhir TEXT NOT NULL,
+        tanggal_mulai TEXT,
+        tanggal_berakhir TEXT,
         status TEXT NOT NULL,
         diperbarui TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,

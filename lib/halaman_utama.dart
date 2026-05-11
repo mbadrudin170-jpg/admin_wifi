@@ -33,7 +33,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     );
 
     if (_selectedIndex == index) {
-      Log.warning(
+      Log.info( // diubah: dari warning ke info karena ini bukan kondisi error
         'Index yang ditekan sama dengan halaman aktif saat ini. Tidak ada perubahan state.',
       );
 
