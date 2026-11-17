@@ -1,8 +1,10 @@
 import 'dart:io';
+
+import 'package:admin_wifi/debug/log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:admin_wifi/debug/log.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -17,16 +19,29 @@ class DatabaseHelper {
 
   /// Fungsi utilitas aman untuk menambahkan kolom jika belum ada.
   /// Mencegah error 'duplicate column'.
-  Future<void> _addColumnIfNotExists(Database db, String tableName, String columnName, String columnType) async {
+  Future<void> _addColumnIfNotExists(
+    Database db,
+    String tableName,
+    String columnName,
+    String columnType,
+  ) async {
     final dbClient = db;
-    final List<Map<String, dynamic>> tableInfo = await dbClient.rawQuery('PRAGMA table_info($tableName)');
+    final List<Map<String, dynamic>> tableInfo = await dbClient.rawQuery(
+      'PRAGMA table_info($tableName)',
+    );
     bool columnExists = tableInfo.any((column) => column['name'] == columnName);
 
     if (!columnExists) {
-      await dbClient.execute('ALTER TABLE $tableName ADD COLUMN $columnName $columnType');
-      Log.info('[MIGRASI SUKSES] Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.');
+      await dbClient.execute(
+        'ALTER TABLE $tableName ADD COLUMN $columnName $columnType',
+      );
+      Log.info(
+        '[MIGRASI SUKSES] Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.',
+      );
     } else {
-      Log.info('[MIGRASI DILEWATI] Kolom `$columnName` sudah ada di tabel `$tableName`.');
+      Log.info(
+        '[MIGRASI DILEWATI] Kolom `$columnName` sudah ada di tabel `$tableName`.',
+      );
     }
   }
 
@@ -116,14 +131,18 @@ class DatabaseHelper {
       Log.info('Instance database sudah ada di memori, mengembalikan...');
       return _database!;
     }
-    
+
     Log.info('Instance database belum ada, memanggil _initDB().');
     try {
       _database = await _initDB();
       Log.info('Database berhasil diinisialisasi dan di-cache.');
       return _database!;
     } catch (e, st) {
-      Log.error('Gagal total mendapatkan instance database.', error: e, stackTrace: st);
+      Log.error(
+        'Gagal total mendapatkan instance database.',
+        error: e,
+        stackTrace: st,
+      );
       rethrow;
     }
   }
@@ -131,13 +150,25 @@ class DatabaseHelper {
   Future<Database> _initDB() async {
     Log.info('Memulai inisialisasi database (_initDB).');
     try {
+      if (kIsWeb) {
+        Log.error(
+          'Database lokal tidak didukung pada Flutter Web. Aplikasi menargetkan Android.',
+        );
+        throw UnsupportedError(
+          'Database lokal (sqflite) tidak didukung pada Flutter Web.',
+        );
+      }
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
         Log.info('Mode TEST terdeteksi. Menggunakan database in-memory.');
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
         return await databaseFactory.openDatabase(
           inMemoryDatabasePath,
-          options: OpenDatabaseOptions(version: _databaseVersion, onCreate: createTables, onUpgrade: _onUpgrade),
+          options: OpenDatabaseOptions(
+            version: _databaseVersion,
+            onCreate: createTables,
+            onUpgrade: _onUpgrade,
+          ),
         );
       }
 
@@ -145,11 +176,20 @@ class DatabaseHelper {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       String path = join(documentsDirectory.path, 'mydatabase.db');
       Log.info('Path database: $path');
-      
+
       Log.info('Membuka database dengan versi $_databaseVersion...');
-      return await openDatabase(path, version: _databaseVersion, onCreate: createTables, onUpgrade: _onUpgrade);
+      return await openDatabase(
+        path,
+        version: _databaseVersion,
+        onCreate: createTables,
+        onUpgrade: _onUpgrade,
+      );
     } catch (e, st) {
-      Log.error('Gagal membuka atau membuat database.', error: e, stackTrace: st);
+      Log.error(
+        'Gagal membuka atau membuat database.',
+        error: e,
+        stackTrace: st,
+      );
       rethrow;
     }
   }
@@ -165,19 +205,32 @@ class DatabaseHelper {
       // Pendekatan idempoten: pastikan semua kolom yang diperlukan ada,
       // tanpa mempedulikan versi lama secara spesifik.
       // Ini menyelesaikan masalah migrasi yang terjebak atau tidak lengkap.
-      await _addColumnIfNotExists(db, 'pelanggan_aktif', 'tanggal_berakhir', 'TEXT');
-      await _addColumnIfNotExists(db, 'pelanggan_aktif', 'tanggal_mulai', 'TEXT');
-      
+      await _addColumnIfNotExists(
+        db,
+        'pelanggan_aktif',
+        'tanggal_berakhir',
+        'TEXT',
+      );
+      await _addColumnIfNotExists(
+        db,
+        'pelanggan_aktif',
+        'tanggal_mulai',
+        'TEXT',
+      );
+
       // Tambahkan pengecekan kolom lain di masa depan di sini jika perlu.
 
       Log.info('========================================');
       Log.info('PROSES UPGRADE DATABASE SELESAI');
-      Log.info('Database berhasil diupgrade dari versi $oldVersion ke versi $newVersion.');
+      Log.info(
+        'Database berhasil diupgrade dari versi $oldVersion ke versi $newVersion.',
+      );
       Log.info('========================================');
     } catch (e, st) {
       Log.error(
         'Gagal melakukan upgrade database dari versi $oldVersion ke versi $newVersion.',
-        error: e, stackTrace: st
+        error: e,
+        stackTrace: st,
       );
       rethrow;
     }
@@ -185,9 +238,11 @@ class DatabaseHelper {
 
   Future<void> createTables(Database db, int version) async {
     Log.info('========================================');
-    Log.info('MEMULAI PEMBUATAN TABEL DATABASE (onCreate) UNTUK VERSI $version');
+    Log.info(
+      'MEMULAI PEMBUATAN TABEL DATABASE (onCreate) UNTUK VERSI $version',
+    );
     Log.info('========================================');
-    
+
     try {
       await db.execute(_tabelKategori);
       await db.execute(_tabelSubKategori);
@@ -206,20 +261,29 @@ class DatabaseHelper {
       Log.info('Semua 14 tabel utama berhasil dibuat.');
 
       Log.info('Memulai pembuatan index...');
-      await db.execute('CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)');
-      await db.execute('CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)');
-      await db.execute('CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)');
+      await db.execute(
+        'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)',
+      );
       Log.info('Semua 3 index berhasil dibuat.');
 
       Log.info('========================================');
       Log.info('PROSES PEMBUATAN TABEL & INDEX SELESAI');
       Log.info('========================================');
     } catch (e, st) {
-      Log.error('Gagal total saat membuat tabel atau index.', error: e, stackTrace: st);
+      Log.error(
+        'Gagal total saat membuat tabel atau index.',
+        error: e,
+        stackTrace: st,
+      );
       rethrow;
     }
   }
-
 
   // --- DEFINISI SKEMA TABEL ---
   static const String _tabelPengaturan = '''

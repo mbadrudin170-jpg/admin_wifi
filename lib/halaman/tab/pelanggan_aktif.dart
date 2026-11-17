@@ -1,22 +1,24 @@
 // path: lib/halaman/tab/pelanggan_aktif.dart
 
 import 'dart:async';
-import 'package:admin_wifi/data/sync/unggah_data.dart';
-import 'package:admin_wifi/debug/log.dart';
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
-import 'package:admin_wifi/utils/format_util.dart';
-import 'package:admin_wifi/utils/perhitungan_util.dart';
-import 'package:admin_wifi/utils/sync_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/halaman/detail/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/halaman/form/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/model/model.dart';
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/utils/format_util.dart';
+import 'package:admin_wifi/utils/perhitungan_util.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
-import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 enum OpsiHapusPilihan { hapusSemua, arsipkanKadaluarsa, batal }
 
@@ -59,14 +61,14 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   @override
   void initState() {
     super.initState();
-    Log.info('Halaman Pelanggan Aktif sedang diinisialisasi.');
+    L.i('Halaman Pelanggan Aktif sedang diinisialisasi.');
     _loadData();
     _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
-    Log.info('Halaman Pelanggan Aktif sedang dibersihkan.');
+    L.i('Halaman Pelanggan Aktif sedang dibersihkan.');
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
@@ -77,7 +79,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   Future<void> _refreshData() async {
-    Log.info('Memuat ulang data Pelanggan Aktif karena permintaan pengguna.');
+    L.i('Memuat ulang data Pelanggan Aktif karena permintaan pengguna.');
     await _loadData(forceRefresh: true);
   }
 
@@ -91,32 +93,28 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     try {
       final koneksiTersedia = await _koneksiService.cekKoneksi();
-      Log.info(
+      L.i(
         'Status koneksi internet saat ini: ${koneksiTersedia ? "Online" : "Offline"}.',
       );
 
       if (koneksiTersedia && forceRefresh) {
-        Log.info('Memulai pengunggahan data pelanggan aktif ke server.');
+        L.i('Memulai pengunggahan data pelanggan aktif ke server.');
         await LayananUnggahData().unggahDataPelangganAktif().timeout(
           const Duration(seconds: 15),
           onTimeout: () {
-            Log.warning('Waktu unggah data habis.');
+            L.w('Waktu unggah data habis.');
             throw 'Waktu sinkronisasi habis, periksa kembali koneksi internet Anda.';
           },
         );
 
         await syncManager.setTerakhirUnggah(now);
-        Log.info('Pengunggahan data pelanggan aktif berhasil.');
+        L.i('Pengunggahan data pelanggan aktif berhasil.');
       } else if (!koneksiTersedia && forceRefresh) {
-        Log.warning(
-          'Gagal memuat ulang data karena tidak ada koneksi internet.',
-        );
+        L.w('Gagal memuat ulang data karena tidak ada koneksi internet.');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Jaringan tidak tersedia. Menampilkan data lokal.'),
-              backgroundColor: Colors.orange,
-            ),
+          AppToast.warning(
+            context,
+            'Jaringan tidak tersedia. Menampilkan data lokal.',
           );
         }
       }
@@ -128,20 +126,14 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
           .ambilSemuaPelangganAktif();
       _semuaPelanggan = pelangganAktifList;
 
-      Log.info(
+      L.i(
         'Berhasil memuat ${_semuaPelanggan.length} data pelanggan aktif dari database lokal.',
       );
       _applyFilterAndSort();
     } catch (e, s) {
-      Log.error(
-        'Terjadi kesalahan saat memuat data pelanggan aktif.',
-        error: e,
-        stackTrace: s,
-      );
+      L.e('Terjadi kesalahan saat memuat data pelanggan aktif. Error: $e $s');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+        AppToast.gagal(context, 'Gagal memuat data: $e');
       }
     } finally {
       if (mounted) {
@@ -162,9 +154,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
             _mapNamaPelanggan[pelanggan.idPelanggan]?.toLowerCase() ?? '';
         return nama.contains(query);
       }).toList();
-      Log.info(
-        'Pencarian untuk "$query" menghasilkan ${tempResult.length} hasil.',
-      );
+      L.i('Pencarian untuk "$query" menghasilkan ${tempResult.length} hasil.');
     } else {
       tempResult = List.of(_semuaPelanggan);
     }
@@ -220,7 +210,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     }
 
     tempResult.sort(comparator);
-    Log.info('Data diurutkan berdasarkan: ${_urutanAktif.name}.');
+    L.i('Data diurutkan berdasarkan: ${_urutanAktif.name}.');
 
     if (mounted) {
       setState(() {
@@ -230,7 +220,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   Future<void> _arsipkanPelanggan(PelangganAktifModel pelangganAktif) async {
-    Log.info(
+    L.i(
       'Meminta konfirmasi untuk mengarsipkan pelanggan aktif dengan ID: ${pelangganAktif.id}.',
     );
     final bool? konfirmasi = await showDialog<bool>(
@@ -268,40 +258,28 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
     if (konfirmasi == true) {
       try {
         await _pelangganAktifOperasi.arsipkanPelangganAktif(pelangganAktif.id);
-        Log.info(
+        L.i(
           'Pelanggan aktif dengan ID: ${pelangganAktif.id} berhasil diarsipkan.',
         );
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pelanggan berhasil diarsipkan.'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        AppToast.sukses(context, 'Pelanggan berhasil diarsipkan.');
         setState(() {
           _semuaPelanggan.removeWhere((p) => p.id == pelangganAktif.id);
           _hasilFilter.removeWhere((p) => p.id == pelangganAktif.id);
         });
       } catch (e, s) {
-        Log.error(
-          'Gagal mengarsipkan pelanggan aktif dengan ID: ${pelangganAktif.id}.',
-          error: e,
-          stackTrace: s,
+        L.e(
+          'Gagal mengarsipkan pelanggan aktif dengan ID: ${pelangganAktif.id}. Error: $e $s',
         );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengarsipkan pelanggan: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        AppToast.gagal(context, 'Gagal mengarsipkan pelanggan: $e');
       }
     }
   }
 
   void _showUrutkanDialog() async {
-    Log.info('Membuka dialog untuk memilih opsi pengurutan.');
+    L.i('Membuka dialog untuk memilih opsi pengurutan.');
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
       context: context,
       builder: (BuildContext context) {
@@ -359,20 +337,20 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
   }
 
   void _tambahPelangganAktif() async {
-    Log.info('Navigasi ke halaman tambah pelanggan aktif.');
+    L.i('Navigasi ke halaman tambah pelanggan aktif.');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => FormPelangganAktif()),
     );
     if (!mounted) return;
     if (result == true) {
-      Log.info('Berhasil menambahkan pelanggan aktif baru.');
+      L.i('Berhasil menambahkan pelanggan aktif baru.');
       _loadData(forceRefresh: true);
     }
   }
 
   void _opsiLanjutan() async {
-    Log.info('Membuka dialog opsi lanjutan.');
+    L.i('Membuka dialog opsi lanjutan.');
     final OpsiHapusPilihan? pilihan = await showDialog<OpsiHapusPilihan>(
       context: context,
       builder: (BuildContext context) {
@@ -405,9 +383,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
     switch (pilihan) {
       case OpsiHapusPilihan.hapusSemua:
-        Log.warning(
-          'Meminta konfirmasi untuk menghapus semua pelanggan aktif.',
-        );
+        L.w('Meminta konfirmasi untuk menghapus semua pelanggan aktif.');
         final bool? konfirmasi = await showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -432,26 +408,23 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
 
         if (konfirmasi == true) {
           await _pelangganAktifOperasi.arsipkanSemuaPelangganAktif();
-          Log.info('Semua pelanggan aktif berhasil diarsipkan.');
+          L.i('Semua pelanggan aktif berhasil diarsipkan.');
           _loadData(forceRefresh: true);
         }
         break;
       case OpsiHapusPilihan.arsipkanKadaluarsa:
-        Log.info(
+        L.i(
           'Memulai proses pengarsipan pelanggan aktif yang sudah kadaluarsa.',
         );
         final int jumlahDiarsipkan = await _pelangganAktifOperasi
             .arsipkanPelangganKadaluarsa();
-        Log.info(
+        L.i(
           'Berhasil mengarsipkan $jumlahDiarsipkan pelanggan aktif yang sudah kadaluarsa.',
         );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '$jumlahDiarsipkan pelanggan kadaluarsa berhasil diarsipkan.',
-            ),
-          ),
+        AppToast.sukses(
+          context,
+          '$jumlahDiarsipkan pelanggan kadaluarsa berhasil diarsipkan.',
         );
         _loadData(forceRefresh: true);
         break;
@@ -495,7 +468,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       IconButton(
         icon: const Icon(Icons.close),
         onPressed: () {
-          Log.info('Menutup mode pencarian.');
+          L.i('Menutup mode pencarian.');
           if (mounted) {
             setState(() {
               _isSearching = false;
@@ -513,7 +486,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
       IconButton(
         icon: const Icon(Icons.search),
         onPressed: () {
-          Log.info('Membuka mode pencarian.');
+          L.i('Membuka mode pencarian.');
           if (mounted) {
             setState(() {
               _isSearching = true;
@@ -565,7 +538,7 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
                           child: InkWell(
                             onLongPress: () => _arsipkanPelanggan(pelanggan),
                             onTap: () async {
-                              Log.info(
+                              L.i(
                                 'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelanggan.id}.',
                               );
                               await Navigator.push(

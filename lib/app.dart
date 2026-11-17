@@ -1,10 +1,11 @@
 // path: lib/app.dart
-import 'package:admin_wifi/debug/log.dart';
-import 'package:admin_wifi/utils/sync_manager.dart'; 
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/splash_screen.dart';
+import 'package:admin_wifi/utils/sync_manager.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
         builder: (context) {
           Log.info('Membangun child dari MultiProvider, yaitu AppMaterial.');
           return const AppMaterial();
-        }
+        },
       ),
     );
   }
@@ -39,20 +40,17 @@ class AppMaterial extends StatelessWidget {
     Log.info('Membangun struktur tema dan MaterialApp.');
 
     const Color primarySeedColor = Colors.deepPurple;
-    Log.info('Menetapkan warna dasar (seed color) untuk tema: $primarySeedColor.');
+    Log.info(
+      'Menetapkan warna dasar (seed color) untuk tema: $primarySeedColor.',
+    );
 
-    final TextTheme appTextTheme = const TextTheme(
-      displayLarge: TextStyle(
-        fontFamily: 'Oswald',
+    final TextTheme appTextTheme = TextTheme(
+      displayLarge: GoogleFonts.oswald(
         fontSize: 57,
         fontWeight: FontWeight.bold,
       ),
-      titleLarge: TextStyle(
-        fontFamily: 'Roboto',
-        fontSize: 22,
-        fontWeight: FontWeight.w500,
-      ),
-      bodyMedium: TextStyle(fontFamily: 'Open Sans', fontSize: 14),
+      titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
+      bodyMedium: GoogleFonts.openSans(fontSize: 14),
     );
     Log.info('Membuat definisi TextTheme kustom.');
 
@@ -63,11 +61,10 @@ class AppMaterial extends StatelessWidget {
         brightness: Brightness.light,
       ),
       textTheme: appTextTheme,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: primarySeedColor,
         foregroundColor: Colors.white,
-        titleTextStyle: TextStyle(
-          fontFamily: 'Oswald',
+        titleTextStyle: GoogleFonts.oswald(
           fontSize: 24,
           fontWeight: FontWeight.bold,
         ),
@@ -78,8 +75,7 @@ class AppMaterial extends StatelessWidget {
           backgroundColor: primarySeedColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle: const TextStyle(
-            fontFamily: 'Roboto',
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),

@@ -9,6 +9,7 @@ import 'package:admin_wifi/home.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/services/pembersihan_data_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -223,12 +224,11 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Admin WiFi',
-                  style: TextStyle(
+                  style: GoogleFonts.roboto(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Roboto',
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -236,7 +236,7 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 20),
                 Text(
                   _loadingMessage,
-                  style: const TextStyle(fontSize: 14, fontFamily: 'Open Sans'),
+                  style: GoogleFonts.openSans(fontSize: 14),
                 ),
               ],
             ),
@@ -263,10 +263,7 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Text(
                       _toastMessage,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Open Sans',
-                      ),
+                      style: GoogleFonts.openSans(color: Colors.white),
                     ),
                   ),
                 ),
