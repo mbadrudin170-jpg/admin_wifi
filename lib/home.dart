@@ -7,6 +7,7 @@ import 'package:admin_wifi/halaman/tab/transaksi.dart';
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 class Home extends StatefulWidget {
   final bool isOffline;
@@ -70,18 +71,15 @@ class _HomeState extends State<Home> {
 
     if (widget.isOffline) {
       L.w(
-        'Aplikasi berjalan dalam mode offline. Menampilkan snackbar peringatan.',
+        'Aplikasi berjalan dalam mode offline. Menampilkan toast peringatan.',
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Anda dalam mode offline. Data mungkin tidak terbaru.'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 5),
-        ),
+      AppToast.warning(
+        context,
+        'Anda dalam mode offline. Data mungkin tidak terbaru.',
       );
 
-      L.i('Snackbar offline berhasil ditampilkan.');
+      L.i('Toast offline berhasil ditampilkan.');
     } else {
       L.i('Aplikasi berjalan dalam mode online.');
     }
