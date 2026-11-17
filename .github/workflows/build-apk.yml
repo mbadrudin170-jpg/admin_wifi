@@ -1,0 +1,49 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build APK release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Siapkan Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+
+      - name: Cache pub & Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle/caches
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock', '**/*.gradle', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Ambil dependensi
+        run: flutter pub get
+
+      - name: Analisis statis
+        run: flutter analyze
+
+      - name: Build APK release
+        run: flutter build apk --release --split-per-abi --target-platform android-arm64
+
+      - name: Ganti nama APK
+        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/admin_wifi-arm64-v8a-release.apk
+
+      - name: Unggah artefak APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/admin_wifi-arm64-v8a-release.apk
+          retention-days: 14
