@@ -4,13 +4,13 @@ import 'dart:async';
 
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unduhan_awal.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/tab/fungsi_menampilkan_notifikasi.dart';
 import 'package:admin_wifi/home.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/services/pembersihan_data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    Log.info(
+    L.i(
       'Siklus hidup widget dimulai. Mempersiapkan animasi dan inisialisasi utama.',
     );
 
@@ -42,15 +42,15 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    Log.info('AnimationController berhasil dibuat dengan durasi 500ms.');
+    L.i('AnimationController berhasil dibuat dengan durasi 500ms.');
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
-    Log.info('Animasi fade (dari 0.0 ke 1.0) berhasil dibuat.');
+    L.i('Animasi fade (dari 0.0 ke 1.0) berhasil dibuat.');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Log.info(
+      L.i(
         'Frame pertama selesai di-render, memulai proses inisialisasi aplikasi (_initializeAndNavigate).',
       );
       _initializeAndNavigate();
@@ -58,40 +58,38 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _tampilkanToast(String message) {
-    Log.info('Mencoba menampilkan pesan toast: "$message".');
+    L.i('Mencoba menampilkan pesan toast: "$message".');
     if (!mounted) {
-      Log.warning(
-        'Batal menampilkan toast karena widget sudah tidak ter-mount.',
-      );
+      L.w('Batal menampilkan toast karena widget sudah tidak ter-mount.');
       return;
     }
     if (_showToast) {
-      Log.warning('Batal menampilkan toast karena toast lain sedang aktif.');
+      L.w('Batal menampilkan toast karena toast lain sedang aktif.');
       return;
     }
 
-    Log.info('Memperbarui state untuk menampilkan toast.');
+    L.i('Memperbarui state untuk menampilkan toast.');
     setState(() {
       _toastMessage = message;
       _showToast = true;
     });
 
     _animationController.forward();
-    Log.info('Memulai animasi fade-in untuk toast.');
+    L.i('Memulai animasi fade-in untuk toast.');
 
     Future.delayed(const Duration(seconds: 4), () {
       if (!mounted) {
-        Log.warning(
+        L.w(
           'Batal menyembunyikan toast setelah delay, widget sudah tidak ter-mount.',
         );
         return;
       }
-      Log.info(
+      L.i(
         'Delay 4 detik selesai, memulai animasi fade-out untuk menyembunyikan toast.',
       );
       _animationController.reverse().then((_) {
         if (!mounted) {
-          Log.warning(
+          L.w(
             'Batal reset state toast setelah animasi reverse, widget tidak ter-mount.',
           );
           return;
@@ -99,26 +97,26 @@ class _SplashScreenState extends State<SplashScreen>
         setState(() {
           _showToast = false;
         });
-        Log.info('State toast berhasil di-reset, toast telah disembunyikan.');
+        L.i('State toast berhasil di-reset, toast telah disembunyikan.');
       });
     });
   }
 
   void _updateLoading(String message) {
     if (!mounted) {
-      Log.warning(
+      L.w(
         'Batal memperbarui pesan loading ke "$message" karena widget tidak ter-mount.',
       );
       return;
     }
-    Log.info('Memperbarui pesan loading di UI menjadi: "$message".');
+    L.i('Memperbarui pesan loading di UI menjadi: "$message".');
     setState(() {
       _loadingMessage = message;
     });
   }
 
   Future<void> _initializeAndNavigate() async {
-    Log.info('Memulai urutan inisialisasi aplikasi.');
+    L.i('Memulai urutan inisialisasi aplikasi.');
     bool isOnline = false;
 
     try {
@@ -127,7 +125,7 @@ class _SplashScreenState extends State<SplashScreen>
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
       await initializeDateFormatting('id_ID', null);
-      Log.info(
+      L.i(
         'Konfigurasi zona waktu (Asia/Jakarta) dan format tanggal (id_ID) selesai.',
       );
       if (!mounted) return;
@@ -135,14 +133,14 @@ class _SplashScreenState extends State<SplashScreen>
       _updateLoading("Mempersiapkan layanan aplikasi...");
       final notifikasiServis = NotifikasiServis();
       await notifikasiServis.inisialisasi();
-      Log.info('Layanan notifikasi berhasil diinisialisasi.');
+      L.i('Layanan notifikasi berhasil diinisialisasi.');
       if (!mounted) return;
 
       final bool izinDiberikan = await notifikasiServis.requestPermissions();
       if (izinDiberikan) {
-        Log.info('Izin notifikasi telah diberikan oleh pengguna.');
+        L.i('Izin notifikasi telah diberikan oleh pengguna.');
       } else {
-        Log.warning(
+        L.w(
           'Izin notifikasi ditolak oleh pengguna. Menampilkan toast peringatan.',
         );
         _tampilkanToast(
@@ -153,45 +151,39 @@ class _SplashScreenState extends State<SplashScreen>
 
       _updateLoading("Mempersiapkan database lokal...");
       await DatabaseHelper.instance.database;
-      Log.info('Inisialisasi koneksi database SQLite berhasil.');
+      L.i('Inisialisasi koneksi database SQLite berhasil.');
       if (!mounted) return;
 
       _updateLoading("Memeriksa data awal...");
       await UnduhanAwalService().jalankanUnduhanAwal();
-      Log.info(
+      L.i(
         'Layanan Unduhan Awal selesai dijalankan, memastikan data esensial tersedia.',
       );
       if (!mounted) return;
 
-      Log.info('Menjalankan layanan pembersihan data jika diperlukan.');
+      L.i('Menjalankan layanan pembersihan data jika diperlukan.');
       PembersihanDataService().jalankanJikaPerlu();
 
       _updateLoading("Mengecek koneksi internet...");
       isOnline = await _koneksiService.cekKoneksi();
-      Log.info(
-        'Pengecekan koneksi internet selesai. Status online: $isOnline.',
-      );
+      L.i('Pengecekan koneksi internet selesai. Status online: $isOnline.');
       if (!mounted) return;
 
       _updateLoading("Selesai, membuka aplikasi...");
       await Future.delayed(const Duration(milliseconds: 500));
     } catch (e, s) {
-      Log.error(
-        'Terjadi error kritis selama proses inisialisasi aplikasi. Proses dihentikan.',
-        error: e,
-        stackTrace: s,
+      L.e(
+        'Terjadi error kritis selama proses inisialisasi aplikasi. Proses dihentikan. Error: $e $s',
       );
       _updateLoading("Terjadi error, silakan mulai ulang aplikasi.");
       await Future.delayed(const Duration(seconds: 5));
     }
 
     if (!mounted) {
-      Log.warning(
-        'Batal navigasi ke HalamanUtama karena widget tidak ter-mount.',
-      );
+      L.w('Batal navigasi ke HalamanUtama karena widget tidak ter-mount.');
       return;
     }
-    Log.info(
+    L.i(
       'Semua proses inisialisasi selesai. Menavigasi ke HalamanUtama dengan status offline: ${!isOnline}',
     );
     Navigator.pushReplacement(
@@ -202,14 +194,14 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    Log.info('Membersihkan resource. AnimationController akan di-dispose.');
+    L.i('Membersihkan resource. AnimationController akan di-dispose.');
     _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI untuk SplashScreen.');
+    L.i('Membangun UI untuk SplashScreen.');
     return Scaffold(
       body: Stack(
         children: [
@@ -222,11 +214,11 @@ class _SplashScreenState extends State<SplashScreen>
                     final isDarkMode =
                         MediaQuery.of(context).platformBrightness ==
                         Brightness.dark;
-                    Log.info('Mendeteksi mode tema. Dark mode: $isDarkMode.');
+                    L.i('Mendeteksi mode tema. Dark mode: $isDarkMode.');
                     final logoAsset = isDarkMode
                         ? 'assets/logo/ikon/ikon_apk.png'
                         : 'assets/logo/ikon/ikon_apk.png';
-                    Log.info('Memilih aset logo berdasarkan tema: $logoAsset.');
+                    L.i('Memilih aset logo berdasarkan tema: $logoAsset.');
                     return Image.asset(logoAsset, width: 150);
                   },
                 ),
