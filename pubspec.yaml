@@ -1,6 +1,6 @@
 name: admin_wifi
 description: "Aplikasi untuk mengelola pelanggan Wifi."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.1.0+6
 
@@ -52,10 +52,10 @@ dev_dependencies:
 
 # ditambahkan: untuk konfigurasi flutter_launcher_icons
 flutter_launcher_icons:
-  android: 'launcher_icons'
+  android: "launcher_icons"
   # diubah: karena hanya akan membuat ikon untuk Android
-  ios: false 
-  
+  ios: false
+
   image_path: "assets/logo/ikon/ikon_apk.png"
 
 flutter:
@@ -65,7 +65,7 @@ flutter:
     - assets/fonts/
     # diubah: Mendaftarkan folder logo ikon & splash screen secara spesifik
     - assets/logo/ikon/
-    
+
   fonts:
     - family: Oswald
       fonts:
