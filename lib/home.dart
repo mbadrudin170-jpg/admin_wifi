@@ -1,23 +1,23 @@
 // path: lib/halaman_utama.dart
 
 import 'package:admin_wifi/debug/log.dart';
-import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
-import 'package:flutter/material.dart';
+import 'package:admin_wifi/halaman/tab/dompet.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
 import 'package:admin_wifi/halaman/tab/pelanggan_aktif.dart';
-import 'package:admin_wifi/halaman/tab/dompet.dart';
 import 'package:admin_wifi/halaman/tab/transaksi.dart';
+import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
+import 'package:flutter/material.dart';
 
-class HalamanUtama extends StatefulWidget {
+class Home extends StatefulWidget {
   final bool isOffline;
 
-  const HalamanUtama({super.key, this.isOffline = false});
+  const Home({super.key, this.isOffline = false});
 
   @override
-  State<HalamanUtama> createState() => _HalamanUtamaState();
+  State<Home> createState() => _HomeState();
 }
 
-class _HalamanUtamaState extends State<HalamanUtama> {
+class _HomeState extends State<Home> {
   int _selectedIndex = 0;
 
   final List<Widget> _widgetOptions = <Widget>[
@@ -28,12 +28,11 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   ];
 
   void _onItemTapped(int index) {
-    Log.info(
-      'Pengguna menekan bottom navigation index: $index.',
-    );
+    Log.info('Pengguna menekan bottom navigation index: $index.');
 
     if (_selectedIndex == index) {
-      Log.info( // diubah: dari warning ke info karena ini bukan kondisi error
+      Log.info(
+        // diubah: dari warning ke info karena ini bukan kondisi error
         'Index yang ditekan sama dengan halaman aktif saat ini. Tidak ada perubahan state.',
       );
 
@@ -41,9 +40,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     }
 
     setState(() {
-      Log.info(
-        'Mengubah selected index dari $_selectedIndex menjadi $index.',
-      );
+      Log.info('Mengubah selected index dari $_selectedIndex menjadi $index.');
 
       _selectedIndex = index;
     });
@@ -58,24 +55,18 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Log.info(
-        'Frame pertama selesai dirender.',
-      );
+      Log.info('Frame pertama selesai dirender.');
 
       _cekDanTampilkanPesanOffline();
 
-      Log.info(
-        'Menjalankan proses pengecekan langganan kadaluarsa.',
-      );
+      Log.info('Menjalankan proses pengecekan langganan kadaluarsa.');
 
       CekLanggananKadaluarsaService().prosesLanggananKadaluarsa();
     });
   }
 
   void _cekDanTampilkanPesanOffline() {
-    Log.info(
-      'Memeriksa status koneksi aplikasi.',
-    );
+    Log.info('Memeriksa status koneksi aplikasi.');
 
     if (widget.isOffline) {
       Log.warning(
@@ -90,13 +81,9 @@ class _HalamanUtamaState extends State<HalamanUtama> {
         ),
       );
 
-      Log.info(
-        'Snackbar offline berhasil ditampilkan.',
-      );
+      Log.info('Snackbar offline berhasil ditampilkan.');
     } else {
-      Log.info(
-        'Aplikasi berjalan dalam mode online.',
-      );
+      Log.info('Aplikasi berjalan dalam mode online.');
     }
   }
 
@@ -107,9 +94,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     );
 
     return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
+      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
@@ -125,10 +110,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
             icon: Icon(Icons.receipt_long),
             label: 'Transaksi',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.apps),
-            label: 'Lainnya',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Lainnya'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(context).colorScheme.primary,

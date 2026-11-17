@@ -1,18 +1,18 @@
 // path: lib/splash_screen.dart
 
 import 'dart:async';
+
+import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/tab/fungsi_menampilkan_notifikasi.dart';
+import 'package:admin_wifi/home.dart';
+import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/services/pembersihan_data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-
-import 'package:admin_wifi/halaman_utama.dart';
-import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/services/cek_koneksi_internet.dart';
-import 'package:admin_wifi/services/pembersihan_data_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -196,9 +196,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => HalamanUtama(isOffline: !isOnline),
-      ),
+      MaterialPageRoute(builder: (context) => Home(isOffline: !isOnline)),
     );
   }
 
