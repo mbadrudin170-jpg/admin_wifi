@@ -1,12 +1,12 @@
 // path: lib/halaman_utama.dart
 
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/tab/dompet.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
 import 'package:admin_wifi/halaman/tab/pelanggan_aktif.dart';
 import 'package:admin_wifi/halaman/tab/transaksi.dart';
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class Home extends StatefulWidget {
   final bool isOffline;
@@ -28,10 +28,10 @@ class _HomeState extends State<Home> {
   ];
 
   void _onItemTapped(int index) {
-    Log.info('Pengguna menekan bottom navigation index: $index.');
+    L.i('Pengguna menekan bottom navigation index: $index.');
 
     if (_selectedIndex == index) {
-      Log.info(
+      L.i(
         // diubah: dari warning ke info karena ini bukan kondisi error
         'Index yang ditekan sama dengan halaman aktif saat ini. Tidak ada perubahan state.',
       );
@@ -40,7 +40,7 @@ class _HomeState extends State<Home> {
     }
 
     setState(() {
-      Log.info('Mengubah selected index dari $_selectedIndex menjadi $index.');
+      L.i('Mengubah selected index dari $_selectedIndex menjadi $index.');
 
       _selectedIndex = index;
     });
@@ -50,26 +50,26 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
 
-    Log.info(
+    L.i(
       'Memulai inisialisasi halaman utama. Status offline: ${widget.isOffline}.',
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Log.info('Frame pertama selesai dirender.');
+      L.i('Frame pertama selesai dirender.');
 
       _cekDanTampilkanPesanOffline();
 
-      Log.info('Menjalankan proses pengecekan langganan kadaluarsa.');
+      L.i('Menjalankan proses pengecekan langganan kadaluarsa.');
 
       CekLanggananKadaluarsaService().prosesLanggananKadaluarsa();
     });
   }
 
   void _cekDanTampilkanPesanOffline() {
-    Log.info('Memeriksa status koneksi aplikasi.');
+    L.i('Memeriksa status koneksi aplikasi.');
 
     if (widget.isOffline) {
-      Log.warning(
+      L.w(
         'Aplikasi berjalan dalam mode offline. Menampilkan snackbar peringatan.',
       );
 
@@ -81,17 +81,15 @@ class _HomeState extends State<Home> {
         ),
       );
 
-      Log.info('Snackbar offline berhasil ditampilkan.');
+      L.i('Snackbar offline berhasil ditampilkan.');
     } else {
-      Log.info('Aplikasi berjalan dalam mode online.');
+      L.i('Aplikasi berjalan dalam mode online.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info(
-      'Membangun UI halaman utama dengan selected index: $_selectedIndex.',
-    );
+    L.i('Membangun UI halaman utama dengan selected index: $_selectedIndex.');
 
     return Scaffold(
       body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
