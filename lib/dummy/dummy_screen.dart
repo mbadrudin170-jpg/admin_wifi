@@ -1,6 +1,9 @@
 // path: lib/dummy/dummy_screen.dart
 
 import 'package:admin_wifi/dummy/dummy_helper.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,7 +76,7 @@ class _DummyScreenState extends ConsumerState<DummyScreen> {
 
     try {
       await DummyHelper.tambahSemuaDummy();
-      ref.invalidate(penggunaAktifProvider);
+      _invalidateProvider();
       if (!mounted) return;
       AppToast.sukses(context, 'Semua data dummy berhasil ditambahkan.');
     } catch (e, s) {
@@ -107,7 +110,7 @@ class _DummyScreenState extends ConsumerState<DummyScreen> {
 
     try {
       await DummyHelper.risetSemuaDummy();
-      ref.invalidate(penggunaAktifProvider);
+      _invalidateProvider();
       if (!mounted) return;
       AppToast.sukses(context, 'Semua data dummy berhasil direset.');
     } catch (e, s) {
@@ -142,7 +145,7 @@ class _DummyScreenState extends ConsumerState<DummyScreen> {
 
     try {
       await DummyHelper.hapusSemuaDummy();
-      ref.invalidate(penggunaAktifProvider);
+      _invalidateProvider();
       if (!mounted) return;
       AppToast.sukses(context, 'Semua data dummy berhasil dihapus.');
     } catch (e, s) {
@@ -156,6 +159,13 @@ class _DummyScreenState extends ConsumerState<DummyScreen> {
         });
       }
     }
+  }
+
+  void _invalidateProvider() {
+    ref.invalidate(penggunaAktifProvider);
+    ref.invalidate(pelangganProvider);
+    ref.invalidate(paketProvider);
+    ref.invalidate(dompetProvider);
   }
 
   Future<bool?> _tampilkanKonfirmasi({
