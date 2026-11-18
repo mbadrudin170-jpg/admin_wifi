@@ -29,4 +29,8 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
       jumlahPelangganAktif: daftar.length,
     );
   }
+
+  void tambah() {}
+  void ubah() {}
+  void hapus() {}
 }
