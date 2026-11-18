@@ -2,7 +2,7 @@
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/debug/log.dart';
-import 'package:admin_wifi/fitur/state/pelanggan_aktif_state.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'pengguna_aktif_notifier.g.dart';
