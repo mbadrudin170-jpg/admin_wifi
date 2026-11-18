@@ -7,7 +7,7 @@ import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/halaman/detail/detail_transaksi.dart';
 import 'package:admin_wifi/halaman/form/form_transaksi.dart';
-import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 

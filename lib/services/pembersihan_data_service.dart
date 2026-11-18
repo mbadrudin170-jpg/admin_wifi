@@ -5,7 +5,7 @@ import 'package:share_global_saya/src/utils/l.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // ditambahkan: Import untuk mengakses operasi dan model pengaturan.
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 
 class PembersihanDataService {
   static const String _keyLastCleanup = 'last_cleanup_timestamp';

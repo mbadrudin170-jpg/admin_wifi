@@ -2,7 +2,7 @@
 // diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'dart:convert';
 
-import 'package:admin_wifi/model/sub_kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';

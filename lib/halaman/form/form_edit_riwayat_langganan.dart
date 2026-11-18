@@ -3,7 +3,7 @@
 
 // import 'package:admin_wifi/data/operasi/riwayat_langganan_operasi.dart';
 // import 'package:admin_wifi/enum/status_pembayaran.dart';
-// import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+// import 'package:admin_wifi/fitur/riwayat_langganan/model/riwayat_langganan_model.dart';
 // import 'package:admin_wifi/utils/format_util.dart';
 // import 'package:flutter/material.dart';
 

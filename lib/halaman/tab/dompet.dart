@@ -6,7 +6,7 @@
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_dompet.dart';
 import 'package:admin_wifi/halaman/form/form_dompet.dart';
-import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

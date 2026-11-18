@@ -42,19 +42,32 @@ void main() async {
     UncontrolledProviderScope(
       container: container,
       // Overlay root manual berada di ATAS MaterialApp (yang menyediakan
-      // Directionality), jadi Directionality harus dipasang manual di sini:
-      // `_Theater` (bagian internal Overlay) mewajibkan ancestor Directionality.
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Overlay(
-          initialEntries: [
-            OverlayEntry(
-              // PengelolaOverlayLogDebug menyisipkan ikon/panel ke Overlay.maybeOf(context);
-              // Overlay dibuat di root agar pemanggilannya menemukan ancestor (rootOverlay).
-              builder: (context) =>
-                  const PengelolaOverlayLogDebug(child: MyApp()),
-            ),
-          ],
+      // Localizations/Directionality), jadi keduanya harus dipasang manual
+      // di sini:
+      // - Localizations: panel log debug memakai `SelectionArea`, yang
+      //   membutuhkan MaterialLocalizations (diisi delegasi default
+      //   framework, Bahasa Inggris — proyek ini tidak memuat
+      //   flutter_localizations).
+      // - Directionality: `_Theater` (bagian internal Overlay) mewajibkan
+      //   ancestor Directionality.
+      child: Localizations(
+        locale: const Locale('en'),
+        delegates: const [
+          DefaultWidgetsLocalizations.delegate,
+          DefaultMaterialLocalizations.delegate,
+        ],
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Overlay(
+            initialEntries: [
+              OverlayEntry(
+                // PengelolaOverlayLogDebug menyisipkan ikon/panel ke Overlay.maybeOf(context);
+                // Overlay dibuat di root agar pemanggilannya menemukan ancestor (rootOverlay).
+                builder: (context) =>
+                    const PengelolaOverlayLogDebug(child: MyApp()),
+              ),
+            ],
+          ),
         ),
       ),
     ),

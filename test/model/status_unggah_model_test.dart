@@ -1,5 +1,5 @@
 // path: test/model/status_unggah_model_test.dart
-import 'package:admin_wifi/model/status_unggah_model.dart';
+import 'package:admin_wifi/fitur/status_unggah/model/status_unggah_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

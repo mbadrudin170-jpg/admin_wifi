@@ -8,7 +8,7 @@ import 'dart:async' as _i4;
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart' as _i3;
 import 'package:admin_wifi/db/sqflite.dart' as _i2;
-import 'package:admin_wifi/model/paket_model.dart' as _i5;
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint

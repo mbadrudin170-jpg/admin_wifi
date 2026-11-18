@@ -13,13 +13,13 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart' as _i11;
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart' as _i6;
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i12;
 import 'package:admin_wifi/db/sqflite.dart' as _i2;
+import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart' as _i15;
+import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart' as _i5;
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart' as _i10;
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart' as _i8;
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart'
     as _i4;
-import 'package:admin_wifi/model/dompet_model.dart' as _i15;
-import 'package:admin_wifi/model/kategori_model.dart' as _i5;
-import 'package:admin_wifi/model/paket_model.dart' as _i10;
-import 'package:admin_wifi/model/pelanggan_model.dart' as _i8;
-import 'package:admin_wifi/model/transaksi_model.dart' as _i13;
+import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart' as _i13;
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 

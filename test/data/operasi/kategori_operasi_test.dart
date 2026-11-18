@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
@@ -50,10 +50,18 @@ void main() {
 
     test('2. getKategori harus mengembalikan daftar kategori', () async {
       await kategoriOperasi.createKategori(
-        KategoriModel(id: const Uuid().v4(), nama: 'Kategori 1', tipe: TipeKategori.pemasukan),
+        KategoriModel(
+          id: const Uuid().v4(),
+          nama: 'Kategori 1',
+          tipe: TipeKategori.pemasukan,
+        ),
       );
       await kategoriOperasi.createKategori(
-        KategoriModel(id: const Uuid().v4(), nama: 'Kategori 2', tipe: TipeKategori.pengeluaran),
+        KategoriModel(
+          id: const Uuid().v4(),
+          nama: 'Kategori 2',
+          tipe: TipeKategori.pengeluaran,
+        ),
       );
 
       final hasil = await kategoriOperasi.getKategori();
@@ -62,10 +70,18 @@ void main() {
 
     test('3. getKategoriByTipe harus memfilter berdasarkan tipe', () async {
       await kategoriOperasi.createKategori(
-        KategoriModel(id: const Uuid().v4(), nama: 'Pemasukan 1', tipe: TipeKategori.pemasukan),
+        KategoriModel(
+          id: const Uuid().v4(),
+          nama: 'Pemasukan 1',
+          tipe: TipeKategori.pemasukan,
+        ),
       );
       await kategoriOperasi.createKategori(
-        KategoriModel(id: const Uuid().v4(), nama: 'Pengeluaran 1', tipe: TipeKategori.pengeluaran),
+        KategoriModel(
+          id: const Uuid().v4(),
+          nama: 'Pengeluaran 1',
+          tipe: TipeKategori.pengeluaran,
+        ),
       );
 
       final hasil = await kategoriOperasi.getKategoriByTipe(
@@ -77,7 +93,11 @@ void main() {
 
     test('4. update harus memperbarui data kategori', () async {
       final kategoriAwal = await kategoriOperasi.createKategori(
-        KategoriModel(id: const Uuid().v4(), nama: 'Nama Lama', tipe: TipeKategori.pemasukan),
+        KategoriModel(
+          id: const Uuid().v4(),
+          nama: 'Nama Lama',
+          tipe: TipeKategori.pemasukan,
+        ),
       );
 
       final kategoriUpdate = kategoriAwal.copyWith(nama: 'Nama Baru');
@@ -98,7 +118,11 @@ void main() {
 
     test('5. delete harus menghapus kategori', () async {
       final kategori = await kategoriOperasi.createKategori(
-        KategoriModel(id: const Uuid().v4(), nama: 'Untuk Dihapus', tipe: TipeKategori.pemasukan),
+        KategoriModel(
+          id: const Uuid().v4(),
+          nama: 'Untuk Dihapus',
+          tipe: TipeKategori.pemasukan,
+        ),
       );
 
       await kategoriOperasi.delete(kategori.id);
@@ -136,7 +160,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 50));
 
         await kategoriOperasi.createKategori(
-          KategoriModel(id: const Uuid().v4(), nama: 'Perubahan 1', tipe: TipeKategori.pemasukan),
+          KategoriModel(
+            id: const Uuid().v4(),
+            nama: 'Perubahan 1',
+            tipe: TipeKategori.pemasukan,
+          ),
         );
 
         final hasil = await kategoriOperasi.getPerubahan(waktuSekarang);

@@ -2,7 +2,7 @@
 // diubah: Menyesuaikan file test dengan menghapus `jumlahPoin` dan menambahkan `poinHadiah` serta `poinPenukaran`.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 
 void main() {
   group('PaketModel', () {
@@ -57,7 +57,10 @@ void main() {
           paketAwal.harga,
         ); // Harga tidak boleh berubah
         expect(paketDiperbarui.poinHadiah, 25); // diubah: dari jumlahPoin
-        expect(paketDiperbarui.poinPenukaran, paketAwal.poinPenukaran); // Pastikan yang lain tidak berubah
+        expect(
+          paketDiperbarui.poinPenukaran,
+          paketAwal.poinPenukaran,
+        ); // Pastikan yang lain tidak berubah
       },
     );
 

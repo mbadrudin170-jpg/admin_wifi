@@ -2,7 +2,7 @@
 // diubah: Menyesuaikan dengan PelangganModel terbaru (telepon bukan nomorTelepon) dan fromSqlite
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';

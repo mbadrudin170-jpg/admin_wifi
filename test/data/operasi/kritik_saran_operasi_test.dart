@@ -2,7 +2,7 @@
 // diubah: Menyesuaikan dengan KritikSaranModel (isi, userId)
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/kritik_saran_model.dart';
+import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
@@ -52,9 +52,9 @@ void main() {
     test(
       '2. getKritikSaran harus mengembalikan data terurut tanggal DESC',
       () async {
-        final modelLama = buatModel(userId: 'user-lama').copyWith(
-          tanggal: DateTime.now().subtract(const Duration(days: 1)),
-        );
+        final modelLama = buatModel(
+          userId: 'user-lama',
+        ).copyWith(tanggal: DateTime.now().subtract(const Duration(days: 1)));
         final modelBaru = buatModel(userId: 'user-baru');
 
         await operasi.createKritikSaran(modelLama);

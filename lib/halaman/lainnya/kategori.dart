@@ -2,8 +2,8 @@
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_kategori.dart';
-import 'package:admin_wifi/model/kategori_model.dart';
-import 'package:admin_wifi/model/sub_kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 

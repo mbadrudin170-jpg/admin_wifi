@@ -1,7 +1,7 @@
 // lib/data/operasi/pesanan_operasi.dart
 // diubah: Menghapus fungsi yang tidak valid (totalPendapatanHariIni, hitungPesananHariIni)
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/pesanan_model.dart';
+import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class PesananOperasi {

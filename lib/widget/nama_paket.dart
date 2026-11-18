@@ -2,7 +2,7 @@
 // Widget ini berfungsi untuk menampilkan nama paket berdasarkan ID.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 
 class NamaPaketWidget extends StatelessWidget {

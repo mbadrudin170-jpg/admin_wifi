@@ -7,7 +7,7 @@
 import 'dart:async' as _i3;
 
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i2;
-import 'package:admin_wifi/model/transaksi_model.dart' as _i4;
+import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart' as _i4;
 import 'package:flutter/src/widgets/navigator.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 

@@ -2,8 +2,8 @@
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
-import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:url_launcher/url_launcher.dart';

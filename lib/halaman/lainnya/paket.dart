@@ -3,7 +3,7 @@
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/halaman/detail/detail_paket.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
-import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 

@@ -1,8 +1,8 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/material.dart';

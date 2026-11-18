@@ -2,7 +2,7 @@
 // // diubah: Menyesuaikan pemanggilan fromMap dan toSqlite
 // import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 // import 'package:admin_wifi/db/sqflite.dart';
-// import 'package:admin_wifi/model/dompet_model.dart';
+// import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -47,14 +47,14 @@
 //     test('3. getDompet harus mengabaikan dompet yang diarsip', () async {
 //       final dompetAktif = DompetModel(namaDompet: 'Aktif', saldo: 1000);
 //       final dompetArsip = DompetModel(namaDompet: 'Arsip', saldo: 2000, isDeleted: true);
-      
+
 //       await dompetOperasi.createDompet(dompetAktif);
 //       // Sisipkan data arsip secara manual untuk simulasi
 //       // diubah: Menggunakan toSqlite
 //       await db.insert('dompet', dompetArsip.toSqlite());
 
 //       final hasil = await dompetOperasi.getDompet();
-//       expect(hasil.length, 1); 
+//       expect(hasil.length, 1);
 //       expect(hasil.first.namaDompet, 'Aktif');
 //     });
 
@@ -62,7 +62,7 @@
 //       final dompet = DompetModel(namaDompet: 'Arsip', saldo: 1000, isDeleted: true);
 //       // diubah: Menggunakan toSqlite
 //       await db.insert('dompet', dompet.toSqlite());
-      
+
 //       final hasil = await dompetOperasi.getDompetById(dompet.id);
 //       expect(hasil, isNull);
 //     });
@@ -88,17 +88,17 @@
 //       await dompetOperasi.createDompet(dompet);
 
 //       await dompetOperasi.arsipkanSatuDompet(dompet.id);
-      
+
 //       final hasilPublik = await dompetOperasi.getDompetById(dompet.id);
 //       expect(hasilPublik, isNull);
-      
+
 //       final db = await DatabaseHelper.instance.database;
 //       final maps = await db.query(
 //         'dompet',
 //         where: 'id = ?',
 //         whereArgs: [dompet.id],
 //       );
-      
+
 //       expect(maps.isNotEmpty, true);
 //       // diubah: Menggunakan fromSqlite
 //       final dataDariDb = DompetModel.fromSqlite(maps.first);
@@ -123,7 +123,7 @@
 //       // diubah: Menggunakan toSqlite
 //       await db.insert('dompet', DompetModel(namaDompet: 'Aktif', saldo: 100).toSqlite());
 //       await db.insert('dompet', DompetModel(namaDompet: 'Arsip', saldo: 50, isDeleted: true).toSqlite());
-      
+
 //       final total = await dompetOperasi.getTotalSaldo();
 //       expect(total, 100.0);
 //     });

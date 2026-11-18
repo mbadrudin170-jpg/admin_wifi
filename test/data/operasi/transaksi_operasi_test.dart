@@ -4,8 +4,8 @@
 // import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 // import 'package:admin_wifi/db/sqflite.dart';
 // import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
-// import 'package:admin_wifi/model/dompet_model.dart';
-// import 'package:admin_wifi/model/transaksi_model.dart';
+// import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+// import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // import 'package:uuid/uuid.dart';
@@ -28,10 +28,10 @@
 //   setUp(() async {
 //     // Menggunakan database di memori
 //     db = await databaseFactory.openDatabase(inMemoryDatabasePath);
-    
+
 //     // Membuat skema tabel dari file sqlite.dart
 //     await DatabaseHelper.instance.createTables(db);
-    
+
 //     // Menggunakan stub untuk instance database agar terisolasi
 //     DatabaseHelper.instance.stubDb(db);
 //     operasi = TransaksiOperasi();
@@ -259,7 +259,7 @@
 
 //       final transaksiUpdate = transaksiAwal.copyWith(idDompet: dompetB.id);
 //       await operasi.updateTransaksi(transaksiAwal.id, transaksiUpdate);
-      
+
 //       expect(await getSaldo(dompetA.id), saldoAwal, reason: "Saldo dompet A seharusnya kembali ke awal");
 //       expect(await getSaldo(dompetB.id), saldoAwal + 200, reason: "Saldo dompet B seharusnya bertambah");
 //     });

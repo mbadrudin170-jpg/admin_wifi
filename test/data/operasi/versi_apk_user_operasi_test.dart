@@ -3,7 +3,7 @@
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -37,8 +37,11 @@ void main() {
   late MockOperasiDasar mockOperasiDasar;
 
   Future<void> sisipkanDataManual(VersiApkUserModel model) async {
-    await db.insert('versi_apk_user', model.toSqlite(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+      'versi_apk_user',
+      model.toSqlite(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   setUp(() async {
@@ -58,85 +61,127 @@ void main() {
   group('VersiApkUserOperasi Tests', () {
     group('Operasi Tulis (Write)', () {
       test(
-          'tambahVersiApkUser harus memanggil _operasi.sisipkan dengan benar', () async {
-        final modelBaru = _buatModel(versi: '1.0.1');
-        when(mockOperasiDasar.sisipkan(any, any))
-            .thenAnswer((_) async => Future.value());
+        'tambahVersiApkUser harus memanggil _operasi.sisipkan dengan benar',
+        () async {
+          final modelBaru = _buatModel(versi: '1.0.1');
+          when(
+            mockOperasiDasar.sisipkan(any, any),
+          ).thenAnswer((_) async => Future.value());
 
-        await operasi.tambahVersiApkUser(modelBaru);
+          await operasi.tambahVersiApkUser(modelBaru);
 
-        // diubah: Menggunakan toSqlite() agar konsisten dengan implementasi
-        verify(mockOperasiDasar.sisipkan('versi_apk_user', modelBaru.toSqlite()))
-            .called(1);
-      });
+          // diubah: Menggunakan toSqlite() agar konsisten dengan implementasi
+          verify(
+            mockOperasiDasar.sisipkan('versi_apk_user', modelBaru.toSqlite()),
+          ).called(1);
+        },
+      );
 
       test(
-          'perbaruiVersiApkUser harus memanggil _operasi.perbarui dengan benar', () async {
-        final model = _buatModel(versi: '1.0.2');
-        when(mockOperasiDasar.perbarui(any, any, any))
-            .thenAnswer((_) async => Future.value());
+        'perbaruiVersiApkUser harus memanggil _operasi.perbarui dengan benar',
+        () async {
+          final model = _buatModel(versi: '1.0.2');
+          when(
+            mockOperasiDasar.perbarui(any, any, any),
+          ).thenAnswer((_) async => Future.value());
 
-        await operasi.perbaruiVersiApkUser(model);
+          await operasi.perbaruiVersiApkUser(model);
 
-        verify(mockOperasiDasar.perbarui(
-            'versi_apk_user', model.toSqlite(), model.id)).called(1);
-      });
+          verify(
+            mockOperasiDasar.perbarui(
+              'versi_apk_user',
+              model.toSqlite(),
+              model.id,
+            ),
+          ).called(1);
+        },
+      );
 
-      test('arsipkanVersiApkUser harus memanggil _operasi.perbarui dengan isDeleted=true', () async {
-        final model = _buatModel(id: 'test-id', versi: '1.0.3', isDeleted: false);
-        await sisipkanDataManual(model); // Masukkan data awal ke DB
+      test(
+        'arsipkanVersiApkUser harus memanggil _operasi.perbarui dengan isDeleted=true',
+        () async {
+          final model = _buatModel(
+            id: 'test-id',
+            versi: '1.0.3',
+            isDeleted: false,
+          );
+          await sisipkanDataManual(model); // Masukkan data awal ke DB
 
-        when(mockOperasiDasar.perbarui(any, any, any))
-            .thenAnswer((_) async => Future.value());
+          when(
+            mockOperasiDasar.perbarui(any, any, any),
+          ).thenAnswer((_) async => Future.value());
 
-        await operasi.arsipkanVersiApkUser(model.id);
+          await operasi.arsipkanVersiApkUser(model.id);
 
-        // Verifikasi bahwa `perbarui` dipanggil dengan data yang memiliki isDeleted = true
-        final captured = verify(mockOperasiDasar.perbarui(
-          'versi_apk_user', 
-          captureAny, 
-          model.id
-        )).captured.single as Map<String, dynamic>;
-        
-        expect(captured['isDeleted'], 1);
-      });
+          // Verifikasi bahwa `perbarui` dipanggil dengan data yang memiliki isDeleted = true
+          final captured =
+              verify(
+                    mockOperasiDasar.perbarui(
+                      'versi_apk_user',
+                      captureAny,
+                      model.id,
+                    ),
+                  ).captured.single
+                  as Map<String, dynamic>;
 
+          expect(captured['isDeleted'], 1);
+        },
+      );
     });
 
     group('Operasi Baca (Read)', () {
-      test('ambilSemuaVersiApkAktif harus mengembalikan list kosong saat DB kosong', () async {
-        final hasil = await operasi.ambilSemuaVersiApkAktif();
-        expect(hasil, isEmpty);
-      });
+      test(
+        'ambilSemuaVersiApkAktif harus mengembalikan list kosong saat DB kosong',
+        () async {
+          final hasil = await operasi.ambilSemuaVersiApkAktif();
+          expect(hasil, isEmpty);
+        },
+      );
 
-      test('ambilSemuaVersiApkAktif harus mengembalikan data yang tidak dihapus', () async {
-        final modelAktif1 = _buatModel(versi: '2.0.0', isDeleted: false);
-        final modelAktif2 = _buatModel(versi: '2.0.1', isDeleted: false);
-        final modelDihapus = _buatModel(versi: '2.0.2', isDeleted: true);
-        await sisipkanDataManual(modelAktif1);
-        await sisipkanDataManual(modelAktif2);
-        await sisipkanDataManual(modelDihapus);
+      test(
+        'ambilSemuaVersiApkAktif harus mengembalikan data yang tidak dihapus',
+        () async {
+          final modelAktif1 = _buatModel(versi: '2.0.0', isDeleted: false);
+          final modelAktif2 = _buatModel(versi: '2.0.1', isDeleted: false);
+          final modelDihapus = _buatModel(versi: '2.0.2', isDeleted: true);
+          await sisipkanDataManual(modelAktif1);
+          await sisipkanDataManual(modelAktif2);
+          await sisipkanDataManual(modelDihapus);
 
-        final hasil = await operasi.ambilSemuaVersiApkAktif();
+          final hasil = await operasi.ambilSemuaVersiApkAktif();
 
-        expect(hasil.length, 2);
-        expect(hasil.any((m) => m.id == modelAktif1.id), isTrue);
-        expect(hasil.any((m) => m.id == modelAktif2.id), isTrue);
-      });
+          expect(hasil.length, 2);
+          expect(hasil.any((m) => m.id == modelAktif1.id), isTrue);
+          expect(hasil.any((m) => m.id == modelAktif2.id), isTrue);
+        },
+      );
 
-      test('ambilVersiApkTerbaru harus mengembalikan versi terbaru yang aktif', () async {
-        final modelLama = _buatModel(versi: '3.0.0', diperbarui: DateTime(2023));
-        final modelBaru = _buatModel(versi: '3.0.1', diperbarui: DateTime(2024));
-        final modelDihapus = _buatModel(versi: '3.0.2', diperbarui: DateTime(2025), isDeleted: true);
-        await sisipkanDataManual(modelLama);
-        await sisipkanDataManual(modelBaru);
-        await sisipkanDataManual(modelDihapus);
+      test(
+        'ambilVersiApkTerbaru harus mengembalikan versi terbaru yang aktif',
+        () async {
+          final modelLama = _buatModel(
+            versi: '3.0.0',
+            diperbarui: DateTime(2023),
+          );
+          final modelBaru = _buatModel(
+            versi: '3.0.1',
+            diperbarui: DateTime(2024),
+          );
+          final modelDihapus = _buatModel(
+            versi: '3.0.2',
+            diperbarui: DateTime(2025),
+            isDeleted: true,
+          );
+          await sisipkanDataManual(modelLama);
+          await sisipkanDataManual(modelBaru);
+          await sisipkanDataManual(modelDihapus);
 
-        final hasil = await operasi.ambilVersiApkTerbaru();
+          final hasil = await operasi.ambilVersiApkTerbaru();
 
-        expect(hasil, isNotNull);
-        expect(hasil!.id, modelBaru.id);
-      });
+          expect(hasil, isNotNull);
+          expect(hasil!.id, modelBaru.id);
+        },
+      );
 
       test('ambilVersiApkById harus mengembalikan model yang benar', () async {
         final model = _buatModel(id: 'cari-id', versi: '4.0.0');
@@ -147,7 +192,6 @@ void main() {
         expect(hasil, isNotNull);
         expect(hasil!.id, 'cari-id');
       });
-
     });
   });
 }

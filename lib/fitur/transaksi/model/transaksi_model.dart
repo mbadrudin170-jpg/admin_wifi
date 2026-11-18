@@ -2,7 +2,7 @@
 // diubah: Model digabungkan dengan RiwayatLanggananModel dan denormalisasi data dihapus.
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
-import 'package:admin_wifi/model/paket_model.dart'; // Impor untuk TipeDurasi
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart'; // Impor untuk TipeDurasi
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';

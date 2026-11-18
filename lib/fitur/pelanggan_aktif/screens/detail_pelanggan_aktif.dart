@@ -7,8 +7,8 @@ import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dar
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/halaman/detail/detail_paket.dart';
 import 'package:admin_wifi/halaman/detail/detail_pelanggan.dart';
-import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';

@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
-import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -22,7 +22,8 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
 
   factory MockDatabaseException.uniqueConstraint() {
     return MockDatabaseException(
-        'DatabaseException(SQLiteException: UNIQUE constraint failed: paket.nama (code 1555))');
+      'DatabaseException(SQLiteException: UNIQUE constraint failed: paket.nama (code 1555))',
+    );
   }
 
   @override
@@ -54,7 +55,6 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
   @override
   bool isReadOnlyError() => false;
 }
-
 
 @GenerateMocks([PaketOperasi])
 void main() {
@@ -88,96 +88,105 @@ void main() {
       (WidgetTester tester) async {
         await tester.pumpWidget(buildFormPaket());
         expect(find.text('Tambah Paket'), findsOneWidget);
-        final textFields =
-            tester.widgetList<TextFormField>(find.byType(TextFormField));
+        final textFields = tester.widgetList<TextFormField>(
+          find.byType(TextFormField),
+        );
         for (final field in textFields) {
           expect(field.controller?.text, isEmpty);
         }
       },
     );
 
-    testWidgets(
-      'Mode edit: field terisi sesuai data paket yang diberikan',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(buildFormPaket(paket: paketDummy));
-        expect(find.text('Edit Paket'), findsOneWidget);
-        expect(find.text('Paket Hemat'), findsOneWidget);
-        expect(find.text('50000'), findsOneWidget);
-        expect(find.text('7'), findsOneWidget);
-        // diubah: Pengujian untuk `jumlahPoin` yang sudah legacy dihapus.
-        // ditambahkan: Pengujian untuk field `poinHadiah` dan `poinPenukaran`.
-        expect(find.text('150'), findsOneWidget);
-        expect(find.text('20'), findsOneWidget);
+    testWidgets('Mode edit: field terisi sesuai data paket yang diberikan', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildFormPaket(paket: paketDummy));
+      expect(find.text('Edit Paket'), findsOneWidget);
+      expect(find.text('Paket Hemat'), findsOneWidget);
+      expect(find.text('50000'), findsOneWidget);
+      expect(find.text('7'), findsOneWidget);
+      // diubah: Pengujian untuk `jumlahPoin` yang sudah legacy dihapus.
+      // ditambahkan: Pengujian untuk field `poinHadiah` dan `poinPenukaran`.
+      expect(find.text('150'), findsOneWidget);
+      expect(find.text('20'), findsOneWidget);
 
-        final switchTile =
-            tester.widget<SwitchListTile>(find.byType(SwitchListTile));
-        expect(switchTile.value, isTrue);
-      },
-    );
+      final switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+      expect(switchTile.value, isTrue);
+    });
   });
 
   group('FormPaket - Validasi', () {
-    testWidgets(
-      'Validasi gagal jika Nama Paket kosong',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(buildFormPaket());
-        await tester.tap(find.text('Simpan'));
-        await tester.pumpAndSettle();
-        expect(find.text('Nama paket tidak boleh kosong'), findsOneWidget);
-      },
-    );
+    testWidgets('Validasi gagal jika Nama Paket kosong', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildFormPaket());
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nama paket tidak boleh kosong'), findsOneWidget);
+    });
   });
 
   group('FormPaket - Simpan Data', () {
-    testWidgets(
-      'Panggil createPaket saat mode tambah dan tampilkan SnackBar',
-      (WidgetTester tester) async {
-        when(mockPaketOperasi.createPaket(any)).thenAnswer((_) async => paketDummy);
+    testWidgets('Panggil createPaket saat mode tambah dan tampilkan SnackBar', (
+      WidgetTester tester,
+    ) async {
+      when(
+        mockPaketOperasi.createPaket(any),
+      ).thenAnswer((_) async => paketDummy);
 
-        await tester.pumpWidget(buildFormPaket());
+      await tester.pumpWidget(buildFormPaket());
 
-        await tester.enterText(find.byType(TextFormField).at(0), 'Paket Baru');
-        await tester.enterText(find.byType(TextFormField).at(1), '10000');
-        await tester.enterText(find.byType(TextFormField).at(2), '1');
-        await tester.enterText(find.byType(TextFormField).at(3), '50'); // Poin Hadiah
-        await tester.enterText(find.byType(TextFormField).at(4), '10'); // Poin Penukaran
+      await tester.enterText(find.byType(TextFormField).at(0), 'Paket Baru');
+      await tester.enterText(find.byType(TextFormField).at(1), '10000');
+      await tester.enterText(find.byType(TextFormField).at(2), '1');
+      await tester.enterText(
+        find.byType(TextFormField).at(3),
+        '50',
+      ); // Poin Hadiah
+      await tester.enterText(
+        find.byType(TextFormField).at(4),
+        '10',
+      ); // Poin Penukaran
 
-        await tester.tap(find.text('Simpan'));
-        await tester.pump(); 
+      await tester.tap(find.text('Simpan'));
+      await tester.pump();
 
-        verify(mockPaketOperasi.createPaket(any)).called(1);
-        expect(find.text('Data paket berhasil disimpan!'), findsOneWidget);
+      verify(mockPaketOperasi.createPaket(any)).called(1);
+      expect(find.text('Data paket berhasil disimpan!'), findsOneWidget);
 
-        await tester.pumpAndSettle(); 
-      },
-    );
+      await tester.pumpAndSettle();
+    });
 
-    testWidgets(
-      'Panggil updatePaket saat mode edit dan tampilkan SnackBar',
-      (WidgetTester tester) async {
-        when(mockPaketOperasi.updatePaket(any)).thenAnswer((_) async => Future.value());
+    testWidgets('Panggil updatePaket saat mode edit dan tampilkan SnackBar', (
+      WidgetTester tester,
+    ) async {
+      when(
+        mockPaketOperasi.updatePaket(any),
+      ).thenAnswer((_) async => Future.value());
 
-        await tester.pumpWidget(buildFormPaket(paket: paketDummy));
+      await tester.pumpWidget(buildFormPaket(paket: paketDummy));
 
-        await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');
+      await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');
 
-        await tester.tap(find.text('Simpan'));
-        await tester.pump();
+      await tester.tap(find.text('Simpan'));
+      await tester.pump();
 
-        verify(mockPaketOperasi.updatePaket(any)).called(1);
-        expect(find.text('Data paket berhasil diperbarui!'), findsOneWidget);
+      verify(mockPaketOperasi.updatePaket(any)).called(1);
+      expect(find.text('Data paket berhasil diperbarui!'), findsOneWidget);
 
-        await tester.pumpAndSettle();
-      },
-    );
+      await tester.pumpAndSettle();
+    });
   });
 
   group('FormPaket - Error Handling', () {
     testWidgets(
       'Menampilkan pesan "Nama paket sudah ada" saat unique constraint error',
       (WidgetTester tester) async {
-        when(mockPaketOperasi.createPaket(any))
-            .thenThrow(MockDatabaseException.uniqueConstraint());
+        when(
+          mockPaketOperasi.createPaket(any),
+        ).thenThrow(MockDatabaseException.uniqueConstraint());
 
         await tester.pumpWidget(buildFormPaket());
 
@@ -190,8 +199,10 @@ void main() {
         await tester.tap(find.text('Simpan'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Nama paket sudah ada. Harap gunakan nama lain.'),
-            findsOneWidget);
+        expect(
+          find.text('Nama paket sudah ada. Harap gunakan nama lain.'),
+          findsOneWidget,
+        );
       },
     );
   });

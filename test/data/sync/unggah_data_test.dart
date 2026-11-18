@@ -3,9 +3,9 @@
 
 import 'package:admin_wifi/db/sqflite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
-import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/model/kritik_saran_model.dart';
-import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
+import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';

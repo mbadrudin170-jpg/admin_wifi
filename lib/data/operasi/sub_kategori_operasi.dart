@@ -1,7 +1,7 @@
 // path: lib/data/operasi/sub_kategori_operasi.dart
 // diubah: Menyesuaikan pemanggilan metode model menjadi fromSqlite dan toSqlite.
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/sub_kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class SubKategoriOperasi {

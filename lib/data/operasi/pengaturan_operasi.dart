@@ -1,7 +1,7 @@
 // path: lib/data/operasi/pengaturan_operasi.dart
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart'; // Import OperasiDasar
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 // Kelas untuk operasi database terkait tabel `pengaturan`.

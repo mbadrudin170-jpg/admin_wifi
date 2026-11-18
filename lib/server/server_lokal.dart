@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:share_global_saya/src/utils/l.dart';
 
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
-import 'package:admin_wifi/model/pesanan_model.dart';
+import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 
 class ServerLokal {
   final PesananOperasi operasi;

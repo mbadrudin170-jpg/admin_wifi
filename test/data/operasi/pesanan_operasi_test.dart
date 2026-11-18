@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/pesanan_model.dart';
+import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
@@ -67,10 +67,7 @@ void main() {
 
         final hasil = await operasi.ambilSemuaPesanan();
         expect(hasil.length, 2);
-        expect(
-          hasil.first.idPelanggan,
-          'pelanggan-Baru',
-        );
+        expect(hasil.first.idPelanggan, 'pelanggan-Baru');
         expect(hasil.last.idPelanggan, 'pelanggan-Lama');
       },
     );

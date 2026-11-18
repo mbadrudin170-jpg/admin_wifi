@@ -2,7 +2,7 @@
 // // diubah: Menggunakan toSqlite() yang sudah diperbaiki
 // import 'package:sqflite/sqflite.dart';
 // import 'package:admin_wifi/db/sqflite.dart';
-// import 'package:admin_wifi/model/riwayat_langganan_model.dart';
+// import 'package:admin_wifi/fitur/riwayat_langganan/model/riwayat_langganan_model.dart';
 
 // class RiwayatLanggananOperasi {
 //   final dbHelper = DatabaseHelper.instance;

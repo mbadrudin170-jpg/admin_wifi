@@ -1,7 +1,7 @@
 // path: lib/data/operasi/pelanggan_operasi.dart
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class PelangganOperasi {

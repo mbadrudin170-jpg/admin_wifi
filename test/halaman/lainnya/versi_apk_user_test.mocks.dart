@@ -7,7 +7,8 @@
 import 'dart:async' as _i3;
 
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart' as _i2;
-import 'package:admin_wifi/model/versi_apk_user_model.dart' as _i4;
+import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart'
+    as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
