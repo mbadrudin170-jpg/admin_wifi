@@ -54,6 +54,23 @@ class _FormPaketState extends ConsumerState<FormPaket> {
     }
   }
 
+  @override
+  void dispose() {
+    _namaController.dispose();
+    _hargaController.dispose();
+    _durasiController.dispose();
+    _poinHadiahController.dispose();
+    _poinPenukaranController.dispose();
+
+    _namaFocusNode.dispose();
+    _hargaFocusNode.dispose();
+    _durasiFocusNode.dispose();
+    _poinHadiahFocusNode.dispose();
+    _poinPenukaranFocusNode.dispose();
+
+    super.dispose();
+  }
+
   Future<void> _saveForm() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
@@ -247,22 +264,5 @@ class _FormPaketState extends ConsumerState<FormPaket> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _namaController.dispose();
-    _hargaController.dispose();
-    _durasiController.dispose();
-    _poinHadiahController.dispose();
-    _poinPenukaranController.dispose();
-
-    _namaFocusNode.dispose();
-    _hargaFocusNode.dispose();
-    _durasiFocusNode.dispose();
-    _poinHadiahFocusNode.dispose();
-    _poinPenukaranFocusNode.dispose();
-
-    super.dispose();
   }
 }
