@@ -2,20 +2,21 @@
 
 import 'package:admin_wifi/fitur/paket/screens/form_paket.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
-class DetailPaketPage extends StatefulWidget {
+class DetailPaketPage extends ConsumerStatefulWidget {
   final PaketModel paket;
 
   const DetailPaketPage({super.key, required this.paket});
 
   @override
-  State<DetailPaketPage> createState() => _DetailPaketPageState();
+  ConsumerState<DetailPaketPage> createState() => _DetailPaketPageState();
 }
 
-class _DetailPaketPageState extends State<DetailPaketPage> {
+class _DetailPaketPageState extends ConsumerState<DetailPaketPage> {
   late PaketModel _paket;
 
   @override
@@ -68,8 +69,8 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_paket.nama),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -102,9 +103,12 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
+                  spacing: 8,
                   children: [
-                    const Icon(Icons.inventory_2, color: Colors.blueAccent),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.inventory_2,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     Text(
                       'Informasi Layanan',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -125,9 +129,12 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
                   child: Divider(thickness: 1),
                 ),
                 Row(
+                  spacing: 8,
                   children: [
-                    const Icon(Icons.stars, color: Colors.orange),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.stars,
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
                     Text(
                       'Sistem Poin',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -170,8 +177,6 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
     String? subTitle,
     Color? customValueColor,
   }) {
-    L.i('Membangun detail row dengan label: $label dan value: $value.');
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
@@ -184,13 +189,18 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
                 ),
                 if (subTitle != null)
                   Text(
                     subTitle,
-                    style: const TextStyle(
-                      color: Colors.black38,
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       fontSize: 11,
                       fontStyle: FontStyle.italic,
                     ),
@@ -206,7 +216,8 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
-                color: customValueColor ?? Colors.black87,
+                color:
+                    customValueColor ?? Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
