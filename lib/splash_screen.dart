@@ -8,6 +8,7 @@ import 'package:admin_wifi/halaman/tab/fungsi_menampilkan_notifikasi.dart';
 import 'package:admin_wifi/home.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/services/pembersihan_data_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -121,7 +122,8 @@ class _SplashScreenState extends State<SplashScreen>
     bool isOnline = false;
 
     try {
-      // diubah: Inisialisasi Firebase ganda dihapus karena sudah dilakukan di main_dev.dart.
+      // Firebase diinisialisasi di main() (hanya non-Web; di Web tidak ada
+      // konfigurasi Firebase). Jangan akses Firebase di Web tanpa config.
       _updateLoading("Mengonfigurasi pengaturan lokal...");
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
@@ -156,10 +158,16 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
 
       _updateLoading("Memeriksa data awal...");
-      await UnduhanAwalService().jalankanUnduhanAwal();
-      L.i(
-        'Layanan Unduhan Awal selesai dijalankan, memastikan data esensial tersedia.',
-      );
+      if (!kIsWeb) {
+        await UnduhanAwalService().jalankanUnduhanAwal();
+        L.i(
+          'Layanan Unduhan Awal selesai dijalankan, memastikan data esensial tersedia.',
+        );
+      } else {
+        L.i(
+          'Mode Web: Firebase tidak tersedia, unduhan awal dilewati (aplikasi offline).',
+        );
+      }
       if (!mounted) return;
 
       L.i('Menjalankan layanan pembersihan data jika diperlukan.');
