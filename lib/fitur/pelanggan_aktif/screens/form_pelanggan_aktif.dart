@@ -1,23 +1,23 @@
 // path: lib/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/enum.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
@@ -51,25 +51,8 @@ DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
 
 class FormPelangganAktif extends ConsumerStatefulWidget {
   final PelangganAktifModel? pelangganAktif;
-  final PelangganOperasi pelangganOperasi;
-  final PaketOperasi paketOperasi;
-  final TransaksiOperasi transaksiOperasi;
-  final DompetOperasi dompetOperasi;
-  final KategoriOperasi kategoriOperasi;
 
-  FormPelangganAktif({
-    super.key,
-    this.pelangganAktif,
-    PelangganOperasi? pelangganOperasi,
-    PaketOperasi? paketOperasi,
-    TransaksiOperasi? transaksiOperasi,
-    DompetOperasi? dompetOperasi,
-    KategoriOperasi? kategoriOperasi,
-  }) : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
-       paketOperasi = paketOperasi ?? PaketOperasi(),
-       transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
-       dompetOperasi = dompetOperasi ?? DompetOperasi(),
-       kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
+  const FormPelangganAktif({super.key, this.pelangganAktif});
 
   @override
   ConsumerState<FormPelangganAktif> createState() => _FormPelangganAktifState();
@@ -92,7 +75,8 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
   DompetModel? _selectedDompet;
   KategoriModel? _selectedKategori;
 
-  bool _isLoading = true;
+  bool _awalDipetakan = false;
+  String? _peringatanPaket;
   bool _gunakanPoin = false;
   int _saldoPoinPelanggan = 0;
 
@@ -116,83 +100,25 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
     return (_saldoPoinPelanggan - pakai).clamp(0, 999999999);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadAllData().catchError(
-      (e, s) => L.e('Gagal memuat data referensi (unawaited). Error: $e $s'),
-    );
-  }
-
-  Future<void> _loadAllData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final results = await Future.wait([
-        widget.pelangganOperasi.getPelanggan(),
-        widget.paketOperasi.getPaket(),
-        widget.dompetOperasi.getDompet(),
-        widget.kategoriOperasi.getKategori(),
-      ]);
-
-      if (!mounted) return;
-
-      setState(() {
-        _pelangganList = (results[0] as List<PelangganModel>)
-          ..sort(
-            (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
-          );
-        _paketList = results[1] as List<PaketModel>;
-        final semuaDompet = results[2] as List<DompetModel>;
-        _daftarDompet = semuaDompet.where((d) => !d.isDeleted).toList();
-        final semuaKategori = results[3] as List<KategoriModel>;
-        _kategoriPemasukanList = semuaKategori
-            .where((k) => k.tipe == TipeKategori.pemasukan && !k.isDeleted)
-            .toList();
-        _kategoriPengeluaranList = semuaKategori
-            .where((k) => k.tipe == TipeKategori.pengeluaran && !k.isDeleted)
-            .toList();
-
-        if (_isEditMode) {
-          _mapEditData();
-        } else {
-          _mapNewData();
-        }
-
-        _isLoading = false;
-      });
-    } catch (e, s) {
-      L.e('Gagal memuat data referensi Error: $e $s');
-      if (mounted) {
-        AppToast.gagal(context, 'Gagal memuat data: $e');
-        setState(() {
-          _isLoading = false;
-        });
-      }
+  /// Memetakan nilai awal (edit/baru) satu kali saat seluruh data referensi
+  /// dari notifier sudah tersedia. Dipanggil dari `build()`.
+  void _petakanAwal() {
+    if (_isEditMode) {
+      _petakanModeEdit();
+    } else {
+      _petakanModeBaru();
     }
   }
 
-  void _mapEditData() {
+  void _petakanModeEdit() {
     final pa = widget.pelangganAktif!;
-    try {
-      _selectedPelanggan = _pelangganList.firstWhere(
-        (p) => p.id == pa.idPelanggan,
-      );
-    } catch (e) {
-      _selectedPelanggan = null;
-    }
-    try {
-      _selectedPaket = _paketList.firstWhere((p) => p.id == pa.idPaket);
-    } catch (e) {
-      _selectedPaket = null;
-      if (mounted) {
-        AppToast.warning(
-          context,
-          'Peringatan: Paket asli (ID: ${pa.idPaket}) tidak ditemukan. Harap pilih paket baru.',
-        );
-      }
+    _selectedPelanggan = _pelangganList.firstWhereOrNull(
+      (p) => p.id == pa.idPelanggan,
+    );
+    _selectedPaket = _paketList.firstWhereOrNull((p) => p.id == pa.idPaket);
+    if (_selectedPaket == null) {
+      _peringatanPaket =
+          'Peringatan: Paket asli (ID: ${pa.idPaket}) tidak ditemukan. Harap pilih paket baru.';
     }
 
     final tglMulai = pa.tanggalMulai;
@@ -201,21 +127,31 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
     _statusPembayaran = pa.status;
   }
 
-  void _mapNewData() {
+  void _petakanModeBaru() {
     _selectedDate = DateTime.now();
     _selectedTime = TimeOfDay.now();
     if (_daftarDompet.isNotEmpty) {
       _selectedDompet = _daftarDompet.first;
     }
     if (_kategoriPemasukanList.isNotEmpty) {
-      try {
-        _selectedKategori = _kategoriPemasukanList.firstWhere(
-          (k) => k.nama.toLowerCase() == 'aktivasi paket',
-        );
-      } catch (e) {
-        _selectedKategori = _kategoriPemasukanList.first;
-      }
+      _selectedKategori =
+          _kategoriPemasukanList.firstWhereOrNull(
+            (k) => k.nama.toLowerCase() == 'aktivasi paket',
+          ) ??
+          _kategoriPemasukanList.first;
     }
+  }
+
+  /// Menampilkan peringatan yang ditunda dari `build()` (mis. paket edit
+  /// mode tidak ditemukan) lewat post-frame callback.
+  void _tampilkanPeringatanTertunda() {
+    final pesan = _peringatanPaket;
+    if (pesan == null) return;
+    _peringatanPaket = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppToast.warning(context, pesan);
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -372,14 +308,55 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
 
   @override
   Widget build(BuildContext context) {
+    final pelangganAsync = ref.watch(pelangganProvider);
+    final paketAsync = ref.watch(paketProvider);
+    final dompetAsync = ref.watch(dompetProvider);
+    final kategoriAsync = ref.watch(kategoriProvider);
+
+    final bool isLoading =
+        pelangganAsync.isLoading ||
+        paketAsync.isLoading ||
+        dompetAsync.isLoading ||
+        kategoriAsync.isLoading;
+    final Object? error =
+        pelangganAsync.error ??
+        paketAsync.error ??
+        dompetAsync.error ??
+        kategoriAsync.error;
+
+    if (!isLoading && error == null) {
+      _pelangganList = List<PelangganModel>.from(
+        pelangganAsync.requireValue.listPelanggan,
+      )..sort((a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()));
+      _paketList = paketAsync.requireValue.listPaket;
+      _daftarDompet = dompetAsync.requireValue.listDompet
+          .where((d) => !d.isDeleted)
+          .toList();
+      final semuaKategori = kategoriAsync.requireValue.listKategori;
+      _kategoriPemasukanList = semuaKategori
+          .where((k) => k.tipe == TipeKategori.pemasukan && !k.isDeleted)
+          .toList();
+      _kategoriPengeluaranList = semuaKategori
+          .where((k) => k.tipe == TipeKategori.pengeluaran && !k.isDeleted)
+          .toList();
+
+      if (!_awalDipetakan) {
+        _petakanAwal();
+        _awalDipetakan = true;
+        _tampilkanPeringatanTertunda();
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
         ),
       ),
-      body: _isLoading
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : error != null
+          ? _buildMuatGagal(error)
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -401,7 +378,34 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
                 ),
               ),
             ),
-      bottomNavigationBar: _buildSaveButton(),
+      bottomNavigationBar: isLoading || error != null
+          ? null
+          : _buildSaveButton(),
+    );
+  }
+
+  Widget _buildMuatGagal(Object error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            Text('Gagal memuat data: $error', textAlign: TextAlign.center),
+            FilledButton(
+              onPressed: () {
+                ref.invalidate(pelangganProvider);
+                ref.invalidate(paketProvider);
+                ref.invalidate(dompetProvider);
+                ref.invalidate(kategoriProvider);
+              },
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -471,9 +475,9 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
           .toList(),
       onChanged: (PelangganModel? newValue) async {
         if (newValue == null) return;
-        final saldoPoin = await widget.transaksiOperasi.getTotalPoin(
-          newValue.id,
-        );
+        final saldoPoin = await ref
+            .read(transaksiProvider.notifier)
+            .hitungTotalPoin(newValue.id);
         if (mounted) {
           setState(() {
             _selectedPelanggan = newValue;

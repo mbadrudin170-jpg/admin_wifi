@@ -5,9 +5,9 @@
 // diperbaiki: Kompatibilitas dengan model VersiApkUserModel terbaru (ArsitekturApkEnum)
 
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
-import 'package:admin_wifi/halaman/detail/detail_versi_apk_user.dart';
-import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
-import 'package:admin_wifi/halaman/lainnya/versi_apk_user.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/screens/detail_versi_apk_user.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/screens/versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart'; // ✅ Tambahan import
 import 'package:flutter/material.dart';

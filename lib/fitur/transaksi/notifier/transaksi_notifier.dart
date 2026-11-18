@@ -35,6 +35,11 @@ class TransaksiNotifier extends _$TransaksiNotifier {
     );
   }
 
+  /// Menghitung saldo poin akhir [idPelanggan].
+  Future<int> hitungTotalPoin(String idPelanggan) async {
+    return _operasi.getTotalPoin(idPelanggan);
+  }
+
   Future<void> tambah(TransaksiModel model) async {
     try {
       await _operasi.tambahTransaksi(model);

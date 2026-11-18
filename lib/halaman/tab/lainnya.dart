@@ -15,7 +15,7 @@ import '../lainnya/kategori.dart';
 import '../lainnya/pengaturan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
-import '../lainnya/versi_apk_user.dart';
+import '../../fitur/versi_apk_user/screens/versi_apk_user.dart';
 import 'pesanan.dart';
 
 class LainnyaPage extends StatefulWidget {

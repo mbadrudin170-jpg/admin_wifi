@@ -10,7 +10,7 @@ import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 // ditambah: Navigasi ke form edit
-import 'package:admin_wifi/halaman/form/form_transaksi.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
