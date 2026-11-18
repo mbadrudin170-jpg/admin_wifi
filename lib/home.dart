@@ -1,7 +1,7 @@
 // path: lib/halaman_utama.dart
 
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/pelanggan_aktif_screen.dart';
-import 'package:admin_wifi/halaman/tab/dompet.dart';
+import 'package:admin_wifi/fitur/dompet/screens/dompet.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
 import 'package:admin_wifi/halaman/tab/transaksi.dart';
 import 'package:admin_wifi/services/cek_langganan_kadaluarsa_service.dart';

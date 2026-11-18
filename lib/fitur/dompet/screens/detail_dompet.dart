@@ -1,8 +1,8 @@
-// path: lib/halaman/detail/detail_dompet.dart
+// path: lib/fitur/dompet/screens/detail_dompet.dart
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
-import 'package:admin_wifi/halaman/form/form_dompet.dart';
+import 'package:admin_wifi/fitur/dompet/screens/form_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';

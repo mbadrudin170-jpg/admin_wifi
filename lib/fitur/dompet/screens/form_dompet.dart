@@ -1,4 +1,4 @@
-// path: lib/halaman/form/form_dompet.dart
+// path: lib/fitur/dompet/screens/form_dompet.dart
 // Halaman ini menyediakan formulir untuk menambah atau mengedit dompet.
 // diubah: Menghapus input saldo manual untuk konsistensi arsitektur baru.
 

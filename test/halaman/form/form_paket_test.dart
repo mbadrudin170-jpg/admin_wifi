@@ -2,7 +2,7 @@
 // diubah: Menghapus pengujian untuk field `jumlahPoin` yang sudah tidak ada dan menambahkan pengujian untuk `poinHadiah` dan `poinPenukaran`.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/halaman/form/form_paket.dart';
+import 'package:admin_wifi/fitur/paket/screens/form_paket.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

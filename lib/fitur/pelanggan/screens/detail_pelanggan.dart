@@ -1,7 +1,7 @@
 // path: lib/halaman/detail/detail_pelanggan.dart
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/halaman/form/form_pelanggan.dart';
+import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
