@@ -318,33 +318,62 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
         paketAsync.isLoading ||
         dompetAsync.isLoading ||
         kategoriAsync.isLoading;
-    final Object? error =
-        pelangganAsync.error ??
-        paketAsync.error ??
-        dompetAsync.error ??
-        kategoriAsync.error;
 
-    if (!isLoading && error == null) {
-      _pelangganList = List<PelangganModel>.from(
-        pelangganAsync.requireValue.listPelanggan,
-      )..sort((a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()));
-      _paketList = paketAsync.requireValue.listPaket;
-      _daftarDompet = dompetAsync.requireValue.listDompet
-          .where((d) => !d.isDeleted)
-          .toList();
-      final semuaKategori = kategoriAsync.requireValue.listKategori;
-      _kategoriPemasukanList = semuaKategori
-          .where((k) => k.tipe == TipeKategori.pemasukan && !k.isDeleted)
-          .toList();
-      _kategoriPengeluaranList = semuaKategori
-          .where((k) => k.tipe == TipeKategori.pengeluaran && !k.isDeleted)
-          .toList();
+    if (pelangganAsync.hasError) {
+      return _buildMuatGagal(
+        'Gagal memuat data pelanggan: ${pelangganAsync.error}',
+        () => ref.refresh(pelangganProvider),
+      );
+    }
+    if (paketAsync.hasError) {
+      return _buildMuatGagal(
+        'Gagal memuat data paket: ${paketAsync.error}',
+        () => ref.refresh(paketProvider),
+      );
+    }
+    if (dompetAsync.hasError) {
+      return _buildMuatGagal(
+        'Gagal memuat data dompet: ${dompetAsync.error}',
+        () => ref.refresh(dompetProvider),
+      );
+    }
+    if (kategoriAsync.hasError) {
+      return _buildMuatGagal(
+        'Gagal memuat data kategori: ${kategoriAsync.error}',
+        () => ref.refresh(kategoriProvider),
+      );
+    }
 
-      if (!_awalDipetakan) {
-        _petakanAwal();
-        _awalDipetakan = true;
-        _tampilkanPeringatanTertunda();
-      }
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    _pelangganList = List<PelangganModel>.from(
+      pelangganAsync.requireValue.listPelanggan,
+    )..sort((a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()));
+    _paketList = paketAsync.requireValue.listPaket;
+    _daftarDompet = dompetAsync.requireValue.listDompet
+        .where((d) => !d.isDeleted)
+        .toList();
+    final semuaKategori = kategoriAsync.requireValue.listKategori;
+    _kategoriPemasukanList = semuaKategori
+        .where((k) => k.tipe == TipeKategori.pemasukan && !k.isDeleted)
+        .toList();
+    _kategoriPengeluaranList = semuaKategori
+        .where((k) => k.tipe == TipeKategori.pengeluaran && !k.isDeleted)
+        .toList();
+
+    if (!_awalDipetakan) {
+      _petakanAwal();
+      _awalDipetakan = true;
+      _tampilkanPeringatanTertunda();
     }
 
     return Scaffold(
@@ -353,57 +382,53 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
           _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : error != null
-          ? _buildMuatGagal(error)
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    spacing: 16,
-                    children: [
-                      _buildPoinSwitch(),
-                      _buildPelangganDropdown(),
-                      _buildPaketDropdown(),
-                      _buildDompetDropdown(),
-                      _buildKategoriDropdown(),
-                      _buildDateTimePicker(),
-                      _buildStatusPembayaranButtons(),
-                      _buildInfoTanggal(),
-                    ],
-                  ),
-                ),
-              ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              spacing: 16,
+              children: [
+                _buildPoinSwitch(),
+                _buildPelangganDropdown(),
+                _buildPaketDropdown(),
+                _buildDompetDropdown(),
+                _buildKategoriDropdown(),
+                _buildDateTimePicker(),
+                _buildStatusPembayaranButtons(),
+                _buildInfoTanggal(),
+              ],
             ),
-      bottomNavigationBar: isLoading || error != null
-          ? null
-          : _buildSaveButton(),
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildSaveButton(),
     );
   }
 
-  Widget _buildMuatGagal(Object error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 16,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            Text('Gagal memuat data: $error', textAlign: TextAlign.center),
-            FilledButton(
-              onPressed: () => [
-                ref.refresh(pelangganProvider),
-                ref.refresh(paketProvider),
-                ref.refresh(dompetProvider),
-                ref.refresh(kategoriProvider),
-              ],
-              child: const Text('Coba Lagi'),
-            ),
-          ],
+  Widget _buildMuatGagal(String pesan, VoidCallback onCobaLagi) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              Text(pesan, textAlign: TextAlign.center),
+              FilledButton(
+                onPressed: onCobaLagi,
+                child: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
         ),
       ),
     );
