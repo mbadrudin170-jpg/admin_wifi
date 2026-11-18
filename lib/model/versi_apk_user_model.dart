@@ -38,8 +38,12 @@ class VersiApkUserModel {
     return {
       'id': id,
       'catatanRilis': catatanRilis,
-      'nomorBuildTerbaru': nomorBuildTerbaru.map((key, value) => MapEntry(key.name, value)),
-      'tautanUnduhan': tautanUnduhan.map((key, value) => MapEntry(key.name, value)),
+      'nomorBuildTerbaru': nomorBuildTerbaru.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'tautanUnduhan': tautanUnduhan.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
       'versiTerbaru': versiTerbaru,
       'wajibUpdate': wajibUpdate,
       'youtubeTutorial': youtubeTutorial,
@@ -242,4 +246,18 @@ class VersiApkUserModel {
       diperbarui: diperbarui ?? this.diperbarui,
     );
   }
+}
+
+abstract final class VersiApkUserSkema {
+  static const String tabel = 'versi_apk_user';
+  static const String id = 'id';
+  static const String catatanRilis = 'catatan_rilis';
+  static const String nomorBuildTerbaru = 'nomor_build_terbaru';
+  static const String tautanUnduhan = 'tautan_unduhan';
+  static const String versiTerbaru = 'versi_terbaru';
+  static const String wajibUpdate = 'wajib_update';
+  static const String youtubeTutorial = 'youtube_tutorial';
+  static const String isDeleted = 'isDeleted';
+  static const String diarsipkan = 'diarsipkan';
+  static const String diperbarui = 'diperbarui';
 }

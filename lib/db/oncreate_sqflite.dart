@@ -2,151 +2,188 @@
 
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:admin_wifi/model/kritik_saran_model.dart';
+import 'package:admin_wifi/model/paket_model.dart';
+import 'package:admin_wifi/model/pelanggan_model.dart';
+import 'package:admin_wifi/model/pesanan_model.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/model/status_unggah_model.dart';
+import 'package:admin_wifi/model/sub_kategori_model.dart';
+import 'package:admin_wifi/model/transaksi_model.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+// Skema tabel yang tidak memiliki model khusus.
+abstract final class StatusAplikasiSkema {
+  static const String tabel = 'status_aplikasi';
+  static const String id = 'id';
+  static const String value = 'value';
+}
+
+abstract final class PesanSkema {
+  static const String tabel = 'pesan';
+  static const String id = 'id';
+  static const String isi = 'isi';
+  static const String tanggal = 'tanggal';
+  static const String status = 'status';
+}
 
 // --- DEFINISI SKEMA TABEL ---
 
-const String _tabelVersiApkUser = '''
-    CREATE TABLE versi_apk_user(
-      id TEXT PRIMARY KEY,
-      catatan_rilis TEXT NOT NULL,
-      nomor_build_terbaru TEXT NOT NULL,
-      tautan_unduhan TEXT NOT NULL,
-      versi_terbaru TEXT NOT NULL,
-      wajib_update INTEGER NOT NULL,
-      youtube_tutorial TEXT NOT NULL,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      diarsipkan TEXT,
-      diperbarui TEXT
+final String _tabelVersiApkUser =
+    '''
+    CREATE TABLE ${VersiApkUserSkema.tabel}(
+      ${VersiApkUserSkema.id} TEXT PRIMARY KEY,
+      ${VersiApkUserSkema.catatanRilis} TEXT NOT NULL,
+      ${VersiApkUserSkema.nomorBuildTerbaru} TEXT NOT NULL,
+      ${VersiApkUserSkema.tautanUnduhan} TEXT NOT NULL,
+      ${VersiApkUserSkema.versiTerbaru} TEXT NOT NULL,
+      ${VersiApkUserSkema.wajibUpdate} INTEGER NOT NULL,
+      ${VersiApkUserSkema.youtubeTutorial} TEXT NOT NULL,
+      ${VersiApkUserSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${VersiApkUserSkema.diarsipkan} TEXT,
+      ${VersiApkUserSkema.diperbarui} TEXT
     )
   ''';
 
-const String _tabelDompet = '''
-    CREATE TABLE dompet(
-      id TEXT PRIMARY KEY,
-      namaDompet TEXT NOT NULL,
-      saldo REAL NOT NULL,
-      diperbarui TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      diarsipkan TEXT
+final String _tabelDompet =
+    '''
+    CREATE TABLE ${DompetSkema.tabel}(
+      ${DompetSkema.id} TEXT PRIMARY KEY,
+      ${DompetSkema.namaDompet} TEXT NOT NULL,
+      ${DompetSkema.saldo} REAL NOT NULL,
+      ${DompetSkema.diperbarui} TEXT,
+      ${DompetSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${DompetSkema.diarsipkan} TEXT
     )
   ''';
 
-const String _tabelTransaksi = '''
-    CREATE TABLE transaksi(
-      id TEXT PRIMARY KEY,
-      keterangan TEXT NOT NULL,
-      jumlah REAL NOT NULL,
-      tanggal TEXT NOT NULL,
-      tipe TEXT NOT NULL,
-      id_dompet TEXT,
-      id_kategori TEXT,
-      id_sub_kategori TEXT,
-      id_pelanggan TEXT,
-      id_paket TEXT,
-      diperbarui TEXT,
-      diarsipkan TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      id_dompet_tujuan TEXT,
-      poin_yang_dihasilkan INTEGER NOT NULL DEFAULT 0,
-      poin_yang_digunakan INTEGER NOT NULL DEFAULT 0,
-      status_pembayaran TEXT,
-      durasi_paket INTEGER,
-      tipe_durasi_paket TEXT,
-      tanggal_mulai TEXT,
-      tanggal_berakhir TEXT,
-      aktivasi_paket INTEGER DEFAULT 0
+final String _tabelTransaksi =
+    '''
+    CREATE TABLE ${TransaksiSkema.tabel}(
+      ${TransaksiSkema.id} TEXT PRIMARY KEY,
+      ${TransaksiSkema.keterangan} TEXT NOT NULL,
+      ${TransaksiSkema.jumlah} REAL NOT NULL,
+      ${TransaksiSkema.tanggal} TEXT NOT NULL,
+      ${TransaksiSkema.tipe} TEXT NOT NULL,
+      ${TransaksiSkema.idDompet} TEXT,
+      ${TransaksiSkema.idKategori} TEXT,
+      ${TransaksiSkema.idSubKategori} TEXT,
+      ${TransaksiSkema.idPelanggan} TEXT,
+      ${TransaksiSkema.idPaket} TEXT,
+      ${TransaksiSkema.diperbarui} TEXT,
+      ${TransaksiSkema.diarsipkan} TEXT,
+      ${TransaksiSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${TransaksiSkema.idDompetTujuan} TEXT,
+      ${TransaksiSkema.poinYangDihasilkan} INTEGER NOT NULL DEFAULT 0,
+      ${TransaksiSkema.poinYangDigunakan} INTEGER NOT NULL DEFAULT 0,
+      ${TransaksiSkema.statusPembayaran} TEXT,
+      ${TransaksiSkema.durasiPaket} INTEGER,
+      ${TransaksiSkema.tipeDurasiPaket} TEXT,
+      ${TransaksiSkema.tanggalMulai} TEXT,
+      ${TransaksiSkema.tanggalBerakhir} TEXT,
+      ${TransaksiSkema.aktivasiPaket} INTEGER DEFAULT 0
     )
   ''';
 
-const String _tabelStatusUnggah = '''
-  CREATE TABLE status_unggah(
-    tabel TEXT PRIMARY KEY,
-    status INTEGER NOT NULL,
-    ids TEXT NOT NULL,
-    diperbarui TEXT
+final String _tabelStatusUnggah =
+    '''
+  CREATE TABLE ${StatusUnggahSkema.tabel}(
+    ${StatusUnggahSkema.namaTabel} TEXT PRIMARY KEY,
+    ${StatusUnggahSkema.status} INTEGER NOT NULL,
+    ${StatusUnggahSkema.ids} TEXT NOT NULL,
+    ${StatusUnggahSkema.diperbarui} TEXT
   )
 ''';
 
-const String _tabelStatusAplikasi = '''
-  CREATE TABLE status_aplikasi(
-    id TEXT PRIMARY KEY,
-    value TEXT NOT NULL
+final String _tabelStatusAplikasi =
+    '''
+  CREATE TABLE ${StatusAplikasiSkema.tabel}(
+    ${StatusAplikasiSkema.id} TEXT PRIMARY KEY,
+    ${StatusAplikasiSkema.value} TEXT NOT NULL
   )
 ''';
 
-const String _tabelPesan = '''
-  CREATE TABLE pesan(
-    id TEXT PRIMARY KEY,
-    isi TEXT NOT NULL,
-    tanggal TEXT NOT NULL,
-    status TEXT NOT NULL
+final String _tabelPesan =
+    '''
+  CREATE TABLE ${PesanSkema.tabel}(
+    ${PesanSkema.id} TEXT PRIMARY KEY,
+    ${PesanSkema.isi} TEXT NOT NULL,
+    ${PesanSkema.tanggal} TEXT NOT NULL,
+    ${PesanSkema.status} TEXT NOT NULL
   )
 ''';
 
-const String _tabelPengaturan = '''
-  CREATE TABLE pengaturan(
-    interval_sinkronisasi_otomatis INTEGER NOT NULL DEFAULT 24,
-    hapus_otomatis_data_arsip INTEGER NOT NULL DEFAULT 30,
-    diperbarui TEXT,
-    mode_pemeliharaan INTEGER NOT NULL DEFAULT 0,
-    info_pemeliharaan TEXT
+final String _tabelPengaturan =
+    '''
+  CREATE TABLE ${PengaturanSkema.tabel}(
+    ${PengaturanSkema.intervalSinkronisasiOtomatis} INTEGER NOT NULL DEFAULT 24,
+    ${PengaturanSkema.hapusOtomatisDataArsip} INTEGER NOT NULL DEFAULT 30,
+    ${PengaturanSkema.diperbarui} TEXT,
+    ${PengaturanSkema.modePemeliharaan} INTEGER NOT NULL DEFAULT 0,
+    ${PengaturanSkema.infoPemeliharaan} TEXT
   )
 ''';
 
-const String _tabelKategori = '''
-    CREATE TABLE kategori(
-      id TEXT PRIMARY KEY,
-      nama TEXT NOT NULL,
-      tipe TEXT NOT NULL,
-      id_sub_kategori TEXT,
-      diperbarui TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      diarsipkan TEXT
+final String _tabelKategori =
+    '''
+    CREATE TABLE ${KategoriSkema.tabel}(
+      ${KategoriSkema.id} TEXT PRIMARY KEY,
+      ${KategoriSkema.nama} TEXT NOT NULL,
+      ${KategoriSkema.tipe} TEXT NOT NULL,
+      ${KategoriSkema.idSubKategori} TEXT,
+      ${KategoriSkema.diperbarui} TEXT,
+      ${KategoriSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${KategoriSkema.diarsipkan} TEXT
     )
   ''';
 
-const String _tabelSubKategori = '''
-    CREATE TABLE sub_kategori(
-      id TEXT PRIMARY KEY,
-      nama TEXT NOT NULL,
-      id_kategori TEXT NOT NULL,
-      diperbarui TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      diarsipkan TEXT,
-      FOREIGN KEY (id_kategori) REFERENCES kategori (id) ON DELETE CASCADE
+final String _tabelSubKategori =
+    '''
+    CREATE TABLE ${SubKategoriSkema.tabel}(
+      ${SubKategoriSkema.id} TEXT PRIMARY KEY,
+      ${SubKategoriSkema.nama} TEXT NOT NULL,
+      ${SubKategoriSkema.idKategori} TEXT NOT NULL,
+      ${SubKategoriSkema.diperbarui} TEXT,
+      ${SubKategoriSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${SubKategoriSkema.diarsipkan} TEXT,
+      FOREIGN KEY (${SubKategoriSkema.idKategori}) REFERENCES kategori (id) ON DELETE CASCADE
     )
   ''';
 
-const String _tabelPaket = '''
-    CREATE TABLE paket(
-      id TEXT PRIMARY KEY,
-      nama TEXT NOT NULL,
-      harga INTEGER NOT NULL,
-      durasi INTEGER NOT NULL,
-      tipe TEXT NOT NULL,
-      jumlahPoin INTEGER NOT NULL DEFAULT 0,
-      diperbarui TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      diarsipkan TEXT,
-      poin_hadiah INTEGER NOT NULL DEFAULT 0,
-      poin_penukaran INTEGER NOT NULL DEFAULT 0,
-      isPublic INTEGER NOT NULL DEFAULT 1
+final String _tabelPaket =
+    '''
+    CREATE TABLE ${PaketSkema.tabel}(
+      ${PaketSkema.id} TEXT PRIMARY KEY,
+      ${PaketSkema.nama} TEXT NOT NULL,
+      ${PaketSkema.harga} INTEGER NOT NULL,
+      ${PaketSkema.durasi} INTEGER NOT NULL,
+      ${PaketSkema.tipe} TEXT NOT NULL,
+      ${PaketSkema.jumlahPoin} INTEGER NOT NULL DEFAULT 0,
+      ${PaketSkema.diperbarui} TEXT,
+      ${PaketSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${PaketSkema.diarsipkan} TEXT,
+      ${PaketSkema.poinHadiah} INTEGER NOT NULL DEFAULT 0,
+      ${PaketSkema.poinPenukaran} INTEGER NOT NULL DEFAULT 0,
+      ${PaketSkema.isPublic} INTEGER NOT NULL DEFAULT 1
     )
   ''';
 
-const String _tabelPelanggan = '''
-    CREATE TABLE pelanggan(
-      id TEXT PRIMARY KEY,
-      nama TEXT NOT NULL,
-      telepon TEXT NOT NULL,
-      alamat TEXT NOT NULL,
-      password TEXT NOT NULL,
-      mac_address TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'aktif', 
-      diperbarui TEXT,      
-      diarsipkan TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0       
+final String _tabelPelanggan =
+    '''
+    CREATE TABLE ${PelangganSkema.tabel}(
+      ${PelangganSkema.id} TEXT PRIMARY KEY,
+      ${PelangganSkema.nama} TEXT NOT NULL,
+      ${PelangganSkema.telepon} TEXT NOT NULL,
+      ${PelangganSkema.alamat} TEXT NOT NULL,
+      ${PelangganSkema.password} TEXT NOT NULL,
+      ${PelangganSkema.macAddress} TEXT NOT NULL,
+      ${PelangganSkema.status} TEXT NOT NULL DEFAULT 'aktif',
+      ${PelangganSkema.diperbarui} TEXT,
+      ${PelangganSkema.diarsipkan} TEXT,
+      ${PelangganSkema.isDeleted} INTEGER NOT NULL DEFAULT 0
     )
   ''';
 
@@ -169,29 +206,31 @@ final String _tabelPelangganAktif =
     )
   ''';
 
-const String _tabelKritikSaran = '''
-    CREATE TABLE kritik_saran(
-      id TEXT PRIMARY KEY,
-      isi TEXT NOT NULL,
-      tanggal TEXT NOT NULL,
-      userId TEXT NOT NULL,
-      diperbarui TEXT,
-      FOREIGN KEY (userId) REFERENCES pelanggan (id) ON DELETE CASCADE
+final String _tabelKritikSaran =
+    '''
+    CREATE TABLE ${KritikSaranSkema.tabel}(
+      ${KritikSaranSkema.id} TEXT PRIMARY KEY,
+      ${KritikSaranSkema.isi} TEXT NOT NULL,
+      ${KritikSaranSkema.tanggal} TEXT NOT NULL,
+      ${KritikSaranSkema.userId} TEXT NOT NULL,
+      ${KritikSaranSkema.diperbarui} TEXT,
+      FOREIGN KEY (${KritikSaranSkema.userId}) REFERENCES pelanggan (id) ON DELETE CASCADE
     )
   ''';
 
-const String _tabelPesanan = '''
-    CREATE TABLE pesanan(
-      id TEXT PRIMARY KEY,
-      id_pelanggan TEXT NOT NULL,
-      id_paket TEXT NOT NULL,
-      tanggal TEXT NOT NULL,
-      status TEXT,
-      diperbarui TEXT,
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      diarsipkan TEXT,
-      FOREIGN KEY (id_pelanggan) REFERENCES pelanggan (id) ON DELETE CASCADE,
-      FOREIGN KEY (id_paket) REFERENCES paket (id) ON DELETE CASCADE
+final String _tabelPesanan =
+    '''
+    CREATE TABLE ${PesananSkema.tabel}(
+      ${PesananSkema.id} TEXT PRIMARY KEY,
+      ${PesananSkema.idPelanggan} TEXT NOT NULL,
+      ${PesananSkema.idPaket} TEXT NOT NULL,
+      ${PesananSkema.tanggal} TEXT NOT NULL,
+      ${PesananSkema.status} TEXT,
+      ${PesananSkema.diperbarui} TEXT,
+      ${PesananSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+      ${PesananSkema.diarsipkan} TEXT,
+      FOREIGN KEY (${PesananSkema.idPelanggan}) REFERENCES pelanggan (id) ON DELETE CASCADE,
+      FOREIGN KEY (${PesananSkema.idPaket}) REFERENCES paket (id) ON DELETE CASCADE
     )
   ''';
 

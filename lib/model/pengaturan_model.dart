@@ -75,3 +75,13 @@ class PengaturanModel {
     };
   }
 }
+
+abstract final class PengaturanSkema {
+  static const String tabel = 'pengaturan';
+  static const String intervalSinkronisasiOtomatis =
+      'interval_sinkronisasi_otomatis';
+  static const String hapusOtomatisDataArsip = 'hapus_otomatis_data_arsip';
+  static const String diperbarui = 'diperbarui';
+  static const String modePemeliharaan = 'mode_pemeliharaan';
+  static const String infoPemeliharaan = 'info_pemeliharaan';
+}

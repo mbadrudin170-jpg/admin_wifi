@@ -63,7 +63,7 @@ class KritikSaranModel {
       'diperbarui': diperbarui?.toIso8601String(),
     };
   }
-  
+
   // ditambahkan: Factory fromFirebase
   factory KritikSaranModel.fromFirebase(String id, Map<String, dynamic> data) {
     return KritikSaranModel(
@@ -85,4 +85,13 @@ class KritikSaranModel {
       'diperbarui': FieldValue.serverTimestamp(),
     };
   }
+}
+
+abstract final class KritikSaranSkema {
+  static const String tabel = 'kritik_saran';
+  static const String id = 'id';
+  static const String isi = 'isi';
+  static const String tanggal = 'tanggal';
+  static const String userId = 'userId';
+  static const String diperbarui = 'diperbarui';
 }

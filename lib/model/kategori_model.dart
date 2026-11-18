@@ -69,7 +69,8 @@ class KategoriModel {
         }
         return list
             .map(
-              (item) => SubKategoriModel.fromSqlite(item as Map<String, dynamic>),
+              (item) =>
+                  SubKategoriModel.fromSqlite(item as Map<String, dynamic>),
             )
             .toList();
       } catch (e) {
@@ -111,7 +112,12 @@ class KategoriModel {
     List<SubKategoriModel> parseSubKategori(dynamic subKategoriData) {
       if (subKategoriData is List) {
         return subKategoriData
-            .map((item) => SubKategoriModel.fromFirebase(item['id'], item as Map<String, dynamic>))
+            .map(
+              (item) => SubKategoriModel.fromFirebase(
+                item['id'],
+                item as Map<String, dynamic>,
+              ),
+            )
             .toList();
       } else {
         return [];
@@ -145,4 +151,15 @@ class KategoriModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
+}
+
+abstract final class KategoriSkema {
+  static const String tabel = 'kategori';
+  static const String id = 'id';
+  static const String nama = 'nama';
+  static const String tipe = 'tipe';
+  static const String idSubKategori = 'id_sub_kategori';
+  static const String diperbarui = 'diperbarui';
+  static const String isDeleted = 'isDeleted';
+  static const String diarsipkan = 'diarsipkan';
 }

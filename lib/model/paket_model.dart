@@ -186,3 +186,19 @@ class PaketModel {
     return data;
   }
 }
+
+abstract final class PaketSkema {
+  static const String tabel = 'paket';
+  static const String id = 'id';
+  static const String nama = 'nama';
+  static const String harga = 'harga';
+  static const String durasi = 'durasi';
+  static const String tipe = 'tipe';
+  static const String jumlahPoin = 'jumlahPoin';
+  static const String diperbarui = 'diperbarui';
+  static const String isDeleted = 'isDeleted';
+  static const String diarsipkan = 'diarsipkan';
+  static const String poinHadiah = 'poin_hadiah';
+  static const String poinPenukaran = 'poin_penukaran';
+  static const String isPublic = 'isPublic';
+}

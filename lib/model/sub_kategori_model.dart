@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 class SubKategoriModel {
   final String id;
   final String nama;
-  final String idKategori; 
+  final String idKategori;
   final DateTime? diperbarui;
   final bool isDeleted;
   final DateTime? diarsipkan;
@@ -92,4 +92,14 @@ class SubKategoriModel {
       'diarsipkan': diarsipkan?.toIso8601String(),
     };
   }
+}
+
+abstract final class SubKategoriSkema {
+  static const String tabel = 'sub_kategori';
+  static const String id = 'id';
+  static const String nama = 'nama';
+  static const String idKategori = 'id_kategori';
+  static const String diperbarui = 'diperbarui';
+  static const String isDeleted = 'isDeleted';
+  static const String diarsipkan = 'diarsipkan';
 }

@@ -33,3 +33,11 @@ class StatusUnggahModel {
     };
   }
 }
+
+abstract final class StatusUnggahSkema {
+  static const String tabel = 'status_unggah';
+  static const String namaTabel = 'tabel';
+  static const String status = 'status';
+  static const String ids = 'ids';
+  static const String diperbarui = 'diperbarui';
+}

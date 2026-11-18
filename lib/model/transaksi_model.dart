@@ -244,3 +244,29 @@ class TransaksiModel {
     );
   }
 }
+
+abstract final class TransaksiSkema {
+  static const String tabel = 'transaksi';
+  static const String id = 'id';
+  static const String keterangan = 'keterangan';
+  static const String jumlah = 'jumlah';
+  static const String tanggal = 'tanggal';
+  static const String tipe = 'tipe';
+  static const String idDompet = 'id_dompet';
+  static const String idKategori = 'id_kategori';
+  static const String idSubKategori = 'id_sub_kategori';
+  static const String idPelanggan = 'id_pelanggan';
+  static const String idPaket = 'id_paket';
+  static const String diperbarui = 'diperbarui';
+  static const String diarsipkan = 'diarsipkan';
+  static const String isDeleted = 'isDeleted';
+  static const String idDompetTujuan = 'id_dompet_tujuan';
+  static const String poinYangDihasilkan = 'poin_yang_dihasilkan';
+  static const String poinYangDigunakan = 'poin_yang_digunakan';
+  static const String statusPembayaran = 'status_pembayaran';
+  static const String durasiPaket = 'durasi_paket';
+  static const String tipeDurasiPaket = 'tipe_durasi_paket';
+  static const String tanggalMulai = 'tanggal_mulai';
+  static const String tanggalBerakhir = 'tanggal_berakhir';
+  static const String aktivasiPaket = 'aktivasi_paket';
+}

@@ -162,3 +162,17 @@ class PelangganModel {
     return data;
   }
 }
+
+abstract final class PelangganSkema {
+  static const String tabel = 'pelanggan';
+  static const String id = 'id';
+  static const String nama = 'nama';
+  static const String telepon = 'telepon';
+  static const String alamat = 'alamat';
+  static const String password = 'password';
+  static const String macAddress = 'mac_address';
+  static const String status = 'status';
+  static const String diperbarui = 'diperbarui';
+  static const String diarsipkan = 'diarsipkan';
+  static const String isDeleted = 'isDeleted';
+}

@@ -113,3 +113,15 @@ class PesananModel {
     };
   }
 }
+
+abstract final class PesananSkema {
+  static const String tabel = 'pesanan';
+  static const String id = 'id';
+  static const String idPelanggan = 'id_pelanggan';
+  static const String idPaket = 'id_paket';
+  static const String tanggal = 'tanggal';
+  static const String status = 'status';
+  static const String diperbarui = 'diperbarui';
+  static const String isDeleted = 'isDeleted';
+  static const String diarsipkan = 'diarsipkan';
+}
