@@ -21,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/src/widget/confirmation_dialog.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 enum OpsiHapusPilihan { hapusSemua, arsipkanKadaluarsa, batal }
@@ -372,26 +373,10 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
     switch (pilihan) {
       case OpsiHapusPilihan.hapusSemua:
         L.w('Meminta konfirmasi untuk menghapus semua pelanggan aktif.');
-        final bool? konfirmasi = await showDialog(
+        final bool? konfirmasi = await ConfirmationDialog.showDeleteAll(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Konfirmasi Hapus Semua'),
-              content: const Text(
-                'Yakin ingin menghapus SEMUA pelanggan aktif? Tindakan ini tidak dapat dibatalkan.',
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Hapus Semua'),
-                ),
-              ],
-            );
-          },
+          itemName: 'pelanggan aktif',
+          title: 'Konfirmasi Hapus Semua',
         );
 
         if (konfirmasi == true) {
