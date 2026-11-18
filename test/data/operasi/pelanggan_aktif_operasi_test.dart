@@ -6,7 +6,7 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/sqlite.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -54,6 +54,7 @@ void main() {
       bool kadaluarsa = false,
     }) {
       return PelangganAktifModel(
+        id: '', // id kosong: PelangganAktifOperasi mengisi UUID sendiri
         idPelanggan: idPelanggan,
         idPaket: idPaket,
         tanggalMulai: kadaluarsa

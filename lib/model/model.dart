@@ -5,7 +5,7 @@ export 'hasil_simpan_model.dart';
 export 'kategori_model.dart';
 export 'kritik_saran_model.dart';
 export 'paket_model.dart';
-export 'pelanggan_aktif_model.dart';
+export '../fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 export 'pelanggan_model.dart';
 export 'pengaturan_model.dart';
 export 'pesanan_model.dart';

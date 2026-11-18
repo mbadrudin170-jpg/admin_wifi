@@ -10,7 +10,7 @@ import 'package:admin_wifi/halaman/form/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/enum.dart';

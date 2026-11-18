@@ -8,7 +8,7 @@ import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 
 const uuid = Uuid();
 

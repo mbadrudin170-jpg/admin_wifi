@@ -1,34 +1,31 @@
-// path: lib/model/pelanggan_aktif_model.dart
+// path: lib/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart
 
 import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class PelangganAktifModel {
-  final String id;
-  final String idPelanggan;
-  final String idPaket;
-  final String? idTransaksi;
-  final DateTime tanggalMulai;
-  final DateTime tanggalBerakhir;
-  final StatusPembayaranEnum status;
-  final DateTime? diperbarui;
-  final bool isDeleted;
-  final DateTime? diarsipkan;
+part 'pelanggan_aktif_model.freezed.dart';
 
-  PelangganAktifModel({
-    String? id,
-    required this.idPelanggan,
-    required this.idPaket,
-    this.idTransaksi,
-    required this.tanggalMulai,
-    required this.tanggalBerakhir,
-    required this.status,
-    this.diperbarui,
-    this.isDeleted = false,
-    this.diarsipkan,
-  }) : id = id ?? const Uuid().v4();
+@freezed
+abstract class PelangganAktifModel with _$PelangganAktifModel {
+  const PelangganAktifModel._();
+
+  // diubah (freezed): `id` wajib diisi pemanggil — Freezed tidak bisa memberi
+  // default non-konstan (auto-UUID); pemanggil mode baru meneruskan `''` dan
+  // PelangganAktifOperasi mengisi UUID saat id kosong.
+  const factory PelangganAktifModel({
+    required String id,
+    required String idPelanggan,
+    required String idPaket,
+    String? idTransaksi,
+    required DateTime tanggalMulai,
+    required DateTime tanggalBerakhir,
+    required StatusPembayaranEnum status,
+    DateTime? diperbarui,
+    @Default(false) bool isDeleted,
+    DateTime? diarsipkan,
+  }) = _PelangganAktifModel;
 
   Map<String, dynamic> toJson() {
     return {
@@ -176,31 +173,5 @@ class PelangganAktifModel {
 
     Log.api('Firestore/Pelanggan/$id', data, method: 'SET');
     return data;
-  }
-
-  PelangganAktifModel copyWith({
-    String? id,
-    String? idPelanggan,
-    String? idPaket,
-    String? idTransaksi,
-    DateTime? tanggalMulai,
-    DateTime? tanggalBerakhir,
-    StatusPembayaranEnum? status,
-    DateTime? diperbarui,
-    bool? isDeleted,
-    DateTime? diarsipkan,
-  }) {
-    return PelangganAktifModel(
-      id: id ?? this.id,
-      idPelanggan: idPelanggan ?? this.idPelanggan,
-      idPaket: idPaket ?? this.idPaket,
-      idTransaksi: idTransaksi ?? this.idTransaksi,
-      tanggalMulai: tanggalMulai ?? this.tanggalMulai,
-      tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
-      status: status ?? this.status,
-      diperbarui: diperbarui ?? this.diperbarui,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-    );
   }
 }

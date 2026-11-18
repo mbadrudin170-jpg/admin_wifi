@@ -5,7 +5,7 @@ import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/kritik_saran_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
