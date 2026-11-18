@@ -3,9 +3,10 @@
 import 'dart:async';
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
@@ -14,7 +15,6 @@ import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
-import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,9 +48,7 @@ class PelangganAktifScreen extends ConsumerStatefulWidget {
 
 class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
-  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final now = DateTime.now();
-  Map<String, String> _mapNamaPelanggan = {};
   OpsiUrutkan _urutanAktif = OpsiUrutkan.tanggalBerakhir;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
@@ -120,15 +118,10 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
         }
       }
 
-      final pelangganList = await _pelangganOperasi.getPelanggan();
-      _mapNamaPelanggan = {for (var p in pelangganList) p.id: p.nama};
-      // Picu rebuild agar pencarian/pengurutan memakai peta nama terbaru.
-      if (mounted) {
-        setState(() {});
-      }
-
       if (forceRefresh) {
         // Paksa sinkronisasi ulang dari database lokal lewat notifier.
+        await ref.read(pelangganProvider.notifier).muatUlang();
+        await ref.read(paketProvider.notifier).muatUlang();
         await ref.read(penggunaAktifProvider.notifier).muatUlang();
         final jumlah =
             ref.read(penggunaAktifProvider).value?.jumlahPelangganAktif ?? 0;
@@ -144,14 +137,17 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
     }
   }
 
-  List<PelangganAktifModel> _filterAndSort(List<PelangganAktifModel> semua) {
+  List<PelangganAktifModel> _filterAndSort(
+    List<PelangganAktifModel> semua,
+    Map<String, String> mapNamaPelanggan,
+  ) {
     List<PelangganAktifModel> tempResult;
     final query = _searchController.text.toLowerCase();
 
     if (query.isNotEmpty) {
       tempResult = semua.where((pelanggan) {
         final nama =
-            _mapNamaPelanggan[pelanggan.idPelanggan]?.toLowerCase() ?? '';
+            mapNamaPelanggan[pelanggan.idPelanggan]?.toLowerCase() ?? '';
         return nama.contains(query);
       }).toList();
     } else {
@@ -177,8 +173,8 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
       case OpsiUrutkan.namaAZ:
       case OpsiUrutkan.namaZA:
         comparator = (a, b) {
-          final namaA = _mapNamaPelanggan[a.idPelanggan] ?? '';
-          final namaB = _mapNamaPelanggan[b.idPelanggan] ?? '';
+          final namaA = mapNamaPelanggan[a.idPelanggan] ?? '';
+          final namaB = mapNamaPelanggan[b.idPelanggan] ?? '';
           return _urutanAktif == OpsiUrutkan.namaAZ
               ? namaA.compareTo(namaB)
               : namaB.compareTo(namaA);
@@ -480,19 +476,30 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncPelangganAktif = ref.watch(penggunaAktifProvider);
+    final asyncPelanggan = ref.watch(pelangganProvider);
+    final asyncPaket = ref.watch(paketProvider);
 
     Widget buildBody() {
-      if (asyncPelangganAktif.isLoading) {
+      if (asyncPelangganAktif.isLoading ||
+          asyncPelanggan.isLoading ||
+          asyncPaket.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      if (asyncPelangganAktif.hasError) {
-        return Center(
-          child: Text('Gagal memuat data: ${asyncPelangganAktif.error}'),
-        );
+      final Object? error =
+          asyncPelangganAktif.error ?? asyncPelanggan.error ?? asyncPaket.error;
+      if (error != null) {
+        return Center(child: Text('Gagal memuat data: $error'));
       }
-      final semuaPelanggan =
-          asyncPelangganAktif.requireValue.listPelangganAktif;
-      final hasilFilter = _filterAndSort(semuaPelanggan);
+
+      final pelangganState = asyncPelanggan.requireValue;
+      final paketState = asyncPaket.requireValue;
+      final pelangganAktifAsync = asyncPelangganAktif.requireValue;
+
+      final semuaPelanggan = pelangganAktifAsync.listPelangganAktif;
+      final mapNamaPelanggan = {
+        for (final p in pelangganState.listPelanggan) p.id: p.nama,
+      };
+      final hasilFilter = _filterAndSort(semuaPelanggan, mapNamaPelanggan);
 
       return RefreshIndicator(
         onRefresh: _refreshData,
@@ -503,9 +510,12 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
             : ListView.builder(
                 itemCount: hasilFilter.length,
                 itemBuilder: (context, index) {
-                  final pelanggan = hasilFilter[index];
-                  final statusPembayaran = pelanggan.status;
-
+                  final pelangganAktif = hasilFilter[index];
+                  final statusPembayaran = pelangganAktif.status;
+                  final pelanggan = pelangganState.getById(
+                    pelangganAktif.idPelanggan,
+                  );
+                  final paket = paketState.getById(pelangganAktif.idPaket);
                   return Card(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -513,27 +523,26 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
-                      onLongPress: () => _arsipkanPelanggan(pelanggan),
+                      onLongPress: () => _arsipkanPelanggan(pelangganAktif),
                       onTap: () async {
                         L.i(
-                          'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelanggan.id}.',
+                          'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
                         );
                         await Nav.to(
                           context,
-                          DetailPelangganAktif(pelanggan: pelanggan),
+                          DetailPelangganAktif(pelanggan: pelangganAktif),
                         );
                         _loadData(forceRefresh: true);
                       },
                       child: ListTile(
-                        title: NamaPelangganWidget(
-                          idPelanggan: pelanggan.idPelanggan,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        title: Text(
+                          pelanggan?.nama ?? 'Pelanggan tidak ditemukan',
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 4,
                           children: [
-                            NamaPaketWidget(idPaket: pelanggan.idPaket),
+                            Text(paket?.nama ?? 'Paket tidak ditemukan'),
                             Text(
                               'Pembayaran: ${statusPembayaran.label}',
                               style: TextStyle(
@@ -546,16 +555,16 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
                               ),
                             ),
                             Text(
-                              'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelanggan.tanggalBerakhir)}',
+                              'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelangganAktif.tanggalBerakhir)}',
                               style: TextStyle(
                                 color: PerhitunganUtil.getWarnaSisaMasaAktif(
-                                  pelanggan.tanggalBerakhir,
+                                  pelangganAktif.tanggalBerakhir,
                                 ),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              'Berakhir: ${FormatTanggal.formatTanggalBasic(pelanggan.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelanggan.tanggalBerakhir)}',
+                              'Berakhir: ${FormatTanggal.formatTanggalBasic(pelangganAktif.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalBerakhir)}',
                             ),
                           ],
                         ),
