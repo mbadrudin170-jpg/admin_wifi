@@ -8,12 +8,12 @@ import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/enum.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
-import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
-import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -27,12 +27,6 @@ import 'package:share_global_saya/src/widget/toast_widget.dart';
 import 'package:uuid/uuid.dart';
 
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
-  L.i('FUNGSI GLOBAL: hitungTanggalBerakhir() dipanggil.');
-  L.i('  - Tanggal Mulai: ${startDate.toIso8601String()}');
-  L.i('  - Nama Paket: ${paket.nama}');
-  L.i('  - Tipe Durasi: ${paket.tipe.label}');
-  L.i('  - Durasi: ${paket.durasi}');
-
   DateTime hasil;
   switch (paket.tipe) {
     case TipeDurasi.jam:
