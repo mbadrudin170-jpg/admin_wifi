@@ -18,9 +18,9 @@ import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
@@ -112,14 +112,22 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
 
   void _petakanModeEdit() {
     final pa = widget.pelangganAktif!;
-    _selectedPelanggan = _pelangganList.firstWhereOrNull(
-      (p) => p.id == pa.idPelanggan,
-    );
-    _selectedPaket = _paketList.firstWhereOrNull((p) => p.id == pa.idPaket);
-    if (_selectedPaket == null) {
-      _peringatanPaket =
-          'Peringatan: Paket asli (ID: ${pa.idPaket}) tidak ditemukan. Harap pilih paket baru.';
-    }
+    Future.microtask(() {
+      if (!mounted) return;
+      setState(() {
+        Future.microtask(() async {
+          if (!mounted) return;
+          final pelangganState = await ref.read(pelangganProvider.future);
+          _selectedPelanggan = pelangganState.getById(pa.idPelanggan);
+          final paketState = await ref.read(paketProvider.future);
+          _selectedPaket = paketState.getById(pa.idPaket);
+          if (_selectedPaket == null) {
+            _peringatanPaket =
+                'Peringatan: Paket asli (ID: ${pa.idPaket}) tidak ditemukan. Harap pilih paket baru.';
+          }
+        });
+      });
+    });
 
     final tglMulai = pa.tanggalMulai;
     _selectedDate = tglMulai;
