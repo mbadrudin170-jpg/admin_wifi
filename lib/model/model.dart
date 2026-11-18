@@ -1,5 +1,5 @@
 // path: lib/model/model.dart
-export 'package:admin_wifi/core/model/hasil_simpan_model.dart';
+
 export 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 export 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 export 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';

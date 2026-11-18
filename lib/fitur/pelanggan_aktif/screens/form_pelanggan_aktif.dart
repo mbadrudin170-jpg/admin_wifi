@@ -1,39 +1,25 @@
 // path: lib/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart
-// Halaman ini menyediakan formulir untuk mengaktifkan pelanggan dengan paket tertentu.
-// diubah: Melakukan refactoring untuk menerapkan Dependency Injection.
-// diubah: Memisahkan logika penyimpanan dan navigasi untuk memastikan SnackBar sempat ditampilkan dalam pengujian.
-// diubah: Memperbaiki bug dimana Dompet dan Kategori tidak diinisialisasi dalam mode edit.
-// diubah: Mengganti `value` dengan `initialValue` pada DropdownButtonFormField.
-// diubah: Memfilter daftar kategori agar hanya menampilkan tipe pemasukan dan yang tidak dihapus.
-// ditambahkan: filter untuk hanya menampilkan dompet yang isDeleted-nya false.
-// diubah: Transaksi sekarang dibuat tanpa pengecekan status pembayaran.
-// diubah: poinYangDihasilkan sekarang mengambil nilai dari paket yang dipilih.
-// diubah: Memperbaiki bug tampilan poin.
-// ditambahkan: Logika `_hitungTanggalBerakhir` diekstrak menjadi fungsi top-level `hitungTanggalBerakhir` untuk kemudahan pengujian.
-// diperbaiki: Kesalahan sintaks pada string multi-baris di SnackBar.
-// diperbaiki: Memperbaiki bug dimana edit pelanggan aktif tidak mengupdate transaksi yang ada.
-// diubah: Memindahkan logika pengiriman WhatsApp ke UI dan menambahkan penanganan error.
-// diubah: Menggunakan AppToast (share_global_saya) untuk menampilkan notifikasi sementara.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/enum.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
-import 'package:admin_wifi/core/model/hasil_simpan_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
@@ -69,11 +55,10 @@ DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
   return hasil;
 }
 
-class FormPelangganAktif extends StatefulWidget {
+class FormPelangganAktif extends ConsumerStatefulWidget {
   final PelangganAktifModel? pelangganAktif;
   final PelangganOperasi pelangganOperasi;
   final PaketOperasi paketOperasi;
-  final PelangganAktifOperasi pelangganAktifOperasi;
   final TransaksiOperasi transaksiOperasi;
   final DompetOperasi dompetOperasi;
   final KategoriOperasi kategoriOperasi;
@@ -83,22 +68,20 @@ class FormPelangganAktif extends StatefulWidget {
     this.pelangganAktif,
     PelangganOperasi? pelangganOperasi,
     PaketOperasi? paketOperasi,
-    PelangganAktifOperasi? pelangganAktifOperasi,
     TransaksiOperasi? transaksiOperasi,
     DompetOperasi? dompetOperasi,
     KategoriOperasi? kategoriOperasi,
   }) : pelangganOperasi = pelangganOperasi ?? PelangganOperasi(),
        paketOperasi = paketOperasi ?? PaketOperasi(),
-       pelangganAktifOperasi = pelangganAktifOperasi ?? PelangganAktifOperasi(),
        transaksiOperasi = transaksiOperasi ?? TransaksiOperasi(),
        dompetOperasi = dompetOperasi ?? DompetOperasi(),
        kategoriOperasi = kategoriOperasi ?? KategoriOperasi();
 
   @override
-  State<FormPelangganAktif> createState() => _FormPelangganAktifState();
+  ConsumerState<FormPelangganAktif> createState() => _FormPelangganAktifState();
 }
 
-class _FormPelangganAktifState extends State<FormPelangganAktif> {
+class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
   final _formKey = GlobalKey<FormState>();
 
   List<PelangganModel> _pelangganList = [];
@@ -271,9 +254,14 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     }
   }
 
-  Future<HasilSimpanModel<PelangganAktifModel>> _saveForm() async {
+  /// Menyimpan data pelanggan aktif beserta transaksinya.
+  ///
+  /// Seluruh umpan balik kepada pengguna (toast), pengiriman WhatsApp,
+  /// dan navigasi kembali ditangani di dalam fungsi ini.
+  Future<void> _saveForm() async {
     if (!_formKey.currentState!.validate()) {
-      return HasilSimpanModel(sukses: false, pesan: 'Data belum lengkap');
+      AppToast.gagal(context, 'Data belum lengkap');
+      return;
     }
 
     final selectedPaket = _selectedPaket;
@@ -283,21 +271,18 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _selectedTime == null ||
         _selectedDompet == null ||
         _selectedKategori == null) {
-      return HasilSimpanModel(
-        sukses: false,
-        pesan: 'Harap lengkapi semua data',
-      );
+      AppToast.gagal(context, 'Harap lengkapi semua data');
+      return;
     }
 
     if (_gunakanPoin) {
       if (selectedPaket.poinPenukaran <= 0) {
-        return HasilSimpanModel(
-          sukses: false,
-          pesan: 'Paket ini tidak mendukung penukaran poin',
-        );
+        AppToast.gagal(context, 'Paket ini tidak mendukung penukaran poin');
+        return;
       }
       if (_saldoPoinPelanggan < selectedPaket.poinPenukaran) {
-        return HasilSimpanModel(sukses: false, pesan: 'Poin tidak cukup');
+        AppToast.gagal(context, 'Poin tidak cukup');
+        return;
       }
     }
 
@@ -355,26 +340,39 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
       PelangganAktifModel pelangganAktifHasil;
       if (_isEditMode) {
-        pelangganAktifHasil = await widget.pelangganAktifOperasi
-            .updatePelangganAktif(pelangganAktifData);
-        await widget.transaksiOperasi.updateTransaksi(
-          transaksiId,
-          transaksiData,
-        );
+        pelangganAktifHasil = await ref
+            .read(penggunaAktifProvider.notifier)
+            .ubah(pelangganAktifData);
+        await ref.read(transaksiProvider.notifier).ubah(transaksiData);
       } else {
-        pelangganAktifHasil = await widget.pelangganAktifOperasi
-            .createPelangganAktif(pelangganAktifData);
-        await widget.transaksiOperasi.tambahTransaksi(transaksiData);
+        pelangganAktifHasil = await ref
+            .read(penggunaAktifProvider.notifier)
+            .tambah(pelangganAktifData);
+        await ref.read(transaksiProvider.notifier).tambah(transaksiData);
       }
 
-      return HasilSimpanModel(
-        sukses: true,
-        pesan: 'Berhasil disimpan',
-        data: pelangganAktifHasil,
-      );
+      if (!mounted) return;
+
+      AppToast.sukses(context, 'Berhasil disimpan');
+      try {
+        await PesanInfoPaket.kirimRincianPaket(pelangganAktifHasil);
+      } catch (e) {
+        L.w('Gagal mengirim pesan WhatsApp: $e');
+        if (mounted) {
+          AppToast.warning(
+            context,
+            'Gagal mengirim pesan WhatsApp. Aplikasi tidak terpasang?',
+          );
+        }
+      }
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) {
+        Nav.pop(context, true);
+      }
     } catch (e, s) {
       L.e('Gagal menyimpan data pelanggan aktif. Error: $e $s');
-      return HasilSimpanModel(sukses: false, pesan: 'Gagal menyimpan: $e');
+      if (!mounted) return;
+      AppToast.gagal(context, 'Gagal menyimpan: $e');
     }
   }
 
@@ -682,32 +680,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: () async {
-          final hasil = await _saveForm();
-
-          if (!mounted) return;
-
-          if (hasil.sukses) {
-            AppToast.sukses(context, hasil.pesan);
-            if (hasil.data != null) {
-              try {
-                await PesanInfoPaket.kirimRincianPaket(hasil.data!);
-              } catch (e) {
-                L.w('Gagal mengirim pesan WhatsApp: $e');
-                if (mounted) {
-                  AppToast.warning(
-                    context,
-                    'Gagal mengirim pesan WhatsApp. Aplikasi tidak terpasang?',
-                  );
-                }
-              }
-            }
-            await Future.delayed(const Duration(milliseconds: 300));
-            if (mounted) {
-              Nav.pop(context, true);
-            }
-          } else {
-            AppToast.gagal(context, hasil.pesan);
-          }
+          await _saveForm();
         },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 50),

@@ -35,10 +35,11 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
     );
   }
 
-  Future<void> tambah(PelangganAktifModel model) async {
+  Future<PelangganAktifModel> tambah(PelangganAktifModel model) async {
     try {
-      await _operasi.createPelangganAktif(model);
+      final hasil = await _operasi.createPelangganAktif(model);
       state = AsyncValue.data(await _ambilSemua());
+      return hasil;
     } catch (e, s) {
       L.e('Gagal menambahkan pelanggan aktif: $e\n$s');
       rethrow;
@@ -55,10 +56,11 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
     }
   }
 
-  Future<void> ubah(PelangganAktifModel model) async {
+  Future<PelangganAktifModel> ubah(PelangganAktifModel model) async {
     try {
-      await _operasi.updatePelangganAktif(model);
+      final hasil = await _operasi.updatePelangganAktif(model);
       state = AsyncValue.data(await _ambilSemua());
+      return hasil;
     } catch (e, s) {
       L.e('Gagal mengubah pelanggan aktif: $e\n$s');
       rethrow;

@@ -92,13 +92,12 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
               StatusPembayaranEnum.values,
               ParserUtil.parseStringOrNull(map[PelangganAktifSkema.status]),
             ) ??
-            StatusPembayaranEnum.lunas,
+            StatusPembayaranEnum.belumLunas,
         diperbarui: _parseTanggal(map[PelangganAktifSkema.diperbarui]),
         isDeleted: ParserUtil.parseBool(map[PelangganAktifSkema.isDeleted]),
         diarsipkan: _parseTanggal(map[PelangganAktifSkema.diarsipkan]),
       );
 
-      L.i('Data dimuat dari SQLite');
       return model;
     } catch (e, stack) {
       L.e('Gagal parsing SQLite: $map Error: $e $stack');
@@ -143,13 +142,12 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
               StatusPembayaranEnum.values,
               ParserUtil.parseStringOrNull(data[PelangganAktifSkema.status]),
             ) ??
-            StatusPembayaranEnum.lunas,
+            StatusPembayaranEnum.belumLunas,
         diperbarui: _parseTanggal(data[PelangganAktifSkema.diperbarui]),
         isDeleted: ParserUtil.parseBool(data[PelangganAktifSkema.isDeleted]),
         diarsipkan: _parseTanggal(data[PelangganAktifSkema.diarsipkan]),
       );
 
-      L.i('Data ditarik dari Firebase');
       return model;
     } catch (e, stack) {
       L.e('Gagal parsing Firebase: $data Error: $e $stack');

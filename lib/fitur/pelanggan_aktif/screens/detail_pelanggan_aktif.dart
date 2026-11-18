@@ -69,20 +69,11 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
   }
 
   void _navigateToEdit(PelangganAktifModel pelangganAktif) async {
-    final result = await Nav.to<bool>(
-      context,
-      FormPelangganAktif(pelangganAktif: pelangganAktif),
-    );
-
-    if (result != true) {
-      return;
+    try {
+      await Nav.to(context, FormPelangganAktif(pelangganAktif: pelangganAktif));
+    } catch (e, s) {
+      L.e('Gagal membuka form edit pelanggan aktif: $e $s');
     }
-
-    // Muat ulang provider terkait; layar menampilkan data dari notifier,
-    // jadi tidak perlu state lokal.
-    ref.invalidate(penggunaAktifProvider);
-    ref.invalidate(pelangganProvider);
-    ref.invalidate(paketProvider);
   }
 
   @override
