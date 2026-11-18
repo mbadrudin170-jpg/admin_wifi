@@ -151,11 +151,14 @@ class DatabaseHelper {
     Log.info('Memulai inisialisasi database (_initDB).');
     try {
       if (kIsWeb) {
-        Log.error(
-          'Database lokal tidak didukung pada Flutter Web. Aplikasi menargetkan Android.',
-        );
-        throw UnsupportedError(
-          'Database lokal (sqflite) tidak didukung pada Flutter Web.',
+        // sqflite_common_ffi_web diinisialisasi di main() (kIsWeb);
+        // di web, path database hanyalah nama (disimpan di IndexedDB).
+        Log.info('Mode Web terdeteksi. Menggunakan database Web (IndexedDB).');
+        return await openDatabase(
+          'mydatabase.db',
+          version: _databaseVersion,
+          onCreate: createTables,
+          onUpgrade: _onUpgrade,
         );
       }
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
