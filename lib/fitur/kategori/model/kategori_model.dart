@@ -1,4 +1,4 @@
-// path: lib/model/kategori_model.dart
+// path: lib/fitur/kategori/model/kategori_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'dart:convert';
 

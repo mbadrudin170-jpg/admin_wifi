@@ -1,4 +1,4 @@
-// path: lib/model/paket_model.dart
+// path: lib/fitur/paket/model/paket_model.dart
 // ditambahkan: Import cloud_firestore untuk FieldValue dan Timestamp.
 // diubah: Menghapus field `jumlahPoin` yang tidak lagi digunakan.
 import 'package:cloud_firestore/cloud_firestore.dart';

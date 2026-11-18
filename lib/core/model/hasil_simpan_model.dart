@@ -1,4 +1,4 @@
-// path: lib/model/hasil_simpan_model.dart
+// path: lib/core/model/hasil_simpan_model.dart
 
 class HasilSimpanModel<T> {
   final bool sukses;

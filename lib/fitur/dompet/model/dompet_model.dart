@@ -1,4 +1,4 @@
-// path: lib/model/dompet_model.dart
+// path: lib/fitur/dompet/model/dompet_model.dart
 // diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
 // diubah: Direfactor menggunakan Freezed (abstract class + const factory).
 

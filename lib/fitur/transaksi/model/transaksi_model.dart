@@ -1,4 +1,4 @@
-// path: lib/model/transaksi_model.dart
+// path: lib/fitur/transaksi/model/transaksi_model.dart
 // diubah: Model digabungkan dengan RiwayatLanggananModel dan denormalisasi data dihapus.
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';

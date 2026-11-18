@@ -1,4 +1,4 @@
-// path: lib/model/pelanggan_model.dart
+// path: lib/fitur/pelanggan/model/pelanggan_model.dart
 // diubah: Logika Firebase disesuaikan dengan standar Timestamp.
 // diubah: Direfactor menggunakan Freezed (abstract class + const factory).
 

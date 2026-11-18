@@ -1,4 +1,4 @@
-// path: lib/model/sub_kategori_model.dart
+// path: lib/fitur/kategori/model/sub_kategori_model.dart
 // diubah: Penamaan metode diseragamkan (fromSqlite, toSqlite, fromFirebase, toFirebase).
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';

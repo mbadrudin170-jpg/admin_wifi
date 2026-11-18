@@ -1,4 +1,4 @@
-// path: lib/model/kritik_saran_model.dart
+// path: lib/fitur/kritik_saran/model/kritik_saran_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';

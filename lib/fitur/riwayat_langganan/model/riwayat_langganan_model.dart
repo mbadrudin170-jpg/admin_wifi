@@ -1,4 +1,4 @@
-// // Path: lib/model/riwayat_langganan_model.dart
+// // Path: lib/fitur/riwayat_langganan/model/riwayat_langganan_model.dart
 // // diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import '../enum/status_pembayaran.dart';

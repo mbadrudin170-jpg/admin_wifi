@@ -1,4 +1,4 @@
-// path: lib/model/status_unggah_model.dart
+// path: lib/fitur/status_unggah/model/status_unggah_model.dart
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';

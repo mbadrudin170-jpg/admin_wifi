@@ -1,4 +1,4 @@
-// path: lib/model/versi_apk_user_model.dart
+// path: lib/fitur/versi_apk_user/model/versi_apk_user_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'dart:convert';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';

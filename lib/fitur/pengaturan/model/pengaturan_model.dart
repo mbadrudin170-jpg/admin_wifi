@@ -1,4 +1,4 @@
-// path: lib/model/pengaturan_model.dart
+// path: lib/fitur/pengaturan/model/pengaturan_model.dart
 // diubah: Menghapus properti 'id' yang tidak diperlukan karena tabel pengaturan tidak memilikinya.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
