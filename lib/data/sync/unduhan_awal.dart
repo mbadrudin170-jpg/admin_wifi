@@ -1,8 +1,8 @@
 // path: lib/data/sync/unduhan_awal.dart
 
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/data/sync/unduh_data.dart';
-import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// [UnduhanAwalService] bertanggung jawab untuk mengisi database lokal dengan

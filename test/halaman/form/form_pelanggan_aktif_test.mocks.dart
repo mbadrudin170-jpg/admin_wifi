@@ -12,7 +12,7 @@ import 'package:admin_wifi/data/operasi/paket_operasi.dart' as _i9;
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart' as _i11;
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart' as _i6;
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart' as _i12;
-import 'package:admin_wifi/data/sqlite.dart' as _i2;
+import 'package:admin_wifi/db/sqflite.dart' as _i2;
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart'
     as _i4;
 import 'package:admin_wifi/model/dompet_model.dart' as _i15;

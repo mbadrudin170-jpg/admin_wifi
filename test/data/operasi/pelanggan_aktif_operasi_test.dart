@@ -3,16 +3,16 @@
 // diubah: Mengganti .toMap() menjadi .toMapForSqlite() untuk PaketModel.
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
-import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/enum/enum.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
-import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:admin_wifi/enum/enum.dart';
 
 import 'pelanggan_aktif_operasi_test.mocks.dart';
 

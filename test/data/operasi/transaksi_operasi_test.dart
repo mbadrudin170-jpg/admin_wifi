@@ -2,7 +2,7 @@
 // // diubah: Menghapus semua parameter 'nama...' dari konstruktor TransaksiModel.
 
 // import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-// import 'package:admin_wifi/data/sqlite.dart';
+// import 'package:admin_wifi/db/sqflite.dart';
 // import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 // import 'package:admin_wifi/model/dompet_model.dart';
 // import 'package:admin_wifi/model/transaksi_model.dart';

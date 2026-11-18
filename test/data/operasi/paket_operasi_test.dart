@@ -2,7 +2,7 @@
 // diubah: Mengubah tipe harga menjadi int
 // ditambah: Inisialisasi binding untuk pengujian
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/db/sqflite.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';

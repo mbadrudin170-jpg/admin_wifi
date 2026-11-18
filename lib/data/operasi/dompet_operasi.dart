@@ -1,7 +1,7 @@
 // path: lib/data/operasi/dompet_operasi.dart
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
-import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 
 class DompetOperasi {

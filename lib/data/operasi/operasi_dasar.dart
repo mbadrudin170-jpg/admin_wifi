@@ -1,8 +1,8 @@
 // path: lib/data/operasi/operasi_dasar.dart
 
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
-import 'package:admin_wifi/data/sqlite.dart';
+import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/debug/log.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Kelas ini adalah PUSAT KONTROL untuk semua operasi tulis (write) ke database.

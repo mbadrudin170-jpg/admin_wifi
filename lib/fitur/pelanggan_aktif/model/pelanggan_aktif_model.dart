@@ -7,6 +7,28 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'pelanggan_aktif_model.freezed.dart';
 
+/// Konstanta nama tabel dan nama field database `pelanggan_aktif`
+/// (snake_case; nilai cocok persis dengan skema `onCreate`/`onUpgrade` —
+/// lihat `lib/db/oncreate_sqflite.dart`.
+///
+/// Kelas terpisah dari `PelangganAktifModel` karena anggota statis tidak
+/// boleh senama dengan anggota instance freezed (`conflicting_static_and_instance`).
+/// Catatan: nama field `isDeleted` memang camelCase pada skema, jangan diubah.
+abstract final class PelangganAktifSkema {
+  static const String tabel = 'pelanggan_aktif';
+
+  static const String id = 'id';
+  static const String idPelanggan = 'id_pelanggan';
+  static const String idPaket = 'id_paket';
+  static const String idTransaksi = 'id_transaksi';
+  static const String tanggalMulai = 'tanggal_mulai';
+  static const String tanggalBerakhir = 'tanggal_berakhir';
+  static const String status = 'status';
+  static const String diperbarui = 'diperbarui';
+  static const String isDeleted = 'isDeleted';
+  static const String diarsipkan = 'diarsipkan';
+}
+
 @freezed
 abstract class PelangganAktifModel with _$PelangganAktifModel {
   const PelangganAktifModel._();

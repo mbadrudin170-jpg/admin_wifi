@@ -1,7 +1,7 @@
 // // path: test/data/operasi/dompet_operasi_test.dart
 // // diubah: Menyesuaikan pemanggilan fromMap dan toSqlite
 // import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
-// import 'package:admin_wifi/data/sqlite.dart';
+// import 'package:admin_wifi/db/sqflite.dart';
 // import 'package:admin_wifi/model/dompet_model.dart';
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:sqflite_common_ffi/sqflite_ffi.dart';

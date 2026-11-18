@@ -1,8 +1,8 @@
 // path: lib/data/operasi/pengaturan_operasi.dart
-import 'package:admin_wifi/data/sqlite.dart';
-import 'package:admin_wifi/model/pengaturan_model.dart';
-import 'package:admin_wifi/debug/log.dart'; // Import log custom
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart'; // Import OperasiDasar
+import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/debug/log.dart'; // Import log custom
+import 'package:admin_wifi/model/pengaturan_model.dart';
 
 // Kelas untuk operasi database terkait tabel `pengaturan`.
 class PengaturanOperasi {

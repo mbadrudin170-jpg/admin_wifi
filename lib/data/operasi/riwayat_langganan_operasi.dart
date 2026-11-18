@@ -1,7 +1,7 @@
 // // lib/data/operasi/riwayat_langganan_operasi.dart
 // // diubah: Menggunakan toSqlite() yang sudah diperbaiki
 // import 'package:sqflite/sqflite.dart';
-// import 'package:admin_wifi/data/sqlite.dart';
+// import 'package:admin_wifi/db/sqflite.dart';
 // import 'package:admin_wifi/model/riwayat_langganan_model.dart';
 
 // class RiwayatLanggananOperasi {

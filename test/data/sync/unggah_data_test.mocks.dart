@@ -6,7 +6,7 @@
 
 import 'dart:async' as _i4;
 
-import 'package:admin_wifi/data/sqlite.dart' as _i3;
+import 'package:admin_wifi/db/sqflite.dart' as _i3;
 import 'package:admin_wifi/utils/sync_manager.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as _i2;
