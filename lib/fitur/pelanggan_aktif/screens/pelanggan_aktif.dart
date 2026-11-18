@@ -1,4 +1,4 @@
-// path: lib/halaman/tab/pelanggan_aktif.dart
+// path: lib/fitur/pelanggan_aktif/screens/pelanggan_aktif.dart
 
 import 'dart:async';
 
@@ -6,8 +6,8 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
-import 'package:admin_wifi/halaman/detail/detail_pelanggan_aktif.dart';
-import 'package:admin_wifi/halaman/form/form_pelanggan_aktif.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/screens/detail_pelanggan_aktif.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/model/model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/utils/format_util.dart';

@@ -177,7 +177,6 @@ form_dompet.dart
 form_edit_riwayat_langganan.dart
 form_kategori.dart
 form_paket.dart
-form_pelanggan_aktif.dart
 form_pelanggan.dart
 form_pengaturan.dart
 form_transaksi.dart
@@ -438,7 +437,7 @@ Future<void> jalankanJikaPerlu() async {
 
 ---
 
-### **3. File yang Dimodifikasi: `lib/halaman/form/form_pelanggan_aktif.dart`**
+### **3. File yang Dimodifikasi: `lib/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart`**
 
 **Fitur:** Formulir Aktivasi Pelanggan
 
