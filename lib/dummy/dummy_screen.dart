@@ -38,19 +38,18 @@ class _DummyScreenState extends ConsumerState<DummyScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 12,
                   children: [
                     FilledButton.icon(
                       onPressed: _isProcessing ? null : _tambahSemuaDummy,
                       icon: const Icon(Icons.playlist_add),
                       label: const Text('Tambah Semua Dummy'),
                     ),
-                    const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: _isProcessing ? null : _risetSemuaDummy,
                       icon: const Icon(Icons.restore),
                       label: const Text('Riset Semua Dummy'),
                     ),
-                    const SizedBox(height: 12),
                     FilledButton.icon(
                       onPressed: _isProcessing ? null : _hapusSemuaDummy,
                       icon: const Icon(Icons.delete_sweep),
