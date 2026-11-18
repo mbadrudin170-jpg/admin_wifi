@@ -473,6 +473,23 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
     ];
   }
 
+  Widget _buildMuatGagal(String pesan, VoidCallback onCobaLagi) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            Text(pesan, textAlign: TextAlign.center),
+            FilledButton(onPressed: onCobaLagi, child: const Text('Coba Lagi')),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncPelangganAktif = ref.watch(penggunaAktifProvider);
@@ -485,10 +502,23 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           asyncPaket.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      final Object? error =
-          asyncPelangganAktif.error ?? asyncPelanggan.error ?? asyncPaket.error;
-      if (error != null) {
-        return Center(child: Text('Gagal memuat data: $error'));
+      if (asyncPelangganAktif.hasError) {
+        return _buildMuatGagal(
+          'Gagal memuat data: ${asyncPelangganAktif.error}',
+          () => ref.refresh(penggunaAktifProvider),
+        );
+      }
+      if (asyncPelanggan.hasError) {
+        return _buildMuatGagal(
+          'Gagal memuat data: ${asyncPelanggan.error}',
+          () => ref.refresh(pelangganProvider),
+        );
+      }
+      if (asyncPaket.hasError) {
+        return _buildMuatGagal(
+          'Gagal memuat data: ${asyncPaket.error}',
+          () => ref.refresh(paketProvider),
+        );
       }
 
       final pelangganState = asyncPelanggan.requireValue;

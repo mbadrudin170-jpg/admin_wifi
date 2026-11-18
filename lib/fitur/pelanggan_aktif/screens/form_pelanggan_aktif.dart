@@ -395,12 +395,12 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
             const Icon(Icons.error_outline, size: 48),
             Text('Gagal memuat data: $error', textAlign: TextAlign.center),
             FilledButton(
-              onPressed: () {
-                ref.invalidate(pelangganProvider);
-                ref.invalidate(paketProvider);
-                ref.invalidate(dompetProvider);
-                ref.invalidate(kategoriProvider);
-              },
+              onPressed: () => [
+                ref.refresh(pelangganProvider),
+                ref.refresh(paketProvider),
+                ref.refresh(dompetProvider),
+                ref.refresh(kategoriProvider),
+              ],
               child: const Text('Coba Lagi'),
             ),
           ],

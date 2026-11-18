@@ -101,21 +101,21 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
       return _bangunLayarError(
         judul: 'Gagal memuat pelanggan aktif',
         pesan: '${penggunaAktifAsync.error}',
-        onCobaLagi: () => ref.invalidate(penggunaAktifProvider),
+        onCobaLagi: () => ref.refresh(penggunaAktifProvider),
       );
     }
     if (pelangganAsync.hasError) {
       return _bangunLayarError(
         judul: 'Gagal memuat daftar pelanggan',
         pesan: '${pelangganAsync.error}',
-        onCobaLagi: () => ref.invalidate(pelangganProvider),
+        onCobaLagi: () => ref.refresh(pelangganProvider),
       );
     }
     if (paketAsync.hasError) {
       return _bangunLayarError(
         judul: 'Gagal memuat daftar paket',
         pesan: '${paketAsync.error}',
-        onCobaLagi: () => ref.invalidate(paketProvider),
+        onCobaLagi: () => ref.refresh(paketProvider),
       );
     }
 
