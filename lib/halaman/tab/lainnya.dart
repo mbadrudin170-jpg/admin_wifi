@@ -6,7 +6,7 @@ import 'package:share_global_saya/src/utils/l.dart';
 import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
 import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
 import '../lainnya/kategori.dart';
-import '../lainnya/kritik_saran.dart';
+import 'package:admin_wifi/fitur/kritik_saran/screens/kritik_saran.dart';
 import '../../fitur/paket/screens/paket.dart';
 import '../../fitur/pelanggan/screens/pelanggan.dart';
 import '../lainnya/pengaturan.dart';

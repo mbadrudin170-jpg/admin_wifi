@@ -1,7 +1,7 @@
-// path: lib/halaman/lainnya/kritik_saran_page.dart
+// path: lib/fitur/kritik_saran/screens/kritik_saran.dart
 
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
-import 'package:admin_wifi/halaman/detail/detail_kritik_saran.dart';
+import 'package:admin_wifi/fitur/kritik_saran/screens/detail_kritik_saran.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_dari_id.dart';
