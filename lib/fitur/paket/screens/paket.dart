@@ -22,10 +22,8 @@ class PaketPage extends ConsumerStatefulWidget {
 
 class _PaketPageState extends ConsumerState<PaketPage> {
   Future<void> _muatUlang() async {
-    L.i('Memperbarui daftar paket via notifier.');
     try {
       await ref.read(paketProvider.notifier).muatUlang();
-      L.i('Berhasil memperbarui daftar paket.');
     } catch (e, s) {
       L.e('Gagal memperbarui daftar paket. Error: $e $s');
       if (mounted) {
@@ -35,7 +33,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
   }
 
   void _showEditDeleteDialog(PaketModel paket) {
-    L.i('Menampilkan dialog opsi untuk paket: ${paket.nama}');
     showDialog(
       context: context,
       builder: (context) {
@@ -45,12 +42,10 @@ class _PaketPageState extends ConsumerState<PaketPage> {
           actions: [
             TextButton(
               onPressed: () {
-                L.i('Memilih navigasi ke Form Edit untuk paket: ${paket.nama}');
                 Nav.pop(context);
                 unawaited(
                   Nav.to(context, FormPaket(paket: paket))
                       .then((_) {
-                        L.i('Kembali dari Form Edit, menyegarkan daftar paket');
                         _muatUlang();
                       })
                       .catchError((Object e, StackTrace s) {
@@ -62,7 +57,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
             ),
             TextButton(
               onPressed: () {
-                L.i('Memilih opsi Hapus untuk paket: ${paket.nama}');
                 Nav.pop(context);
                 _showDeleteConfirmationDialog(paket);
               },
@@ -75,9 +69,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
   }
 
   void _showDeleteConfirmationDialog(PaketModel paket) {
-    L.i(
-      'Menampilkan konfirmasi hapus untuk paket ID: ${paket.id}, nama: ${paket.nama}',
-    );
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -90,7 +81,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                L.i('Penghapusan paket ${paket.nama} dibatalkan oleh user');
                 Nav.pop(dialogContext);
               },
             ),
@@ -101,11 +91,7 @@ class _PaketPageState extends ConsumerState<PaketPage> {
                 Nav.pop(dialogContext);
 
                 try {
-                  L.i(
-                    'Menjalankan operasi hapus paket ID: ${paket.id}, nama: ${paket.nama}',
-                  );
                   await ref.read(paketProvider.notifier).hapus(paket.id);
-                  L.i('Paket ID: ${paket.id} berhasil dihapus dari database');
                   if (mounted) {
                     AppToast.sukses(context, 'Paket berhasil dihapus.');
                   }
@@ -126,7 +112,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
   }
 
   void _hapusSemuaPaket() {
-    L.i('User menekan tombol hapus semua paket');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -139,7 +124,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                L.i('Penghapusan massal semua paket dibatalkan oleh user');
                 Nav.pop(dialogContext);
               },
             ),
@@ -150,9 +134,7 @@ class _PaketPageState extends ConsumerState<PaketPage> {
                 Nav.pop(dialogContext);
 
                 try {
-                  L.i('Menjalankan operasi hapus semua paket dari database');
                   await PaketOperasi().hapusSemuaPaket();
-                  L.i('Semua paket berhasil dihapus dari database');
                   if (mounted) {
                     AppToast.sukses(context, 'Semua paket berhasil dihapus.');
                   }
@@ -173,7 +155,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
 
   @override
   Widget build(BuildContext context) {
-    L.i('Membangun UI halaman Daftar Paket');
     final asyncPaket = ref.watch(paketProvider);
 
     if (asyncPaket.isLoading) {
@@ -247,15 +228,9 @@ class _PaketPageState extends ConsumerState<PaketPage> {
                 final paket = paketList[index];
                 return InkWell(
                   onTap: () {
-                    L.i(
-                      'Navigasi ke halaman Detail Paket: ${paket.nama} (ID: ${paket.id})',
-                    );
                     unawaited(
                       Nav.to(context, DetailPaketPage(paket: paket))
                           .then((_) {
-                            L.i(
-                              'Kembali dari halaman Detail Paket, menyegarkan daftar',
-                            );
                             _muatUlang();
                           })
                           .catchError((Object e, StackTrace s) {
@@ -264,9 +239,6 @@ class _PaketPageState extends ConsumerState<PaketPage> {
                     );
                   },
                   onLongPress: () {
-                    L.i(
-                      'Long press pada paket: ${paket.nama} (ID: ${paket.id}), menampilkan menu edit/hapus',
-                    );
                     _showEditDeleteDialog(paket);
                   },
                   child: Card(
@@ -289,11 +261,9 @@ class _PaketPageState extends ConsumerState<PaketPage> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          L.i('Navigasi ke Form Tambah Paket');
           unawaited(
             Nav.to(context, const FormPaket())
                 .then((_) {
-                  L.i('Kembali dari Form Tambah Paket, menyegarkan daftar');
                   _muatUlang();
                 })
                 .catchError((Object e, StackTrace s) {
