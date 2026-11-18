@@ -1,30 +1,30 @@
 // path: lib/data/operasi/dompet_operasi.dart
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class DompetOperasi {
   final dbHelper = DatabaseHelper.instance;
   final OperasiDasar _operasiDasar = OperasiDasar();
 
   Future<void> createDompet(DompetModel dompet) async {
-    Log.info('Memulai createDompet untuk dompet: ${dompet.toSqlite()}');
+    L.i('Memulai createDompet untuk dompet: ${dompet.toSqlite()}');
     try {
       final data = dompet.copyWith(diperbarui: DateTime.now()).toSqlite();
       await _operasiDasar.sisipkan('dompet', data);
-      Log.info('Berhasil membuat dompet dengan ID data: ${dompet.id}');
+      L.i('Berhasil membuat dompet dengan ID data: ${dompet.id}');
     } catch (e, st) {
-      Log.error('Gagal saat createDompet', error: e, stackTrace: st);
+      L.e('Gagal saat createDompet Error: $e $st');
       rethrow;
     }
   }
 
   // diubah: Menambahkan parameter untuk memfilter dompet yang diarsipkan
-  Future<List<DompetModel>> getDompet({bool tampilkanDiarsipkan = false}) async {
-    Log.info(
-      'Memulai getDompet (tampilkanDiarsipkan: $tampilkanDiarsipkan).',
-    );
+  Future<List<DompetModel>> getDompet({
+    bool tampilkanDiarsipkan = false,
+  }) async {
+    L.i('Memulai getDompet (tampilkanDiarsipkan: $tampilkanDiarsipkan).');
     try {
       final db = await dbHelper.database;
       // diubah: query disesuaikan berdasarkan parameter
@@ -40,16 +40,16 @@ class DompetOperasi {
         maps.length,
         (i) => DompetModel.fromSqlite(maps[i]),
       );
-      Log.info('Berhasil mengambil ${listDompet.length} data dompet.');
+      L.i('Berhasil mengambil ${listDompet.length} data dompet.');
       return listDompet;
     } catch (e, st) {
-      Log.error('Gagal saat getDompet', error: e, stackTrace: st);
+      L.e('Gagal saat getDompet Error: $e $st');
       rethrow;
     }
   }
 
   Future<DompetModel?> getDompetById(String id) async {
-    Log.info('Memulai getDompetById untuk ID: $id');
+    L.i('Memulai getDompetById untuk ID: $id');
     try {
       final db = await dbHelper.database;
       final List<Map<String, dynamic>> maps = await db.query(
@@ -60,83 +60,73 @@ class DompetOperasi {
 
       if (maps.isNotEmpty) {
         final dompet = DompetModel.fromSqlite(maps.first);
-        Log.info('Dompet dengan ID: $id ditemukan. Data: ${dompet.toSqlite()}');
+        L.i('Dompet dengan ID: $id ditemukan. Data: ${dompet.toSqlite()}');
         return dompet;
       }
 
-      Log.warning('Dompet dengan ID: $id tidak ditemukan di database.');
+      L.w('Dompet dengan ID: $id tidak ditemukan di database.');
       return null;
     } catch (e, st) {
-      Log.error(
-        'Gagal saat getDompetById untuk ID: $id',
-        error: e,
-        stackTrace: st,
-      );
+      L.e('Gagal saat getDompetById untuk ID: $id Error: $e $st');
       rethrow;
     }
   }
 
   Future<void> updateDompet(DompetModel dompet) async {
-    Log.info('Memulai updateDompet untuk dompet: ${dompet.toSqlite()}');
+    L.i('Memulai updateDompet untuk dompet: ${dompet.toSqlite()}');
     try {
       final data = dompet.copyWith(diperbarui: DateTime.now()).toSqlite();
       await _operasiDasar.perbarui('dompet', data, dompet.id);
-      Log.info('Berhasil updateDompet untuk ID: ${dompet.id}.');
+      L.i('Berhasil updateDompet untuk ID: ${dompet.id}.');
     } catch (e, st) {
-      Log.error(
-        'Gagal saat updateDompet untuk ID: ${dompet.id}',
-        error: e,
-        stackTrace: st,
-      );
+      L.e('Gagal saat updateDompet untuk ID: ${dompet.id} Error: $e $st');
       rethrow;
     }
   }
-  
+
   // ditambah: Fungsi baru untuk mengarsipkan semua dompet
   /// Mengarsipkan semua dompet yang belum diarsipkan.
   Future<void> arsipSemuaDompet() async {
-    Log.info('Memulai proses pengarsipan untuk semua dompet.');
+    L.i('Memulai proses pengarsipan untuk semua dompet.');
     try {
       // 1. Ambil semua dompet yang aktif (belum diarsipkan)
       final daftarDompetAktif = await getDompet(tampilkanDiarsipkan: false);
-      Log.info('Ditemukan ${daftarDompetAktif.length} dompet aktif untuk diarsipkan.');
+      L.i(
+        'Ditemukan ${daftarDompetAktif.length} dompet aktif untuk diarsipkan.',
+      );
 
       // 2. Loop melalui setiap dompet dan arsipkan
       for (final dompet in daftarDompetAktif) {
         // 3. Panggil `updateDompet` untuk mengarsipkan satu per satu
         await updateDompet(dompet.copyWith(diarsipkan: DateTime.now()));
       }
-      
-      Log.info('Proses pengarsipan semua dompet telah selesai.');
+
+      L.i('Proses pengarsipan semua dompet telah selesai.');
     } catch (e, st) {
-      Log.error(
-        'Gagal saat proses pengarsipan massal dompet.',
-        error: e,
-        stackTrace: st,
-      );
+      L.e('Gagal saat proses pengarsipan massal dompet. Error: $e $st');
       rethrow;
     }
   }
 
   Future<void> hapusSemuaDompet() async {
-    Log.warning(
+    L.w(
       'PERINGATAN: Memulai hapusSemuaDompet. Ini adalah operasi destruktif yang akan menghapus semua dompet secara permanen.',
     );
     try {
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final count = await txn.delete('dompet');
-        Log.info(
+        L.i(
           'Berhasil hapusSemuaDompet. Total baris yang dihapus permanen: $count',
         );
       });
     } catch (e, st) {
-      Log.error('Gagal saat hapusSemuaDompet', error: e, stackTrace: st);
+      L.e('Gagal saat hapusSemuaDompet Error: $e $st');
       rethrow;
     }
   }
 
   Future<void> arsipkanSatuDompet(String id) async {
-    Log.info('Memulai arsipkanSatuDompet (soft delete) untuk ID: $id');
+    L.i('Memulai arsipkanSatuDompet (soft delete) untuk ID: $id');
     try {
       final now = DateTime.now();
       final Map<String, dynamic> dataToUpdate = {
@@ -147,19 +137,15 @@ class DompetOperasi {
 
       await _operasiDasar.perbarui('dompet', dataToUpdate, id);
 
-      Log.info('Berhasil arsipkanSatuDompet untuk ID: $id.');
+      L.i('Berhasil arsipkanSatuDompet untuk ID: $id.');
     } catch (e, st) {
-      Log.error(
-        'Gagal saat arsipkanSatuDompet untuk ID: $id',
-        error: e,
-        stackTrace: st,
-      );
+      L.e('Gagal saat arsipkanSatuDompet untuk ID: $id Error: $e $st');
       rethrow;
     }
   }
 
   Future<double> getTotalSaldo() async {
-    Log.info(
+    L.i(
       'Memulai getTotalSaldo (menghitung total saldo dari semua dompet aktif).',
     );
     try {
@@ -173,16 +159,16 @@ class DompetOperasi {
         total = (result.first['total'] as num).toDouble();
       }
 
-      Log.info('Berhasil menghitung total saldo: $total');
+      L.i('Berhasil menghitung total saldo: $total');
       return total;
     } catch (e, st) {
-      Log.error('Gagal saat getTotalSaldo', error: e, stackTrace: st);
+      L.e('Gagal saat getTotalSaldo Error: $e $st');
       rethrow;
     }
   }
 
   Future<double> getTotalSaldoPositif() async {
-    Log.info(
+    L.i(
       'Memulai getTotalSaldoPositif (menghitung total saldo > 0 dari dompet aktif).',
     );
     try {
@@ -196,16 +182,16 @@ class DompetOperasi {
         total = (result.first['total'] as num).toDouble();
       }
 
-      Log.info('Berhasil menghitung total saldo positif: $total');
+      L.i('Berhasil menghitung total saldo positif: $total');
       return total;
     } catch (e, st) {
-      Log.error('Gagal saat getTotalSaldoPositif', error: e, stackTrace: st);
+      L.e('Gagal saat getTotalSaldoPositif Error: $e $st');
       rethrow;
     }
   }
 
   Future<double> getTotalSaldoNegatif() async {
-    Log.info(
+    L.i(
       'Memulai getTotalSaldoNegatif (menghitung total saldo < 0 dari dompet aktif).',
     );
     try {
@@ -219,46 +205,36 @@ class DompetOperasi {
         total = (result.first['total'] as num).toDouble();
       }
 
-      Log.info('Berhasil menghitung total saldo negatif: $total');
+      L.i('Berhasil menghitung total saldo negatif: $total');
       return total;
     } catch (e, st) {
-      Log.error('Gagal saat getTotalSaldoNegatif', error: e, stackTrace: st);
+      L.e('Gagal saat getTotalSaldoNegatif Error: $e $st');
       rethrow;
     }
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(List<DompetModel> items) async {
-    Log.info(
-      'Memulai sisipkanAtauPerbaruiBatch untuk ${items.length} item dompet.',
-    );
+    L.i('Memulai sisipkanAtauPerbaruiBatch untuk ${items.length} item dompet.');
     if (items.isEmpty) {
-      Log.warning(
-        'List item untuk batch kosong, tidak ada operasi yang dilakukan.',
-      );
+      L.w('List item untuk batch kosong, tidak ada operasi yang dilakukan.');
       return;
     }
     try {
       final data = items.map((item) => item.toSqlite()).toList();
       await _operasiDasar.sisipkanAtauPerbaruiBatch('dompet', data);
-      Log.info(
+      L.i(
         'Berhasil menyelesaikan sisipkanAtauPerbaruiBatch untuk ${items.length} item.',
       );
     } catch (e, st) {
-      Log.error(
-        'Gagal saat menjalankan sisipkanAtauPerbaruiBatch',
-        error: e,
-        stackTrace: st,
-      );
+      L.e('Gagal saat menjalankan sisipkanAtauPerbaruiBatch Error: $e $st');
       rethrow;
     }
   }
 
   Future<List<DompetModel>> getDompetByIds(List<String> ids) async {
-    Log.info('Memulai getDompetByIds untuk ${ids.length} ID.');
+    L.i('Memulai getDompetByIds untuk ${ids.length} ID.');
     if (ids.isEmpty) {
-      Log.warning(
-        'List ID untuk getDompetByIds kosong, mengembalikan list kosong.',
-      );
+      L.w('List ID untuk getDompetByIds kosong, mengembalikan list kosong.');
       return [];
     }
     try {
@@ -274,12 +250,12 @@ class DompetOperasi {
         maps.length,
         (i) => DompetModel.fromSqlite(maps[i]),
       );
-      Log.info(
+      L.i(
         'Berhasil mengambil ${listDompet.length} dompet dari ${ids.length} ID yang diminta.',
       );
       return listDompet;
     } catch (e, st) {
-      Log.error('Gagal saat getDompetByIds', error: e, stackTrace: st);
+      L.e('Gagal saat getDompetByIds Error: $e $st');
       rethrow;
     }
   }

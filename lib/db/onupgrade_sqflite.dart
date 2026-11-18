@@ -1,6 +1,6 @@
 // path: lib/db/onupgrade_sqflite.dart
 
-import 'package:admin_wifi/debug/log.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Fungsi utilitas aman untuk menambahkan kolom jika belum ada.
@@ -21,11 +21,11 @@ Future<void> _addColumnIfNotExists(
     await dbClient.execute(
       'ALTER TABLE $tableName ADD COLUMN $columnName $columnType',
     );
-    Log.info(
+    L.i(
       '[MIGRASI SUKSES] Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.',
     );
   } else {
-    Log.info(
+    L.i(
       '[MIGRASI DILEWATI] Kolom `$columnName` sudah ada di tabel `$tableName`.',
     );
   }
@@ -36,11 +36,11 @@ Future<void> onUpgradeSqflite(
   int oldVersion,
   int newVersion,
 ) async {
-  Log.info('========================================');
-  Log.info('MEMULAI PROSES UPGRADE DATABASE (IDEMPOTEN)');
-  Log.info('Versi database lama: $oldVersion');
-  Log.info('Versi database baru: $newVersion');
-  Log.info('========================================');
+  L.i('========================================');
+  L.i('MEMULAI PROSES UPGRADE DATABASE (IDEMPOTEN)');
+  L.i('Versi database lama: $oldVersion');
+  L.i('Versi database baru: $newVersion');
+  L.i('========================================');
 
   try {
     // Pendekatan idempoten: pastikan semua kolom yang diperlukan ada,
@@ -56,17 +56,15 @@ Future<void> onUpgradeSqflite(
 
     // Tambahkan pengecekan kolom lain di masa depan di sini jika perlu.
 
-    Log.info('========================================');
-    Log.info('PROSES UPGRADE DATABASE SELESAI');
-    Log.info(
+    L.i('========================================');
+    L.i('PROSES UPGRADE DATABASE SELESAI');
+    L.i(
       'Database berhasil diupgrade dari versi $oldVersion ke versi $newVersion.',
     );
-    Log.info('========================================');
+    L.i('========================================');
   } catch (e, st) {
-    Log.error(
-      'Gagal melakukan upgrade database dari versi $oldVersion ke versi $newVersion.',
-      error: e,
-      stackTrace: st,
+    L.e(
+      'Gagal melakukan upgrade database dari versi $oldVersion ke versi $newVersion. Error: $e $st',
     );
     rethrow;
   }

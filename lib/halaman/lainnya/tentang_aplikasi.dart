@@ -3,11 +3,11 @@
 // File ini bertanggung jawab untuk menampilkan informasi tentang aplikasi,
 // seperti versi, nama, dan deskripsi singkat.
 
-import 'package:admin_wifi/debug/log.dart';
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'dart:io';
+import 'package:share_global_saya/src/utils/l.dart';
 
 // Halaman yang menampilkan detail tentang aplikasi.
 class TentangAplikasiPage extends StatefulWidget {
@@ -32,33 +32,37 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi halaman Tentang Aplikasi');
+    L.i('Menginisialisasi halaman Tentang Aplikasi');
     _initInfo();
   }
 
   Future<void> _initInfo() async {
-    Log.info('Memulai pengambilan informasi aplikasi dan perangkat');
-    
+    L.i('Memulai pengambilan informasi aplikasi dan perangkat');
+
     try {
-      Log.info('Mengambil PackageInfo dari platform');
+      L.i('Mengambil PackageInfo dari platform');
       final packageInfo = await PackageInfo.fromPlatform();
-      
-      Log.info('PackageInfo berhasil diambil - Nama: ${packageInfo.appName}, Versi: ${packageInfo.version}, Build: ${packageInfo.buildNumber}, Package: ${packageInfo.packageName}');
-      
+
+      L.i(
+        'PackageInfo berhasil diambil - Nama: ${packageInfo.appName}, Versi: ${packageInfo.version}, Build: ${packageInfo.buildNumber}, Package: ${packageInfo.packageName}',
+      );
+
       String deviceArch = 'Unknown';
 
       if (Platform.isAndroid) {
-        Log.info('Platform terdeteksi: Android, mengambil DeviceInfo');
+        L.i('Platform terdeteksi: Android, mengambil DeviceInfo');
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;
-        
+
         deviceArch = androidInfo.supportedAbis.join(', ');
-        Log.info('Device info Android berhasil diambil - Arsitektur: $deviceArch, Android Version: ${androidInfo.version.release} (SDK ${androidInfo.version.sdkInt}), Pabrikan: ${androidInfo.manufacturer}, Model: ${androidInfo.model}');
+        L.i(
+          'Device info Android berhasil diambil - Arsitektur: $deviceArch, Android Version: ${androidInfo.version.release} (SDK ${androidInfo.version.sdkInt}), Pabrikan: ${androidInfo.manufacturer}, Model: ${androidInfo.model}',
+        );
       } else if (Platform.isIOS) {
-        Log.info('Platform terdeteksi: iOS');
+        L.i('Platform terdeteksi: iOS');
         deviceArch = 'iOS (arm64)';
       } else {
-        Log.info('Platform tidak dikenal: ${Platform.operatingSystem}');
+        L.i('Platform tidak dikenal: ${Platform.operatingSystem}');
         deviceArch = Platform.operatingSystem;
       }
 
@@ -66,31 +70,31 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
         _packageInfo = packageInfo;
         _deviceArch = deviceArch;
         _minSDK = 'Android 5.0 (Lollipop)';
-        Log.info('State diperbarui - MinSDK: $_minSDK, Arsitektur: $_deviceArch');
+        L.i('State diperbarui - MinSDK: $_minSDK, Arsitektur: $_deviceArch');
       });
-      
-      Log.info('Proses inisialisasi informasi aplikasi selesai');
+
+      L.i('Proses inisialisasi informasi aplikasi selesai');
     } catch (e, stackTrace) {
-      Log.error(
-        'Gagal mengambil informasi aplikasi atau perangkat',
-        error: e,
-        stackTrace: stackTrace,
+      L.e(
+        'Gagal mengambil informasi aplikasi atau perangkat Error: $e $stackTrace',
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI halaman Tentang Aplikasi');
-    Log.info('Informasi yang ditampilkan - App: ${_packageInfo.appName}, Versi: ${_packageInfo.version}, Build: ${_packageInfo.buildNumber}');
-    
+    L.i('Membangun UI halaman Tentang Aplikasi');
+    L.i(
+      'Informasi yang ditampilkan - App: ${_packageInfo.appName}, Versi: ${_packageInfo.version}, Build: ${_packageInfo.buildNumber}',
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tentang Aplikasi'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info('Kembali ke halaman sebelumnya dari Tentang Aplikasi');
+            L.i('Kembali ke halaman sebelumnya dari Tentang Aplikasi');
             Navigator.of(context).pop();
           },
         ),
@@ -153,7 +157,7 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
   }
 
   Widget _buildInfoRow(String label, String value) {
-    Log.info('Membangun baris info teknis - $label: $value');
+    L.i('Membangun baris info teknis - $label: $value');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

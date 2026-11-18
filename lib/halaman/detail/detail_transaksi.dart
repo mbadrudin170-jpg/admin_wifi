@@ -6,7 +6,7 @@ import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 // ditambah: Navigasi ke form edit
 import 'package:admin_wifi/halaman/form/form_transaksi.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
@@ -14,10 +14,10 @@ import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class DetailTransaksiPage extends StatefulWidget {
   final TransaksiModel transaksi;
@@ -35,17 +35,19 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   final PaketOperasi _paketOperasi = PaketOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
 
-  late TransaksiModel _transaksiSaatIni; // ditambah: Variabel state untuk menampung data transaksi
+  late TransaksiModel
+  _transaksiSaatIni; // ditambah: Variabel state untuk menampung data transaksi
 
   @override
   void initState() {
     super.initState();
-    _transaksiSaatIni = widget.transaksi; // ditambah: Inisialisasi dengan data awal
-    Log.info('Membuka halaman Detail Transaksi ID: ${_transaksiSaatIni.id}');
-    Log.info(
+    _transaksiSaatIni =
+        widget.transaksi; // ditambah: Inisialisasi dengan data awal
+    L.i('Membuka halaman Detail Transaksi ID: ${_transaksiSaatIni.id}');
+    L.i(
       'Ringkasan transaksi - Tipe: ${_transaksiSaatIni.tipe.name}, Jumlah: ${_transaksiSaatIni.jumlah}, Tanggal: ${_transaksiSaatIni.tanggal.toIso8601String()}, Status: ${_transaksiSaatIni.statusPembayaran.name}',
     );
-    Log.info(
+    L.i(
       'Relasi transaksi - Dompet: ${_transaksiSaatIni.idDompet}, Kategori: ${_transaksiSaatIni.idKategori}, SubKategori: ${_transaksiSaatIni.idSubKategori ?? "N/A"}, Pelanggan: ${_transaksiSaatIni.idPelanggan ?? "N/A"}, Paket: ${_transaksiSaatIni.idPaket ?? "N/A"}',
     );
   }
@@ -57,12 +59,12 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
     String konteks,
   ) async {
     if (id.isEmpty) {
-      Log.info('ID $konteks kosong, mengembalikan null');
+      L.i('ID $konteks kosong, mengembalikan null');
       return null;
     }
 
     try {
-      Log.info('Mengambil data $konteks dengan ID: $id');
+      L.i('Mengambil data $konteks dengan ID: $id');
       final model = await getModel(id);
 
       if (model != null) {
@@ -81,31 +83,27 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         }
 
         if (nama != null) {
-          Log.info('Data $konteks ID: $id ditemukan: $nama');
+          L.i('Data $konteks ID: $id ditemukan: $nama');
           return nama;
         } else {
-          Log.warning(
+          L.w(
             'Model untuk $konteks ID: $id ditemukan, tetapi properti nama yang relevan tidak dapat diakses atau null. Tipe model: ${model.runtimeType}',
           );
           return 'Nama tidak tersedia';
         }
       }
 
-      Log.warning('Data $konteks dengan ID: $id tidak ditemukan di database');
+      L.w('Data $konteks dengan ID: $id tidak ditemukan di database');
       return 'Data tidak ditemukan';
     } catch (e, stackTrace) {
-      Log.error(
-        'Gagal mengambil data $konteks dengan ID: $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      L.e('Gagal mengambil data $konteks dengan ID: $id Error: $e $stackTrace');
       return 'Error Memuat';
     }
   }
 
   // diubah: me-refresh data transaksi setelah kembali dari halaman edit
   void _bukaFormEdit() {
-    Log.info(
+    L.i(
       'Navigasi ke FormTransaksiPage mode edit untuk ID: ${_transaksiSaatIni.id}',
     );
     Navigator.push(
@@ -114,21 +112,23 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         builder: (context) => FormTransaksiPage(transaksi: _transaksiSaatIni),
       ),
     ).then((transaksiYangDiperbarui) {
-      if (transaksiYangDiperbarui != null && transaksiYangDiperbarui is TransaksiModel) {
-        Log.info('Kembali dari form edit, data telah berubah. Memperbarui UI.');
+      if (transaksiYangDiperbarui != null &&
+          transaksiYangDiperbarui is TransaksiModel) {
+        L.i('Kembali dari form edit, data telah berubah. Memperbarui UI.');
         setState(() {
           _transaksiSaatIni = transaksiYangDiperbarui;
         });
       } else {
-        Log.info('Kembali dari form edit, tidak ada perubahan data.');
+        L.i('Kembali dari form edit, tidak ada perubahan data.');
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final TransaksiModel transaksi = _transaksiSaatIni; // diubah: Menggunakan data dari state
-    Log.info('Membangun UI Detail Transaksi ID: ${transaksi.id}');
+    final TransaksiModel transaksi =
+        _transaksiSaatIni; // diubah: Menggunakan data dari state
+    L.i('Membangun UI Detail Transaksi ID: ${transaksi.id}');
 
     return Scaffold(
       appBar: AppBar(
@@ -136,7 +136,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info(
+            L.i(
               'Kembali ke halaman sebelumnya dari Detail Transaksi ID: ${transaksi.id}',
             );
             Navigator.pop(context);
@@ -261,7 +261,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    Log.info('Membangun baris detail - $label: $value');
+    L.i('Membangun baris detail - $label: $value');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -277,24 +277,22 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   }
 
   Widget _buildFutureDetailRow(String label, Future<String?> future) {
-    Log.info('Membangun FutureBuilder untuk: $label');
+    L.i('Membangun FutureBuilder untuk: $label');
     return FutureBuilder<String?>(
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          Log.info('FutureBuilder $label: masih loading');
+          L.i('FutureBuilder $label: masih loading');
           return _buildDetailRow(label, 'Memuat...');
         }
         if (snapshot.hasError) {
-          Log.error(
-            'FutureBuilder $label: error',
-            error: snapshot.error,
-            stackTrace: snapshot.stackTrace,
+          L.e(
+            'FutureBuilder $label: error Error: $snapshot.error $snapshot.stackTrace',
           );
           return _buildDetailRow(label, 'Error Data');
         }
         final data = snapshot.data ?? '-';
-        Log.info('FutureBuilder $label: selesai dengan data "$data"');
+        L.i('FutureBuilder $label: selesai dengan data "$data"');
         return _buildDetailRow(label, data);
       },
     );

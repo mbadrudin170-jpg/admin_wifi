@@ -1,6 +1,6 @@
 // path: lib/enum/status_pembayaran_enum.dart
 
-import 'package:admin_wifi/debug/log.dart'; // diubah: Menggunakan Log kustom
+import 'package:share_global_saya/src/utils/l.dart';
 
 // Enum untuk status pembayaran
 enum StatusPembayaranEnum {
@@ -8,15 +8,15 @@ enum StatusPembayaranEnum {
   belumLunas;
 
   String get displayName {
-    Log.info('Mengakses getter displayName untuk enum StatusPembayaranEnum.');
-    Log.info('Nilai enum saat ini: $this');
+    L.i('Mengakses getter displayName untuk enum StatusPembayaranEnum.');
+    L.i('Nilai enum saat ini: $this');
 
     switch (this) {
       case StatusPembayaranEnum.lunas:
-        Log.info('Mengembalikan string "Lunas" untuk nilai lunas.');
+        L.i('Mengembalikan string "Lunas" untuk nilai lunas.');
         return 'Lunas';
       case StatusPembayaranEnum.belumLunas:
-        Log.info('Mengembalikan string "Belum Lunas" untuk nilai belumLunas.');
+        L.i('Mengembalikan string "Belum Lunas" untuk nilai belumLunas.');
         return 'Belum Lunas';
     }
   }

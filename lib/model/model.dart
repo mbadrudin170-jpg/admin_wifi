@@ -1,4 +1,3 @@
-
 // path: lib/model/model.dart
 export 'dompet_model.dart';
 export 'hasil_simpan_model.dart';

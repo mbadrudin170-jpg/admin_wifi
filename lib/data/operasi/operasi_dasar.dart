@@ -2,7 +2,7 @@
 
 import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Kelas ini adalah PUSAT KONTROL untuk semua operasi tulis (write) ke database.
@@ -14,43 +14,51 @@ class OperasiDasar {
   Future<T> _jalankanDalamTransaksi<T>(
     Future<T> Function(Transaction) aksi,
   ) async {
-    Log.info('[TRANSAKSI DIMULAI] Memulai proses eksekusi dalam wrapper transaksi.');
+    L.i('[TRANSAKSI DIMULAI] Memulai proses eksekusi dalam wrapper transaksi.');
 
     try {
-      Log.info('[TRANSAKSI] Mengambil instance database dari DatabaseHelper.');
+      L.i('[TRANSAKSI] Mengambil instance database dari DatabaseHelper.');
       final db = await _dbHelper.database;
-      Log.info('[TRANSAKSI] Instance database berhasil didapatkan. Tipe: ${db.runtimeType}');
+      L.i(
+        '[TRANSAKSI] Instance database berhasil didapatkan. Tipe: ${db.runtimeType}',
+      );
 
-      Log.info('[TRANSAKSI] Memanggil db.transaction() untuk memulai blok transaksi.');
+      L.i(
+        '[TRANSAKSI] Memanggil db.transaction() untuk memulai blok transaksi.',
+      );
       return await db.transaction((txn) async {
-        Log.info('[TRANSAKSI AKTIF] Blok transaksi telah dimulai. Instance Transaction: ${txn.runtimeType}');
-        
+        L.i(
+          '[TRANSAKSI AKTIF] Blok transaksi telah dimulai. Instance Transaction: ${txn.runtimeType}',
+        );
+
         try {
-          Log.info('[TRANSAKSI AKTIF] Menandai status `perlu_unggah` menjadi TRUE.');
+          L.i('[TRANSAKSI AKTIF] Menandai status `perlu_unggah` menjadi TRUE.');
           await _statusUnggahOperasi.setPerluUnggah(true, transaction: txn);
-          Log.info('[TRANSAKSI AKTIF] Status `perlu_unggah` berhasil ditandai.');
+          L.i('[TRANSAKSI AKTIF] Status `perlu_unggah` berhasil ditandai.');
 
-          Log.info('[TRANSAKSI AKTIF] Mengeksekusi aksi utama (callback) yang diberikan.');
+          L.i(
+            '[TRANSAKSI AKTIF] Mengeksekusi aksi utama (callback) yang diberikan.',
+          );
           final result = await aksi(txn);
-          Log.info('[TRANSAKSI AKTIF] Aksi utama berhasil dieksekusi. Hasil: ${result.runtimeType}');
+          L.i(
+            '[TRANSAKSI AKTIF] Aksi utama berhasil dieksekusi. Hasil: ${result.runtimeType}',
+          );
 
-          Log.info('[TRANSAKSI COMMIT] Transaksi akan di-commit karena semua langkah berhasil.');
+          L.i(
+            '[TRANSAKSI COMMIT] Transaksi akan di-commit karena semua langkah berhasil.',
+          );
           return result;
         } catch (e, stackTrace) {
-          Log.error(
-            '[TRANSAKSI GAGAL DI DALAM] Terjadi error saat menjalankan aksi di dalam blok transaksi.',
-            error: e,
-            stackTrace: stackTrace,
+          L.e(
+            '[TRANSAKSI GAGAL DI DALAM] Terjadi error saat menjalankan aksi di dalam blok transaksi. Error: $e $stackTrace',
           );
           // Penting: Rethrow agar transaksi di-rollback oleh sqflite
-          rethrow; 
+          rethrow;
         }
       });
     } catch (e, stackTrace) {
-      Log.error(
-        '[TRANSAKSI GAGAL DI LUAR] Gagal saat memulai atau menyelesaikan transaksi.',
-        error: e,
-        stackTrace: stackTrace,
+      L.e(
+        '[TRANSAKSI GAGAL DI LUAR] Gagal saat memulai atau menyelesaikan transaksi. Error: $e $stackTrace',
       );
       rethrow;
     }
@@ -60,13 +68,13 @@ class OperasiDasar {
   Future<T> jalankanOperasiKompleks<T>(
     Future<T> Function(Transaction txn) aksiKustom,
   ) async {
-    Log.info('Mendelegasikan eksekusi transaksi kompleks');
+    L.i('Mendelegasikan eksekusi transaksi kompleks');
     return await _jalankanDalamTransaksi(aksiKustom);
   }
 
   /// Menyisipkan satu baris data ke dalam tabel.
   Future<void> sisipkan(String tabel, Map<String, dynamic> data) async {
-    Log.info('Memulai penyisipan data ke tabel: $tabel', data);
+    L.i('Memulai penyisipan data ke tabel: $tabel Data: $data');
 
     try {
       await _jalankanDalamTransaksi((txn) async {
@@ -75,16 +83,11 @@ class OperasiDasar {
           data,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        Log.info('INSERT berhasil', {'rowId': result, 'tabel': tabel});
+        L.i("INSERT berhasil Data: ${{'rowId': result, 'tabel': tabel}}");
         return result;
       });
     } catch (e, s) {
-      Log.error(
-        'Gagal menyisipkan data ke tabel: $tabel',
-        error: e,
-        stackTrace: s,
-        data: data,
-      );
+      L.e('Gagal menyisipkan data ke tabel: $tabel Error: $e $s Data: $data');
       rethrow;
     }
   }
@@ -95,10 +98,9 @@ class OperasiDasar {
     Map<String, dynamic> data,
     String id,
   ) async {
-    Log.info('Memulai pembaruan data di tabel: $tabel', {
-      'id': id,
-      'data': data,
-    });
+    L.i(
+      "Memulai pembaruan data di tabel: $tabel Data: ${{'id': id, 'data': data}}",
+    );
 
     try {
       await _jalankanDalamTransaksi((txn) async {
@@ -110,21 +112,19 @@ class OperasiDasar {
         );
 
         if (rowsAffected == 0) {
-          Log.warning(
-            'Update selesai tapi tidak ada baris yang berubah (ID tidak ditemukan)',
-            {'id': id, 'tabel': tabel},
+          L.w(
+            "Update selesai tapi tidak ada baris yang berubah (ID tidak ditemukan) Data: ${{'id': id, 'tabel': tabel}}",
           );
         } else {
-          Log.info('UPDATE berhasil', {'rowsAffected': rowsAffected, 'id': id});
+          L.i(
+            "UPDATE berhasil Data: ${{'rowsAffected': rowsAffected, 'id': id}}",
+          );
         }
         return rowsAffected;
       });
     } catch (e, s) {
-      Log.error(
-        'Gagal memperbarui data di tabel: $tabel',
-        error: e,
-        stackTrace: s,
-        data: {'id': id, 'payload': data},
+      L.e(
+        "Gagal memperbarui data di tabel: $tabel Error: $e $s Data: ${{'id': id, 'payload': data}}",
       );
       rethrow;
     }
@@ -132,7 +132,7 @@ class OperasiDasar {
 
   /// Menghapus (atau mengarsipkan) satu baris data.
   Future<void> hapus(String tabel, String id) async {
-    Log.info('Memulai penghapusan data', {'tabel': tabel, 'id': id});
+    L.i("Memulai penghapusan data Data: ${{'tabel': tabel, 'id': id}}");
 
     try {
       await _jalankanDalamTransaksi((txn) async {
@@ -143,21 +143,19 @@ class OperasiDasar {
         );
 
         if (rowsDeleted == 0) {
-          Log.warning('Delete selesai tapi tidak ada data yang terhapus', {
-            'id': id,
-            'tabel': tabel,
-          });
+          L.w(
+            "Delete selesai tapi tidak ada data yang terhapus Data: ${{'id': id, 'tabel': tabel}}",
+          );
         } else {
-          Log.info('DELETE berhasil', {'rowsDeleted': rowsDeleted, 'id': id});
+          L.i(
+            "DELETE berhasil Data: ${{'rowsDeleted': rowsDeleted, 'id': id}}",
+          );
         }
         return rowsDeleted;
       });
     } catch (e, s) {
-      Log.error(
-        'Gagal menghapus data di tabel: $tabel',
-        error: e,
-        stackTrace: s,
-        data: {'id': id},
+      L.e(
+        "Gagal menghapus data di tabel: $tabel Error: $e $s Data: ${{'id': id}}",
       );
       rethrow;
     }
@@ -169,16 +167,15 @@ class OperasiDasar {
     List<Map<String, dynamic>> daftarData,
   ) async {
     if (daftarData.isEmpty) {
-      Log.warning('Daftar data batch kosong, operasi dibatalkan', {
-        'tabel': tabel,
-      });
+      L.w(
+        "Daftar data batch kosong, operasi dibatalkan Data: ${{'tabel': tabel}}",
+      );
       return;
     }
 
-    Log.info('Memulai batch operation', {
-      'tabel': tabel,
-      'totalItem': daftarData.length,
-    });
+    L.i(
+      "Memulai batch operation Data: ${{'tabel': tabel, 'totalItem': daftarData.length}}",
+    );
 
     try {
       await _jalankanDalamTransaksi((txn) async {
@@ -197,23 +194,18 @@ class OperasiDasar {
 
             // Log progress setiap 10 data agar konsol tidak spamming tapi tetap informatif
             if (i % 10 == 0 && i > 0) {
-              Log.info(
-                'Batch progress: $i/${daftarData.length} item diproses...',
-              );
+              L.i('Batch progress: $i/${daftarData.length} item diproses...');
             }
           }
         }
 
-        Log.info('Melakukan commit batch...', {'validCount': validCount});
+        L.i("Melakukan commit batch... Data: ${{'validCount': validCount}}");
         await batch.commit(noResult: true);
-        Log.info('Batch operation sukses');
+        L.i('Batch operation sukses');
       });
     } catch (e, s) {
-      Log.error(
-        'Gagal melakukan batch operation di tabel: $tabel',
-        error: e,
-        stackTrace: s,
-        data: {'totalItem': daftarData.length},
+      L.e(
+        "Gagal melakukan batch operation di tabel: $tabel Error: $e $s Data: ${{'totalItem': daftarData.length}}",
       );
       rethrow;
     }

@@ -1,7 +1,6 @@
 // path: lib/data/sync/unggah_data.dart
 
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
@@ -15,6 +14,7 @@ import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class LayananUnggahData {
   final DatabaseHelper _dbHelper;
@@ -28,7 +28,7 @@ class LayananUnggahData {
   }) : _dbHelper = dbHelper ?? DatabaseHelper.instance,
        _firestore = firestore ?? FirebaseFirestore.instance,
        _syncManager = syncManager ?? SyncManager() {
-    Log.info(
+    L.i(
       'LayananUnggahData instance dibuat. '
       'Menggunakan DatabaseHelper: ${_dbHelper.hashCode}, '
       'FirebaseFirestore: ${_firestore.hashCode}, '
@@ -37,14 +37,14 @@ class LayananUnggahData {
   }
 
   Future<void> unggahSemuaData() async {
-    Log.info('========================================');
-    Log.info('MEMULAI PROSES UNGGAH SEMUA DATA KE FIREBASE');
-    Log.info(
+    L.i('========================================');
+    L.i('MEMULAI PROSES UNGGAH SEMUA DATA KE FIREBASE');
+    L.i(
       'Proses ini akan mengunggah 11 jenis data (tabel) dari SQLite lokal ke Firestore.',
     );
-    Log.info('========================================');
+    L.i('========================================');
 
-    Log.info(
+    L.i(
       'Menyiapkan daftar Future untuk semua fungsi unggah spesifik. '
       'Semua fungsi akan dijalankan secara paralel menggunakan Future.wait.',
     );
@@ -63,30 +63,26 @@ class LayananUnggahData {
       unggahDataPengaturan(),
     ];
 
-    Log.info(
+    L.i(
       'Total ${daftarUnggah.length} fungsi unggah spesifik telah disiapkan dan siap dieksekusi secara paralel.',
     );
 
     try {
-      Log.info(
+      L.i(
         'Menjalankan semua fungsi unggah secara paralel menggunakan Future.wait. '
         'Semua proses unggah akan berjalan bersamaan untuk efisiensi waktu.',
       );
       await Future.wait(daftarUnggah);
-      Log.info('========================================');
-      Log.info('PROSES UNGGAH SEMUA DATA SELESAI DENGAN SUKSES');
-      Log.info(
-        'Semua 11 jenis data berhasil diunggah ke Firestore tanpa error.',
-      );
-      Log.info('========================================');
+      L.i('========================================');
+      L.i('PROSES UNGGAH SEMUA DATA SELESAI DENGAN SUKSES');
+      L.i('Semua 11 jenis data berhasil diunggah ke Firestore tanpa error.');
+      L.i('========================================');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal selama proses unggah massal ke Firestore. '
         'Satu atau lebih fungsi unggah spesifik mengalami kegagalan. '
         'Proses unggah tidak dapat diselesaikan sepenuhnya. '
-        'Error ini akan dilempar ulang ke service layer untuk penanganan lebih lanjut.',
-        error: e,
-        stackTrace: s,
+        'Error ini akan dilempar ulang ke service layer untuk penanganan lebih lanjut. Error: $e $s',
       );
       rethrow;
     }
@@ -95,12 +91,12 @@ class LayananUnggahData {
   // --- FUNGSI UNGGAH SPESIFIK (POLA UJI COBA) ---
 
   Future<void> unggahDataDompet() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data dompet. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk dompet: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -111,26 +107,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data dompet selesai dengan sukses.');
+      L.i('Proses unggah data dompet selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data dompet. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataKategori() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data kategori. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk kategori: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -141,26 +135,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data kategori selesai dengan sukses.');
+      L.i('Proses unggah data kategori selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data kategori. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataKritikSaran() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data kritik_saran. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk kritik_saran: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -171,26 +163,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data kritik_saran selesai dengan sukses.');
+      L.i('Proses unggah data kritik_saran selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data kritik_saran. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataPaket() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data paket. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk paket: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -201,26 +191,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data paket selesai dengan sukses.');
+      L.i('Proses unggah data paket selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data paket. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataPelangganAktif() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data pelanggan_aktif. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk pelanggan_aktif: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -231,26 +219,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data pelanggan_aktif selesai dengan sukses.');
+      L.i('Proses unggah data pelanggan_aktif selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data pelanggan_aktif. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataPelanggan() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data pelanggan. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk pelanggan: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -261,26 +247,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data pelanggan selesai dengan sukses.');
+      L.i('Proses unggah data pelanggan selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data pelanggan. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataPesanan() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data pesanan. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk pesanan: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -291,26 +275,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data pesanan selesai dengan sukses.');
+      L.i('Proses unggah data pesanan selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data pesanan. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataTransaksi() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data transaksi. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk transaksi: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -321,26 +303,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data transaksi selesai dengan sukses.');
+      L.i('Proses unggah data transaksi selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data transaksi. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataSubKategori() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data sub_kategori. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk sub_kategori: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -351,26 +331,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data sub_kategori selesai dengan sukses.');
+      L.i('Proses unggah data sub_kategori selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data sub_kategori. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataPengaturan() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data pengaturan. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk pengaturan: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -381,26 +359,24 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data pengaturan selesai dengan sukses.');
+      L.i('Proses unggah data pengaturan selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data pengaturan. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
   }
 
   Future<void> unggahDataVersiApkUser() async {
-    Log.info(
+    L.i(
       'Memulai proses unggah data versi_apk_user. Mengambil waktu sinkronisasi terakhir dari SyncManager.',
     );
     try {
       final waktu = await _syncManager.getTerakhirUnggah();
-      Log.info(
+      L.i(
         'Waktu sinkronisasi terakhir untuk versi_apk_user: ${waktu.toIso8601String()}. '
         'Hanya data yang diperbarui setelah waktu ini yang akan diunggah.',
       );
@@ -411,14 +387,12 @@ class LayananUnggahData {
         (m) => m.toFirebase(),
         waktu,
       );
-      Log.info('Proses unggah data versi_apk_user selesai dengan sukses.');
+      L.i('Proses unggah data versi_apk_user selesai dengan sukses.');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data versi_apk_user. '
         'Kemungkinan penyebab: gagal membaca data dari SQLite, '
-        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore.',
-        error: e,
-        stackTrace: s,
+        'gagal mengambil waktu sinkronisasi, atau gagal menulis ke Firestore. Error: $e $s',
       );
       rethrow;
     }
@@ -431,22 +405,22 @@ class LayananUnggahData {
     Map<String, dynamic> Function(T) toFirebase,
     DateTime waktuSinkronisasiTerakhir,
   ) async {
-    Log.info('========================================');
-    Log.info('MEMULAI UNGGAH DATA GENERIK');
-    Log.info('Tabel SQLite sumber: $namaTabel');
-    Log.info('Koleksi Firestore tujuan: $namaKoleksi');
-    Log.info(
+    L.i('========================================');
+    L.i('MEMULAI UNGGAH DATA GENERIK');
+    L.i('Tabel SQLite sumber: $namaTabel');
+    L.i('Koleksi Firestore tujuan: $namaKoleksi');
+    L.i(
       'Waktu sinkronisasi terakhir: ${waktuSinkronisasiTerakhir.toIso8601String()}',
     );
-    Log.info('Tipe data generik: $T');
-    Log.info('========================================');
+    L.i('Tipe data generik: $T');
+    L.i('========================================');
 
     try {
-      Log.info('Mendapatkan instance database SQLite dari DatabaseHelper.');
+      L.i('Mendapatkan instance database SQLite dari DatabaseHelper.');
       final db = await _dbHelper.database;
-      Log.info('Instance database berhasil didapatkan.');
+      L.i('Instance database berhasil didapatkan.');
 
-      Log.info(
+      L.i(
         'Melakukan query pada tabel $namaTabel dengan kondisi: '
         'diperbarui > ${waktuSinkronisasiTerakhir.toIso8601String()}. '
         'Hanya data yang diupdate setelah waktu sinkronisasi terakhir yang akan diambil.',
@@ -458,12 +432,12 @@ class LayananUnggahData {
         whereArgs: [waktuSinkronisasiTerakhir.toIso8601String()],
       );
 
-      Log.info(
+      L.i(
         'Query selesai. Jumlah data yang ditemukan untuk diunggah: ${dataUntukDiunggah.length} baris dari tabel $namaTabel.',
       );
 
       if (dataUntukDiunggah.isEmpty) {
-        Log.info(
+        L.i(
           'Tabel $namaTabel sudah sinkron dengan Firestore. '
           'Tidak ada data baru atau yang diperbarui sejak ${waktuSinkronisasiTerakhir.toIso8601String()}. '
           'Proses unggah untuk tabel ini dilewati.',
@@ -471,61 +445,59 @@ class LayananUnggahData {
         return;
       }
 
-      Log.info(
+      L.i(
         'Terdapat ${dataUntukDiunggah.length} data yang perlu diunggah dari tabel $namaTabel. '
         'Membuat Firestore batch operation untuk mengunggah data secara atomik.',
       );
 
       final batchFirestore = _firestore.batch();
-      Log.info('Firestore batch berhasil dibuat.');
+      L.i('Firestore batch berhasil dibuat.');
 
       int counterSukses = 0;
       int counterError = 0;
 
       for (int i = 0; i < dataUntukDiunggah.length; i++) {
         final map = dataUntukDiunggah[i];
-        Log.info(
+        L.i(
           'Memproses data ke-${i + 1}/${dataUntukDiunggah.length} dari tabel $namaTabel.',
         );
 
         try {
-          Log.info(
+          L.i(
             'Mengkonversi data SQLite menjadi model $T menggunakan fungsi fromSqlite.',
           );
           final T data = fromSqlite(map);
           final model = data as dynamic;
-          Log.info(
+          L.i(
             'Konversi berhasil. ID data: ${model.id}. '
             'Membuat referensi dokumen Firestore pada koleksi $namaKoleksi dengan ID ${model.id}.',
           );
 
-          Log.info(
-            'Membuat referensi dokumen Firestore: $namaKoleksi/${model.id}.',
-          );
+          L.i('Membuat referensi dokumen Firestore: $namaKoleksi/${model.id}.');
           final docRef = _firestore.collection(namaKoleksi).doc(model.id);
 
-          Log.info(
+          L.i(
             'Mengkonversi model menjadi Map<String, dynamic> menggunakan fungsi toFirebase.',
           );
           final firebaseData = toFirebase(data);
-          Log.info(
+          L.i(
             'Konversi ke format Firestore berhasil. '
             'Jumlah field yang akan diunggah: ${firebaseData.length}.',
           );
 
-          Log.info(
+          L.i(
             'Menambahkan operasi set dengan merge:true ke batch Firestore untuk dokumen $namaKoleksi/${model.id}. '
             'Merge:true akan menggabungkan data baru dengan data yang sudah ada tanpa menghapus field lain.',
           );
           batchFirestore.set(docRef, firebaseData, SetOptions(merge: true));
 
           counterSukses++;
-          Log.info(
+          L.i(
             'Data ke-${i + 1} (ID: ${model.id}) berhasil ditambahkan ke batch Firestore.',
           );
         } catch (e) {
           counterError++;
-          Log.warning(
+          L.w(
             'Gagal memproses data ke-${i + 1} dari tabel $namaTabel. '
             'Data ini akan dilewati dan tidak dimasukkan ke batch. '
             'Error: $e. '
@@ -534,7 +506,7 @@ class LayananUnggahData {
         }
       }
 
-      Log.info(
+      L.i(
         'Semua data selesai diproses. '
         'Total: ${dataUntukDiunggah.length} data, '
         'Sukses ditambahkan ke batch: $counterSukses, '
@@ -542,36 +514,34 @@ class LayananUnggahData {
       );
 
       if (counterSukses > 0) {
-        Log.info(
+        L.i(
           'Melakukan commit batch Firestore. '
           'Mengirim $counterSukses dokumen ke koleksi $namaKoleksi secara atomik.',
         );
         await batchFirestore.commit();
-        Log.info(
+        L.i(
           'Batch commit berhasil. '
           '$counterSukses dokumen dari tabel $namaTabel berhasil diunggah ke Firestore koleksi $namaKoleksi.',
         );
       } else {
-        Log.warning(
+        L.w(
           'Tidak ada data yang berhasil diproses untuk tabel $namaTabel. '
           'Batch commit tidak dilakukan karena tidak ada data valid untuk diunggah.',
         );
       }
 
-      Log.info('========================================');
-      Log.info('PROSES UNGGAH DATA GENERIK SELESAI');
-      Log.info('Tabel: $namaTabel -> Koleksi: $namaKoleksi');
-      Log.info('Total data diunggah: $counterSukses dokumen');
-      Log.info('========================================');
+      L.i('========================================');
+      L.i('PROSES UNGGAH DATA GENERIK SELESAI');
+      L.i('Tabel: $namaTabel -> Koleksi: $namaKoleksi');
+      L.i('Total data diunggah: $counterSukses dokumen');
+      L.i('========================================');
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengunggah data untuk tabel $namaTabel ke koleksi Firestore $namaKoleksi. '
         'Proses unggah data generik mengalami kegagalan. '
         'Kemungkinan penyebab: koneksi database SQLite terputus, '
         'koneksi Firestore gagal, data corrupt, atau format data tidak sesuai. '
-        'Error ini akan dilempar ulang ke fungsi pemanggil.',
-        error: e,
-        stackTrace: s,
+        'Error ini akan dilempar ulang ke fungsi pemanggil. Error: $e $s',
       );
       rethrow;
     }

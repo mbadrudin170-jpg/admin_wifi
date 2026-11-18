@@ -1,6 +1,6 @@
 // path: lib/utils/snackbar_util.dart
-import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 // enum untuk mendefinisikan tipe-tipe snackbar yang tersedia
 enum SnackBarType { success, error, warning, info }
@@ -22,16 +22,16 @@ class SnackBarUtil {
     final logMessage = '[SNACKBAR] Tipe: ${type.name}, Pesan: $message';
     switch (type) {
       case SnackBarType.success:
-        Log.info(logMessage);
+        L.i(logMessage);
         break;
       case SnackBarType.error:
-        Log.error(logMessage);
+        L.e(logMessage);
         break;
       case SnackBarType.warning:
-        Log.warning(logMessage);
+        L.w(logMessage);
         break;
       case SnackBarType.info:
-        Log.info(logMessage);
+        L.i(logMessage);
         break;
     }
 

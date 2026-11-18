@@ -1,8 +1,8 @@
 // path: lib/services/cek_langganan_kadaluarsa_service.dart
 // diubah: Menyederhanakan logika dengan memanggil fungsi arsipkan yang sudah ada.
-import 'package:admin_wifi/debug/log.dart';
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 /// Service ini bertanggung jawab untuk memeriksa dan mengarsipkan
 /// langganan pelanggan aktif yang telah kedaluwarsa secara berkala.
@@ -12,12 +12,12 @@ class CekLanggananKadaluarsaService {
   /// Memproses semua pelanggan aktif, menemukan yang kedaluwarsa,
   /// dan memanggil operasi untuk mengarsipkan mereka.
   Future<void> prosesLanggananKadaluarsa() async {
-    Log.info(
+    L.i(
       'Memulai siklus pengecekan dan pengarsipan langganan yang telah kedaluwarsa...',
     );
 
     try {
-      Log.info(
+      L.i(
         'Menghubungi PelangganAktifOperasi untuk mengeksekusi batch pengarsipan otomatis...',
       );
 
@@ -26,23 +26,21 @@ class CekLanggananKadaluarsaService {
           .arsipkanPelangganKadaluarsa();
 
       if (jumlahDiarsipkan > 0) {
-        Log.info(
+        L.i(
           'Operasi berhasil! Sebanyak $jumlahDiarsipkan data pelanggan kedaluwarsa telah dipindahkan ke tabel arsip.',
         );
       } else {
-        Log.info(
+        L.i(
           'Hasil pengecekan bersih. Tidak ditemukan data pelanggan yang memenuhi kriteria kedaluwarsa saat ini.',
         );
       }
 
-      Log.info(
+      L.i(
         'Seluruh rangkaian proses pengecekan langganan kedaluwarsa telah diselesaikan dengan sukses.',
       );
     } catch (e, s) {
-      Log.error(
-        'Terjadi kesalahan fatal selama proses pengolahan data kedaluwarsa!',
-        error: e,
-        stackTrace: s,
+      L.e(
+        'Terjadi kesalahan fatal selama proses pengolahan data kedaluwarsa! Error: $e $s',
       );
     }
   }

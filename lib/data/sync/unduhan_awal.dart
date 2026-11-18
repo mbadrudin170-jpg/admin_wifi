@@ -2,7 +2,7 @@
 
 import 'package:admin_wifi/data/sync/unduh_data.dart';
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// [UnduhanAwalService] bertanggung jawab untuk mengisi database lokal dengan
@@ -13,7 +13,7 @@ class UnduhanAwalService {
 
   /// Menjalankan pengecekan dan pengunduhan data awal untuk seluruh tabel.
   Future<void> jalankanUnduhanAwal() async {
-    Log.info('Memulai sinkronisasi awal: Mengecek tabel lokal yang kosong...');
+    L.i('Memulai sinkronisasi awal: Mengecek tabel lokal yang kosong...');
 
     final stopwatch = Stopwatch()..start();
 
@@ -31,7 +31,9 @@ class UnduhanAwalService {
     await _unduhDataPesananJikaKosong();
 
     stopwatch.stop();
-    Log.info('Proses unduhan awal selesai dalam ${stopwatch.elapsed.inSeconds} detik.');
+    L.i(
+      'Proses unduhan awal selesai dalam ${stopwatch.elapsed.inSeconds} detik.',
+    );
   }
 
   /// Memeriksa apakah sebuah tabel kosong.
@@ -43,13 +45,10 @@ class UnduhanAwalService {
       );
       final jumlah = Sqflite.firstIntValue(hasil) ?? 0;
 
-      Log.info("Tabel '$namaTabel': $jumlah baris.");
+      L.i("Tabel '$namaTabel': $jumlah baris.");
       return jumlah == 0;
     } catch (e) {
-      Log.error(
-        "Gagal mengecek tabel '$namaTabel'.",
-        error: e,
-      );
+      L.e("Gagal mengecek tabel '$namaTabel'. Error: $e");
       return false;
     }
   }
@@ -61,18 +60,14 @@ class UnduhanAwalService {
   }) async {
     try {
       if (await _apakahTabelKosong(namaTabel)) {
-        Log.info("Memulai unduh data untuk '$namaTabel'...");
+        L.i("Memulai unduh data untuk '$namaTabel'...");
         await fungsiUnduh();
-        Log.info("Data '$namaTabel' berhasil disimpan ke lokal.");
+        L.i("Data '$namaTabel' berhasil disimpan ke lokal.");
       } else {
-        Log.info("Skip '$namaTabel' (Sudah ada data).");
+        L.i("Skip '$namaTabel' (Sudah ada data).");
       }
     } catch (e, s) {
-      Log.error(
-        "ERROR saat mengunduh '$namaTabel'",
-        error: e,
-        stackTrace: s,
-      );
+      L.e("ERROR saat mengunduh '$namaTabel' Error: $e $s");
     }
   }
 

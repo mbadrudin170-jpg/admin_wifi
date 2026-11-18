@@ -1,15 +1,15 @@
 // path: lib/halaman/form/form_transaksi.dart
 
-import 'package:admin_wifi/debug/log.dart';
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
+import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:flutter/material.dart';
-import 'package:admin_wifi/model/dompet_model.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:uuid/uuid.dart';
 
 class FormTransaksiPage extends StatefulWidget {
@@ -47,21 +47,21 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
   @override
   void initState() {
     super.initState();
-    Log.info(
+    L.i(
       'Menginisialisasi FormTransaksiPage dalam mode: ${_isEditMode ? "Edit" : "Tambah"}.',
     );
     _loadAndPopulateInitialData();
   }
 
   Future<void> _loadAndPopulateInitialData() async {
-    Log.info('Memulai pemuatan data awal (dompet & kategori).');
+    L.i('Memulai pemuatan data awal (dompet & kategori).');
     setState(() => _isLoading = true);
 
     try {
       final dompetList = await _dompetOperasi.getDompet();
-      Log.info('Berhasil memuat ${dompetList.length} dompet.');
+      L.i('Berhasil memuat ${dompetList.length} dompet.');
       final kategoriList = await _kategoriOperasi.getKategori();
-      Log.info('Berhasil memuat ${kategoriList.length} kategori.');
+      L.i('Berhasil memuat ${kategoriList.length} kategori.');
 
       if (!mounted) return;
 
@@ -71,7 +71,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       });
 
       if (_isEditMode) {
-        Log.info(
+        L.i(
           'Mode Edit: Mempopulasikan form dengan data transaksi ID: ${widget.transaksi!.id}',
         );
         final trx = widget.transaksi!;
@@ -83,7 +83,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         _selectedDompet = _dompetList.firstWhere(
           (d) => d.id == trx.idDompet,
           orElse: () {
-            Log.warning(
+            L.w(
               'Dompet asal dengan ID ${trx.idDompet} tidak ditemukan. Menggunakan dompet pertama dari daftar.',
             );
             return _dompetList.first;
@@ -94,7 +94,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
           _selectedDompetTujuan = _dompetList.firstWhere(
             (d) => d.id == trx.idDompetTujuan,
             orElse: () {
-              Log.warning(
+              L.w(
                 'Dompet tujuan dengan ID ${trx.idDompetTujuan} tidak ditemukan. Menggunakan dompet pertama dari daftar.',
               );
               return _dompetList.first;
@@ -108,7 +108,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
           _selectedKategori = _kategoriFiltered.cast<KategoriModel?>().firstWhere(
             (k) => k?.id == trx.idKategori,
             orElse: () {
-              Log.warning(
+              L.w(
                 'Kategori dengan ID ${trx.idKategori} tidak ditemukan setelah filter.',
               );
               return null;
@@ -121,7 +121,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                 .firstWhere(
                   (sk) => sk?.id == trx.idSubKategori,
                   orElse: () {
-                    Log.warning(
+                    L.w(
                       'Sub-kategori dengan ID ${trx.idSubKategori} tidak ditemukan.',
                     );
                     return null;
@@ -129,15 +129,15 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                 );
           }
         }
-        Log.info('Selesai mempopulasikan form untuk mode Edit.');
+        L.i('Selesai mempopulasikan form untuk mode Edit.');
       } else {
-        Log.info(
+        L.i(
           'Mode Tambah: Mejalankan filter kategori awal untuk tipe Pemasukan.',
         );
         _filterKategoriInternal();
       }
     } catch (e, s) {
-      Log.error('Gagal total saat memuat data awal.', error: e, stackTrace: s);
+      L.e('Gagal total saat memuat data awal. Error: $e $s');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -145,7 +145,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        Log.info('Pemuatan data awal selesai. isLoading diatur ke false.');
+        L.i('Pemuatan data awal selesai. isLoading diatur ke false.');
       }
     }
   }
@@ -159,14 +159,14 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
     _kategoriFiltered = _kategoriList
         .where((k) => k.tipe == tipeKategoriTarget)
         .toList();
-    Log.info(
+    L.i(
       'Kategori difilter untuk tipe: ${_tipe.name}. Jumlah: $tipeSebelum -> ${_kategoriFiltered.length}.',
     );
   }
 
   void _filterKategori() {
     setState(() {
-      Log.info(
+      L.i(
         'Tipe transaksi diubah, memfilter ulang kategori dan mereset pilihan kategori.',
       );
       _filterKategoriInternal();
@@ -176,7 +176,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
   }
 
   Future<void> _pilihTanggal(BuildContext context) async {
-    Log.info('Membuka dialog pemilih tanggal.');
+    L.i('Membuka dialog pemilih tanggal.');
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _tanggal,
@@ -193,21 +193,21 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
           _tanggal.minute,
         );
       });
-      Log.info('Pengguna memilih tanggal baru: ${_tanggal.toLocal()}');
+      L.i('Pengguna memilih tanggal baru: ${_tanggal.toLocal()}');
     } else {
-      Log.info('Pengguna membatalkan pemilihan tanggal.');
+      L.i('Pengguna membatalkan pemilihan tanggal.');
     }
   }
 
   Future<void> _pilihWaktu(BuildContext context) async {
-    Log.info('Membuka dialog pemilih waktu.');
+    L.i('Membuka dialog pemilih waktu.');
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_tanggal),
     );
 
     if (!mounted || picked == null) {
-      Log.info('Pengguna membatalkan pemilihan waktu.');
+      L.i('Pengguna membatalkan pemilihan waktu.');
       return;
     }
 
@@ -220,13 +220,13 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         picked.minute,
       );
     });
-    Log.info('Pengguna memilih waktu baru: ${_tanggal.toLocal()}');
+    L.i('Pengguna memilih waktu baru: ${_tanggal.toLocal()}');
   }
 
   void _simpanForm() async {
-    Log.info('Tombol "Simpan" ditekan.');
+    L.i('Tombol "Simpan" ditekan.');
     if (_formKey.currentState!.validate()) {
-      Log.info('Form valid. Memulai proses penyimpanan.');
+      L.i('Form valid. Memulai proses penyimpanan.');
       setState(() => _isSaving = true);
 
       final double jumlah = double.parse(_jumlahController.text).abs();
@@ -246,33 +246,27 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         diperbarui: DateTime.now(),
       );
 
-      Log.info('Model Transaksi yang akan disimpan: ${transaksi.toSqlite()}');
+      L.i('Model Transaksi yang akan disimpan: ${transaksi.toSqlite()}');
 
       try {
         if (_isEditMode) {
-          Log.info(
-            'Menjalankan operasi UPDATE untuk transaksi ID: ${transaksi.id}',
-          );
+          L.i('Menjalankan operasi UPDATE untuk transaksi ID: ${transaksi.id}');
           await _transaksiOperasi.updateTransaksi(
             widget.transaksi!.id,
             transaksi,
           );
         } else {
-          Log.info('Menjalankan operasi CREATE untuk transaksi baru.');
+          L.i('Menjalankan operasi CREATE untuk transaksi baru.');
           await _transaksiOperasi.tambahTransaksi(transaksi);
         }
 
         if (!mounted) return;
-        Log.info(
+        L.i(
           'Penyimpanan berhasil. Menutup form dan kembali dengan hasil true.',
         );
         Navigator.pop(context, true);
       } catch (e, s) {
-        Log.error(
-          'Gagal menyimpan transaksi ke database.',
-          error: e,
-          stackTrace: s,
-        );
+        L.e('Gagal menyimpan transaksi ke database. Error: $e $s');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal menyimpan transaksi: $e')),
@@ -280,11 +274,11 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
       } finally {
         if (mounted) {
           setState(() => _isSaving = false);
-          Log.info('Proses penyimpanan selesai. isSaving diatur ke false.');
+          L.i('Proses penyimpanan selesai. isSaving diatur ke false.');
         }
       }
     } else {
-      Log.warning(
+      L.w(
         'Form tidak valid. Proses penyimpanan dibatalkan. Silakan periksa error di UI.',
       );
     }
@@ -292,7 +286,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
 
   @override
   Widget build(BuildContext context) {
-    Log.info(
+    L.i(
       'Membangun UI FormTransaksiPage. isLoading: $_isLoading, isSaving: $_isSaving',
     );
     return Scaffold(
@@ -320,7 +314,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                         selected: <TipeTransaksi>{_tipe},
                         onSelectionChanged: (Set<TipeTransaksi> newSelection) {
                           setState(() {
-                            Log.info(
+                            L.i(
                               'Tipe transaksi diubah menjadi: ${newSelection.first.name}',
                             );
                             _tipe = newSelection.first;
@@ -382,7 +376,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                         );
                       }).toList(),
                       onChanged: (val) {
-                        Log.info(
+                        L.i(
                           'Pengguna memilih dompet: ${val?.namaDompet ?? "null"}',
                         );
                         setState(() => _selectedDompet = val);
@@ -403,7 +397,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                           );
                         }).toList(),
                         onChanged: (val) {
-                          Log.info(
+                          L.i(
                             'Pengguna memilih dompet tujuan: ${val?.namaDompet ?? "null"}',
                           );
                           setState(() => _selectedDompetTujuan = val);
@@ -429,7 +423,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                           );
                         }).toList(),
                         onChanged: (val) {
-                          Log.info(
+                          L.i(
                             'Pengguna memilih kategori: ${val?.nama ?? "null"}',
                           );
                           setState(() {
@@ -454,7 +448,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
                           );
                         }).toList(),
                         onChanged: (val) {
-                          Log.info(
+                          L.i(
                             'Pengguna memilih sub-kategori: ${val?.nama ?? "null"}',
                           );
                           setState(() => _selectedSubKategori = val);
@@ -478,9 +472,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
 
   @override
   void dispose() {
-    Log.info(
-      'Menjalankan dispose di FormTransaksiPage. Membersihkan controllers.',
-    );
+    L.i('Menjalankan dispose di FormTransaksiPage. Membersihkan controllers.');
     _jumlahController.dispose();
     _keteranganController.dispose();
     super.dispose();

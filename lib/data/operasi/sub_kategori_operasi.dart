@@ -92,6 +92,7 @@ class SubKategoriOperasi {
     }
     await batch.commit(noResult: true);
   }
+
   Future<List<SubKategoriModel>> getSubKategoriByIds(List<String> ids) async {
     if (ids.isEmpty) {
       return [];

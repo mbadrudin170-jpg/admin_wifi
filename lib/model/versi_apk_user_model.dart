@@ -1,9 +1,9 @@
 // path: lib/model/versi_apk_user_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class VersiApkUserModel {
   final String id;

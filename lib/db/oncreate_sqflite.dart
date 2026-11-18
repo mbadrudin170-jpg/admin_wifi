@@ -1,6 +1,5 @@
 // path: lib/db/oncreate_sqflite.dart
 
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
@@ -13,6 +12,7 @@ import 'package:admin_wifi/model/status_unggah_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Skema tabel yang tidak memiliki model khusus.
@@ -235,9 +235,9 @@ final String _tabelPesanan =
   ''';
 
 Future<void> onCreateSqflite(Database db, int version) async {
-  Log.info('========================================');
-  Log.info('MEMULAI PEMBUATAN TABEL DATABASE (onCreate) UNTUK VERSI $version');
-  Log.info('========================================');
+  L.i('========================================');
+  L.i('MEMULAI PEMBUATAN TABEL DATABASE (onCreate) UNTUK VERSI $version');
+  L.i('========================================');
 
   try {
     await db.execute(_tabelKategori);
@@ -254,9 +254,9 @@ Future<void> onCreateSqflite(Database db, int version) async {
     await db.execute(_tabelStatusUnggah);
     await db.execute(_tabelStatusAplikasi);
     await db.execute(_tabelPesan);
-    Log.info('Semua 14 tabel utama berhasil dibuat.');
+    L.i('Semua 14 tabel utama berhasil dibuat.');
 
-    Log.info('Memulai pembuatan index...');
+    L.i('Memulai pembuatan index...');
     await db.execute(
       'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)',
     );
@@ -266,17 +266,13 @@ Future<void> onCreateSqflite(Database db, int version) async {
     await db.execute(
       'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)',
     );
-    Log.info('Semua 3 index berhasil dibuat.');
+    L.i('Semua 3 index berhasil dibuat.');
 
-    Log.info('========================================');
-    Log.info('PROSES PEMBUATAN TABEL & INDEX SELESAI');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('PROSES PEMBUATAN TABEL & INDEX SELESAI');
+    L.i('========================================');
   } catch (e, st) {
-    Log.error(
-      'Gagal total saat membuat tabel atau index.',
-      error: e,
-      stackTrace: st,
-    );
+    L.e('Gagal total saat membuat tabel atau index. Error: $e $st');
     rethrow;
   }
 }

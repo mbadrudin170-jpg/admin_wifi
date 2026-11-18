@@ -1,11 +1,11 @@
 // path: lib/halaman/lainnya/paket.dart
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/halaman/detail/detail_paket.dart';
 import 'package:admin_wifi/halaman/form/form_paket.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class PaketPage extends StatefulWidget {
   const PaketPage({super.key});
@@ -21,19 +21,19 @@ class _PaketPageState extends State<PaketPage> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi halaman Paket');
+    L.i('Menginisialisasi halaman Paket');
     _refreshPaketList();
   }
 
   void _refreshPaketList() {
-    Log.info('Memperbarui daftar paket dari database');
+    L.i('Memperbarui daftar paket dari database');
     setState(() {
       _paketFuture = _paketOperasi.getPaket();
     });
   }
 
   void _showEditDeleteDialog(PaketModel paket) {
-    Log.info('Menampilkan dialog opsi untuk paket: ${paket.nama}');
+    L.i('Menampilkan dialog opsi untuk paket: ${paket.nama}');
     showDialog(
       context: context,
       builder: (context) {
@@ -43,9 +43,7 @@ class _PaketPageState extends State<PaketPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Log.info(
-                  'Memilih navigasi ke Form Edit untuk paket: ${paket.nama}',
-                );
+                L.i('Memilih navigasi ke Form Edit untuk paket: ${paket.nama}');
                 Navigator.pop(context);
                 Navigator.push(
                   context,
@@ -53,7 +51,7 @@ class _PaketPageState extends State<PaketPage> {
                     builder: (context) => FormPaket(paket: paket),
                   ),
                 ).then((_) {
-                  Log.info('Kembali dari Form Edit, menyegarkan daftar paket');
+                  L.i('Kembali dari Form Edit, menyegarkan daftar paket');
                   _refreshPaketList();
                 });
               },
@@ -61,7 +59,7 @@ class _PaketPageState extends State<PaketPage> {
             ),
             TextButton(
               onPressed: () {
-                Log.info('Memilih opsi Hapus untuk paket: ${paket.nama}');
+                L.i('Memilih opsi Hapus untuk paket: ${paket.nama}');
                 Navigator.pop(context);
                 _showDeleteConfirmationDialog(paket);
               },
@@ -74,7 +72,7 @@ class _PaketPageState extends State<PaketPage> {
   }
 
   void _showDeleteConfirmationDialog(PaketModel paket) {
-    Log.info(
+    L.i(
       'Menampilkan konfirmasi hapus untuk paket ID: ${paket.id}, nama: ${paket.nama}',
     );
     showDialog(
@@ -89,9 +87,7 @@ class _PaketPageState extends State<PaketPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                Log.info(
-                  'Penghapusan paket ${paket.nama} dibatalkan oleh user',
-                );
+                L.i('Penghapusan paket ${paket.nama} dibatalkan oleh user');
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -103,13 +99,11 @@ class _PaketPageState extends State<PaketPage> {
                 Navigator.of(dialogContext).pop();
 
                 try {
-                  Log.info(
+                  L.i(
                     'Menjalankan operasi hapus paket ID: ${paket.id}, nama: ${paket.nama}',
                   );
                   await _paketOperasi.hapusPaket(paket.id);
-                  Log.info(
-                    'Paket ID: ${paket.id} berhasil dihapus dari database',
-                  );
+                  L.i('Paket ID: ${paket.id} berhasil dihapus dari database');
                   _refreshPaketList();
 
                   messenger.showSnackBar(
@@ -119,10 +113,8 @@ class _PaketPageState extends State<PaketPage> {
                     ),
                   );
                 } catch (e, s) {
-                  Log.error(
-                    'Gagal menghapus paket ID: ${paket.id}, nama: ${paket.nama}',
-                    error: e,
-                    stackTrace: s,
+                  L.e(
+                    'Gagal menghapus paket ID: ${paket.id}, nama: ${paket.nama} Error: $e $s',
                   );
                   messenger.showSnackBar(
                     SnackBar(
@@ -140,7 +132,7 @@ class _PaketPageState extends State<PaketPage> {
   }
 
   void _hapusSemuaPaket() {
-    Log.info('User menekan tombol hapus semua paket');
+    L.i('User menekan tombol hapus semua paket');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -153,7 +145,7 @@ class _PaketPageState extends State<PaketPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                Log.info('Penghapusan massal semua paket dibatalkan oleh user');
+                L.i('Penghapusan massal semua paket dibatalkan oleh user');
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -165,11 +157,9 @@ class _PaketPageState extends State<PaketPage> {
                 Navigator.of(dialogContext).pop();
 
                 try {
-                  Log.info(
-                    'Menjalankan operasi hapus semua paket dari database',
-                  );
+                  L.i('Menjalankan operasi hapus semua paket dari database');
                   await _paketOperasi.hapusSemuaPaket();
-                  Log.info('Semua paket berhasil dihapus dari database');
+                  L.i('Semua paket berhasil dihapus dari database');
                   _refreshPaketList();
 
                   messenger.showSnackBar(
@@ -179,11 +169,7 @@ class _PaketPageState extends State<PaketPage> {
                     ),
                   );
                 } catch (e, s) {
-                  Log.error(
-                    'Gagal menghapus semua paket dari database',
-                    error: e,
-                    stackTrace: s,
-                  );
+                  L.e('Gagal menghapus semua paket dari database Error: $e $s');
                   messenger.showSnackBar(
                     SnackBar(
                       content: Text('Gagal menghapus semua paket: $e'),
@@ -201,7 +187,7 @@ class _PaketPageState extends State<PaketPage> {
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI halaman Daftar Paket');
+    L.i('Membangun UI halaman Daftar Paket');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daftar Paket'),
@@ -220,19 +206,17 @@ class _PaketPageState extends State<PaketPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            Log.error(
-              'Terjadi error saat memuat data paket',
-              error: snapshot.error,
-              stackTrace: snapshot.stackTrace,
+            L.e(
+              'Terjadi error saat memuat data paket Error: $snapshot.error $snapshot.stackTrace',
             );
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            Log.info('Data paket kosong, tidak ada paket yang tersedia');
+            L.i('Data paket kosong, tidak ada paket yang tersedia');
             return const Center(child: Text('Tidak ada paket yang tersedia.'));
           }
           final paketList = snapshot.data!;
-          Log.info('Menampilkan ${paketList.length} paket dalam daftar');
+          L.i('Menampilkan ${paketList.length} paket dalam daftar');
 
           return ListView.builder(
             itemCount: paketList.length,
@@ -240,7 +224,7 @@ class _PaketPageState extends State<PaketPage> {
               final paket = paketList[index];
               return InkWell(
                 onTap: () {
-                  Log.info(
+                  L.i(
                     'Navigasi ke halaman Detail Paket: ${paket.nama} (ID: ${paket.id})',
                   );
                   Navigator.push(
@@ -249,14 +233,14 @@ class _PaketPageState extends State<PaketPage> {
                       builder: (context) => DetailPaketPage(paket: paket),
                     ),
                   ).then((_) {
-                    Log.info(
+                    L.i(
                       'Kembali dari halaman Detail Paket, menyegarkan daftar',
                     );
                     _refreshPaketList();
                   });
                 },
                 onLongPress: () {
-                  Log.info(
+                  L.i(
                     'Long press pada paket: ${paket.nama} (ID: ${paket.id}), menampilkan menu edit/hapus',
                   );
                   _showEditDeleteDialog(paket);
@@ -283,12 +267,12 @@ class _PaketPageState extends State<PaketPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Log.info('Navigasi ke Form Tambah Paket');
+          L.i('Navigasi ke Form Tambah Paket');
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const FormPaket()),
           ).then((_) {
-            Log.info('Kembali dari Form Tambah Paket, menyegarkan daftar');
+            L.i('Kembali dari Form Tambah Paket, menyegarkan daftar');
             _refreshPaketList();
           });
         },

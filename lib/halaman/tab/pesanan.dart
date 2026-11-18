@@ -1,11 +1,11 @@
 // path: lib/halaman/tab/pesanan.dart
 
 // diubah: Mengganti path import, memperbaiki instansiasi, dan memperbaiki logika status
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/model/pesanan_model.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class HalamanPesan extends StatefulWidget {
   const HalamanPesan({super.key});
@@ -24,33 +24,31 @@ class _HalamanPesanState extends State<HalamanPesan> {
   @override
   void initState() {
     super.initState();
-    Log.info('========================================');
-    Log.info('LIFECYCLE: initState() - Halaman HalamanPesan');
-    Log.info('Menginisialisasi halaman daftar pesanan.');
-    Log.info('Filter default: "semua" (menampilkan seluruh pesanan).');
-    Log.info('========================================');
-    Log.info(
-      'Memanggil _muatPesanan() untuk memuat data pesanan dari database.',
-    );
+    L.i('========================================');
+    L.i('LIFECYCLE: initState() - Halaman HalamanPesan');
+    L.i('Menginisialisasi halaman daftar pesanan.');
+    L.i('Filter default: "semua" (menampilkan seluruh pesanan).');
+    L.i('========================================');
+    L.i('Memanggil _muatPesanan() untuk memuat data pesanan dari database.');
     _muatPesanan();
   }
 
   @override
   void dispose() {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: dispose() - Halaman HalamanPesan');
-    Log.info('Membersihkan resource halaman daftar pesanan.');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: dispose() - Halaman HalamanPesan');
+    L.i('Membersihkan resource halaman daftar pesanan.');
+    L.i('========================================');
     super.dispose();
   }
 
   Future<void> _muatPesanan() async {
-    Log.info('========================================');
-    Log.info('MEMUAT DATA PESANAN');
-    Log.info('Filter status: "$_filterStatus"');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('MEMUAT DATA PESANAN');
+    L.i('Filter status: "$_filterStatus"');
+    L.i('========================================');
 
-    Log.info(
+    L.i(
       'Mengatur state _isLoading menjadi true untuk menampilkan indikator loading.',
     );
     setState(() => _isLoading = true);
@@ -58,74 +56,70 @@ class _HalamanPesanState extends State<HalamanPesan> {
     try {
       List<PesananModel> pesanan;
       if (_filterStatus == 'semua') {
-        Log.info(
-          'Mengambil SEMUA pesanan dari database (tanpa filter status).',
-        );
+        L.i('Mengambil SEMUA pesanan dari database (tanpa filter status).');
         pesanan = await _pesanOperasi.ambilSemuaPesanan();
-        Log.info(
+        L.i(
           'Berhasil mengambil semua pesanan. Jumlah: ${pesanan.length} pesanan.',
         );
       } else {
-        Log.info('Mengambil pesanan dengan filter status: "$_filterStatus".');
+        L.i('Mengambil pesanan dengan filter status: "$_filterStatus".');
         pesanan = await _pesanOperasi.ambilPesananByStatus(_filterStatus);
-        Log.info(
+        L.i(
           'Berhasil mengambil pesanan dengan status "$_filterStatus". Jumlah: ${pesanan.length} pesanan.',
         );
       }
 
-      Log.info('Memperbarui state dengan data pesanan yang telah diambil.');
-      Log.info('  - _daftarPesanan: ${pesanan.length} item');
-      Log.info('  - _isLoading: false');
+      L.i('Memperbarui state dengan data pesanan yang telah diambil.');
+      L.i('  - _daftarPesanan: ${pesanan.length} item');
+      L.i('  - _isLoading: false');
 
       setState(() {
         _daftarPesanan = pesanan;
         _isLoading = false;
       });
 
-      Log.info(
+      L.i(
         'State berhasil diperbarui. UI akan menampilkan ${pesanan.length} pesanan.',
       );
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal memuat data pesanan dari database. '
         'Filter yang digunakan: "$_filterStatus". '
         'Kemungkinan penyebab: koneksi database gagal, tabel pesanan tidak ditemukan, '
-        'atau terjadi error saat query data.',
-        error: e,
-        stackTrace: s,
+        'atau terjadi error saat query data. Error: $e $s',
       );
-      Log.info('Mengatur _isLoading menjadi false meskipun terjadi error.');
+      L.i('Mengatur _isLoading menjadi false meskipun terjadi error.');
       setState(() => _isLoading = false);
     }
   }
 
   Future<void> _updateStatus(PesananModel pesanan, String statusBaru) async {
-    Log.info('========================================');
-    Log.info('MENGUBAH STATUS PESANAN');
-    Log.info('ID Pesanan: ${pesanan.id}');
-    Log.info('ID Pelanggan: ${pesanan.idPelanggan}');
-    Log.info('ID Paket: ${pesanan.idPaket}');
-    Log.info('Status Lama: "${pesanan.status}"');
-    Log.info('Status Baru: "$statusBaru"');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('MENGUBAH STATUS PESANAN');
+    L.i('ID Pesanan: ${pesanan.id}');
+    L.i('ID Pelanggan: ${pesanan.idPelanggan}');
+    L.i('ID Paket: ${pesanan.idPaket}');
+    L.i('Status Lama: "${pesanan.status}"');
+    L.i('Status Baru: "$statusBaru"');
+    L.i('========================================');
 
     try {
-      Log.info(
+      L.i(
         'Memanggil _pesanOperasi.updateStatusPesanan() untuk mengubah status di database.',
       );
       await _pesanOperasi.updateStatusPesanan(pesanan.id, statusBaru);
-      Log.info(
+      L.i(
         'Status pesanan berhasil diubah di database dari "${pesanan.status}" menjadi "$statusBaru".',
       );
 
-      Log.info(
+      L.i(
         'Memanggil _muatPesanan() untuk memperbarui tampilan daftar pesanan.',
       );
       await _muatPesanan();
-      Log.info('Daftar pesanan berhasil dimuat ulang.');
+      L.i('Daftar pesanan berhasil dimuat ulang.');
 
       if (mounted) {
-        Log.info('Widget masih mounted. Menampilkan SnackBar sukses.');
+        L.i('Widget masih mounted. Menampilkan SnackBar sukses.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -135,42 +129,38 @@ class _HalamanPesanState extends State<HalamanPesan> {
             duration: const Duration(seconds: 2),
           ),
         );
-        Log.info('SnackBar sukses telah ditampilkan.');
+        L.i('SnackBar sukses telah ditampilkan.');
       } else {
-        Log.warning(
-          'Widget sudah tidak mounted. Tidak dapat menampilkan SnackBar.',
-        );
+        L.w('Widget sudah tidak mounted. Tidak dapat menampilkan SnackBar.');
       }
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal mengubah status pesanan #${pesanan.id} dari "${pesanan.status}" menjadi "$statusBaru". '
         'Kemungkinan penyebab: koneksi database gagal, data pesanan tidak ditemukan, '
-        'atau nilai status baru tidak valid.',
-        error: e,
-        stackTrace: s,
+        'atau nilai status baru tidak valid. Error: $e $s',
       );
       if (mounted) {
-        Log.info('Menampilkan SnackBar error ke pengguna.');
+        L.i('Menampilkan SnackBar error ke pengguna.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal mengubah status: $e'),
             backgroundColor: Colors.red,
           ),
         );
-        Log.info('SnackBar error telah ditampilkan.');
+        L.i('SnackBar error telah ditampilkan.');
       }
     }
   }
 
   Future<void> _hapusPesanan(PesananModel pesanan) async {
-    Log.info('========================================');
-    Log.info('KONFIRMASI HAPUS PESANAN');
-    Log.info('ID Pesanan: ${pesanan.id}');
-    Log.info('ID Pelanggan: ${pesanan.idPelanggan}');
-    Log.info('ID Paket: ${pesanan.idPaket}');
-    Log.info('Status: "${pesanan.status}"');
-    Log.info('Menampilkan dialog konfirmasi kepada pengguna.');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('KONFIRMASI HAPUS PESANAN');
+    L.i('ID Pesanan: ${pesanan.id}');
+    L.i('ID Pelanggan: ${pesanan.idPelanggan}');
+    L.i('ID Paket: ${pesanan.idPaket}');
+    L.i('Status: "${pesanan.status}"');
+    L.i('Menampilkan dialog konfirmasi kepada pengguna.');
+    L.i('========================================');
 
     final konfirmasi = await showDialog<bool>(
       context: context,
@@ -180,14 +170,14 @@ class _HalamanPesanState extends State<HalamanPesan> {
         actions: [
           TextButton(
             onPressed: () {
-              Log.info('Dialog Hapus: Pengguna memilih BATAL.');
+              L.i('Dialog Hapus: Pengguna memilih BATAL.');
               Navigator.pop(context, false);
             },
             child: const Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () {
-              Log.info('Dialog Hapus: Pengguna memilih HAPUS.');
+              L.i('Dialog Hapus: Pengguna memilih HAPUS.');
               Navigator.pop(context, true);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -197,75 +187,67 @@ class _HalamanPesanState extends State<HalamanPesan> {
       ),
     );
 
-    Log.info(
+    L.i(
       'Hasil konfirmasi: ${konfirmasi == true ? "DISETUJUI (true)" : "DIBATALKAN (${konfirmasi ?? "null"})"}',
     );
 
     if (konfirmasi == true) {
-      Log.info(
-        'Pengguna mengkonfirmasi penghapusan. Memproses hapus pesanan...',
-      );
+      L.i('Pengguna mengkonfirmasi penghapusan. Memproses hapus pesanan...');
       try {
-        Log.info(
+        L.i(
           'Memanggil _pesanOperasi.hapusPesanan() untuk menghapus pesanan #${pesanan.id} dari database.',
         );
         await _pesanOperasi.hapusPesanan(pesanan.id);
-        Log.info('Pesanan #${pesanan.id} berhasil dihapus dari database.');
+        L.i('Pesanan #${pesanan.id} berhasil dihapus dari database.');
 
-        Log.info(
+        L.i(
           'Memanggil _muatPesanan() untuk memperbarui tampilan daftar pesanan.',
         );
         await _muatPesanan();
-        Log.info('Daftar pesanan berhasil dimuat ulang.');
+        L.i('Daftar pesanan berhasil dimuat ulang.');
 
         if (mounted) {
-          Log.info('Widget masih mounted. Menampilkan SnackBar sukses hapus.');
+          L.i('Widget masih mounted. Menampilkan SnackBar sukses hapus.');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Pesanan berhasil dihapus'),
               backgroundColor: Colors.red,
             ),
           );
-          Log.info('SnackBar sukses hapus telah ditampilkan.');
+          L.i('SnackBar sukses hapus telah ditampilkan.');
         } else {
-          Log.warning(
-            'Widget sudah tidak mounted. Tidak dapat menampilkan SnackBar.',
-          );
+          L.w('Widget sudah tidak mounted. Tidak dapat menampilkan SnackBar.');
         }
       } catch (e, s) {
-        Log.error(
+        L.e(
           'Gagal menghapus pesanan #${pesanan.id}. '
           'Kemungkinan penyebab: koneksi database gagal, data pesanan tidak ditemukan, '
-          'atau terjadi constraint violation.',
-          error: e,
-          stackTrace: s,
+          'atau terjadi constraint violation. Error: $e $s',
         );
         if (mounted) {
-          Log.info('Menampilkan SnackBar error ke pengguna.');
+          L.i('Menampilkan SnackBar error ke pengguna.');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Gagal menghapus pesanan: $e'),
               backgroundColor: Colors.red,
             ),
           );
-          Log.info('SnackBar error telah ditampilkan.');
+          L.i('SnackBar error telah ditampilkan.');
         }
       }
     } else {
-      Log.info(
-        'Penghapusan dibatalkan oleh pengguna. Tidak ada perubahan data.',
-      );
+      L.i('Penghapusan dibatalkan oleh pengguna. Tidak ada perubahan data.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: build() - Membangun UI HalamanPesan');
-    Log.info('Status loading: $_isLoading');
-    Log.info('Filter aktif: "$_filterStatus"');
-    Log.info('Jumlah pesanan ditampilkan: ${_daftarPesanan.length}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: build() - Membangun UI HalamanPesan');
+    L.i('Status loading: $_isLoading');
+    L.i('Filter aktif: "$_filterStatus"');
+    L.i('Jumlah pesanan ditampilkan: ${_daftarPesanan.length}');
+    L.i('========================================');
 
     return Scaffold(
       appBar: AppBar(
@@ -274,9 +256,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              Log.info(
-                'AKSI: Tombol Refresh ditekan. Memuat ulang data pesanan.',
-              );
+              L.i('AKSI: Tombol Refresh ditekan. Memuat ulang data pesanan.');
               _muatPesanan();
             },
             tooltip: 'Refresh',
@@ -339,13 +319,13 @@ class _HalamanPesanState extends State<HalamanPesan> {
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
-        Log.info(
+        L.i(
           'FILTER: FilterChip "$label" (value: "$value") dipilih. Selected: $selected',
         );
-        Log.info('  - Filter sebelumnya: "$_filterStatus"');
-        Log.info('  - Filter baru: "$value"');
+        L.i('  - Filter sebelumnya: "$_filterStatus"');
+        L.i('  - Filter baru: "$value"');
         setState(() => _filterStatus = value);
-        Log.info(
+        L.i(
           'State _filterStatus berhasil diperbarui. Memanggil _muatPesanan() dengan filter baru.',
         );
         _muatPesanan();
@@ -414,7 +394,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
       itemCount: _daftarPesanan.length,
       itemBuilder: (context, index) {
         final pesanan = _daftarPesanan[index];
-        Log.info(
+        L.i(
           'Membangun kartu pesanan ke-${index + 1}/${_daftarPesanan.length}: '
           '#${pesanan.id} (Status: ${pesanan.status})',
         );
@@ -438,7 +418,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
       ),
       child: InkWell(
         onTap: () {
-          Log.info(
+          L.i(
             'TAP: Kartu pesanan #${pesanan.id} di-tap. Menampilkan detail pesanan.',
           );
           _showPesananDetail(pesanan);
@@ -533,21 +513,21 @@ class _HalamanPesanState extends State<HalamanPesan> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   _actionButton('Proses', Icons.play_arrow, Colors.blue, () {
-                    Log.info(
+                    L.i(
                       'AKSI: Tombol "Proses" ditekan untuk pesanan #${pesanan.id}.',
                     );
                     _updateStatus(pesanan, 'diproses');
                   }),
                   const SizedBox(width: 8),
                   _actionButton('Selesai', Icons.check_circle, Colors.green, () {
-                    Log.info(
+                    L.i(
                       'AKSI: Tombol "Selesai" ditekan untuk pesanan #${pesanan.id}.',
                     );
                     _updateStatus(pesanan, 'selesai');
                   }),
                   const SizedBox(width: 8),
                   _actionButton('Tolak', Icons.cancel, Colors.red, () {
-                    Log.info(
+                    L.i(
                       'AKSI: Tombol "Tolak" ditekan untuk pesanan #${pesanan.id}.',
                     );
                     _updateStatus(pesanan, 'ditolak');
@@ -556,7 +536,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.grey),
                     onPressed: () {
-                      Log.info(
+                      L.i(
                         'AKSI: Tombol "Hapus" ditekan untuk pesanan #${pesanan.id}.',
                       );
                       _hapusPesanan(pesanan);
@@ -601,7 +581,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
       case 'ditolak':
         return Colors.red;
       default:
-        Log.warning(
+        L.w(
           'Status pesanan tidak dikenal: "${pesanan.status}" untuk pesanan #${pesanan.id}. Menggunakan warna default (grey).',
         );
         return Colors.grey;
@@ -614,16 +594,14 @@ class _HalamanPesanState extends State<HalamanPesan> {
   }
 
   void _showPesananDetail(PesananModel pesanan) {
-    Log.info('========================================');
-    Log.info('MENAMPILKAN DETAIL PESANAN (Bottom Sheet)');
-    Log.info('ID Pesanan: ${pesanan.id}');
-    Log.info('ID Pelanggan: ${pesanan.idPelanggan}');
-    Log.info('ID Paket: ${pesanan.idPaket}');
-    Log.info('Status: "${pesanan.status}"');
-    Log.info(
-      'Tanggal: ${DateFormat("dd MMM yyyy HH:mm").format(pesanan.tanggal)}',
-    );
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('MENAMPILKAN DETAIL PESANAN (Bottom Sheet)');
+    L.i('ID Pesanan: ${pesanan.id}');
+    L.i('ID Pelanggan: ${pesanan.idPelanggan}');
+    L.i('ID Paket: ${pesanan.idPaket}');
+    L.i('Status: "${pesanan.status}"');
+    L.i('Tanggal: ${DateFormat("dd MMM yyyy HH:mm").format(pesanan.tanggal)}');
+    L.i('========================================');
 
     showModalBottomSheet(
       context: context,
@@ -663,7 +641,7 @@ class _HalamanPesanState extends State<HalamanPesan> {
         ),
       ),
     ).then((_) {
-      Log.info('Bottom Sheet detail pesanan #${pesanan.id} ditutup.');
+      L.i('Bottom Sheet detail pesanan #${pesanan.id} ditutup.');
     });
   }
 

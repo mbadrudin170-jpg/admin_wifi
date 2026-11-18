@@ -1,30 +1,30 @@
 // path: lib/data/sync/unduh_data.dart
 
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/kritik_saran_model.dart';
 import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
-import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
+import 'package:admin_wifi/model/pesanan_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class LayananUnduhData {
   final FirebaseFirestore _firestore;
@@ -44,15 +44,17 @@ class LayananUnduhData {
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
   LayananUnduhData({FirebaseFirestore? firestore, SyncManager? syncManager})
-      : _firestore = firestore ?? FirebaseFirestore.instance,
-        _syncManager = syncManager ?? SyncManager() {
-    Log.info(
-        'LayananUnduhData berhasil diinisialisasi. Seluruh operasi database lokal dan referensi FirebaseFirestore telah siap digunakan untuk sinkronisasi masuk.');
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _syncManager = syncManager ?? SyncManager() {
+    L.i(
+      'LayananUnduhData berhasil diinisialisasi. Seluruh operasi database lokal dan referensi FirebaseFirestore telah siap digunakan untuk sinkronisasi masuk.',
+    );
   }
 
   Future<void> unduhSemuaData() async {
-    Log.info(
-        'Memulai prosedur orkestrasi unduh data massal. Sistem akan menjalankan permintaan paralel untuk 11 kategori data berbeda guna mempercepat proses sinkronisasi.');
+    L.i(
+      'Memulai prosedur orkestrasi unduh data massal. Sistem akan menjalankan permintaan paralel untuk 11 kategori data berbeda guna mempercepat proses sinkronisasi.',
+    );
     final stopwatch = Stopwatch()..start();
 
     try {
@@ -71,22 +73,22 @@ class LayananUnduhData {
       ]);
 
       stopwatch.stop();
-      Log.info(
-          'Prosedur unduh data massal selesai sepenuhnya. Total durasi eksekusi: ${stopwatch.elapsed.inMilliseconds} ms. Seluruh data lokal kini sinkron dengan server.');
+      L.i(
+        'Prosedur unduh data massal selesai sepenuhnya. Total durasi eksekusi: ${stopwatch.elapsed.inMilliseconds} ms. Seluruh data lokal kini sinkron dengan server.',
+      );
     } catch (e, s) {
-      Log.error(
-          'Kegagalan kritis terdeteksi selama prosedur unduh massal. Salah satu atau lebih permintaan paralel gagal diselesaikan.',
-          error: e,
-          stackTrace: s);
+      L.e(
+        'Kegagalan kritis terdeteksi selama prosedur unduh massal. Salah satu atau lebih permintaan paralel gagal diselesaikan. Error: $e $s',
+      );
       rethrow;
     }
   }
 
   Future<void> unduhDataPengaturan() async {
-    Log.info('Memulai pengecekan sinkronisasi untuk koleksi: [PENGATURAN]');
+    L.i('Memulai pengecekan sinkronisasi untuk koleksi: [PENGATURAN]');
     try {
       final waktuUnduhTerakhir = await _syncManager.getTerakhirUnduh();
-      Log.info('Timestamp sinkronisasi lokal terakhir: $waktuUnduhTerakhir');
+      L.i('Timestamp sinkronisasi lokal terakhir: $waktuUnduhTerakhir');
 
       final docRef = _firestore.collection('pengaturan').doc('default');
       final doc = await docRef.get(const GetOptions(source: Source.server));
@@ -95,37 +97,44 @@ class LayananUnduhData {
         final data = doc.data()!;
         if (data.containsKey('diperbarui')) {
           final dynamic fieldValue = data['diperbarui'];
-          Log.info(
-              'Mendapatkan metadata "diperbarui" dari server. Tipe data terdeteksi: ${fieldValue.runtimeType}');
+          L.i(
+            'Mendapatkan metadata "diperbarui" dari server. Tipe data terdeteksi: ${fieldValue.runtimeType}',
+          );
 
           if (fieldValue is! Timestamp) {
-            Log.error(
-                'Inkompatibilitas Tipe Data: Field "diperbarui" di Firestore adalah ${fieldValue.runtimeType}, namun sistem mengharapkan Timestamp. Sinkronisasi dibatalkan untuk mencegah crash.');
+            L.e(
+              'Inkompatibilitas Tipe Data: Field "diperbarui" di Firestore adalah ${fieldValue.runtimeType}, namun sistem mengharapkan Timestamp. Sinkronisasi dibatalkan untuk mencegah crash.',
+            );
             return;
           }
 
           final waktuPembaruanServer = (fieldValue).toDate();
-          Log.info('Waktu modifikasi server: $waktuPembaruanServer');
+          L.i('Waktu modifikasi server: $waktuPembaruanServer');
 
           if (waktuPembaruanServer.isAfter(waktuUnduhTerakhir)) {
-            Log.info(
-                'Data server lebih baru. Memulai pembaruan database SQLite untuk model PengaturanModel.');
+            L.i(
+              'Data server lebih baru. Memulai pembaruan database SQLite untuk model PengaturanModel.',
+            );
             final pengaturan = PengaturanModel.fromFirebase(data);
             await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
-            Log.info('Update Pengaturan lokal berhasil disimpan.');
+            L.i('Update Pengaturan lokal berhasil disimpan.');
           } else {
-            Log.info('Data pengaturan lokal sudah sesuai dengan versi server terbaru.');
+            L.i(
+              'Data pengaturan lokal sudah sesuai dengan versi server terbaru.',
+            );
           }
         } else {
-          Log.warning(
-              'Dokumen pengaturan ditemukan, namun tidak memiliki field "diperbarui". Melewati pengecekan waktu.');
+          L.w(
+            'Dokumen pengaturan ditemukan, namun tidak memiliki field "diperbarui". Melewati pengecekan waktu.',
+          );
         }
       } else {
-        Log.warning('Dokumen "pengaturan/default" tidak ditemukan di server Firestore.');
+        L.w(
+          'Dokumen "pengaturan/default" tidak ditemukan di server Firestore.',
+        );
       }
     } catch (e, s) {
-      Log.error('Terjadi kesalahan saat sinkronisasi data Pengaturan.',
-          error: e, stackTrace: s);
+      L.e('Terjadi kesalahan saat sinkronisasi data Pengaturan. Error: $e $s');
     }
   }
 
@@ -240,7 +249,9 @@ class LayananUnduhData {
     required T Function(String id, Map<String, dynamic> data) fromFirebase,
     required Future<void> Function(List<T>) operasiBatch,
   }) async {
-    Log.info('Sinkronisasi Koleksi: Memeriksa [$namaKoleksi] untuk data baru sejak $waktuUnduhTerakhir.');
+    L.i(
+      'Sinkronisasi Koleksi: Memeriksa [$namaKoleksi] untuk data baru sejak $waktuUnduhTerakhir.',
+    );
     try {
       final snapshot = await _firestore
           .collection(namaKoleksi)
@@ -248,46 +259,54 @@ class LayananUnduhData {
           .get(const GetOptions(source: Source.server));
 
       if (snapshot.docs.isNotEmpty) {
-        Log.info(
-            'Ditemukan ${snapshot.docs.length} dokumen baru/diperbarui di koleksi [$namaKoleksi]. Memulai parsing data.');
+        L.i(
+          'Ditemukan ${snapshot.docs.length} dokumen baru/diperbarui di koleksi [$namaKoleksi]. Memulai parsing data.',
+        );
 
         final List<T> dataList = [];
         for (final doc in snapshot.docs) {
           try {
             final diperbaruiField = doc.data()['diperbarui'];
-            
+
             // Diagnosis Tipe Data Per Dokumen
-            Log.info(
-                'Analisis Dokumen: ID: ${doc.id} | Tipe Field "diperbarui": ${diperbaruiField?.runtimeType ?? "NULL"}');
+            L.i(
+              'Analisis Dokumen: ID: ${doc.id} | Tipe Field "diperbarui": ${diperbaruiField?.runtimeType ?? "NULL"}',
+            );
 
             dataList.add(fromFirebase(doc.id, doc.data()));
           } catch (e, s) {
             if (e.toString().contains('_CastError') || e is TypeError) {
-              Log.error(
-                  'KESALAHAN KONVERSI: Field "diperbarui" pada dokumen ${doc.id} bukan tipe Timestamp. Mohon jalankan MigrasiTimestamp untuk koleksi ini.',
-                  error: 'Data RAW: ${doc.data()}',
-                  stackTrace: s);
+              L.e(
+                'KESALAHAN KONVERSI: Field "diperbarui" pada dokumen ${doc.id} bukan tipe Timestamp. Mohon jalankan MigrasiTimestamp untuk koleksi ini. Error: Data RAW: ${doc.data()} $s',
+              );
             } else {
-              Log.error('Gagal memproses dokumen individual dengan ID: ${doc.id}',
-                  error: e, stackTrace: s);
+              L.e(
+                'Gagal memproses dokumen individual dengan ID: ${doc.id} Error: $e $s',
+              );
             }
           }
         }
 
         if (dataList.isNotEmpty) {
-          Log.info(
-              'Mengirim ${dataList.length} item valid ke operasi batch database lokal.');
+          L.i(
+            'Mengirim ${dataList.length} item valid ke operasi batch database lokal.',
+          );
           await operasiBatch(dataList);
-          Log.info('Sinkronisasi masuk untuk [$namaKoleksi] berhasil diselesaikan.');
+          L.i('Sinkronisasi masuk untuk [$namaKoleksi] berhasil diselesaikan.');
         } else {
-          Log.warning('Pengecekan selesai: Tidak ada data valid yang dapat disimpan ke lokal dari [$namaKoleksi].');
+          L.w(
+            'Pengecekan selesai: Tidak ada data valid yang dapat disimpan ke lokal dari [$namaKoleksi].',
+          );
         }
       } else {
-        Log.info('Hasil Pengecekan: Koleksi [$namaKoleksi] sudah sinkron dengan server.');
+        L.i(
+          'Hasil Pengecekan: Koleksi [$namaKoleksi] sudah sinkron dengan server.',
+        );
       }
     } catch (e, s) {
-      Log.error('Kegagalan pada prosedur sinkronisasi koleksi: $namaKoleksi',
-          error: e, stackTrace: s);
+      L.e(
+        'Kegagalan pada prosedur sinkronisasi koleksi: $namaKoleksi Error: $e $s',
+      );
     }
   }
 }

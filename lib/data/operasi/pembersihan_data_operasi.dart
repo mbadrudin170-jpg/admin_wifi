@@ -1,7 +1,7 @@
 // path: lib/data/operasi/pembersihan_data_operasi.dart
 
 import 'package:admin_wifi/db/sqflite.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class PembersihanDataOperasi {
   final dbHelper = DatabaseHelper.instance;
@@ -9,7 +9,7 @@ class PembersihanDataOperasi {
   /// Fungsi utama untuk menghapus semua data arsip
   /// yang sudah lebih tua dari [batasHari] di semua tabel yang relevan.
   Future<int> hapusSemuaDataArsipKadaluarsa({required int batasHari}) async {
-    Log.info(
+    L.i(
       'Memulai proses pembersihan data arsip yang lebih tua dari $batasHari hari.',
     );
 
@@ -42,20 +42,20 @@ class PembersihanDataOperasi {
         final hasil = await db.rawDelete(query);
 
         if (hasil > 0) {
-          Log.info(
+          L.i(
             '[$tabel] Dihapus $hasil baris yang diarsipkan lebih dari $batasHari hari.',
           );
         }
 
         totalTerhapus += hasil;
       } catch (e, s) {
-        Log.error('Gagal membersihkan tabel $tabel.', error: e, stackTrace: s);
+        L.e('Gagal membersihkan tabel $tabel. Error: $e $s');
         // Lanjutkan ke tabel berikutnya meskipun ada error di satu tabel
         continue;
       }
     }
 
-    Log.info(
+    L.i(
       'Total $totalTerhapus baris data arsip kadaluarsa berhasil dihapus dari database.',
     );
     return totalTerhapus;

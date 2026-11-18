@@ -1,11 +1,11 @@
 // Path: lib/whatsapp/info_paket.dart
-import 'package:admin_wifi/debug/log.dart'; // diubah: Menggunakan Log kustom
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Kelas utilitas untuk membuat dan mengirim pesan informasi paket.
@@ -17,38 +17,46 @@ class PesanInfoPaket {
   static Future<void> kirimRincianPaket(
     PelangganAktifModel pelangganAktif,
   ) async {
-    Log.info('Memulai proses pengiriman rincian paket via WhatsApp untuk pelanggan aktif ID: ${pelangganAktif.id}');
+    L.i(
+      'Memulai proses pengiriman rincian paket via WhatsApp untuk pelanggan aktif ID: ${pelangganAktif.id}',
+    );
     final pelangganOperasi = PelangganOperasi();
     final paketOperasi = PaketOperasi();
 
     try {
       // 1. Ambil data lengkap pelanggan dan paket dari database lokal.
-      Log.info('Mengambil data pelanggan dengan ID: ${pelangganAktif.idPelanggan}');
+      L.i('Mengambil data pelanggan dengan ID: ${pelangganAktif.idPelanggan}');
       final PelangganModel? pelanggan = await pelangganOperasi.getPelangganById(
         pelangganAktif.idPelanggan,
       );
-      Log.info('Mengambil data paket dengan ID: ${pelangganAktif.idPaket}');
+      L.i('Mengambil data paket dengan ID: ${pelangganAktif.idPaket}');
       final PaketModel? paket = await paketOperasi.getPaketById(
         pelangganAktif.idPaket,
       );
 
       if (pelanggan == null) {
-        Log.warning('Pengiriman pesan dibatalkan. Pelanggan dengan ID ${pelangganAktif.idPelanggan} tidak ditemukan di database lokal.');
+        L.w(
+          'Pengiriman pesan dibatalkan. Pelanggan dengan ID ${pelangganAktif.idPelanggan} tidak ditemukan di database lokal.',
+        );
         return;
       }
       if (paket == null) {
-        Log.warning('Pengiriman pesan dibatalkan. Paket dengan ID ${pelangganAktif.idPaket} tidak ditemukan di database lokal.');
+        L.w(
+          'Pengiriman pesan dibatalkan. Paket dengan ID ${pelangganAktif.idPaket} tidak ditemukan di database lokal.',
+        );
         return;
       }
 
-      Log.info('Berhasil menemukan data pelanggan: ${pelanggan.nama} dan paket: ${paket.nama}');
+      L.i(
+        'Berhasil menemukan data pelanggan: ${pelanggan.nama} dan paket: ${paket.nama}',
+      );
 
       // 2. Dapatkan status pembayaran langsung dari model PelangganAktif.
       final String statusPembayaran = pelangganAktif.status.displayName;
-      Log.info('Status pembayaran yang akan dikirim: $statusPembayaran');
+      L.i('Status pembayaran yang akan dikirim: $statusPembayaran');
 
       // 3. Buat string pesan yang akan dikirim.
-      Log.info('Membuat konten pesan WhatsApp.');
+      L.i('Membuat konten pesan WhatsApp.');
       final String pesan = _buatPesan(
         pelanggan,
         paket,
@@ -57,13 +65,11 @@ class PesanInfoPaket {
       );
 
       // 4. Kirim pesan yang sudah diformat ke nomor telepon pelanggan via WhatsApp.
-      Log.info('Memulai proses pengiriman ke nomor: ${pelanggan.telepon}.');
+      L.i('Memulai proses pengiriman ke nomor: ${pelanggan.telepon}.');
       await _kirimViaWhatsApp(pelanggan.telepon, pesan);
     } catch (e, s) {
-      Log.error(
-        'Terjadi kesalahan fatal saat proses kirimRincianPaket.',
-        error: e,
-        stackTrace: s,
+      L.e(
+        'Terjadi kesalahan fatal saat proses kirimRincianPaket. Error: $e $s',
       );
     }
   }
@@ -84,7 +90,8 @@ class PesanInfoPaket {
       pelangganAktif.tanggalBerakhir,
     );
 
-    final pesanDibuat = '''
+    final pesanDibuat =
+        '''
 *-- Rincian Aktivasi Paket --*
 
 Halo, *$namaPelanggan*.
@@ -110,7 +117,7 @@ Berikut adalah detail paket Anda:
 
 Semoga harimu menyenangkan!
 ''';
-    Log.info('Konten pesan berhasil dibuat:\n$pesanDibuat');
+    L.i('Konten pesan berhasil dibuat:\n$pesanDibuat');
     return pesanDibuat;
   }
 
@@ -119,14 +126,14 @@ Semoga harimu menyenangkan!
     String pesan,
   ) async {
     // 1. Format nomor telepon ke standar internasional (misal: 62812...)
-    Log.info('Memformat nomor telepon: $nomorTelepon');
+    L.i('Memformat nomor telepon: $nomorTelepon');
     String formattedNumber = nomorTelepon.replaceAll(RegExp(r'[^0-9]'), '');
     if (formattedNumber.startsWith('0')) {
       formattedNumber = '62${formattedNumber.substring(1)}';
     } else if (!formattedNumber.startsWith('62')) {
       formattedNumber = '62$formattedNumber';
     }
-    Log.info('Nomor telepon setelah diformat: $formattedNumber');
+    L.i('Nomor telepon setelah diformat: $formattedNumber');
 
     // 2. Buat URI untuk WhatsApp
     final whatsappUri = Uri(
@@ -135,23 +142,21 @@ Semoga harimu menyenangkan!
       path: formattedNumber,
       queryParameters: {'text': pesan},
     );
-    Log.info('Membuat URI WhatsApp: $whatsappUri');
+    L.i('Membuat URI WhatsApp: $whatsappUri');
 
     // 3. Coba luncurkan URL dengan penanganan error
     try {
       if (await canLaunchUrl(whatsappUri)) {
-        Log.info('Membuka WhatsApp dengan URL...');
+        L.i('Membuka WhatsApp dengan URL...');
         await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-        Log.info('Berhasil membuka aplikasi WhatsApp.');
+        L.i('Berhasil membuka aplikasi WhatsApp.');
       } else {
-        Log.error('Tidak dapat membuka URL WhatsApp. Kemungkinan aplikasi WhatsApp tidak terinstal atau ada masalah konfigurasi di AndroidManifest.xml (queries).');
+        L.e(
+          'Tidak dapat membuka URL WhatsApp. Kemungkinan aplikasi WhatsApp tidak terinstal atau ada masalah konfigurasi di AndroidManifest.xml (queries).',
+        );
       }
     } catch (e, s) {
-      Log.error(
-        'Gagal total saat mencoba meluncurkan URL WhatsApp.',
-        error: e,
-        stackTrace: s,
-      );
+      L.e('Gagal total saat mencoba meluncurkan URL WhatsApp. Error: $e $s');
     }
   }
 }

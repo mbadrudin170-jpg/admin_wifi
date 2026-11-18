@@ -1,12 +1,12 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
-import 'package:admin_wifi/widget/nama_pelanggan.dart';
-import 'package:flutter/material.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
+import 'package:admin_wifi/widget/nama_pelanggan.dart';
+import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 // Enum untuk mengontrol tab yang aktif
 enum MenuPoin { penukaran, riwayat }
@@ -35,33 +35,33 @@ class _HalamanPoinState extends State<HalamanPoin> {
   @override
   void initState() {
     super.initState();
-    Log.info('========================================');
-    Log.info('LIFECYCLE: initState() - Halaman HalamanPoin');
-    Log.info('ID Pelanggan: ${widget.idPelanggan}');
-    Log.info('Menu default: Penukaran');
-    Log.info('========================================');
-    Log.info('Memanggil _loadDataPoin() untuk memuat data poin pelanggan.');
+    L.i('========================================');
+    L.i('LIFECYCLE: initState() - Halaman HalamanPoin');
+    L.i('ID Pelanggan: ${widget.idPelanggan}');
+    L.i('Menu default: Penukaran');
+    L.i('========================================');
+    L.i('Memanggil _loadDataPoin() untuk memuat data poin pelanggan.');
     _loadDataPoin();
   }
 
   @override
   void dispose() {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: dispose() - Halaman HalamanPoin');
-    Log.info('ID Pelanggan: ${widget.idPelanggan}');
-    Log.info('Membersihkan resource halaman poin.');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: dispose() - Halaman HalamanPoin');
+    L.i('ID Pelanggan: ${widget.idPelanggan}');
+    L.i('Membersihkan resource halaman poin.');
+    L.i('========================================');
     super.dispose();
   }
 
   Future<void> _loadDataPoin() async {
-    Log.info('========================================');
-    Log.info('MEMUAT DATA POIN PELANGGAN');
-    Log.info('ID Pelanggan: ${widget.idPelanggan}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('MEMUAT DATA POIN PELANGGAN');
+    L.i('ID Pelanggan: ${widget.idPelanggan}');
+    L.i('========================================');
 
     if (!mounted) {
-      Log.warning(
+      L.w(
         'Widget sudah tidak mounted saat _loadDataPoin() dipanggil. Membatalkan proses.',
       );
       return;
@@ -74,13 +74,13 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
     try {
       // Load total poin dari database
-      Log.info('Menghitung total poin pelanggan dari transaksi...');
+      L.i('Menghitung total poin pelanggan dari transaksi...');
       final totalPoin = await _transaksiOperasi.getTotalPoin(
         widget.idPelanggan,
       );
 
       // Load daftar hadiah (paket aktif)
-      Log.info('Memuat daftar hadiah (paket aktif) dari database...');
+      L.i('Memuat daftar hadiah (paket aktif) dari database...');
       final daftarHadiah = await _paketOperasi.getPaketByIsPublic();
 
       if (!mounted) return;
@@ -89,7 +89,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
         _totalPoin = totalPoin;
         _daftarHadiah = daftarHadiah;
         _isLoading = false;
-        Log.info(
+        L.i(
           'Berhasil memuat data. Total poin: $totalPoin, Hadiah: ${daftarHadiah.length}',
         );
       });
@@ -99,24 +99,24 @@ class _HalamanPoinState extends State<HalamanPoin> {
         await _loadRiwayatTransaksi();
       }
     } catch (e, stackTrace) {
-      Log.error('Gagal memuat data poin: $e', error: e, stackTrace: stackTrace);
+      L.e('Gagal memuat data poin: $e Error: $e $stackTrace');
 
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
         _errorMessage = 'Gagal memuat data: $e';
-        Log.warning('Gagal memuat data poin.');
+        L.w('Gagal memuat data poin.');
       });
     }
   }
 
   // Method untuk memuat riwayat transaksi
   Future<void> _loadRiwayatTransaksi() async {
-    Log.info('========================================');
-    Log.info('MEMUAT RIWAYAT TRANSAKSI PELANGGAN');
-    Log.info('ID Pelanggan: ${widget.idPelanggan}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('MEMUAT RIWAYAT TRANSAKSI PELANGGAN');
+    L.i('ID Pelanggan: ${widget.idPelanggan}');
+    L.i('========================================');
 
     if (!mounted) return;
 
@@ -125,7 +125,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
     });
 
     try {
-      Log.info('Mengambil riwayat transaksi dari database...');
+      L.i('Mengambil riwayat transaksi dari database...');
       final riwayatTransaksi = await _transaksiOperasi
           .ambilTransaksiByPelangganId(widget.idPelanggan);
 
@@ -139,16 +139,10 @@ class _HalamanPoinState extends State<HalamanPoin> {
       setState(() {
         _riwayatTransaksi = transaksiPoin;
         _isLoadingRiwayat = false;
-        Log.info(
-          'Berhasil memuat ${transaksiPoin.length} riwayat transaksi poin.',
-        );
+        L.i('Berhasil memuat ${transaksiPoin.length} riwayat transaksi poin.');
       });
     } catch (e, stackTrace) {
-      Log.error(
-        'Gagal memuat riwayat transaksi: $e',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      L.e('Gagal memuat riwayat transaksi: $e Error: $e $stackTrace');
 
       if (!mounted) return;
 
@@ -161,14 +155,14 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   @override
   Widget build(BuildContext context) {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: build() - Membangun UI HalamanPoin');
-    Log.info('ID Pelanggan: ${widget.idPelanggan}');
-    Log.info(
+    L.i('========================================');
+    L.i('LIFECYCLE: build() - Membangun UI HalamanPoin');
+    L.i('ID Pelanggan: ${widget.idPelanggan}');
+    L.i(
       'Menu aktif: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
     );
-    Log.info('Total poin ditampilkan: $_totalPoin');
-    Log.info('========================================');
+    L.i('Total poin ditampilkan: $_totalPoin');
+    L.i('========================================');
 
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +176,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info(
+            L.i(
               'NAVIGASI: Tombol Kembali ditekan. Kembali ke halaman sebelumnya.',
             );
             Navigator.pop(context);
@@ -201,7 +195,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   // Widget untuk menampilkan informasi total poin
   Widget _buildInfoPoinHeader() {
-    Log.info('Membangun header informasi total poin. Total: $_totalPoin');
+    L.i('Membangun header informasi total poin. Total: $_totalPoin');
 
     return Container(
       width: double.infinity,
@@ -244,11 +238,11 @@ class _HalamanPoinState extends State<HalamanPoin> {
         selected: {_menuPilihan},
         onSelectionChanged: (Set<MenuPoin> newSelection) async {
           final selection = newSelection.first;
-          Log.info('SEGMENTED CONTROL: Tab dipilih berubah.');
-          Log.info(
+          L.i('SEGMENTED CONTROL: Tab dipilih berubah.');
+          L.i(
             '  - Tab sebelumnya: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
           );
-          Log.info(
+          L.i(
             '  - Tab baru: ${selection == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
           );
           setState(() {
@@ -260,7 +254,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
             await _loadRiwayatTransaksi();
           }
 
-          Log.info(
+          L.i(
             'State _menuPilihan berhasil diperbarui. UI akan menampilkan konten tab yang dipilih.',
           );
         },
@@ -270,7 +264,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   // Widget untuk menampilkan konten berdasarkan tab yang dipilih
   Widget _buildContentView() {
-    Log.info(
+    L.i(
       'Membangun konten untuk tab: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
     );
 
@@ -284,7 +278,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   // Widget daftar hadiah yang terhubung dengan database
   Widget _buildDaftarHadiah() {
-    Log.info('Membangun daftar hadiah yang tersedia untuk ditukar.');
+    L.i('Membangun daftar hadiah yang tersedia untuk ditukar.');
 
     // Tampilkan loading indicator saat memuat data
     if (_isLoading) {
@@ -340,10 +334,10 @@ class _HalamanPoinState extends State<HalamanPoin> {
       );
     }
 
-    Log.info('Jumlah hadiah tersedia: ${_daftarHadiah.length}');
+    L.i('Jumlah hadiah tersedia: ${_daftarHadiah.length}');
     for (var hadiah in _daftarHadiah) {
       final cukupPoin = _totalPoin >= hadiah.poinPenukaran;
-      Log.info(
+      L.i(
         '  - ${hadiah.nama}: ${hadiah.poinPenukaran} poin (Status: ${cukupPoin ? "DAPAT DITUKAR" : "POIN KURANG (butuh ${hadiah.poinPenukaran - _totalPoin} poin lagi)"})',
       );
     }
@@ -390,7 +384,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
   // Widget riwayat poin yang terhubung dengan database
   Widget _buildRiwayatPoin() {
-    Log.info('Membangun daftar riwayat poin pelanggan.');
+    L.i('Membangun daftar riwayat poin pelanggan.');
 
     // Tampilkan loading indicator saat memuat data
     if (_isLoadingRiwayat) {
@@ -423,13 +417,13 @@ class _HalamanPoinState extends State<HalamanPoin> {
       );
     }
 
-    Log.info('Jumlah riwayat transaksi poin: ${_riwayatTransaksi.length}');
+    L.i('Jumlah riwayat transaksi poin: ${_riwayatTransaksi.length}');
     for (var transaksi in _riwayatTransaksi) {
       final isPenambahan = transaksi.poinYangDihasilkan > 0;
       final poinValue = isPenambahan
           ? transaksi.poinYangDihasilkan
           : transaksi.poinYangDigunakan;
-      Log.info(
+      L.i(
         '  - ${FormatTanggal.formatTanggalBasic(transaksi.tanggal)}: ${transaksi.keterangan} '
         '(${isPenambahan ? "PENAMBAHAN +$poinValue" : "PENGURANGAN -$poinValue"} poin)',
       );

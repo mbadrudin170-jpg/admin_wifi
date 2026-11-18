@@ -1,6 +1,6 @@
 // path: lib/migrasi/migrasi_timestamp.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class MigrasiTimestamp {
   /// Memastikan semua field String yang berisi format tanggal (ISO8601)
@@ -16,10 +16,10 @@ class MigrasiTimestamp {
   /// Parameter:
   /// [namaKoleksi] - Nama koleksi Firestore target (contoh: 'paket', 'pelanggan', 'transaksi')
   static Future<void> migrasiStringKeTimestamp(String namaKoleksi) async {
-    Log.info(
+    L.i(
       'Memulai prosedur migrasi String-ke-Timestamp untuk koleksi: $namaKoleksi',
     );
-    Log.info(
+    L.i(
       'Tujuan: Mengonversi semua field String yang berisi format tanggal ISO8601 menjadi tipe Timestamp Firestore',
     );
 
@@ -27,18 +27,16 @@ class MigrasiTimestamp {
     final koleksiRef = firestore.collection(namaKoleksi);
 
     try {
-      Log.info(
+      L.i(
         'Mengambil seluruh snapshot dokumen dari server Firestore untuk koleksi: $namaKoleksi',
       );
       final QuerySnapshot snapshot = await koleksiRef.get();
 
       final int totalDokumen = snapshot.docs.length;
-      Log.info(
-        'Berhasil mengambil $totalDokumen dokumen dari koleksi $namaKoleksi',
-      );
+      L.i('Berhasil mengambil $totalDokumen dokumen dari koleksi $namaKoleksi');
 
       if (snapshot.docs.isEmpty) {
-        Log.info(
+        L.i(
           'Koleksi $namaKoleksi kosong, tidak ada dokumen yang perlu dimigrasi. Prosedur dihentikan.',
         );
         return;
@@ -51,7 +49,7 @@ class MigrasiTimestamp {
       int totalDokumenDilewati = 0;
       int totalErrorKonversi = 0;
 
-      Log.info('Memulai iterasi pemeriksaan field di setiap dokumen...');
+      L.i('Memulai iterasi pemeriksaan field di setiap dokumen...');
 
       for (int i = 0; i < snapshot.docs.length; i++) {
         final DocumentSnapshot doc = snapshot.docs[i];
@@ -59,10 +57,8 @@ class MigrasiTimestamp {
         bool dokumenIniDiubah = false;
         int fieldDikonversiDiDokumenIni = 0;
 
-        Log.info(
-          'Memproses dokumen ke-${i + 1} dari $totalDokumen, ID: ${doc.id}',
-        );
-        Log.info('Jumlah field dalam dokumen ini: ${data.keys.length}');
+        L.i('Memproses dokumen ke-${i + 1} dari $totalDokumen, ID: ${doc.id}');
+        L.i('Jumlah field dalam dokumen ini: ${data.keys.length}');
 
         for (final String namaField in data.keys) {
           final dynamic nilai = data[namaField];
@@ -78,7 +74,7 @@ class MigrasiTimestamp {
 
             // Validasi rentang tahun untuk memastikan ini benar-benar tanggal
             if (hasilParse.year < 2000 || hasilParse.year > 2100) {
-              Log.info(
+              L.i(
                 'Field [$namaField] memiliki nilai "$nilai" yang terparse sebagai tanggal tetapi tahun ${hasilParse.year} di luar rentang 2000-2100, dilewati',
               );
               continue;
@@ -86,7 +82,7 @@ class MigrasiTimestamp {
 
             final Timestamp timestampHasil = Timestamp.fromDate(hasilParse);
 
-            Log.info(
+            L.i(
               'Field [$namaField]: "$nilai" (String) akan dikonversi menjadi Timestamp(${timestampHasil.toDate().toIso8601String()})',
             );
 
@@ -96,17 +92,17 @@ class MigrasiTimestamp {
             fieldDikonversiDiDokumenIni++;
             dokumenIniDiubah = true;
 
-            Log.info(
+            L.i(
               'Operasi update untuk field [$namaField] ditambahkan ke batch. Total operasi dalam batch saat ini: $jumlahOperasiBatch',
             );
 
             // Firestore membatasi 500 operasi per batch
             if (jumlahOperasiBatch >= 500) {
-              Log.info(
+              L.i(
                 'Batch mencapai batas 500 operasi. Melakukan commit batch ke server Firestore...',
               );
               await batch.commit();
-              Log.info(
+              L.i(
                 'Commit batch berhasil. Mereset batch untuk operasi selanjutnya.',
               );
 
@@ -115,7 +111,7 @@ class MigrasiTimestamp {
             }
           } catch (e) {
             // String tidak valid sebagai DateTime, lewati
-            Log.info(
+            L.i(
               'Field [$namaField] memiliki nilai "$nilai" yang bukan format tanggal ISO8601 valid, dilewati. Error parse: ${e.toString()}',
             );
           }
@@ -123,12 +119,12 @@ class MigrasiTimestamp {
 
         if (dokumenIniDiubah) {
           totalDokumenDiubah++;
-          Log.info(
+          L.i(
             'Ringkasan dokumen ${doc.id}: $fieldDikonversiDiDokumenIni field dikonversi, dokumen ditandai untuk diupdate',
           );
         } else {
           totalDokumenDilewati++;
-          Log.info(
+          L.i(
             'Ringkasan dokumen ${doc.id}: tidak ada field String yang perlu dikonversi, dokumen dilewati',
           );
         }
@@ -136,28 +132,26 @@ class MigrasiTimestamp {
 
       // Commit sisa operasi batch yang belum dikirim
       if (jumlahOperasiBatch > 0) {
-        Log.info(
+        L.i(
           'Mengirim sisa $jumlahOperasiBatch operasi batch ke server Firestore...',
         );
         await batch.commit();
-        Log.info('Commit batch terakhir berhasil.');
+        L.i('Commit batch terakhir berhasil.');
       } else {
-        Log.info('Tidak ada sisa operasi batch yang perlu dikirim.');
+        L.i('Tidak ada sisa operasi batch yang perlu dikirim.');
       }
 
-      Log.info('PROSEDUR MIGRASI SELESAI UNTUK KOLEKSI: $namaKoleksi');
-      Log.info('Total dokumen dalam koleksi: $totalDokumen');
-      Log.info('Total dokumen yang diubah: $totalDokumenDiubah');
-      Log.info('Total dokumen yang dilewati: $totalDokumenDilewati');
-      Log.info(
+      L.i('PROSEDUR MIGRASI SELESAI UNTUK KOLEKSI: $namaKoleksi');
+      L.i('Total dokumen dalam koleksi: $totalDokumen');
+      L.i('Total dokumen yang diubah: $totalDokumenDiubah');
+      L.i('Total dokumen yang dilewati: $totalDokumenDilewati');
+      L.i(
         'Total field yang dikonversi dari String ke Timestamp: $totalFieldDikonversi',
       );
-      Log.info('Total error konversi: $totalErrorKonversi');
+      L.i('Total error konversi: $totalErrorKonversi');
     } catch (e, s) {
-      Log.error(
-        'Gagal menjalankan prosedur migrasi String-ke-Timestamp untuk koleksi: $namaKoleksi',
-        error: e,
-        stackTrace: s,
+      L.e(
+        'Gagal menjalankan prosedur migrasi String-ke-Timestamp untuk koleksi: $namaKoleksi Error: $e $s',
       );
     }
   }

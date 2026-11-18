@@ -6,8 +6,9 @@ import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_global_saya/src/utils/l.dart';
+
 // Mengganti developer log standar dengan log custom
-import 'package:admin_wifi/debug/log.dart';
 
 class DetailPelangganPage extends StatefulWidget {
   final String idPelanggan;
@@ -30,7 +31,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
   void initState() {
     super.initState();
     // Log inisialisasi state
-    Log.info(
+    L.i(
       'Memulai siklus hidup initState pada DetailPelangganPage untuk ID Pelanggan: ${widget.idPelanggan}. Sistem akan segera memicu pemuatan data dari database.',
     );
     _loadData();
@@ -38,7 +39,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
 
   // Fungsi ini bertujuan untuk memuat data pelanggan dan total poin.
   Future<void> _loadData() async {
-    Log.info(
+    L.i(
       'Menjalankan fungsi _loadData(). Mencoba melakukan pengambilan data paralel untuk profil pelanggan dan akumulasi poin dari database.',
     );
     try {
@@ -48,20 +49,20 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
           isLoading = true;
         });
       }
-      Log.info(
+      L.i(
         'Memulai request asinkron ke PelangganOperasi untuk mencari data dengan ID: ${widget.idPelanggan}',
       );
       final hasilPelanggan = await pelangganOperasi.getPelangganById(
         widget.idPelanggan,
       );
 
-      Log.info(
+      L.i(
         'Memulai request asinkron ke TransaksiOperasi untuk menghitung total poin pelanggan ID: ${widget.idPelanggan}',
       );
       final hasilPoin = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
 
       if (!mounted) {
-        Log.warning(
+        L.w(
           'Fungsi _loadData() selesai tapi widget sudah tidak terpasang (not mounted) di pohon widget. Membatalkan pembaruan State untuk mencegah kebocoran memori.',
         );
         return;
@@ -74,23 +75,21 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       });
 
       if (hasilPelanggan != null) {
-        Log.info(
+        L.i(
           'Pemuatan data berhasil secara keseluruhan. Objek pelanggan atas nama "${hasilPelanggan.nama}" telah dimuat ke dalam state dan UI siap dirender ulang.',
         );
       } else {
-        Log.warning(
+        L.w(
           'Pemuatan data selesai tetapi mengembalikan nilai null. Pelanggan dengan ID: ${widget.idPelanggan} tidak ditemukan dalam koleksi database. UI akan menampilkan pesan data tidak ditemukan.',
         );
       }
     } catch (e, stackTrace) {
-      Log.error(
-        'Terjadi kegagalan fatal saat proses pengambilan data di fungsi _loadData(). Hal ini bisa disebabkan oleh masalah koneksi database atau ketidakcocokan skema model.',
-        error: e,
-        stackTrace: stackTrace,
+      L.e(
+        'Terjadi kegagalan fatal saat proses pengambilan data di fungsi _loadData(). Hal ini bisa disebabkan oleh masalah koneksi database atau ketidakcocokan skema model. Error: $e $stackTrace',
       );
       if (mounted) {
         setState(() => isLoading = false);
-        Log.info(
+        L.i(
           'State isLoading telah diatur ke false meskipun terjadi error agar spinner berhenti berputar.',
         );
       }
@@ -100,7 +99,9 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
   // ditambahkan: fungsi untuk navigasi ke halaman edit
   void _editPelanggan() async {
     if (pelanggan == null) return;
-    Log.info('Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${pelanggan!.id}');
+    L.i(
+      'Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${pelanggan!.id}',
+    );
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -109,16 +110,18 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
     );
 
     if (result == true && mounted) {
-      Log.info('Kembali dari FormPelanggan dengan hasil true. Memuat ulang data pelanggan.');
+      L.i(
+        'Kembali dari FormPelanggan dengan hasil true. Memuat ulang data pelanggan.',
+      );
       _loadData(); // Muat ulang data untuk menampilkan perubahan
     } else {
-      Log.info('Kembali dari FormPelanggan tanpa menyimpan perubahan.');
+      L.i('Kembali dari FormPelanggan tanpa menyimpan perubahan.');
     }
   }
 
   // Fungsi ini bertujuan untuk menyalin semua info pelanggan.
   void _salinSemuaInfo(BuildContext context, PelangganModel pelanggan) {
-    Log.info(
+    L.i(
       'User memicu aksi _salinSemuaInfo(). Mempersiapkan penggabungan string untuk Nama: ${pelanggan.nama}, Telepon: ${pelanggan.telepon}, Alamat: ${pelanggan.alamat}, Password: ${pelanggan.password}, dan MAC: ${pelanggan.macAddress}.',
     );
 
@@ -133,7 +136,7 @@ MAC : ${pelanggan.macAddress}
             .trim();
 
     Clipboard.setData(ClipboardData(text: info)).then((_) {
-      Log.info(
+      L.i(
         'Data komprehensif pelanggan berhasil didorong ke sistem Clipboard perangkat.',
       );
     });
@@ -145,12 +148,12 @@ MAC : ${pelanggan.macAddress}
 
   // Fungsi ini bertujuan untuk menyalin data spesifik.
   void _salinData(BuildContext context, String label, String data) {
-    Log.info(
+    L.i(
       'User memicu aksi _salinData() untuk bagian spesifik: $label dengan nilai data: $data.',
     );
 
     Clipboard.setData(ClipboardData(text: data)).then((_) {
-      Log.info('Berhasil menyalin data kategori $label ke Clipboard.');
+      L.i('Berhasil menyalin data kategori $label ke Clipboard.');
     });
 
     ScaffoldMessenger.of(
@@ -160,24 +163,26 @@ MAC : ${pelanggan.macAddress}
 
   @override
   Widget build(BuildContext context) {
-    Log.info(
+    L.i(
       'Membangun UI (build method) DetailPelangganPage. Status Loading: $isLoading, Pelanggan Terdeteksi: ${pelanggan != null}',
     );
 
     // Tampilkan loading spinner saat data sedang diambil
     if (isLoading) {
-      Log.info(
+      L.i(
         'Merender tampilan CircularProgressIndicator karena status isLoading masih true.',
       );
       return Scaffold(
-        appBar: AppBar(title: const Text('Memuat Detail...')), // diubah: judul appbar saat loading
+        appBar: AppBar(
+          title: const Text('Memuat Detail...'),
+        ), // diubah: judul appbar saat loading
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     // Cek jika data kosong setelah loading selesai
     if (pelanggan == null) {
-      Log.warning(
+      L.w(
         'Merender tampilan pesan "Pelanggan tidak ditemukan" karena objek pelanggan bernilai null setelah proses loading selesai.',
       );
       return Scaffold(
@@ -210,7 +215,7 @@ MAC : ${pelanggan.macAddress}
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
-                  Log.info(
+                  L.i(
                     'Interaksi pengguna: Mengetuk kartu Poin. Melakukan navigasi push ke HalamanPoin untuk pelanggan: ${pelanggan!.nama}',
                   );
                   Navigator.push(
@@ -220,9 +225,7 @@ MAC : ${pelanggan.macAddress}
                           HalamanPoin(idPelanggan: widget.idPelanggan),
                     ),
                   ).then((_) {
-                    Log.info(
-                      'Kembali dari HalamanPoin ke DetailPelangganPage.',
-                    );
+                    L.i('Kembali dari HalamanPoin ke DetailPelangganPage.');
                     _loadData(); // ditambahkan: muat ulang data poin jika ada perubahan
                   });
                 },
@@ -254,33 +257,33 @@ MAC : ${pelanggan.macAddress}
             ),
             const SizedBox(height: 24),
             _buildDetailRow(context, 'Nama', pelanggan!.nama, () {
-              Log.info('Trigger tombol salin pada baris Nama.');
+              L.i('Trigger tombol salin pada baris Nama.');
               _salinData(context, 'Nama', pelanggan!.nama);
             }),
             const Divider(),
             _buildDetailRow(context, 'Telepon', pelanggan!.telepon, () {
-              Log.info('Trigger tombol salin pada baris Telepon.');
+              L.i('Trigger tombol salin pada baris Telepon.');
               _salinData(context, 'No Telepon', pelanggan!.telepon);
             }),
             const Divider(),
             _buildDetailRow(context, 'Alamat', pelanggan!.alamat, () {
-              Log.info('Trigger tombol salin pada baris Alamat.');
+              L.i('Trigger tombol salin pada baris Alamat.');
               _salinData(context, 'Alamat', pelanggan!.alamat);
             }),
             const Divider(),
             _buildDetailRow(context, 'Password', pelanggan!.password, () {
-              Log.info('Trigger tombol salin pada baris Password.');
+              L.i('Trigger tombol salin pada baris Password.');
               _salinData(context, 'Password', pelanggan!.password);
             }),
             const Divider(),
             _buildDetailRow(context, 'MAC Address', pelanggan!.macAddress, () {
-              Log.info('Trigger tombol salin pada baris MAC Address.');
+              L.i('Trigger tombol salin pada baris MAC Address.');
               _salinData(context, 'MAC Address', pelanggan!.macAddress);
             }),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                Log.info(
+                L.i(
                   'Menekan tombol utama "Salin Semua Info" di bagian bawah layar.',
                 );
                 _salinSemuaInfo(context, pelanggan!);
@@ -304,7 +307,7 @@ MAC : ${pelanggan.macAddress}
     VoidCallback salinData,
   ) {
     // Log pembentukan widget row (opsional untuk sangat terperinci)
-    // Log.info('Membangun baris detail untuk kategori: $judul');
+    // L.i('Membangun baris detail untuk kategori: $judul');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

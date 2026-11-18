@@ -1,9 +1,9 @@
 // path: lib/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart
 
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 part 'pelanggan_aktif_model.freezed.dart';
 
@@ -70,7 +70,7 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
     if (value is DateTime) return value;
     if (value is String) return DateTime.tryParse(value);
 
-    Log.warning('Format DateTime tidak dikenali: $value');
+    L.w('Format DateTime tidak dikenali: $value');
     return null;
   }
 
@@ -80,7 +80,7 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
     if (value is int) return value == 1;
     if (value is String) return value.toLowerCase() == 'true';
 
-    Log.warning('Format Boolean tidak dikenali, default ke false: $value');
+    L.w('Format Boolean tidak dikenali, default ke false: $value');
     return false;
   }
 
@@ -114,10 +114,10 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
         diarsipkan: _parseDateTime(map['diarsipkan']),
       );
 
-      Log.info('Data dimuat dari SQLite');
+      L.i('Data dimuat dari SQLite');
       return model;
     } catch (e, stack) {
-      Log.error('Gagal parsing SQLite: $map', error: e, stackTrace: stack);
+      L.e('Gagal parsing SQLite: $map Error: $e $stack');
       rethrow;
     }
   }
@@ -154,10 +154,10 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
         diarsipkan: _parseDateTime(data['diarsipkan']),
       );
 
-      Log.info('Data ditarik dari Firebase');
+      L.i('Data ditarik dari Firebase');
       return model;
     } catch (e, stack) {
-      Log.error('Gagal parsing Firebase: $data', error: e, stackTrace: stack);
+      L.e('Gagal parsing Firebase: $data Error: $e $stack');
       rethrow;
     }
   }
@@ -193,7 +193,7 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
       data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
     }
 
-    Log.api('Firestore/Pelanggan/$id', data, method: 'SET');
+    L.api('Firestore/Pelanggan/$id', data, method: 'SET');
     return data;
   }
 }

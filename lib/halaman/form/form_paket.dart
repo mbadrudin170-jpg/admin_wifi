@@ -6,8 +6,8 @@
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/model/paket_model.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
 
 class FormPaket extends StatefulWidget {
@@ -44,111 +44,107 @@ class _FormPaketState extends State<FormPaket> {
   @override
   void initState() {
     super.initState();
-    Log.info('========================================');
-    Log.info('LIFECYCLE: initState() - Halaman FormPaket');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: initState() - Halaman FormPaket');
+    L.i('========================================');
 
     // dihapus: Variabel lokal isEditMode tidak digunakan
-    Log.info(
+    L.i(
       'Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}, '
       '${_isEditMode ? "ID: ${widget.paket!.id}, Nama: ${widget.paket!.nama}, Harga: ${widget.paket!.harga}, Durasi: ${widget.paket!.durasi} ${widget.paket!.tipe.displayName}" : ""}',
     );
 
-    Log.info(
+    L.i(
       'Menginisialisasi PaketOperasi. '
       'Menggunakan instance dari widget jika tersedia, jika tidak membuat instance baru.',
     );
     _paketOperasi = widget.paketOperasi ?? PaketOperasi();
-    Log.info(
+    L.i(
       'PaketOperasi berhasil diinisialisasi. '
       'Instance: ${_paketOperasi.hashCode}, '
       'Sumber: ${widget.paketOperasi != null ? "Dependency Injection" : "Instance Baru"}',
     );
 
     if (_isEditMode) {
-      Log.info('MODE EDIT terdeteksi. Data paket yang akan diedit:');
-      Log.info('  - ID: ${widget.paket!.id}');
-      Log.info('  - Nama: ${widget.paket!.nama}');
-      Log.info('  - Harga: ${widget.paket!.harga}');
-      Log.info('  - Durasi: ${widget.paket!.durasi}');
-      Log.info('  - Tipe Durasi: ${widget.paket!.tipe.displayName}');
-      Log.info('  - Poin Hadiah: ${widget.paket!.poinHadiah}');
-      Log.info('  - Poin Penukaran: ${widget.paket!.poinPenukaran}');
-      Log.info('  - isPublic: ${widget.paket!.isPublic}');
-      Log.info('  - isDeleted: ${widget.paket!.isDeleted}');
-      Log.info('  - Diperbarui: ${widget.paket!.diperbarui}');
-      Log.info('  - Diarsipkan: ${widget.paket!.diarsipkan ?? "NULL"}');
+      L.i('MODE EDIT terdeteksi. Data paket yang akan diedit:');
+      L.i('  - ID: ${widget.paket!.id}');
+      L.i('  - Nama: ${widget.paket!.nama}');
+      L.i('  - Harga: ${widget.paket!.harga}');
+      L.i('  - Durasi: ${widget.paket!.durasi}');
+      L.i('  - Tipe Durasi: ${widget.paket!.tipe.displayName}');
+      L.i('  - Poin Hadiah: ${widget.paket!.poinHadiah}');
+      L.i('  - Poin Penukaran: ${widget.paket!.poinPenukaran}');
+      L.i('  - isPublic: ${widget.paket!.isPublic}');
+      L.i('  - isDeleted: ${widget.paket!.isDeleted}');
+      L.i('  - Diperbarui: ${widget.paket!.diperbarui}');
+      L.i('  - Diarsipkan: ${widget.paket!.diarsipkan ?? "NULL"}');
 
-      Log.info(
-        'Mengisi TextEditingController dengan data dari paket yang diedit.',
-      );
+      L.i('Mengisi TextEditingController dengan data dari paket yang diedit.');
       _namaController.text = widget.paket!.nama;
-      Log.info('  - _namaController.text = "${widget.paket!.nama}"');
+      L.i('  - _namaController.text = "${widget.paket!.nama}"');
 
       _hargaController.text = widget.paket!.harga.toString();
-      Log.info('  - _hargaController.text = "${widget.paket!.harga}"');
+      L.i('  - _hargaController.text = "${widget.paket!.harga}"');
 
       _durasiController.text = widget.paket!.durasi.toString();
-      Log.info('  - _durasiController.text = "${widget.paket!.durasi}"');
+      L.i('  - _durasiController.text = "${widget.paket!.durasi}"');
 
       _poinHadiahController.text = widget.paket!.poinHadiah.toString();
-      Log.info(
-        '  - _poinHadiahController.text = "${widget.paket!.poinHadiah}"',
-      );
+      L.i('  - _poinHadiahController.text = "${widget.paket!.poinHadiah}"');
 
       _poinPenukaranController.text = widget.paket!.poinPenukaran.toString();
-      Log.info(
+      L.i(
         '  - _poinPenukaranController.text = "${widget.paket!.poinPenukaran}"',
       );
 
       _selectedTipe = widget.paket!.tipe;
-      Log.info('  - _selectedTipe = ${widget.paket!.tipe.displayName}');
+      L.i('  - _selectedTipe = ${widget.paket!.tipe.displayName}');
 
       _isPublic = widget.paket!.isPublic;
-      Log.info('  - _isPublic = ${widget.paket!.isPublic}');
+      L.i('  - _isPublic = ${widget.paket!.isPublic}');
     } else {
-      Log.info('MODE TAMBAH BARU terdeteksi.');
-      Log.info('Form akan membuat paket baru dengan:');
-      Log.info('  - ID: Akan digenerate otomatis oleh database');
-      Log.info('  - isPublic default: true (paket aktif)');
-      Log.info('  - Tipe Durasi default: hari');
-      Log.info('  - isDeleted default: 0');
-      Log.info('  - Diarsipkan default: NULL');
-      Log.info('  - Diperbarui: Akan diisi otomatis');
+      L.i('MODE TAMBAH BARU terdeteksi.');
+      L.i('Form akan membuat paket baru dengan:');
+      L.i('  - ID: Akan digenerate otomatis oleh database');
+      L.i('  - isPublic default: true (paket aktif)');
+      L.i('  - Tipe Durasi default: hari');
+      L.i('  - isDeleted default: 0');
+      L.i('  - Diarsipkan default: NULL');
+      L.i('  - Diperbarui: Akan diisi otomatis');
     }
 
-    Log.info(
+    L.i(
       'Inisialisasi FormPaket selesai. Semua controller siap menerima input.',
     );
   }
 
   void _saveForm() async {
-    Log.info('========================================');
-    Log.info('AKSI: Tombol Simpan Ditekan');
-    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('AKSI: Tombol Simpan Ditekan');
+    L.i('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    L.i('========================================');
 
-    Log.info('Memvalidasi form...');
+    L.i('Memvalidasi form...');
     if (_formKey.currentState!.validate()) {
-      Log.info('Validasi form BERHASIL. Semua input valid.');
+      L.i('Validasi form BERHASIL. Semua input valid.');
 
-      Log.info('Data yang akan disimpan:');
-      Log.info('  - Nama: "${_namaController.text}"');
-      Log.info('  - Harga: ${_hargaController.text}');
-      Log.info('  - Durasi: ${_durasiController.text}');
-      Log.info('  - Tipe Durasi: ${_selectedTipe.displayName}');
-      Log.info(
+      L.i('Data yang akan disimpan:');
+      L.i('  - Nama: "${_namaController.text}"');
+      L.i('  - Harga: ${_hargaController.text}');
+      L.i('  - Durasi: ${_durasiController.text}');
+      L.i('  - Tipe Durasi: ${_selectedTipe.displayName}');
+      L.i(
         '  - Poin Hadiah: ${_poinHadiahController.text.isNotEmpty ? _poinHadiahController.text : "0 (default)"}',
       );
-      Log.info(
+      L.i(
         '  - Poin Penukaran: ${_poinPenukaranController.text.isNotEmpty ? _poinPenukaranController.text : "0 (default)"}',
       );
-      Log.info('  - isPublic: $_isPublic');
-      Log.info(
+      L.i('  - isPublic: $_isPublic');
+      L.i(
         '  - ID: ${_isEditMode ? widget.paket!.id : "Akan digenerate otomatis"}',
       );
 
-      Log.info('Membuat objek PaketModel baru dari data form.');
+      L.i('Membuat objek PaketModel baru dari data form.');
       final newPaket = PaketModel(
         id: _isEditMode ? widget.paket!.id : null,
         nama: _namaController.text,
@@ -160,70 +156,70 @@ class _FormPaketState extends State<FormPaket> {
         isPublic: _isPublic,
       );
 
-      Log.info('Objek PaketModel berhasil dibuat:');
-      Log.info('  - ID: ${newPaket.id}');
-      Log.info('  - Nama: ${newPaket.nama}');
-      Log.info('  - Harga: ${newPaket.harga}');
-      Log.info('  - Durasi: ${newPaket.durasi}');
-      Log.info('  - Tipe: ${newPaket.tipe.displayName}');
-      Log.info('  - Poin Hadiah: ${newPaket.poinHadiah}');
-      Log.info('  - Poin Penukaran: ${newPaket.poinPenukaran}');
-      Log.info('  - isPublic: ${newPaket.isPublic}');
+      L.i('Objek PaketModel berhasil dibuat:');
+      L.i('  - ID: ${newPaket.id}');
+      L.i('  - Nama: ${newPaket.nama}');
+      L.i('  - Harga: ${newPaket.harga}');
+      L.i('  - Durasi: ${newPaket.durasi}');
+      L.i('  - Tipe: ${newPaket.tipe.displayName}');
+      L.i('  - Poin Hadiah: ${newPaket.poinHadiah}');
+      L.i('  - Poin Penukaran: ${newPaket.poinPenukaran}');
+      L.i('  - isPublic: ${newPaket.isPublic}');
 
       try {
         if (_isEditMode) {
-          Log.info('========================================');
-          Log.info('PROSES UPDATE PAKET (MODE EDIT)');
-          Log.info('========================================');
-          Log.info('Data sebelum update:');
-          Log.info('  - Nama: ${widget.paket!.nama} -> ${newPaket.nama}');
-          Log.info('  - Harga: ${widget.paket!.harga} -> ${newPaket.harga}');
-          Log.info('  - Durasi: ${widget.paket!.durasi} -> ${newPaket.durasi}');
-          Log.info(
+          L.i('========================================');
+          L.i('PROSES UPDATE PAKET (MODE EDIT)');
+          L.i('========================================');
+          L.i('Data sebelum update:');
+          L.i('  - Nama: ${widget.paket!.nama} -> ${newPaket.nama}');
+          L.i('  - Harga: ${widget.paket!.harga} -> ${newPaket.harga}');
+          L.i('  - Durasi: ${widget.paket!.durasi} -> ${newPaket.durasi}');
+          L.i(
             '  - Tipe: ${widget.paket!.tipe.displayName} -> ${newPaket.tipe.displayName}',
           );
-          Log.info(
+          L.i(
             '  - Poin Hadiah: ${widget.paket!.poinHadiah} -> ${newPaket.poinHadiah}',
           );
-          Log.info(
+          L.i(
             '  - Poin Penukaran: ${widget.paket!.poinPenukaran} -> ${newPaket.poinPenukaran}',
           );
-          Log.info(
+          L.i(
             '  - isPublic: ${widget.paket!.isPublic} -> ${newPaket.isPublic}',
           );
 
-          Log.info(
+          L.i(
             'Memanggil _paketOperasi.updatePaket() untuk menyimpan perubahan ke database.',
           );
           await _paketOperasi.updatePaket(newPaket);
-          Log.info(
+          L.i(
             'Update paket BERHASIL. Data paket telah diperbarui di database.',
           );
         } else {
-          Log.info('========================================');
-          Log.info('PROSES TAMBAH PAKET BARU (MODE TAMBAH)');
-          Log.info('========================================');
+          L.i('========================================');
+          L.i('PROSES TAMBAH PAKET BARU (MODE TAMBAH)');
+          L.i('========================================');
 
-          Log.info(
+          L.i(
             'Memanggil _paketOperasi.createPaket() untuk menyimpan paket baru ke database.',
           );
           await _paketOperasi.createPaket(newPaket);
-          Log.info('Paket baru BERHASIL disimpan ke database.');
+          L.i('Paket baru BERHASIL disimpan ke database.');
         }
 
         if (!mounted) {
-          Log.warning(
+          L.w(
             'Widget sudah tidak mounted setelah operasi database berhasil. '
             'Tidak dapat menampilkan SnackBar atau melakukan Navigator.pop.',
           );
           return;
         }
 
-        Log.info('========================================');
-        Log.info('PENYIMPANAN DATA PAKET BERHASIL');
-        Log.info('========================================');
+        L.i('========================================');
+        L.i('PENYIMPANAN DATA PAKET BERHASIL');
+        L.i('========================================');
 
-        Log.info('Menampilkan SnackBar sukses ke pengguna.');
+        L.i('Menampilkan SnackBar sukses ke pengguna.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -232,108 +228,104 @@ class _FormPaketState extends State<FormPaket> {
             ),
           ),
         );
-        Log.info('SnackBar sukses telah ditampilkan.');
+        L.i('SnackBar sukses telah ditampilkan.');
 
-        Log.info(
+        L.i(
           'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
         );
-        Log.info(
+        L.i(
           'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.',
         );
         Navigator.pop(context, true);
-        Log.info('Navigator.pop berhasil dijalankan.');
+        L.i('Navigator.pop berhasil dijalankan.');
       } on DatabaseException catch (e, s) {
-        Log.info('========================================');
-        Log.info('ERROR DATABASE TERDETEKSI');
-        Log.info('========================================');
+        L.i('========================================');
+        L.i('ERROR DATABASE TERDETEKSI');
+        L.i('========================================');
 
         String errorMessage =
             'Gagal menyimpan paket. Terjadi kesalahan database.';
-        Log.warning('Terjadi DatabaseException saat menyimpan paket.');
-        Log.warning('Detail exception: ${e.toString()}');
+        L.w('Terjadi DatabaseException saat menyimpan paket.');
+        L.w('Detail exception: ${e.toString()}');
 
         if (e.isUniqueConstraintError()) {
           errorMessage = 'Nama paket sudah ada. Harap gunakan nama lain.';
-          Log.warning(
+          L.w(
             'Penyebab: UNIQUE CONSTRAINT VIOLATION. '
             'Nama paket "${_namaController.text}" sudah ada di database. '
             'Pengguna harus menggunakan nama yang berbeda.',
           );
         } else {
-          Log.error(
+          L.e(
             'DatabaseException tidak dikenal saat menyimpan paket. '
             'Kemungkinan penyebab: constraint violation lain, database corrupt, '
-            'atau kesalahan struktur tabel.',
-            error: e,
-            stackTrace: s,
+            'atau kesalahan struktur tabel. Error: $e $s',
           );
         }
 
         if (!mounted) {
-          Log.warning(
+          L.w(
             'Widget sudah tidak mounted setelah DatabaseException. '
             'Tidak dapat menampilkan SnackBar error.',
           );
           return;
         }
 
-        Log.info(
+        L.i(
           'Menampilkan SnackBar error ke pengguna dengan pesan: "$errorMessage"',
         );
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(errorMessage)));
-        Log.info('SnackBar error telah ditampilkan.');
+        L.i('SnackBar error telah ditampilkan.');
       } catch (e, s) {
-        Log.error(
+        L.e(
           'Gagal menyimpan paket karena error tidak dikenal (Unknown Error). '
           'Terjadi kesalahan yang tidak terduga saat operasi ${_isEditMode ? "update" : "create"} paket. '
           'Kemungkinan penyebab: koneksi database gagal, memory overflow, '
-          'atau exception dari sistem yang tidak tertangani.',
-          error: e,
-          stackTrace: s,
+          'atau exception dari sistem yang tidak tertangani. Error: $e $s',
         );
 
         if (!mounted) {
-          Log.warning(
+          L.w(
             'Widget sudah tidak mounted setelah Unknown Error. '
             'Tidak dapat menampilkan SnackBar error.',
           );
           return;
         }
 
-        Log.info('Menampilkan SnackBar error umum ke pengguna.');
+        L.i('Menampilkan SnackBar error umum ke pengguna.');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
-        Log.info('SnackBar error telah ditampilkan.');
+        L.i('SnackBar error telah ditampilkan.');
       }
     } else {
-      Log.warning('Validasi form GAGAL. Terdapat input yang tidak valid.');
-      Log.warning('Kemungkinan penyebab:');
-      Log.warning('  - Nama paket kosong');
-      Log.warning('  - Harga kosong atau bukan angka');
-      Log.warning('  - Durasi kosong atau bukan angka');
-      Log.warning('  - Poin hadiah bukan angka');
-      Log.warning('  - Poin penukaran bukan angka');
-      Log.info('Form tidak akan disimpan sampai semua input valid.');
+      L.w('Validasi form GAGAL. Terdapat input yang tidak valid.');
+      L.w('Kemungkinan penyebab:');
+      L.w('  - Nama paket kosong');
+      L.w('  - Harga kosong atau bukan angka');
+      L.w('  - Durasi kosong atau bukan angka');
+      L.w('  - Poin hadiah bukan angka');
+      L.w('  - Poin penukaran bukan angka');
+      L.i('Form tidak akan disimpan sampai semua input valid.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: build() - Membangun UI FormPaket');
-    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
-    Log.info('Data form saat ini:');
-    Log.info('  - Nama: "${_namaController.text}"');
-    Log.info('  - Harga: "${_hargaController.text}"');
-    Log.info('  - Durasi: "${_durasiController.text}"');
-    Log.info('  - Tipe Durasi: ${_selectedTipe.displayName}');
-    Log.info('  - Poin Hadiah: "${_poinHadiahController.text}"');
-    Log.info('  - Poin Penukaran: "${_poinPenukaranController.text}"');
-    Log.info('  - isPublic: $_isPublic');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: build() - Membangun UI FormPaket');
+    L.i('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    L.i('Data form saat ini:');
+    L.i('  - Nama: "${_namaController.text}"');
+    L.i('  - Harga: "${_hargaController.text}"');
+    L.i('  - Durasi: "${_durasiController.text}"');
+    L.i('  - Tipe Durasi: ${_selectedTipe.displayName}');
+    L.i('  - Poin Hadiah: "${_poinHadiahController.text}"');
+    L.i('  - Poin Penukaran: "${_poinPenukaranController.text}"');
+    L.i('  - isPublic: $_isPublic');
+    L.i('========================================');
 
     return Scaffold(
       appBar: AppBar(
@@ -341,7 +333,7 @@ class _FormPaketState extends State<FormPaket> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info(
+            L.i(
               'NAVIGASI: Tombol Kembali ditekan. '
               'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).',
             );
@@ -363,19 +355,19 @@ class _FormPaketState extends State<FormPaket> {
                       TextInputAction.next, // ditambah: textInputAction
                   decoration: const InputDecoration(labelText: 'Nama Paket'),
                   onChanged: (value) {
-                    Log.info(
+                    L.i(
                       'INPUT: Nama paket berubah menjadi: "$value" (panjang: ${value.length} karakter)',
                     );
                   },
                   validator: (value) {
-                    Log.info(
+                    L.i(
                       'VALIDASI: Memvalidasi input nama paket. Nilai: "${value ?? "NULL"}"',
                     );
                     if (value == null || value.isEmpty) {
-                      Log.warning('VALIDASI GAGAL: Nama paket kosong.');
+                      L.w('VALIDASI GAGAL: Nama paket kosong.');
                       return 'Nama paket tidak boleh kosong';
                     }
-                    Log.info('VALIDASI BERHASIL: Nama paket valid.');
+                    L.i('VALIDASI BERHASIL: Nama paket valid.');
                     return null;
                   },
                   onFieldSubmitted: (_) {
@@ -392,27 +384,25 @@ class _FormPaketState extends State<FormPaket> {
                   decoration: const InputDecoration(labelText: 'Harga'),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
-                    Log.info(
+                    L.i(
                       'INPUT: Harga berubah menjadi: "$value" (panjang: ${value.length} karakter)',
                     );
                   },
                   validator: (value) {
-                    Log.info(
+                    L.i(
                       'VALIDASI: Memvalidasi input harga. Nilai: "${value ?? "NULL"}"',
                     );
                     if (value == null || value.isEmpty) {
-                      Log.warning('VALIDASI GAGAL: Harga kosong.');
+                      L.w('VALIDASI GAGAL: Harga kosong.');
                       return 'Harga tidak boleh kosong';
                     }
                     if (int.tryParse(value) == null) {
-                      Log.warning(
+                      L.w(
                         'VALIDASI GAGAL: Harga bukan angka yang valid. Nilai: "$value"',
                       );
                       return 'Harga harus berupa angka';
                     }
-                    Log.info(
-                      'VALIDASI BERHASIL: Harga valid = ${int.parse(value)}',
-                    );
+                    L.i('VALIDASI BERHASIL: Harga valid = ${int.parse(value)}');
                     return null;
                   },
                   onFieldSubmitted: (_) {
@@ -429,25 +419,25 @@ class _FormPaketState extends State<FormPaket> {
                   decoration: const InputDecoration(labelText: 'Durasi'),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
-                    Log.info(
+                    L.i(
                       'INPUT: Durasi berubah menjadi: "$value" (panjang: ${value.length} karakter)',
                     );
                   },
                   validator: (value) {
-                    Log.info(
+                    L.i(
                       'VALIDASI: Memvalidasi input durasi. Nilai: "${value ?? "NULL"}"',
                     );
                     if (value == null || value.isEmpty) {
-                      Log.warning('VALIDASI GAGAL: Durasi kosong.');
+                      L.w('VALIDASI GAGAL: Durasi kosong.');
                       return 'Durasi tidak boleh kosong';
                     }
                     if (int.tryParse(value) == null) {
-                      Log.warning(
+                      L.w(
                         'VALIDASI GAGAL: Durasi bukan angka yang valid. Nilai: "$value"',
                       );
                       return 'Durasi harus berupa angka';
                     }
-                    Log.info(
+                    L.i(
                       'VALIDASI BERHASIL: Durasi valid = ${int.parse(value)}',
                     );
                     return null;
@@ -466,27 +456,27 @@ class _FormPaketState extends State<FormPaket> {
                   decoration: const InputDecoration(labelText: 'Poin Hadiah'),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
-                    Log.info(
+                    L.i(
                       'INPUT: Poin hadiah berubah menjadi: "$value" (panjang: ${value.length} karakter)',
                     );
                   },
                   validator: (value) {
-                    Log.info(
+                    L.i(
                       'VALIDASI: Memvalidasi input poin hadiah. Nilai: "${value ?? "NULL"}"',
                     );
                     if (value == null || value.isEmpty) {
-                      Log.info(
+                      L.i(
                         'VALIDASI: Poin hadiah kosong, dianggap valid (opsional). Default akan digunakan (0).',
                       );
                       return null;
                     }
                     if (int.tryParse(value) == null) {
-                      Log.warning(
+                      L.w(
                         'VALIDASI GAGAL: Poin hadiah bukan angka yang valid. Nilai: "$value"',
                       );
                       return 'Poin hadiah harus angka';
                     }
-                    Log.info(
+                    L.i(
                       'VALIDASI BERHASIL: Poin hadiah valid = ${int.parse(value)}',
                     );
                     return null;
@@ -509,27 +499,27 @@ class _FormPaketState extends State<FormPaket> {
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
-                    Log.info(
+                    L.i(
                       'INPUT: Poin penukaran berubah menjadi: "$value" (panjang: ${value.length} karakter)',
                     );
                   },
                   validator: (value) {
-                    Log.info(
+                    L.i(
                       'VALIDASI: Memvalidasi input poin penukaran. Nilai: "${value ?? "NULL"}"',
                     );
                     if (value == null || value.isEmpty) {
-                      Log.info(
+                      L.i(
                         'VALIDASI: Poin penukaran kosong, dianggap valid (opsional). Default akan digunakan (0).',
                       );
                       return null;
                     }
                     if (int.tryParse(value) == null) {
-                      Log.warning(
+                      L.w(
                         'VALIDASI GAGAL: Poin penukaran bukan angka yang valid. Nilai: "$value"',
                       );
                       return 'Poin penukaran harus angka';
                     }
-                    Log.info(
+                    L.i(
                       'VALIDASI BERHASIL: Poin penukaran valid = ${int.parse(value)}',
                     );
                     return null;
@@ -551,13 +541,13 @@ class _FormPaketState extends State<FormPaket> {
                   }).toList(),
                   onChanged: (TipeDurasi? newValue) {
                     if (newValue != null) {
-                      Log.info('DROPDOWN: Tipe durasi diubah.');
-                      Log.info('  - Tipe Lama: ${_selectedTipe.displayName}');
-                      Log.info('  - Tipe Baru: ${newValue.displayName}');
+                      L.i('DROPDOWN: Tipe durasi diubah.');
+                      L.i('  - Tipe Lama: ${_selectedTipe.displayName}');
+                      L.i('  - Tipe Baru: ${newValue.displayName}');
                       setState(() {
                         _selectedTipe = newValue;
                       });
-                      Log.info(
+                      L.i(
                         'State _selectedTipe berhasil diperbarui ke: ${_selectedTipe.displayName}',
                       );
                     }
@@ -569,24 +559,22 @@ class _FormPaketState extends State<FormPaket> {
                   subtitle: const Text('Jika OFF, paket tidak tampil ke user'),
                   value: _isPublic,
                   onChanged: (value) {
-                    Log.info('SWITCH: Status public diubah.');
-                    Log.info('  - Status Lama: $_isPublic');
-                    Log.info('  - Status Baru: $value');
-                    Log.info(
+                    L.i('SWITCH: Status public diubah.');
+                    L.i('  - Status Lama: $_isPublic');
+                    L.i('  - Status Baru: $value');
+                    L.i(
                       '  - Efek: Paket akan ${value ? "TAMPIL" : "TIDAK TAMPIL"} ke pengguna.',
                     );
                     setState(() {
                       _isPublic = value;
                     });
-                    Log.info(
-                      'State _isPublic berhasil diperbarui ke: $_isPublic',
-                    );
+                    L.i('State _isPublic berhasil diperbarui ke: $_isPublic');
                   },
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    Log.info('AKSI: Tombol Simpan ditekan oleh pengguna.');
+                    L.i('AKSI: Tombol Simpan ditekan oleh pengguna.');
                     _saveForm();
                   },
                   style: ElevatedButton.styleFrom(
@@ -607,20 +595,20 @@ class _FormPaketState extends State<FormPaket> {
 
   @override
   void dispose() {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: dispose() - Halaman FormPaket');
-    Log.info('Membersihkan resource:');
-    Log.info('  - Mendispose TextEditingController (_namaController)');
-    Log.info('  - Mendispose TextEditingController (_hargaController)');
-    Log.info('  - Mendispose TextEditingController (_durasiController)');
-    Log.info('  - Mendispose TextEditingController (_poinHadiahController)');
-    Log.info('  - Mendispose TextEditingController (_poinPenukaranController)');
-    Log.info('  - Mendispose FocusNode (_namaFocusNode)');
-    Log.info('  - Mendispose FocusNode (_hargaFocusNode)');
-    Log.info('  - Mendispose FocusNode (_durasiFocusNode)');
-    Log.info('  - Mendispose FocusNode (_poinHadiahFocusNode)');
-    Log.info('  - Mendispose FocusNode (_poinPenukaranFocusNode)');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: dispose() - Halaman FormPaket');
+    L.i('Membersihkan resource:');
+    L.i('  - Mendispose TextEditingController (_namaController)');
+    L.i('  - Mendispose TextEditingController (_hargaController)');
+    L.i('  - Mendispose TextEditingController (_durasiController)');
+    L.i('  - Mendispose TextEditingController (_poinHadiahController)');
+    L.i('  - Mendispose TextEditingController (_poinPenukaranController)');
+    L.i('  - Mendispose FocusNode (_namaFocusNode)');
+    L.i('  - Mendispose FocusNode (_hargaFocusNode)');
+    L.i('  - Mendispose FocusNode (_durasiFocusNode)');
+    L.i('  - Mendispose FocusNode (_poinHadiahFocusNode)');
+    L.i('  - Mendispose FocusNode (_poinPenukaranFocusNode)');
+    L.i('========================================');
 
     _namaController.dispose();
     _hargaController.dispose();
@@ -635,7 +623,7 @@ class _FormPaketState extends State<FormPaket> {
     _poinHadiahFocusNode.dispose();
     _poinPenukaranFocusNode.dispose();
 
-    Log.info('Semua resource berhasil dibersihkan.');
+    L.i('Semua resource berhasil dibersihkan.');
     super.dispose();
   }
 }

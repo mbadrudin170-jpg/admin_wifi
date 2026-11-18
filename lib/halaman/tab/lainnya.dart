@@ -1,18 +1,19 @@
 // path: lib/halaman/tab/lainnya.dart
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 // import '../../data/services/notifikasi_servis.dart';
+import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
+import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
 import '../lainnya/kategori.dart';
 import '../lainnya/kritik_saran.dart';
 import '../lainnya/paket.dart';
 import '../lainnya/pelanggan.dart';
+import '../lainnya/pengaturan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
 import '../lainnya/versi_apk_user.dart';
 import 'pesanan.dart';
-import '../lainnya/pengaturan.dart';
-import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
 
 class LainnyaPage extends StatefulWidget {
   const LainnyaPage({super.key});
@@ -40,13 +41,13 @@ class _LainnyaTabState extends State<LainnyaPage> {
   }
 
   void _handleNavigation(String pageName, Widget page) {
-    Log.info('Navigasi ke halaman: $pageName');
+    L.i('Navigasi ke halaman: $pageName');
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI untuk Halaman Lainnya.');
+    L.i('Membangun UI untuk Halaman Lainnya.');
     return Scaffold(
       appBar: AppBar(title: const Text('Pengaturan & Lainnya')),
       body: ListView(
@@ -68,19 +69,19 @@ class _LainnyaTabState extends State<LainnyaPage> {
             title: 'Kritik & Saran',
             icon: Icons.feedback,
             onTap: () async {
-              Log.info('Memulai proses untuk membuka halaman Kritik & Saran.');
+              L.i('Memulai proses untuk membuka halaman Kritik & Saran.');
               final navigator = Navigator.of(context);
 
-              Log.info('Mengunduh data Kritik & Saran dari Firebase.');
+              L.i('Mengunduh data Kritik & Saran dari Firebase.');
               final dataFromFirebase =
                   await KritikSaranOperasi.unduhDataDariFirebase();
-              Log.info('Berhasil mengunduh ${dataFromFirebase.length} data.');
+              L.i('Berhasil mengunduh ${dataFromFirebase.length} data.');
 
               if (dataFromFirebase.isNotEmpty) {
                 final operasi = KritikSaranOperasi();
-                Log.info('Menyimpan/Memperbarui data ke database lokal.');
+                L.i('Menyimpan/Memperbarui data ke database lokal.');
                 await operasi.sisipkanAtauPerbaruiBatch(dataFromFirebase);
-                Log.info('Data berhasil disimpan/diperbarui.');
+                L.i('Data berhasil disimpan/diperbarui.');
               }
 
               if (!mounted) return;
@@ -142,6 +143,11 @@ class _LainnyaTabState extends State<LainnyaPage> {
             icon: Icons.construction,
             onTap: () =>
                 _handleNavigation('Alat Migrasi Data', const HalamanMigrasi()),
+          ),
+          _buildNavigationButton(
+            title: '[DEBUG] Data Dummy',
+            icon: Icons.science,
+            onTap: () => _handleNavigation('Data Dummy', const DummyScreen()),
           ),
         ],
       ),

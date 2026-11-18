@@ -1,30 +1,30 @@
 // path: lib/app.dart
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/splash_screen.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun widget MyApp, menyiapkan MultiProvider.');
+    L.i('Membangun widget MyApp, menyiapkan MultiProvider.');
     return MultiProvider(
       providers: [
         Provider<SyncManager>(
           create: (_) {
-            Log.info('Membuat dan menyediakan instance SyncManager.');
+            L.i('Membuat dan menyediakan instance SyncManager.');
             return SyncManager();
           },
         ),
       ],
       child: Builder(
         builder: (context) {
-          Log.info('Membangun child dari MultiProvider, yaitu AppMaterial.');
+          L.i('Membangun child dari MultiProvider, yaitu AppMaterial.');
           return const AppMaterial();
         },
       ),
@@ -37,12 +37,10 @@ class AppMaterial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun struktur tema dan MaterialApp.');
+    L.i('Membangun struktur tema dan MaterialApp.');
 
     const Color primarySeedColor = Colors.deepPurple;
-    Log.info(
-      'Menetapkan warna dasar (seed color) untuk tema: $primarySeedColor.',
-    );
+    L.i('Menetapkan warna dasar (seed color) untuk tema: $primarySeedColor.');
 
     final TextTheme appTextTheme = TextTheme(
       displayLarge: GoogleFonts.oswald(
@@ -52,7 +50,7 @@ class AppMaterial extends StatelessWidget {
       titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
       bodyMedium: GoogleFonts.openSans(fontSize: 14),
     );
-    Log.info('Membuat definisi TextTheme kustom.');
+    L.i('Membuat definisi TextTheme kustom.');
 
     final ThemeData lightTheme = ThemeData(
       useMaterial3: true,
@@ -82,9 +80,9 @@ class AppMaterial extends StatelessWidget {
         ),
       ),
     );
-    Log.info('Membuat objek ThemeData untuk mode terang (light theme).');
+    L.i('Membuat objek ThemeData untuk mode terang (light theme).');
 
-    Log.info('Mengembalikan widget MaterialApp sebagai root UI.');
+    L.i('Mengembalikan widget MaterialApp sebagai root UI.');
     return MaterialApp(
       title: 'Admin Wifi',
       debugShowCheckedModeBanner: false,

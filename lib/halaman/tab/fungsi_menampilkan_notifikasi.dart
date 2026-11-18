@@ -1,15 +1,15 @@
 // Path: lib/halaman/tab/fungsi_menampilkan_notifikasi.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:admin_wifi/debug/log.dart';
 
 @pragma('vm:entry-point')
 void onDidReceiveNotificationResponse(
   NotificationResponse notificationResponse,
 ) async {
-  Log.info(
+  L.i(
     'Notifikasi di-tap oleh pengguna. '
     'ID Notifikasi: ${notificationResponse.id}, '
     'Payload: ${notificationResponse.payload ?? "Tidak ada payload"}. '
@@ -21,7 +21,7 @@ class NotifikasiServis {
   final FlutterLocalNotificationsPlugin plugin;
 
   NotifikasiServis() : plugin = FlutterLocalNotificationsPlugin() {
-    Log.info(
+    L.i(
       'NotifikasiServis instance dibuat. '
       'Menggunakan FlutterLocalNotificationsPlugin default.',
     );
@@ -29,7 +29,7 @@ class NotifikasiServis {
 
   @visibleForTesting
   NotifikasiServis.internal(this.plugin) {
-    Log.info(
+    L.i(
       'NotifikasiServis instance dibuat (internal/testing). '
       'Menggunakan FlutterLocalNotificationsPlugin yang di-inject. '
       'Instance plugin: ${plugin.hashCode}',
@@ -37,26 +37,24 @@ class NotifikasiServis {
   }
 
   Future<void> inisialisasi() async {
-    Log.info(
+    L.i(
       'Memulai konfigurasi dan inisialisasi plugin notifikasi lokal. '
       'Proses ini mencakup pengaturan channel Android, pengaturan iOS, '
       'dan inisialisasi zona waktu.',
     );
     try {
-      Log.info(
+      L.i(
         'Membuat konfigurasi inisialisasi untuk platform Android. '
         'Menggunakan icon @mipmap/ic_launcher sebagai ikon notifikasi.',
       );
       const AndroidInitializationSettings androidInitializationSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
 
-      Log.info(
-        'Membuat konfigurasi inisialisasi untuk platform iOS (Darwin).',
-      );
+      L.i('Membuat konfigurasi inisialisasi untuk platform iOS (Darwin).');
       const DarwinInitializationSettings darwinInitializationSettings =
           DarwinInitializationSettings();
 
-      Log.info(
+      L.i(
         'Menggabungkan konfigurasi Android dan iOS ke dalam InitializationSettings.',
       );
       const InitializationSettings initializationSettings =
@@ -65,7 +63,7 @@ class NotifikasiServis {
             iOS: darwinInitializationSettings,
           );
 
-      Log.info(
+      L.i(
         'Memanggil plugin.initialize() dengan konfigurasi yang telah dibuat. '
         'Mendaftarkan callback onDidReceiveNotificationResponse untuk menangani notifikasi yang di-tap.',
       );
@@ -75,47 +73,43 @@ class NotifikasiServis {
         onDidReceiveBackgroundNotificationResponse:
             onDidReceiveNotificationResponse,
       );
-      Log.info(
+      L.i(
         'Plugin notifikasi berhasil diinisialisasi. '
         'Callback untuk notifikasi foreground dan background telah terdaftar.',
       );
 
-      Log.info(
+      L.i(
         'Menginisialisasi data zona waktu dari package timezone. '
         'Ini diperlukan untuk menjadwalkan notifikasi berdasarkan waktu lokal.',
       );
       tz.initializeTimeZones();
-      
-      Log.info(
-        'Mengatur lokasi zona waktu default ke Asia/Jakarta (WIB).',
-      );
+
+      L.i('Mengatur lokasi zona waktu default ke Asia/Jakarta (WIB).');
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
 
-      Log.info(
+      L.i(
         'Inisialisasi NotifikasiServis BERHASIL. '
         'Plugin siap digunakan untuk menjadwalkan dan menampilkan notifikasi. '
         'Timezone: Asia/Jakarta.',
       );
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal menginisialisasi plugin notifikasi lokal. '
         'Proses inisialisasi mengalami kegagalan. '
         'Kemungkinan penyebab: plugin tidak terpasang dengan benar, '
         'konfigurasi platform tidak valid, atau zona waktu gagal diinisialisasi. '
-        'Notifikasi tidak akan berfungsi sampai masalah ini diperbaiki.',
-        error: e,
-        stackTrace: s,
+        'Notifikasi tidak akan berfungsi sampai masalah ini diperbaiki. Error: $e $s',
       );
     }
   }
 
   Future<bool> requestPermissions() async {
-    Log.info(
+    L.i(
       'Meminta izin notifikasi dari sistem operasi. '
       'Proses ini akan memeriksa dan meminta izin untuk platform Android dan iOS.',
     );
     try {
-      Log.info(
+      L.i(
         'Memeriksa apakah platform Android tersedia dan meminta izin notifikasi.',
       );
       bool? androidResult;
@@ -125,21 +119,21 @@ class NotifikasiServis {
                 AndroidFlutterLocalNotificationsPlugin
               >();
       if (androidImplementation != null) {
-        Log.info(
+        L.i(
           'Implementasi Android ditemukan. Meminta izin notifikasi Android...',
         );
         androidResult = await androidImplementation
             .requestNotificationsPermission();
-        Log.info(
+        L.i(
           'Hasil permintaan izin Android: ${androidResult == true ? "DIBERIKAN" : "DITOLAK"}.',
         );
       } else {
-        Log.info(
+        L.i(
           'Implementasi Android tidak ditemukan. Melewati permintaan izin Android.',
         );
       }
 
-      Log.info(
+      L.i(
         'Memeriksa apakah platform iOS tersedia dan meminta izin notifikasi.',
       );
       bool? iosResult;
@@ -148,7 +142,7 @@ class NotifikasiServis {
             IOSFlutterLocalNotificationsPlugin
           >();
       if (iOSImplementation != null) {
-        Log.info(
+        L.i(
           'Implementasi iOS ditemukan. Meminta izin notifikasi iOS (alert, badge, sound)...',
         );
         iosResult = await iOSImplementation.requestPermissions(
@@ -156,31 +150,27 @@ class NotifikasiServis {
           badge: true,
           sound: true,
         );
-        Log.info(
+        L.i(
           'Hasil permintaan izin iOS: ${iosResult == true ? "DIBERIKAN" : "DITOLAK"}.',
         );
       } else {
-        Log.info(
-          'Implementasi iOS tidak ditemukan. Melewati permintaan izin iOS.',
-        );
+        L.i('Implementasi iOS tidak ditemukan. Melewati permintaan izin iOS.');
       }
 
       final bool finalResult = (androidResult ?? false) || (iosResult ?? false);
-      Log.info(
+      L.i(
         'Hasil akhir permintaan izin notifikasi: ${finalResult ? "IZIN DIBERIKAN (minimal satu platform memberikan izin)" : "IZIN DITOLAK (semua platform menolak izin)"}. '
         'Android: ${androidResult ?? "tidak tersedia"}, '
         'iOS: ${iosResult ?? "tidak tersedia"}.',
       );
       return finalResult;
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal meminta izin notifikasi dari sistem operasi. '
         'Proses permintaan izin mengalami kegagalan. '
         'Kemungkinan penyebab: plugin tidak mendukung platform saat ini, '
         'terjadi error saat berkomunikasi dengan sistem operasi, '
-        'atau pengguna telah menolak izin secara permanen.',
-        error: e,
-        stackTrace: s,
+        'atau pengguna telah menolak izin secara permanen. Error: $e $s',
       );
       return false;
     }
@@ -192,7 +182,7 @@ class NotifikasiServis {
     required String body,
     required DateTime jadwal,
   }) async {
-    Log.info(
+    L.i(
       'Mencoba menjadwalkan notifikasi baru. '
       'ID Notifikasi: $id, '
       'Judul: "$title", '
@@ -200,7 +190,7 @@ class NotifikasiServis {
       'Waktu Dijadwalkan: $jadwal (${jadwal.toIso8601String()}).',
     );
     try {
-      Log.info(
+      L.i(
         'Membuat konfigurasi detail notifikasi untuk platform Android. '
         'Channel ID: id_kadaluarsa_paket, '
         'Channel Name: Notifikasi Kadaluarsa Paket, '
@@ -218,22 +208,18 @@ class NotifikasiServis {
             showWhen: false,
           );
 
-      Log.info(
-        'Membungkus konfigurasi Android ke dalam NotificationDetails.',
-      );
+      L.i('Membungkus konfigurasi Android ke dalam NotificationDetails.');
       const NotificationDetails notificationDetails = NotificationDetails(
         android: androidNotificationDetails,
       );
 
-      Log.info(
+      L.i(
         'Mengkonversi DateTime menjadi TZDateTime dengan zona waktu lokal (Asia/Jakarta).',
       );
       final tzDateTime = tz.TZDateTime.from(jadwal, tz.local);
-      Log.info(
-        'TZDateTime berhasil dibuat: ${tzDateTime.toIso8601String()}.',
-      );
+      L.i('TZDateTime berhasil dibuat: ${tzDateTime.toIso8601String()}.');
 
-      Log.info(
+      L.i(
         'Memanggil plugin.zonedSchedule() untuk menjadwalkan notifikasi. '
         'Mode penjadwalan Android: inexact (untuk efisiensi baterai).',
       );
@@ -246,46 +232,42 @@ class NotifikasiServis {
         androidScheduleMode: AndroidScheduleMode.inexact,
       );
 
-      Log.info(
+      L.i(
         'Notifikasi BERHASIL dijadwalkan. '
         'ID: $id, '
         'Judul: "$title", '
         'Akan muncul pada: $jadwal (${jadwal.toIso8601String()}).',
       );
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal menjadwalkan notifikasi dengan ID: $id. '
         'Proses penjadwalan notifikasi mengalami kegagalan. '
         'Kemungkinan penyebab: ID duplikat, waktu yang sudah lewat, '
-        'plugin belum diinisialisasi, atau izin notifikasi belum diberikan.',
-        error: e,
-        stackTrace: s,
+        'plugin belum diinisialisasi, atau izin notifikasi belum diberikan. Error: $e $s',
       );
     }
   }
 
   Future<void> batalNotifikasi(int id) async {
-    Log.info(
+    L.i(
       'Mencoba membatalkan notifikasi yang telah dijadwalkan. '
       'ID Notifikasi yang akan dibatalkan: $id.',
     );
     try {
-      Log.info(
+      L.i(
         'Memanggil plugin.cancel() untuk membatalkan notifikasi dengan ID: $id.',
       );
       await plugin.cancel(id: id);
-      Log.info(
+      L.i(
         'Notifikasi dengan ID: $id BERHASIL dibatalkan. '
         'Notifikasi tidak akan muncul pada waktu yang telah dijadwalkan.',
       );
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal membatalkan notifikasi dengan ID: $id. '
         'Proses pembatalan notifikasi mengalami kegagalan. '
         'Kemungkinan penyebab: notifikasi dengan ID tersebut tidak ditemukan, '
-        'plugin belum diinisialisasi, atau terjadi error sistem.',
-        error: e,
-        stackTrace: s,
+        'plugin belum diinisialisasi, atau terjadi error sistem. Error: $e $s',
       );
     }
   }
@@ -295,14 +277,14 @@ class NotifikasiServis {
     required String title,
     required String body,
   }) async {
-    Log.info(
+    L.i(
       'Mencoba menampilkan notifikasi secara langsung (segera). '
       'ID Notifikasi: $id, '
       'Judul: "$title", '
       'Isi: "$body".',
     );
     try {
-      Log.info(
+      L.i(
         'Membuat konfigurasi detail notifikasi langsung untuk platform Android. '
         'Channel ID: id_notifikasi_langsung, '
         'Channel Name: Notifikasi Langsung, '
@@ -321,14 +303,12 @@ class NotifikasiServis {
             showWhen: true,
           );
 
-      Log.info(
-        'Membungkus konfigurasi Android ke dalam NotificationDetails.',
-      );
+      L.i('Membungkus konfigurasi Android ke dalam NotificationDetails.');
       const NotificationDetails notificationDetails = NotificationDetails(
         android: androidNotificationDetails,
       );
 
-      Log.info(
+      L.i(
         'Memanggil plugin.show() untuk menampilkan notifikasi secara langsung.',
       );
       await plugin.show(
@@ -338,7 +318,7 @@ class NotifikasiServis {
         notificationDetails: notificationDetails,
       );
 
-      Log.info(
+      L.i(
         'Notifikasi langsung BERHASIL ditampilkan. '
         'ID: $id, '
         'Judul: "$title", '
@@ -346,13 +326,11 @@ class NotifikasiServis {
         'Notifikasi akan muncul di notification tray pengguna.',
       );
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal menampilkan notifikasi langsung dengan ID: $id. '
         'Proses menampilkan notifikasi secara langsung mengalami kegagalan. '
         'Kemungkinan penyebab: plugin belum diinisialisasi, '
-        'izin notifikasi belum diberikan, atau channel belum terdaftar.',
-        error: e,
-        stackTrace: s,
+        'izin notifikasi belum diberikan, atau channel belum terdaftar. Error: $e $s',
       );
     }
   }

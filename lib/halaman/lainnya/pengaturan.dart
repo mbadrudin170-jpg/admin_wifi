@@ -1,9 +1,9 @@
 // path: lib/halaman/lainnya/pengaturan.dart
 
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 import '../form/form_pengaturan.dart';
 
@@ -22,28 +22,26 @@ class _PengaturanPageState extends State<PengaturanPage> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi halaman Pengaturan Aplikasi');
+    L.i('Menginisialisasi halaman Pengaturan Aplikasi');
     _loadPengaturan();
   }
 
   // Fungsi untuk memuat data pengaturan dari database.
   void _loadPengaturan() {
-    Log.info('Memuat data pengaturan dari database lokal');
+    L.i('Memuat data pengaturan dari database lokal');
     setState(() {
       _futurePengaturan = _pengaturanOperasi
           .getPengaturan()
           .then((data) {
-            Log.info('Data pengaturan berhasil dimuat dari database');
-            Log.info(
+            L.i('Data pengaturan berhasil dimuat dari database');
+            L.i(
               'Detail pengaturan - Interval sinkronisasi: ${data.intervalSinkronisasiOtomatis} jam, Hapus arsip: ${data.hapusOtomatisDataArsip} hari, Mode pemeliharaan: ${data.modePemeliharaan ? "Aktif" : "Nonaktif"}, Info pemeliharaan: ${data.infoPemeliharaan.isNotEmpty ? data.infoPemeliharaan : "(kosong)"}',
             );
             return data;
           })
           .catchError((error, stackTrace) {
-            Log.error(
-              'Gagal memuat data pengaturan dari database lokal',
-              error: error,
-              stackTrace: stackTrace,
+            L.e(
+              'Gagal memuat data pengaturan dari database lokal Error: $error $stackTrace',
             );
             throw error;
           });
@@ -52,8 +50,8 @@ class _PengaturanPageState extends State<PengaturanPage> {
 
   // Fungsi untuk menavigasi ke halaman form edit dan memuat ulang data jika ada perubahan.
   void _editPengaturan(PengaturanModel pengaturan) async {
-    Log.info('Navigasi ke halaman Form Edit Pengaturan');
-    Log.info(
+    L.i('Navigasi ke halaman Form Edit Pengaturan');
+    L.i(
       'Data pengaturan sebelum edit - Interval: ${pengaturan.intervalSinkronisasiOtomatis} jam, Hapus arsip: ${pengaturan.hapusOtomatisDataArsip} hari, Mode pemeliharaan: ${pengaturan.modePemeliharaan}, Info: ${pengaturan.infoPemeliharaan.isNotEmpty ? pengaturan.infoPemeliharaan : "(kosong)"}',
     );
 
@@ -65,27 +63,27 @@ class _PengaturanPageState extends State<PengaturanPage> {
     );
 
     if (hasil == true && mounted) {
-      Log.info(
+      L.i(
         'Data pengaturan berhasil diperbarui dari Form Edit, menyegarkan tampilan',
       );
       _loadPengaturan();
     } else if (hasil == false) {
-      Log.info('Kembali dari Form Edit Pengaturan tanpa melakukan perubahan');
+      L.i('Kembali dari Form Edit Pengaturan tanpa melakukan perubahan');
     } else {
-      Log.info('Kembali dari Form Edit Pengaturan (hasil: $hasil)');
+      L.i('Kembali dari Form Edit Pengaturan (hasil: $hasil)');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI halaman Pengaturan Aplikasi');
+    L.i('Membangun UI halaman Pengaturan Aplikasi');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pengaturan Aplikasi'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info('Kembali ke halaman sebelumnya dari Pengaturan');
+            L.i('Kembali ke halaman sebelumnya dari Pengaturan');
             Navigator.of(context).pop();
           },
         ),
@@ -93,24 +91,20 @@ class _PengaturanPageState extends State<PengaturanPage> {
       body: FutureBuilder<PengaturanModel>(
         future: _futurePengaturan,
         builder: (context, snapshot) {
-          Log.info('FutureBuilder status: ${snapshot.connectionState}');
+          L.i('FutureBuilder status: ${snapshot.connectionState}');
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            Log.info(
-              'Menampilkan indikator loading, data pengaturan masih dimuat',
-            );
+            L.i('Menampilkan indikator loading, data pengaturan masih dimuat');
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            Log.error(
-              'FutureBuilder mendeteksi error saat memuat data pengaturan',
-              error: snapshot.error,
-              stackTrace: snapshot.stackTrace,
+            L.e(
+              'FutureBuilder mendeteksi error saat memuat data pengaturan Error: $snapshot.error $snapshot.stackTrace',
             );
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final pengaturan = snapshot.data!;
-            Log.info('Data pengaturan tersedia, menampilkan detail pengaturan');
-            Log.info(
+            L.i('Data pengaturan tersedia, menampilkan detail pengaturan');
+            L.i(
               'Mode pemeliharaan: ${pengaturan.modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${pengaturan.infoPemeliharaan.isNotEmpty ? pengaturan.infoPemeliharaan : "(kosong)"}',
             );
 
@@ -188,7 +182,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                     icon: const Icon(Icons.edit),
                     label: const Text('Edit Pengaturan'),
                     onPressed: () {
-                      Log.info('Tombol Edit Pengaturan ditekan');
+                      L.i('Tombol Edit Pengaturan ditekan');
                       _editPengaturan(pengaturan);
                     },
                     style: ElevatedButton.styleFrom(
@@ -200,7 +194,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
               ),
             );
           } else {
-            Log.warning(
+            L.w(
               'Data pengaturan tidak tersedia (null), menampilkan pesan kosong',
             );
             return const Center(child: Text('Pengaturan tidak ditemukan.'));
@@ -215,7 +209,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
     required String nilai,
     required IconData ikon,
   }) {
-    Log.info('Membangun kartu info: $judul dengan nilai: $nilai');
+    L.i('Membangun kartu info: $judul dengan nilai: $nilai');
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

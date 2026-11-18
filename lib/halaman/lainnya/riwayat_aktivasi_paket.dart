@@ -1,14 +1,14 @@
 // path: lib/halaman/lainnya/riwayat_aktivasi_paket.dart
 
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'package:flutter/material.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
-import 'package:admin_wifi/debug/log.dart';
+import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
@@ -28,19 +28,17 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi halaman Riwayat Aktivasi Paket');
+    L.i('Menginisialisasi halaman Riwayat Aktivasi Paket');
     _loadRiwayat();
   }
 
   Future<void> _loadRiwayat() async {
-    Log.info('Memuat data transaksi aktivasi paket dari database');
+    L.i('Memuat data transaksi aktivasi paket dari database');
     setState(() {
       _listTransaksiFuture = _transaksiOperasi
           .getTransaksiByAktivasiPaket()
           .then((list) {
-            Log.info(
-              'Berhasil memuat ${list.length} data transaksi aktivasi paket',
-            );
+            L.i('Berhasil memuat ${list.length} data transaksi aktivasi paket');
 
             // Log ringkasan setiap transaksi
             int jumlahLunas = 0;
@@ -62,12 +60,12 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                 jumlahBerakhirHariIni++;
               }
 
-              Log.info(
+              L.i(
                 'Transaksi ID: ${transaksi.id} - Pelanggan ID: ${transaksi.idPelanggan ?? "N/A"}, Paket ID: ${transaksi.idPaket ?? "N/A"}, Status: ${transaksi.statusPembayaran.name}, Mulai: ${transaksi.tanggalMulai != null ? FormatTanggal.formatTanggalBasic(transaksi.tanggalMulai!) : "N/A"}, Berakhir: ${transaksi.tanggalBerakhir != null ? FormatTanggal.formatTanggalBasic(transaksi.tanggalBerakhir!) : "N/A"}',
               );
             }
 
-            Log.info(
+            L.i(
               'Ringkasan transaksi - Total: ${list.length}, Lunas: $jumlahLunas, Belum Lunas: $jumlahBelumLunas, Berakhir Hari Ini: $jumlahBerakhirHariIni',
             );
 
@@ -75,10 +73,8 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
             return list;
           })
           .catchError((error, stackTrace) {
-            Log.error(
-              'Gagal memuat data transaksi aktivasi paket dari database',
-              error: error,
-              stackTrace: stackTrace,
+            L.e(
+              'Gagal memuat data transaksi aktivasi paket dari database Error: $error $stackTrace',
             );
             throw error;
           });
@@ -86,7 +82,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
   }
 
   void _urutkanList(List<TransaksiModel> list, OpsiUrutkan pilihan) {
-    Log.info(
+    L.i(
       'Mengurutkan ${list.length} data transaksi berdasarkan: ${pilihan.name}',
     );
     int Function(TransaksiModel, TransaksiModel) comparator;
@@ -95,48 +91,48 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
       case OpsiUrutkan.terbaru:
         comparator = (a, b) =>
             (b.diperbarui ?? b.tanggal).compareTo(a.diperbarui ?? a.tanggal);
-        Log.info('Pengurutan: Terbaru (berdasarkan waktu update/tanggal)');
+        L.i('Pengurutan: Terbaru (berdasarkan waktu update/tanggal)');
         break;
       case OpsiUrutkan.terlama:
         comparator = (a, b) =>
             (a.diperbarui ?? a.tanggal).compareTo(b.diperbarui ?? b.tanggal);
-        Log.info('Pengurutan: Terlama (berdasarkan waktu update/tanggal)');
+        L.i('Pengurutan: Terlama (berdasarkan waktu update/tanggal)');
         break;
       case OpsiUrutkan.lunas:
         comparator = (a, b) {
           final isLunasA = a.statusPembayaran == StatusPembayaranEnum.lunas;
           final isLunasB = b.statusPembayaran == StatusPembayaranEnum.lunas;
           if (isLunasA == isLunasB) {
-            Log.info(
+            L.i(
               'Status sama (${isLunasA ? "lunas" : "belum lunas"}), posisi tidak berubah',
             );
             return 0;
           }
           final result = isLunasA ? -1 : 1;
-          Log.info(
+          L.i(
             'Memindahkan transaksi ${isLunasA ? "lunas" : "belum lunas"} ke ${isLunasA ? "atas" : "bawah"}',
           );
           return result;
         };
-        Log.info('Pengurutan: Lunas di atas, Belum Lunas di bawah');
+        L.i('Pengurutan: Lunas di atas, Belum Lunas di bawah');
         break;
       case OpsiUrutkan.belumLunas:
         comparator = (a, b) {
           final isLunasA = a.statusPembayaran == StatusPembayaranEnum.lunas;
           final isLunasB = b.statusPembayaran == StatusPembayaranEnum.lunas;
           if (isLunasA == isLunasB) {
-            Log.info(
+            L.i(
               'Status sama (${isLunasA ? "lunas" : "belum lunas"}), posisi tidak berubah',
             );
             return 0;
           }
           final result = isLunasA ? 1 : -1;
-          Log.info(
+          L.i(
             'Memindahkan transaksi ${isLunasA ? "lunas" : "belum lunas"} ke ${isLunasA ? "bawah" : "atas"}',
           );
           return result;
         };
-        Log.info('Pengurutan: Belum Lunas di atas, Lunas di bawah');
+        L.i('Pengurutan: Belum Lunas di atas, Lunas di bawah');
         break;
       case OpsiUrutkan.berakhirHariIni:
         comparator = (a, b) {
@@ -154,19 +150,19 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
           final bHariIni = isHariIni(b.tanggalBerakhir);
 
           if (aHariIni == bHariIni) {
-            Log.info(
+            L.i(
               'Status berakhir hari ini sama ($aHariIni), posisi tidak berubah',
             );
             return 0;
           }
 
           final result = aHariIni ? -1 : 1;
-          Log.info(
+          L.i(
             'Transaksi ${aHariIni ? "berakhir $tanggalSekarangStr" : "tidak berakhir hari ini"} dipindahkan ke ${aHariIni ? "atas" : "bawah"}',
           );
           return result;
         };
-        Log.info(
+        L.i(
           'Pengurutan: Berakhir Hari Ini (${FormatTanggal.formatTanggalBasic(DateTime.now())}) di atas',
         );
         break;
@@ -175,19 +171,19 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
     list.sort(comparator);
 
     // Log 5 data teratas setelah pengurutan
-    Log.info('5 data teratas setelah pengurutan ${pilihan.name}:');
+    L.i('5 data teratas setelah pengurutan ${pilihan.name}:');
     for (int i = 0; i < (list.length < 5 ? list.length : 5); i++) {
       final t = list[i];
-      Log.info(
+      L.i(
         '  ${i + 1}. ID: ${t.id} - Status: ${t.statusPembayaran.name} - Berakhir: ${t.tanggalBerakhir != null ? FormatTanggal.formatTanggalBasic(t.tanggalBerakhir!) : "N/A"}',
       );
     }
 
-    Log.info('Proses pengurutan selesai, ${list.length} data telah diurutkan');
+    L.i('Proses pengurutan selesai, ${list.length} data telah diurutkan');
   }
 
   void _showUrutkanDialog() async {
-    Log.info(
+    L.i(
       'Menampilkan dialog opsi pengurutan, urutan saat ini: ${_urutanAktif.name}',
     );
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
@@ -197,7 +193,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
           final bool isSelected = _urutanAktif == value;
           return SimpleDialogOption(
             onPressed: () {
-              Log.info(
+              L.i(
                 'User memilih opsi urutkan: ${value.name} (${isSelected ? "sudah aktif" : "berubah"} dari ${_urutanAktif.name})',
               );
               Navigator.pop(context, value);
@@ -225,7 +221,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
     );
 
     if (pilihan != null && pilihan != _urutanAktif) {
-      Log.info(
+      L.i(
         'Menerapkan perubahan urutan dari ${_urutanAktif.name} ke ${pilihan.name}',
       );
       final list = await _listTransaksiFuture;
@@ -234,19 +230,19 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
         _urutkanList(list, pilihan);
         _listTransaksiFuture = Future.value(list);
       });
-      Log.info('Urutan berhasil diubah ke ${pilihan.name}');
+      L.i('Urutan berhasil diubah ke ${pilihan.name}');
     } else if (pilihan == _urutanAktif) {
-      Log.info(
+      L.i(
         'User memilih urutan yang sama (${_urutanAktif.name}), tidak ada perubahan',
       );
     } else {
-      Log.info('Dialog urutkan ditutup tanpa memilih opsi');
+      L.i('Dialog urutkan ditutup tanpa memilih opsi');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info(
+    L.i(
       'Membangun UI halaman Riwayat Aktivasi Paket, urutan aktif: ${_urutanAktif.name}',
     );
     return Scaffold(
@@ -255,9 +251,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info(
-              'Kembali ke halaman sebelumnya dari Riwayat Aktivasi Paket',
-            );
+            L.i('Kembali ke halaman sebelumnya dari Riwayat Aktivasi Paket');
             Navigator.of(context).pop();
           },
         ),
@@ -272,22 +266,18 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
       body: FutureBuilder<List<TransaksiModel>>(
         future: _listTransaksiFuture,
         builder: (context, snapshot) {
-          Log.info('FutureBuilder status: ${snapshot.connectionState}');
+          L.i('FutureBuilder status: ${snapshot.connectionState}');
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            Log.info(
-              'Menampilkan indikator loading, data transaksi masih dimuat',
-            );
+            L.i('Menampilkan indikator loading, data transaksi masih dimuat');
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            Log.error(
-              'FutureBuilder mendeteksi error saat menampilkan data transaksi',
-              error: snapshot.error,
-              stackTrace: snapshot.stackTrace,
+            L.e(
+              'FutureBuilder mendeteksi error saat menampilkan data transaksi Error: $snapshot.error $snapshot.stackTrace',
             );
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            Log.info(
+            L.i(
               'Data riwayat aktivasi kosong, menampilkan pesan tidak ada data',
             );
             return const Center(
@@ -295,7 +285,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
             );
           } else {
             final dataLength = snapshot.data!.length;
-            Log.info('Menampilkan $dataLength data transaksi dalam ListView');
+            L.i('Menampilkan $dataLength data transaksi dalam ListView');
 
             return ListView.builder(
               itemCount: dataLength,
@@ -306,7 +296,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                     ? Colors.green
                     : Colors.red;
 
-                Log.info(
+                L.i(
                   'Membangun item ke-${index + 1} dari $dataLength - ID: ${transaksi.id}, Pelanggan: ${transaksi.idPelanggan ?? "N/A"}, Status: ${transaksi.statusPembayaran.name}',
                 );
 
@@ -317,7 +307,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                   ),
                   child: ListTile(
                     onTap: () async {
-                      Log.info(
+                      L.i(
                         'Navigasi ke halaman Detail Transaksi ID: ${transaksi.id}, Pelanggan ID: ${transaksi.idPelanggan ?? "N/A"}',
                       );
                       final result = await Navigator.push(
@@ -329,12 +319,12 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                         ),
                       );
                       if (result == true) {
-                        Log.info(
+                        L.i(
                           'Kembali dari Detail Transaksi ID: ${transaksi.id} dengan perubahan data, menyegarkan daftar',
                         );
                         _loadRiwayat();
                       } else {
-                        Log.info(
+                        L.i(
                           'Kembali dari Detail Transaksi ID: ${transaksi.id} tanpa perubahan data',
                         );
                       }

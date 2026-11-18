@@ -21,7 +21,6 @@ import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/enum/enum.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
@@ -37,14 +36,15 @@ import 'package:admin_wifi/utils/snackbar_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:uuid/uuid.dart';
 
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
-  Log.info('FUNGSI GLOBAL: hitungTanggalBerakhir() dipanggil.');
-  Log.info('  - Tanggal Mulai: ${startDate.toIso8601String()}');
-  Log.info('  - Nama Paket: ${paket.nama}');
-  Log.info('  - Tipe Durasi: ${paket.tipe.displayName}');
-  Log.info('  - Durasi: ${paket.durasi}');
+  L.i('FUNGSI GLOBAL: hitungTanggalBerakhir() dipanggil.');
+  L.i('  - Tanggal Mulai: ${startDate.toIso8601String()}');
+  L.i('  - Nama Paket: ${paket.nama}');
+  L.i('  - Tipe Durasi: ${paket.tipe.displayName}');
+  L.i('  - Durasi: ${paket.durasi}');
 
   DateTime hasil;
   switch (paket.tipe) {
@@ -64,7 +64,7 @@ DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
       break;
   }
 
-  Log.info('  - Hasil Tanggal Berakhir: ${hasil.toIso8601String()}');
+  L.i('  - Hasil Tanggal Berakhir: ${hasil.toIso8601String()}');
   return hasil;
 }
 
@@ -184,7 +184,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         _isLoading = false;
       });
     } catch (e, s) {
-      Log.error('Gagal memuat data referensi', error: e, stackTrace: s);
+      L.e('Gagal memuat data referensi Error: $e $s');
       if (mounted) {
         SnackBarUtil.showError(context, 'Gagal memuat data: $e');
         setState(() {
@@ -370,11 +370,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         data: pelangganAktifHasil,
       );
     } catch (e, s) {
-      Log.error(
-        'Gagal menyimpan data pelanggan aktif.',
-        error: e,
-        stackTrace: s,
-      );
+      L.e('Gagal menyimpan data pelanggan aktif. Error: $e $s');
       return HasilSimpanModel(sukses: false, pesan: 'Gagal menyimpan: $e');
     }
   }
@@ -695,7 +691,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
               try {
                 await PesanInfoPaket.kirimRincianPaket(hasil.data!);
               } catch (e) {
-                Log.warning('Gagal mengirim pesan WhatsApp: $e');
+                L.w('Gagal mengirim pesan WhatsApp: $e');
                 if (mounted) {
                   SnackBarUtil.showWarning(
                     context,

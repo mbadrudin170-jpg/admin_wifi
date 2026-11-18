@@ -1,8 +1,8 @@
 // path: lib/migrasi/halaman_migrasi.dart
+import 'migrasi_timestamp.dart';
 import 'package:admin_wifi/migrasi/migrasi_diarsipkan.dart';
 import 'package:flutter/material.dart';
-import '../debug/log.dart';
-import 'migrasi_timestamp.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class HalamanMigrasi extends StatefulWidget {
   const HalamanMigrasi({super.key});
@@ -29,7 +29,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
 
   @override
   void dispose() {
-    Log.info('HalamanMigrasi di-dispose. Membersihkan ValueNotifier.');
+    L.i('HalamanMigrasi di-dispose. Membersihkan ValueNotifier.');
     _isLoading.dispose();
     super.dispose();
   }
@@ -39,7 +39,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
     required String namaMigrasi,
     required Future<void> Function(String) fungsiMigrasi,
   }) async {
-    Log.info('Menampilkan dialog konfirmasi untuk "$namaMigrasi".');
+    L.i('Menampilkan dialog konfirmasi untuk "$namaMigrasi".');
     final bool? konfirmasi = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -50,7 +50,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
         actions: [
           TextButton(
             onPressed: () {
-              Log.info('Pengguna menekan Batal pada dialog konfirmasi.');
+              L.i('Pengguna menekan Batal pada dialog konfirmasi.');
               Navigator.of(context).pop(false);
             },
             child: const Text('Batal'),
@@ -60,7 +60,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () {
-              Log.info('Pengguna menekan Jalankan pada dialog konfirmasi.');
+              L.i('Pengguna menekan Jalankan pada dialog konfirmasi.');
               Navigator.of(context).pop(true);
             },
             child: const Text('Ya, Jalankan'),
@@ -70,22 +70,20 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
     );
 
     if (konfirmasi != true) {
-      Log.info('Migrasi "$namaMigrasi" dibatalkan oleh pengguna.');
+      L.i('Migrasi "$namaMigrasi" dibatalkan oleh pengguna.');
       return;
     }
 
-    Log.info('Konfirmasi diterima. Memulai proses migrasi "$namaMigrasi".');
+    L.i('Konfirmasi diterima. Memulai proses migrasi "$namaMigrasi".');
     _isLoading.value = true;
     try {
-      Log.info('Memulai proses $namaMigrasi untuk koleksi: $_daftarKoleksi');
+      L.i('Memulai proses $namaMigrasi untuk koleksi: $_daftarKoleksi');
       for (final koleksi in _daftarKoleksi) {
-        Log.info('[$namaMigrasi] Memproses koleksi: $koleksi...');
+        L.i('[$namaMigrasi] Memproses koleksi: $koleksi...');
         await fungsiMigrasi(koleksi);
-        Log.info('[$namaMigrasi] Selesai memproses koleksi: $koleksi.');
+        L.i('[$namaMigrasi] Selesai memproses koleksi: $koleksi.');
       }
-      Log.info(
-        'SUKSES: Proses $namaMigrasi telah selesai untuk semua koleksi.',
-      );
+      L.i('SUKSES: Proses $namaMigrasi telah selesai untuk semua koleksi.');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -97,11 +95,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
         );
       }
     } catch (e, s) {
-      Log.error(
-        'FATAL: Gagal menjalankan $namaMigrasi',
-        error: e,
-        stackTrace: s,
-      );
+      L.e('FATAL: Gagal menjalankan $namaMigrasi Error: $e $s');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -114,7 +108,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
       }
     } finally {
       if (mounted) {
-        Log.info('Proses migrasi selesai. Mengatur _isLoading ke false.');
+        L.i('Proses migrasi selesai. Mengatur _isLoading ke false.');
         _isLoading.value = false;
       }
     }
@@ -122,7 +116,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI Halaman Migrasi Data');
+    L.i('Membangun UI Halaman Migrasi Data');
     return Scaffold(
       appBar: AppBar(
         title: const Text('[DEBUG] Alat Migrasi Data'),
@@ -176,7 +170,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
                 onPressed: _isLoading.value
                     ? null
                     : () {
-                        Log.info('Tombol "Migrasi Field diperbarui" ditekan.');
+                        L.i('Tombol "Migrasi Field diperbarui" ditekan.');
                         _jalankanMigrasi(
                           namaMigrasi: 'Migrasi Timestamp',
                           fungsiMigrasi:
@@ -199,7 +193,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
                 onPressed: _isLoading.value
                     ? null
                     : () {
-                        Log.info('Tombol "Migrasi Field diarsipkan" ditekan.');
+                        L.i('Tombol "Migrasi Field diarsipkan" ditekan.');
                         _jalankanMigrasi(
                           namaMigrasi: 'Migrasi Diarsipkan',
                           fungsiMigrasi:

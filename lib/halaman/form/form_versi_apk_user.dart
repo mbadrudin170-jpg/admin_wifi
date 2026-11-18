@@ -1,10 +1,10 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
-import 'package:admin_wifi/debug/log.dart';
-import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
-import 'package:flutter/material.dart';
-import 'package:admin_wifi/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
+import 'package:admin_wifi/model/versi_apk_user_model.dart';
+import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:uuid/uuid.dart';
 
 class FormVersiApkUser extends StatefulWidget {
@@ -12,7 +12,7 @@ class FormVersiApkUser extends StatefulWidget {
   final VersiApkUserOperasi operasi;
 
   FormVersiApkUser({super.key, this.versiApkUser, VersiApkUserOperasi? operasi})
-      : operasi = operasi ?? VersiApkUserOperasi();
+    : operasi = operasi ?? VersiApkUserOperasi();
 
   @override
   State<FormVersiApkUser> createState() => _FormVersiApkUserState();
@@ -38,7 +38,9 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi FormVersiApkUser (Mode: ${_isEdit ? 'Edit' : 'Tambah'})');
+    L.i(
+      'Menginisialisasi FormVersiApkUser (Mode: ${_isEdit ? 'Edit' : 'Tambah'})',
+    );
 
     _catatanRilisController = TextEditingController();
     _versiTerbaruController = TextEditingController();
@@ -60,27 +62,31 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   }
 
   void _muatDataVersiTerakhir() async {
-    Log.info('Memuat data rilis terakhir untuk otomatisasi input.');
+    L.i('Memuat data rilis terakhir untuk otomatisasi input.');
     setState(() => _isLoading = true);
     try {
       final versiTerakhir = await widget.operasi.ambilVersiApkTerbaru();
       if (versiTerakhir != null && mounted) {
         _versiTerbaruController.text = versiTerakhir.versiTerbaru;
         final buildBerikutnya =
-            (versiTerakhir.nomorBuildTerbaru[ArsitekturApkEnum.universal] ?? 0) + 1;
+            (versiTerakhir.nomorBuildTerbaru[ArsitekturApkEnum.universal] ??
+                0) +
+            1;
         _buildUniversalController.text = buildBerikutnya.toString();
 
-        Log.info('Data rilis sebelumnya ditemukan. Menyarankan build: $buildBerikutnya');
+        L.i(
+          'Data rilis sebelumnya ditemukan. Menyarankan build: $buildBerikutnya',
+        );
       }
     } catch (e, s) {
-      Log.error('Gagal memuat data versi terakhir', error: e, stackTrace: s);
+      L.e('Gagal memuat data versi terakhir Error: $e $s');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _populateControllers(VersiApkUserModel data) {
-    Log.info('Memasukkan data model ke dalam form controller (ID: ${data.id})');
+    L.i('Memasukkan data model ke dalam form controller (ID: ${data.id})');
     _catatanRilisController.text = data.catatanRilis;
     _versiTerbaruController.text = data.versiTerbaru;
     _youtubeTutorialController.text = data.youtubeTutorial;
@@ -88,17 +94,22 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
     _buildUniversalController.text =
         data.nomorBuildTerbaru[ArsitekturApkEnum.universal]?.toString() ?? '';
-    _build32Controller.text = data.nomorBuildTerbaru[ArsitekturApkEnum.bit_32]?.toString() ?? '';
-    _build64Controller.text = data.nomorBuildTerbaru[ArsitekturApkEnum.bit_64]?.toString() ?? '';
+    _build32Controller.text =
+        data.nomorBuildTerbaru[ArsitekturApkEnum.bit_32]?.toString() ?? '';
+    _build64Controller.text =
+        data.nomorBuildTerbaru[ArsitekturApkEnum.bit_64]?.toString() ?? '';
 
-    _tautanUniversalController.text = data.tautanUnduhan[ArsitekturApkEnum.universal] ?? '';
-    _tautan32Controller.text = data.tautanUnduhan[ArsitekturApkEnum.bit_32] ?? '';
-    _tautan64Controller.text = data.tautanUnduhan[ArsitekturApkEnum.bit_64] ?? '';
+    _tautanUniversalController.text =
+        data.tautanUnduhan[ArsitekturApkEnum.universal] ?? '';
+    _tautan32Controller.text =
+        data.tautanUnduhan[ArsitekturApkEnum.bit_32] ?? '';
+    _tautan64Controller.text =
+        data.tautanUnduhan[ArsitekturApkEnum.bit_64] ?? '';
   }
 
   @override
   void dispose() {
-    Log.info('Menghapus semua controller (dispose)');
+    L.i('Menghapus semua controller (dispose)');
     _catatanRilisController.dispose();
     _versiTerbaruController.dispose();
     _youtubeTutorialController.dispose();
@@ -113,7 +124,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
   void _simpanForm() async {
     if (_formKey.currentState!.validate()) {
-      Log.info('Menampilkan dialog konfirmasi kepada pengguna');
+      L.i('Menampilkan dialog konfirmasi kepada pengguna');
 
       final konfirmasi = await showDialog<bool>(
         context: context,
@@ -125,7 +136,9 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
               Text('Konfirmasi Simpan'),
             ],
           ),
-          content: const Text('Apakah data versi aplikasi yang Anda masukkan sudah benar?'),
+          content: const Text(
+            'Apakah data versi aplikasi yang Anda masukkan sudah benar?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -140,12 +153,12 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
       );
 
       if (konfirmasi != true) {
-        Log.info('Pengguna membatalkan proses penyimpanan');
+        L.i('Pengguna membatalkan proses penyimpanan');
         return;
       }
 
       setState(() => _isLoading = true);
-      Log.info('Sedang memproses penyimpanan ke database...');
+      L.i('Sedang memproses penyimpanan ke database...');
 
       final nomorBuild = <ArsitekturApkEnum, int>{};
       if (_buildUniversalController.text.isNotEmpty) {
@@ -166,7 +179,8 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
       final tautanUnduhan = <ArsitekturApkEnum, String>{};
       if (_tautanUniversalController.text.isNotEmpty) {
-        tautanUnduhan[ArsitekturApkEnum.universal] = _tautanUniversalController.text;
+        tautanUnduhan[ArsitekturApkEnum.universal] =
+            _tautanUniversalController.text;
       }
       if (_tautan32Controller.text.isNotEmpty) {
         tautanUnduhan[ArsitekturApkEnum.bit_32] = _tautan32Controller.text;
@@ -185,18 +199,18 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         tautanUnduhan: tautanUnduhan,
       );
 
-      Log.info('Model Versi APK yang akan disimpan: ${dataToSave.toJson()}');
+      L.i('Model Versi APK yang akan disimpan: ${dataToSave.toJson()}');
 
       try {
         if (_isEdit) {
-          Log.info('Menjalankan perintah update data...');
+          L.i('Menjalankan perintah update data...');
           await widget.operasi.perbaruiVersiApkUser(dataToSave);
         } else {
-          Log.info('Menjalankan perintah tambah data baru...');
+          L.i('Menjalankan perintah tambah data baru...');
           await widget.operasi.tambahVersiApkUser(dataToSave);
         }
 
-        Log.info('Proses penyimpanan berhasil diselesaikan');
+        L.i('Proses penyimpanan berhasil diselesaikan');
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -208,7 +222,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         );
         Navigator.of(context).pop(dataToSave);
       } catch (e, s) {
-        Log.error('Terjadi kesalahan saat menyimpan data', error: e, stackTrace: s);
+        L.e('Terjadi kesalahan saat menyimpan data Error: $e $s');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -288,7 +302,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                     title: const Text('Wajib Update'),
                     value: _wajibUpdate,
                     onChanged: (bool value) {
-                      Log.info('Switch Wajib Update diubah ke: $value');
+                      L.i('Switch Wajib Update diubah ke: $value');
                       setState(() => _wajibUpdate = value);
                     },
                   ),

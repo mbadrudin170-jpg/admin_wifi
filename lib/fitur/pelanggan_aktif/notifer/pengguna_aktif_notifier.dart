@@ -3,8 +3,8 @@
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
-import 'package:share_global_saya/src/utils/l.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 part 'pengguna_aktif_notifier.g.dart';
 

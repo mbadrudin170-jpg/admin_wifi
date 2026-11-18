@@ -1,10 +1,10 @@
 // path: lib/halaman/form/form_pengaturan.dart
 
-import 'package:admin_wifi/debug/log.dart';
+import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/model/pengaturan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:admin_wifi/model/pengaturan_model.dart';
-import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 // Halaman formulir untuk mengedit dan menyimpan pengaturan aplikasi.
 class FormPengaturan extends StatefulWidget {
@@ -30,9 +30,11 @@ class _FormPengaturanState extends State<FormPengaturan> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi Form Edit Pengaturan');
-    Log.info('Data awal - Interval: ${widget.pengaturan.intervalSinkronisasiOtomatis} jam, Hapus arsip: ${widget.pengaturan.hapusOtomatisDataArsip} hari, Mode pemeliharaan: ${widget.pengaturan.modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${widget.pengaturan.infoPemeliharaan.isNotEmpty ? widget.pengaturan.infoPemeliharaan : "(kosong)"}');
-    
+    L.i('Menginisialisasi Form Edit Pengaturan');
+    L.i(
+      'Data awal - Interval: ${widget.pengaturan.intervalSinkronisasiOtomatis} jam, Hapus arsip: ${widget.pengaturan.hapusOtomatisDataArsip} hari, Mode pemeliharaan: ${widget.pengaturan.modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${widget.pengaturan.infoPemeliharaan.isNotEmpty ? widget.pengaturan.infoPemeliharaan : "(kosong)"}',
+    );
+
     _intervalController = TextEditingController(
       text: widget.pengaturan.intervalSinkronisasiOtomatis.toString(),
     );
@@ -43,32 +45,34 @@ class _FormPengaturanState extends State<FormPengaturan> {
       text: widget.pengaturan.infoPemeliharaan,
     );
     _modePemeliharaan = widget.pengaturan.modePemeliharaan;
-    
-    Log.info('Controller berhasil diinisialisasi dengan data awal');
+
+    L.i('Controller berhasil diinisialisasi dengan data awal');
   }
 
   @override
   void dispose() {
-    Log.info('Membersihkan controller Form Edit Pengaturan');
+    L.i('Membersihkan controller Form Edit Pengaturan');
     _intervalController.dispose();
     _hapusArsipController.dispose();
     _infoController.dispose();
     super.dispose();
-    Log.info('Controller berhasil dibersihkan, Form Edit Pengaturan di-dispose');
+    L.i('Controller berhasil dibersihkan, Form Edit Pengaturan di-dispose');
   }
 
   void _simpanForm() async {
-    Log.info('Memvalidasi dan menyimpan data pengaturan');
+    L.i('Memvalidasi dan menyimpan data pengaturan');
 
     if (_formKey.currentState!.validate()) {
-      Log.info('Validasi form berhasil');
+      L.i('Validasi form berhasil');
       setState(() => _isLoading = true);
-      Log.info('Loading state diaktifkan');
+      L.i('Loading state diaktifkan');
 
       final interval = int.tryParse(_intervalController.text) ?? 0;
       final hapusArsip = int.tryParse(_hapusArsipController.text) ?? 0;
 
-      Log.info('Nilai dari form - Interval: $interval jam, Hapus arsip: $hapusArsip hari, Mode pemeliharaan: ${_modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${_infoController.text.isNotEmpty ? _infoController.text : "(kosong)"}');
+      L.i(
+        'Nilai dari form - Interval: $interval jam, Hapus arsip: $hapusArsip hari, Mode pemeliharaan: ${_modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${_infoController.text.isNotEmpty ? _infoController.text : "(kosong)"}',
+      );
 
       final pengaturanBaru = PengaturanModel(
         intervalSinkronisasiOtomatis: interval,
@@ -78,10 +82,12 @@ class _FormPengaturanState extends State<FormPengaturan> {
       );
 
       try {
-        Log.info('Menyimpan pengaturan baru ke database - Interval: $interval, Hapus Arsip: $hapusArsip, Mode: $_modePemeliharaan');
+        L.i(
+          'Menyimpan pengaturan baru ke database - Interval: $interval, Hapus Arsip: $hapusArsip, Mode: $_modePemeliharaan',
+        );
         await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturanBaru);
-        Log.info('Pengaturan berhasil disimpan ke database');
-        
+        L.i('Pengaturan berhasil disimpan ke database');
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -89,17 +95,17 @@ class _FormPengaturanState extends State<FormPengaturan> {
               backgroundColor: Colors.green,
             ),
           );
-          Log.info('SnackBar sukses ditampilkan, navigasi kembali dengan result true');
+          L.i(
+            'SnackBar sukses ditampilkan, navigasi kembali dengan result true',
+          );
           Navigator.pop(context, true);
         } else {
-          Log.info('Widget tidak mounted setelah simpan berhasil, tidak dapat navigasi');
+          L.i(
+            'Widget tidak mounted setelah simpan berhasil, tidak dapat navigasi',
+          );
         }
       } catch (e, stackTrace) {
-        Log.error(
-          'Gagal menyimpan pengaturan ke database',
-          error: e,
-          stackTrace: stackTrace,
-        );
+        L.e('Gagal menyimpan pengaturan ke database Error: $e $stackTrace');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -107,33 +113,35 @@ class _FormPengaturanState extends State<FormPengaturan> {
               backgroundColor: Colors.red,
             ),
           );
-          Log.info('SnackBar error ditampilkan');
+          L.i('SnackBar error ditampilkan');
         }
       } finally {
         if (mounted) {
           setState(() => _isLoading = false);
-          Log.info('Loading state dinonaktifkan');
+          L.i('Loading state dinonaktifkan');
         }
       }
     } else {
-      Log.info('Validasi form gagal, periksa inputan user');
+      L.i('Validasi form gagal, periksa inputan user');
       // Log detail error validasi
       final intervalValue = _intervalController.text;
       final hapusArsipValue = _hapusArsipController.text;
-      Log.info('Input tidak valid - Interval: "$intervalValue", Hapus Arsip: "$hapusArsipValue"');
+      L.i(
+        'Input tidak valid - Interval: "$intervalValue", Hapus Arsip: "$hapusArsipValue"',
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI Form Edit Pengaturan');
+    L.i('Membangun UI Form Edit Pengaturan');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Pengaturan'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info('Kembali ke halaman Pengaturan tanpa menyimpan');
+            L.i('Kembali ke halaman Pengaturan tanpa menyimpan');
             Navigator.of(context).pop();
           },
         ),
@@ -170,7 +178,9 @@ class _FormPengaturanState extends State<FormPengaturan> {
                     ),
                     value: _modePemeliharaan,
                     onChanged: (bool value) {
-                      Log.info('Mode pemeliharaan diubah dari ${_modePemeliharaan ? "Aktif" : "Nonaktif"} menjadi ${value ? "Aktif" : "Nonaktif"}');
+                      L.i(
+                        'Mode pemeliharaan diubah dari ${_modePemeliharaan ? "Aktif" : "Nonaktif"} menjadi ${value ? "Aktif" : "Nonaktif"}',
+                      );
                       setState(() {
                         _modePemeliharaan = value;
                       });
@@ -196,7 +206,9 @@ class _FormPengaturanState extends State<FormPengaturan> {
                         ),
                         maxLines: 3,
                         onChanged: (value) {
-                          Log.info('Info pemeliharaan diubah: ${value.length > 50 ? value.substring(0, 50) : value}');
+                          L.i(
+                            'Info pemeliharaan diubah: ${value.length > 50 ? value.substring(0, 50) : value}',
+                          );
                         },
                       ),
                     ),
@@ -234,7 +246,7 @@ class _FormPengaturanState extends State<FormPengaturan> {
     required String label,
     required IconData icon,
   }) {
-    Log.info('Membangun TextFormField untuk: $label');
+    L.i('Membangun TextFormField untuk: $label');
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -245,22 +257,22 @@ class _FormPengaturanState extends State<FormPengaturan> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       onChanged: (value) {
-        Log.info('Input $label berubah: $value');
+        L.i('Input $label berubah: $value');
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          Log.info('Validasi $label gagal: field kosong');
+          L.i('Validasi $label gagal: field kosong');
           return 'Field ini tidak boleh kosong.';
         }
         if (int.tryParse(value) == null) {
-          Log.info('Validasi $label gagal: bukan angka valid ("$value")');
+          L.i('Validasi $label gagal: bukan angka valid ("$value")');
           return 'Harap masukkan angka yang valid.';
         }
         if (int.parse(value) <= 0) {
-          Log.info('Validasi $label gagal: nilai <= 0 ($value)');
+          L.i('Validasi $label gagal: nilai <= 0 ($value)');
           return 'Nilai harus lebih besar dari 0';
         }
-        Log.info('Validasi $label berhasil: $value');
+        L.i('Validasi $label berhasil: $value');
         return null;
       },
     );

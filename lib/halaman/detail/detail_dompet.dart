@@ -7,8 +7,8 @@ import 'package:admin_wifi/model/dompet_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class DetailDompetData {
   final DompetModel dompet;
@@ -50,54 +50,54 @@ class _DetailDompetState extends State<DetailDompet> {
   @override
   void initState() {
     super.initState();
-    Log.info(
+    L.i(
       'Membuat state untuk DetailDompet. ID Dompet: ${widget.dompet.id}, Nama Dompet: ${widget.dompet.namaDompet}',
     );
 
-    Log.info('========================================');
-    Log.info('LIFECYCLE: initState() - Halaman DetailDompet');
-    Log.info('ID Dompet yang akan ditampilkan: ${widget.dompet.id}');
-    Log.info('Nama Dompet awal: ${widget.dompet.namaDompet}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: initState() - Halaman DetailDompet');
+    L.i('ID Dompet yang akan ditampilkan: ${widget.dompet.id}');
+    L.i('Nama Dompet awal: ${widget.dompet.namaDompet}');
+    L.i('========================================');
 
-    Log.info(
+    L.i(
       'Menginisialisasi DompetOperasi. Menggunakan instance dari widget jika tersedia, jika tidak membuat instance baru.',
     );
     _dompetOperasi = widget.dompetOperasi ?? DompetOperasi();
-    Log.info(
+    L.i(
       'DompetOperasi berhasil diinisialisasi. Instance: ${_dompetOperasi.hashCode}',
     );
 
-    Log.info(
+    L.i(
       'Menginisialisasi TransaksiOperasi. Menggunakan instance dari widget jika tersedia, jika tidak membuat instance baru.',
     );
     _transaksiOperasi = widget.transaksiOperasi ?? TransaksiOperasi();
-    Log.info(
+    L.i(
       'TransaksiOperasi berhasil diinisialisasi. Instance: ${_transaksiOperasi.hashCode}',
     );
 
-    Log.info(
+    L.i(
       'Memulai pemuatan data awal dengan memanggil _loadData() untuk pertama kali.',
     );
     _futureDetailData = _loadData();
-    Log.info(
+    L.i(
       'Future _futureDetailData telah diset. UI akan menunggu future ini selesai melalui FutureBuilder.',
     );
   }
 
   Future<DetailDompetData> _loadData() async {
-    Log.info('========================================');
-    Log.info('MEMULAI PROSES PEMUATAN DATA DETAIL DOMPET');
-    Log.info('ID Dompet: ${widget.dompet.id}');
-    Log.info('Nama Dompet (widget): ${widget.dompet.namaDompet}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('MEMULAI PROSES PEMUATAN DATA DETAIL DOMPET');
+    L.i('ID Dompet: ${widget.dompet.id}');
+    L.i('Nama Dompet (widget): ${widget.dompet.namaDompet}');
+    L.i('========================================');
 
     try {
-      Log.info('Menjalankan 2 query secara paralel menggunakan Future.wait:');
-      Log.info(
+      L.i('Menjalankan 2 query secara paralel menggunakan Future.wait:');
+      L.i(
         '  1. getDompetById(${widget.dompet.id}) - Mengambil data dompet terbaru dari database.',
       );
-      Log.info(
+      L.i(
         '  2. ambilTransaksiByDompetId(${widget.dompet.id}) - Mengambil semua transaksi untuk dompet ini.',
       );
 
@@ -106,20 +106,20 @@ class _DetailDompetState extends State<DetailDompet> {
         _transaksiOperasi.ambilTransaksiByDompetId(widget.dompet.id),
       ]);
 
-      Log.info('Kedua query selesai dijalankan. Memproses hasil...');
+      L.i('Kedua query selesai dijalankan. Memproses hasil...');
 
       final dompetTerbaru = results[0] as DompetModel?;
       final daftarTransaksi = results[1] as List<TransaksiModel>;
 
-      Log.info(
+      L.i(
         'Hasil query 1 (Dompet): ${dompetTerbaru != null ? "Ditemukan (Nama: ${dompetTerbaru.namaDompet}, Saldo: ${dompetTerbaru.saldo})" : "NULL - Dompet tidak ditemukan"}',
       );
-      Log.info(
+      L.i(
         'Hasil query 2 (Transaksi): ${daftarTransaksi.length} transaksi ditemukan',
       );
 
       if (dompetTerbaru == null) {
-        Log.warning(
+        L.w(
           'Dompet dengan ID ${widget.dompet.id} tidak ditemukan di database. '
           'Kemungkinan data telah dihapus oleh proses lain. '
           'Akan melempar Exception untuk ditangani oleh FutureBuilder.',
@@ -127,27 +127,27 @@ class _DetailDompetState extends State<DetailDompet> {
         throw Exception('Dompet tidak ditemukan.');
       }
 
-      Log.info(
+      L.i(
         'Dompet ditemukan. Memperbarui variabel lokal _namaDompetTerbaru agar AppBar menampilkan nama terkini.',
       );
       if (mounted) {
-        Log.info(
+        L.i(
           'Widget masih mounted. Melakukan setState untuk memperbarui _namaDompetTerbaru dari "${_namaDompetTerbaru ?? "null"}" menjadi "${dompetTerbaru.namaDompet}".',
         );
         setState(() {
           _namaDompetTerbaru = dompetTerbaru.namaDompet;
         });
-        Log.info(
+        L.i(
           'setState berhasil dijalankan. _namaDompetTerbaru sekarang: $_namaDompetTerbaru',
         );
       } else {
-        Log.warning(
+        L.w(
           'Widget sudah tidak mounted saat ingin memperbarui _namaDompetTerbaru. '
           'Ini bisa terjadi jika user sudah navigasi keluar dari halaman sebelum data selesai dimuat.',
         );
       }
 
-      Log.info(
+      L.i(
         'Menghitung total pemasukan dan pengeluaran dari ${daftarTransaksi.length} transaksi.',
       );
       double pemasukan = 0;
@@ -157,33 +157,31 @@ class _DetailDompetState extends State<DetailDompet> {
         var trx = daftarTransaksi[i];
         if (trx.tipe == TipeTransaksi.pemasukan) {
           pemasukan += trx.jumlah;
-          Log.info(
+          L.i(
             '  Transaksi ke-${i + 1}: PEMASUKAN +${trx.jumlah} (Total pemasukan sementara: $pemasukan)',
           );
         } else if (trx.tipe == TipeTransaksi.pengeluaran) {
           pengeluaran += trx.jumlah;
-          Log.info(
+          L.i(
             '  Transaksi ke-${i + 1}: PENGELUARAN -${trx.jumlah} (Total pengeluaran sementara: $pengeluaran)',
           );
         }
       }
 
-      Log.info('Perhitungan selesai. Ringkasan keuangan dompet:');
-      Log.info('  - Nama Dompet: ${dompetTerbaru.namaDompet}');
-      Log.info('  - Saldo Saat Ini: ${dompetTerbaru.saldo}');
-      Log.info('  - Total Pemasukan: $pemasukan');
-      Log.info('  - Total Pengeluaran: $pengeluaran');
-      Log.info(
-        '  - Selisih (Pemasukan - Pengeluaran): ${pemasukan - pengeluaran}',
-      );
-      Log.info('  - Jumlah Transaksi: ${daftarTransaksi.length}');
+      L.i('Perhitungan selesai. Ringkasan keuangan dompet:');
+      L.i('  - Nama Dompet: ${dompetTerbaru.namaDompet}');
+      L.i('  - Saldo Saat Ini: ${dompetTerbaru.saldo}');
+      L.i('  - Total Pemasukan: $pemasukan');
+      L.i('  - Total Pengeluaran: $pengeluaran');
+      L.i('  - Selisih (Pemasukan - Pengeluaran): ${pemasukan - pengeluaran}');
+      L.i('  - Jumlah Transaksi: ${daftarTransaksi.length}');
 
-      Log.info('========================================');
-      Log.info('PEMUATAN DATA DETAIL DOMPET BERHASIL');
-      Log.info(
+      L.i('========================================');
+      L.i('PEMUATAN DATA DETAIL DOMPET BERHASIL');
+      L.i(
         'Mengembalikan DetailDompetData dengan semua informasi yang telah dihitung.',
       );
-      Log.info('========================================');
+      L.i('========================================');
 
       return DetailDompetData(
         dompet: dompetTerbaru,
@@ -192,35 +190,33 @@ class _DetailDompetState extends State<DetailDompet> {
         totalPengeluaran: pengeluaran,
       );
     } catch (e, s) {
-      Log.error(
+      L.e(
         'Gagal memuat data detail dompet untuk ID: ${widget.dompet.id}. '
         'Proses _loadData() mengalami kegagalan. '
         'Kemungkinan penyebab: koneksi database gagal, data dompet tidak ditemukan, '
         'query transaksi gagal, atau terjadi error saat perhitungan total. '
-        'Error ini akan dilempar ulang dan ditangkap oleh FutureBuilder untuk ditampilkan ke UI.',
-        error: e,
-        stackTrace: s,
+        'Error ini akan dilempar ulang dan ditangkap oleh FutureBuilder untuk ditampilkan ke UI. Error: $e $s',
       );
       rethrow;
     }
   }
 
   void _muatUlangData() {
-    Log.info('========================================');
-    Log.info('MEMICU RELOAD DATA (REFRESH)');
-    Log.info('========================================');
-    Log.info(
+    L.i('========================================');
+    L.i('MEMICU RELOAD DATA (REFRESH)');
+    L.i('========================================');
+    L.i(
       'Pengguna atau sistem memicu pemuatan ulang data. '
       'Ini biasanya terjadi setelah:',
     );
-    Log.info('  1. Kembali dari halaman FormDompet (edit data).');
-    Log.info('  2. Ada perubahan pada transaksi (tambah/edit/hapus).');
-    Log.info('  3. Refresh manual dari UI.');
-    Log.info('');
-    Log.info(
+    L.i('  1. Kembali dari halaman FormDompet (edit data).');
+    L.i('  2. Ada perubahan pada transaksi (tambah/edit/hapus).');
+    L.i('  3. Refresh manual dari UI.');
+    L.i('');
+    L.i(
       'Menjalankan setState untuk mengganti _futureDetailData dengan future baru dari _loadData().',
     );
-    Log.info(
+    L.i(
       'UI akan otomatis memperbarui tampilan karena FutureBuilder akan mendeteksi future baru.',
     );
 
@@ -228,7 +224,7 @@ class _DetailDompetState extends State<DetailDompet> {
       _futureDetailData = _loadData();
     });
 
-    Log.info(
+    L.i(
       'setState selesai dijalankan. _futureDetailData telah diganti dengan instance Future baru. '
       'FutureBuilder akan memulai proses pembangunan ulang UI dengan data terbaru.',
     );
@@ -236,22 +232,22 @@ class _DetailDompetState extends State<DetailDompet> {
 
   @override
   void dispose() {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: dispose() - Halaman DetailDompet');
-    Log.info('ID Dompet: ${widget.dompet.id}');
-    Log.info('Membersihkan resource dan state halaman DetailDompet.');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: dispose() - Halaman DetailDompet');
+    L.i('ID Dompet: ${widget.dompet.id}');
+    L.i('Membersihkan resource dan state halaman DetailDompet.');
+    L.i('========================================');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: build() - Membangun UI DetailDompet');
-    Log.info(
+    L.i('========================================');
+    L.i('LIFECYCLE: build() - Membangun UI DetailDompet');
+    L.i(
       'Nama Dompet di AppBar: ${_namaDompetTerbaru ?? widget.dompet.namaDompet}',
     );
-    Log.info('========================================');
+    L.i('========================================');
 
     return Scaffold(
       appBar: AppBar(
@@ -259,19 +255,17 @@ class _DetailDompetState extends State<DetailDompet> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info('========================================');
-            Log.info('NAVIGASI: Tombol Kembali Ditekan');
-            Log.info(
-              'User menekan tombol back di AppBar halaman DetailDompet.',
-            );
-            Log.info('ID Dompet saat ini: ${widget.dompet.id}');
-            Log.info(
+            L.i('========================================');
+            L.i('NAVIGASI: Tombol Kembali Ditekan');
+            L.i('User menekan tombol back di AppBar halaman DetailDompet.');
+            L.i('ID Dompet saat ini: ${widget.dompet.id}');
+            L.i(
               'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
             );
-            Log.info(
+            L.i(
               'Nilai result true dikirim agar halaman sebelumnya tahu bahwa mungkin ada perubahan data.',
             );
-            Log.info('========================================');
+            L.i('========================================');
             Navigator.pop(context, true);
           },
         ),
@@ -279,31 +273,29 @@ class _DetailDompetState extends State<DetailDompet> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              Log.info('========================================');
-              Log.info('NAVIGASI: Tombol Edit Ditekan');
-              Log.info(
+              L.i('========================================');
+              L.i('NAVIGASI: Tombol Edit Ditekan');
+              L.i(
                 'User ingin mengedit data dompet dengan ID: ${widget.dompet.id}',
               );
-              Log.info('========================================');
+              L.i('========================================');
 
-              Log.info(
-                'Menyiapkan data dompet yang akan dikirim ke FormDompet.',
-              );
-              Log.info(
+              L.i('Menyiapkan data dompet yang akan dikirim ke FormDompet.');
+              L.i(
                 '_namaDompetTerbaru saat ini: ${_namaDompetTerbaru ?? "null"}',
               );
-              Log.info('Nama dompet dari widget: ${widget.dompet.namaDompet}');
+              L.i('Nama dompet dari widget: ${widget.dompet.namaDompet}');
 
               final dompetUntukEdit = _namaDompetTerbaru != null
                   ? widget.dompet.copyWith(namaDompet: _namaDompetTerbaru)
                   : widget.dompet;
 
-              Log.info('Data dompet yang akan dikirim ke FormDompet:');
-              Log.info('  - ID: ${dompetUntukEdit.id}');
-              Log.info('  - Nama: ${dompetUntukEdit.namaDompet}');
-              Log.info('  - Saldo: ${dompetUntukEdit.saldo}');
+              L.i('Data dompet yang akan dikirim ke FormDompet:');
+              L.i('  - ID: ${dompetUntukEdit.id}');
+              L.i('  - Nama: ${dompetUntukEdit.namaDompet}');
+              L.i('  - Saldo: ${dompetUntukEdit.saldo}');
 
-              Log.info(
+              L.i(
                 'Membuka halaman FormDompet dengan Navigator.push. '
                 'Menunggu hasil kembalian dari FormDompet setelah user selesai mengedit.',
               );
@@ -315,34 +307,32 @@ class _DetailDompetState extends State<DetailDompet> {
                 ),
               );
 
-              Log.info('========================================');
-              Log.info('KEMBALI DARI FORM DOMPET');
-              Log.info('Nilai result yang diterima: $result');
-              Log.info('========================================');
+              L.i('========================================');
+              L.i('KEMBALI DARI FORM DOMPET');
+              L.i('Nilai result yang diterima: $result');
+              L.i('========================================');
 
               if (result == true) {
-                Log.info(
+                L.i(
                   'Result bernilai TRUE. Ini berarti user melakukan perubahan data di FormDompet.',
                 );
-                Log.info(
+                L.i(
                   'Memanggil _muatUlangData() untuk me-refresh data dompet dan transaksi.',
                 );
-                Log.info(
-                  'UI akan diperbarui dengan data terbaru dari database.',
-                );
+                L.i('UI akan diperbarui dengan data terbaru dari database.');
                 _muatUlangData();
               } else if (result == false) {
-                Log.info(
+                L.i(
                   'Result bernilai FALSE. User tidak melakukan perubahan data di FormDompet. '
                   'Tidak perlu me-refresh data.',
                 );
               } else if (result == null) {
-                Log.info(
+                L.i(
                   'Result bernilai NULL. User menekan tombol back di FormDompet tanpa menyimpan perubahan. '
                   'Tidak perlu me-refresh data.',
                 );
               } else {
-                Log.info(
+                L.i(
                   'Result bernilai: $result. Tidak ada tindakan refresh yang diperlukan.',
                 );
               }
@@ -353,50 +343,48 @@ class _DetailDompetState extends State<DetailDompet> {
       body: FutureBuilder<DetailDompetData>(
         future: _futureDetailData,
         builder: (context, snapshot) {
-          Log.info(
+          L.i(
             'FutureBuilder builder dipanggil. ConnectionState: ${snapshot.connectionState}',
           );
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            Log.info(
+            L.i(
               'FutureBuilder: Status WAITING. Data masih dalam proses pemuatan dari database.',
             );
-            Log.info(
+            L.i(
               'Menampilkan CircularProgressIndicator sebagai indikator loading.',
             );
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            Log.error(
-              'FutureBuilder: Status ERROR. Terjadi kesalahan saat memuat data detail dompet.',
-              error: snapshot.error,
-              stackTrace: snapshot.stackTrace,
+            L.e(
+              'FutureBuilder: Status ERROR. Terjadi kesalahan saat memuat data detail dompet. Error: $snapshot.error $snapshot.stackTrace',
             );
-            Log.info('Menampilkan pesan error ke UI: ${snapshot.error}');
+            L.i('Menampilkan pesan error ke UI: ${snapshot.error}');
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (!snapshot.hasData) {
-            Log.warning(
+            L.w(
               'FutureBuilder: Status NO DATA. Snapshot berhasil tetapi tidak mengandung data. '
               'Ini mungkin terjadi jika data dompet bernilai null atau query mengembalikan hasil kosong.',
             );
-            Log.info('Menampilkan pesan "Data Kosong" ke UI.');
+            L.i('Menampilkan pesan "Data Kosong" ke UI.');
             return const Center(child: Text('Data Kosong'));
           }
 
           final data = snapshot.data!;
-          Log.info('========================================');
-          Log.info('MEMBANGUN UI DENGAN DATA TERBARU');
-          Log.info('FutureBuilder: Status SUCCESS. Data berhasil dimuat.');
-          Log.info('Detail data yang akan ditampilkan:');
-          Log.info('  - Nama Dompet: ${data.dompet.namaDompet}');
-          Log.info('  - Saldo: ${data.dompet.saldo}');
-          Log.info('  - Total Pemasukan: ${data.totalPemasukan}');
-          Log.info('  - Total Pengeluaran: ${data.totalPengeluaran}');
-          Log.info('  - Jumlah Transaksi: ${data.transaksi.length}');
-          Log.info('========================================');
+          L.i('========================================');
+          L.i('MEMBANGUN UI DENGAN DATA TERBARU');
+          L.i('FutureBuilder: Status SUCCESS. Data berhasil dimuat.');
+          L.i('Detail data yang akan ditampilkan:');
+          L.i('  - Nama Dompet: ${data.dompet.namaDompet}');
+          L.i('  - Saldo: ${data.dompet.saldo}');
+          L.i('  - Total Pemasukan: ${data.totalPemasukan}');
+          L.i('  - Total Pengeluaran: ${data.totalPengeluaran}');
+          L.i('  - Jumlah Transaksi: ${data.transaksi.length}');
+          L.i('========================================');
 
           return Column(
             children: [
@@ -441,21 +429,19 @@ class _DetailDompetState extends State<DetailDompet> {
   }
 
   Widget _buildTransaksiList(List<TransaksiModel> transaksiData) {
-    Log.info(
-      'Membangun daftar transaksi yang dikelompokkan berdasarkan tanggal.',
-    );
-    Log.info(
+    L.i('Membangun daftar transaksi yang dikelompokkan berdasarkan tanggal.');
+    L.i(
       'Jumlah total transaksi yang akan ditampilkan: ${transaksiData.length}',
     );
 
-    Log.info(
+    L.i(
       'Mengelompokkan transaksi berdasarkan tanggal menggunakan fungsi groupTransaksiByDate.',
     );
     final groupedTransaksi = groupTransaksiByDate(transaksiData);
 
-    Log.info('Hasil pengelompokan: ${groupedTransaksi.length} grup tanggal.');
+    L.i('Hasil pengelompokan: ${groupedTransaksi.length} grup tanggal.');
     groupedTransaksi.forEach((tanggal, transaksiList) {
-      Log.info('  - Tanggal $tanggal: ${transaksiList.length} transaksi');
+      L.i('  - Tanggal $tanggal: ${transaksiList.length} transaksi');
     });
 
     return ListView.builder(
@@ -464,7 +450,7 @@ class _DetailDompetState extends State<DetailDompet> {
         final tanggal = groupedTransaksi.keys.elementAt(index);
         final transaksiPadaTanggal = groupedTransaksi[tanggal]!;
 
-        Log.info(
+        L.i(
           'Membangun UI untuk grup tanggal: $tanggal (${transaksiPadaTanggal.length} transaksi)',
         );
 
@@ -477,7 +463,7 @@ class _DetailDompetState extends State<DetailDompet> {
                   : -item.jumlah),
         );
 
-        Log.info('  Total harian untuk $tanggal: $totalHarian');
+        L.i('  Total harian untuk $tanggal: $totalHarian');
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,16 +471,16 @@ class _DetailDompetState extends State<DetailDompet> {
             bangunHeaderSeksi(tanggal, totalHarian),
             ...transaksiPadaTanggal.map(
               (transaksi) => bangunItemTransaksi(context, transaksi, () {
-                Log.info('========================================');
-                Log.info('TRANSAKSI: Refresh dipicu dari ItemTransaksi');
-                Log.info('ID Transaksi: ${transaksi.id}');
-                Log.info(
+                L.i('========================================');
+                L.i('TRANSAKSI: Refresh dipicu dari ItemTransaksi');
+                L.i('ID Transaksi: ${transaksi.id}');
+                L.i(
                   'User melakukan aksi pada transaksi (edit/hapus) yang memerlukan refresh data.',
                 );
-                Log.info(
+                L.i(
                   'Memanggil _muatUlangData() untuk memperbarui seluruh data halaman.',
                 );
-                Log.info('========================================');
+                L.i('========================================');
                 _muatUlangData();
               }, _transaksiOperasi),
             ),

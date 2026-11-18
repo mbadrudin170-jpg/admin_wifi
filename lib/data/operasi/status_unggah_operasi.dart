@@ -12,20 +12,26 @@ class StatusUnggahOperasi {
 
   /// Mengatur status `perlu_unggah`.
   /// true = 1, false = 0.
-  Future<void> setPerluUnggah(bool perluUnggah, {Transaction? transaction}) async {
+  Future<void> setPerluUnggah(
+    bool perluUnggah, {
+    Transaction? transaction,
+  }) async {
     final db = transaction ?? await _dbHelper.database;
-    await db.insert(
-      _tableName,
-      {'id': _key, 'value': perluUnggah ? '1' : '0'},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(_tableName, {
+      'id': _key,
+      'value': perluUnggah ? '1' : '0',
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// Membaca status `perlu_unggah`.
   /// Mengembalikan true jika flag diatur ke '1', selain itu false.
   Future<bool> getPerluUnggah() async {
     final db = await _dbHelper.database;
-    final result = await db.query(_tableName, where: 'id = ?', whereArgs: [_key]);
+    final result = await db.query(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [_key],
+    );
     if (result.isNotEmpty) {
       return result.first['value'] == '1';
     }

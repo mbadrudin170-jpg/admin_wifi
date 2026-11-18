@@ -4,8 +4,8 @@
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/model/dompet_model.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:uuid/uuid.dart';
 
 class FormDompet extends StatefulWidget {
@@ -30,97 +30,91 @@ class _FormDompetState extends State<FormDompet> {
   void initState() {
     super.initState();
     final isEditMode = widget.dompet != null;
-    Log.info(
+    L.i(
       'Membuat state untuk FormDompet. '
       'Mode: ${isEditMode ? "EDIT (ID: ${widget.dompet!.id}, Nama: ${widget.dompet!.namaDompet}, Saldo: ${widget.dompet!.saldo})" : "TAMBAH BARU"}',
     );
 
-    Log.info('========================================');
-    Log.info('LIFECYCLE: initState() - Halaman FormDompet');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: initState() - Halaman FormDompet');
+    L.i('========================================');
 
-    Log.info('Membuat FocusNode untuk input nama dompet.');
+    L.i('Membuat FocusNode untuk input nama dompet.');
     _namaFocusNode = FocusNode();
-    Log.info('FocusNode berhasil dibuat: ${_namaFocusNode.hashCode}');
+    L.i('FocusNode berhasil dibuat: ${_namaFocusNode.hashCode}');
 
     if (_isEditMode) {
-      Log.info('MODE EDIT terdeteksi. Data dompet yang akan diedit:');
-      Log.info('  - ID: ${widget.dompet!.id}');
-      Log.info('  - Nama Lama: ${widget.dompet!.namaDompet}');
-      Log.info('  - Saldo: ${widget.dompet!.saldo}');
-      Log.info('  - Diperbarui: ${widget.dompet!.diperbarui}');
-      Log.info('  - isDeleted: ${widget.dompet!.isDeleted}');
-      Log.info('  - Diarsipkan: ${widget.dompet!.diarsipkan ?? "NULL"}');
+      L.i('MODE EDIT terdeteksi. Data dompet yang akan diedit:');
+      L.i('  - ID: ${widget.dompet!.id}');
+      L.i('  - Nama Lama: ${widget.dompet!.namaDompet}');
+      L.i('  - Saldo: ${widget.dompet!.saldo}');
+      L.i('  - Diperbarui: ${widget.dompet!.diperbarui}');
+      L.i('  - isDeleted: ${widget.dompet!.isDeleted}');
+      L.i('  - Diarsipkan: ${widget.dompet!.diarsipkan ?? "NULL"}');
 
-      Log.info(
+      L.i(
         'Mengisi TextEditingController dengan nama dompet lama: "${widget.dompet!.namaDompet}"',
       );
       _namaController.text = widget.dompet!.namaDompet;
-      Log.info(
+      L.i(
         'TextEditingController berhasil diisi. Teks saat ini: "${_namaController.text}"',
       );
     } else {
-      Log.info('MODE TAMBAH BARU terdeteksi.');
-      Log.info('Form akan membuat dompet baru dengan:');
-      Log.info('  - ID: Akan digenerate otomatis menggunakan UUID v4');
-      Log.info('  - Nama: Dari input pengguna');
-      Log.info('  - Saldo Awal: 0.0 (sesuai arsitektur baru)');
-      Log.info('  - Diperbarui: DateTime.now()');
-      Log.info('  - isDeleted: 0 (default)');
-      Log.info('  - Diarsipkan: NULL (default)');
+      L.i('MODE TAMBAH BARU terdeteksi.');
+      L.i('Form akan membuat dompet baru dengan:');
+      L.i('  - ID: Akan digenerate otomatis menggunakan UUID v4');
+      L.i('  - Nama: Dari input pengguna');
+      L.i('  - Saldo Awal: 0.0 (sesuai arsitektur baru)');
+      L.i('  - Diperbarui: DateTime.now()');
+      L.i('  - isDeleted: 0 (default)');
+      L.i('  - Diarsipkan: NULL (default)');
     }
 
-    Log.info(
-      'Inisialisasi FormDompet selesai. Siap menerima input dari pengguna.',
-    );
+    L.i('Inisialisasi FormDompet selesai. Siap menerima input dari pengguna.');
   }
 
   @override
   void dispose() {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: dispose() - Halaman FormDompet');
-    Log.info('Membersihkan resource:');
-    Log.info('  - Mendispose TextEditingController (_namaController)');
-    Log.info('  - Mendispose FocusNode (_namaFocusNode)');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: dispose() - Halaman FormDompet');
+    L.i('Membersihkan resource:');
+    L.i('  - Mendispose TextEditingController (_namaController)');
+    L.i('  - Mendispose FocusNode (_namaFocusNode)');
+    L.i('========================================');
     _namaController.dispose();
     _namaFocusNode.dispose();
-    Log.info('Semua resource berhasil dibersihkan.');
+    L.i('Semua resource berhasil dibersihkan.');
     super.dispose();
   }
 
   void _simpanForm() async {
-    Log.info('========================================');
-    Log.info('AKSI: Tombol Simpan Ditekan');
-    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('AKSI: Tombol Simpan Ditekan');
+    L.i('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    L.i('========================================');
 
-    Log.info('Menghilangkan fokus dari input nama dompet.');
+    L.i('Menghilangkan fokus dari input nama dompet.');
     _namaFocusNode.unfocus();
-    Log.info('Fokus berhasil dihilangkan dari input.');
+    L.i('Fokus berhasil dihilangkan dari input.');
 
-    Log.info('Memvalidasi form...');
+    L.i('Memvalidasi form...');
     if (_formKey.currentState!.validate()) {
-      Log.info('Validasi form BERHASIL. Semua input valid.');
-      Log.info('Nama dompet yang akan disimpan: "${_namaController.text}"');
+      L.i('Validasi form BERHASIL. Semua input valid.');
+      L.i('Nama dompet yang akan disimpan: "${_namaController.text}"');
 
       try {
         if (_isEditMode) {
-          Log.info('========================================');
-          Log.info('PROSES UPDATE DOMPET (MODE EDIT)');
-          Log.info('========================================');
-          Log.info('Data dompet sebelum update:');
-          Log.info('  - ID: ${widget.dompet!.id}');
-          Log.info('  - Nama Lama: ${widget.dompet!.namaDompet}');
-          Log.info('  - Nama Baru: ${_namaController.text}');
-          Log.info(
-            '  - Saldo Tetap: ${widget.dompet!.saldo} (saldo tidak berubah)',
-          );
-          Log.info('  - Diperbarui: Akan diupdate ke DateTime.now()');
+          L.i('========================================');
+          L.i('PROSES UPDATE DOMPET (MODE EDIT)');
+          L.i('========================================');
+          L.i('Data dompet sebelum update:');
+          L.i('  - ID: ${widget.dompet!.id}');
+          L.i('  - Nama Lama: ${widget.dompet!.namaDompet}');
+          L.i('  - Nama Baru: ${_namaController.text}');
+          L.i('  - Saldo Tetap: ${widget.dompet!.saldo} (saldo tidak berubah)');
+          L.i('  - Diperbarui: Akan diupdate ke DateTime.now()');
 
-          Log.info(
-            'Membuat objek DompetModel baru dengan data yang diperbarui.',
-          );
+          L.i('Membuat objek DompetModel baru dengan data yang diperbarui.');
           final updatedDompet = DompetModel(
             id: widget.dompet!.id,
             namaDompet: _namaController.text,
@@ -128,63 +122,63 @@ class _FormDompetState extends State<FormDompet> {
             diperbarui: DateTime.now(),
           );
 
-          Log.info('Objek DompetModel berhasil dibuat:');
-          Log.info('  - ID: ${updatedDompet.id}');
-          Log.info('  - Nama: ${updatedDompet.namaDompet}');
-          Log.info('  - Saldo: ${updatedDompet.saldo}');
-          Log.info('  - Diperbarui: ${updatedDompet.diperbarui}');
+          L.i('Objek DompetModel berhasil dibuat:');
+          L.i('  - ID: ${updatedDompet.id}');
+          L.i('  - Nama: ${updatedDompet.namaDompet}');
+          L.i('  - Saldo: ${updatedDompet.saldo}');
+          L.i('  - Diperbarui: ${updatedDompet.diperbarui}');
 
-          Log.info(
+          L.i(
             'Memanggil _dompetOperasi.updateDompet() untuk menyimpan perubahan ke database.',
           );
           await _dompetOperasi.updateDompet(updatedDompet);
 
-          Log.info(
+          L.i(
             'Update dompet BERHASIL. Data dompet telah diperbarui di database.',
           );
-          Log.info(
+          L.i(
             'Nama dompet berubah dari "${widget.dompet!.namaDompet}" menjadi "${_namaController.text}"',
           );
 
           if (!mounted) {
-            Log.warning(
+            L.w(
               'Widget sudah tidak mounted setelah update berhasil. '
               'Tidak dapat melakukan Navigator.pop atau menampilkan SnackBar.',
             );
             return;
           }
 
-          Log.info(
+          L.i(
             'Widget masih mounted. Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
           );
-          Log.info(
+          L.i(
             'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.',
           );
           Navigator.pop(context, true);
-          Log.info('Navigator.pop berhasil dijalankan.');
+          L.i('Navigator.pop berhasil dijalankan.');
 
-          Log.info('Menampilkan SnackBar sukses update dompet.');
+          L.i('Menampilkan SnackBar sukses update dompet.');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Nama dompet berhasil diperbarui!'),
               backgroundColor: Colors.blue,
             ),
           );
-          Log.info('SnackBar sukses update dompet telah ditampilkan.');
+          L.i('SnackBar sukses update dompet telah ditampilkan.');
         } else {
-          Log.info('========================================');
-          Log.info('PROSES TAMBAH DOMPET BARU (MODE TAMBAH)');
-          Log.info('========================================');
+          L.i('========================================');
+          L.i('PROSES TAMBAH DOMPET BARU (MODE TAMBAH)');
+          L.i('========================================');
 
-          Log.info('Menggenerate UUID v4 untuk ID dompet baru.');
+          L.i('Menggenerate UUID v4 untuk ID dompet baru.');
           final newId = const Uuid().v4();
-          Log.info('UUID berhasil digenerate: $newId');
+          L.i('UUID berhasil digenerate: $newId');
 
-          Log.info('Membuat objek DompetModel baru dengan data:');
-          Log.info('  - ID: $newId');
-          Log.info('  - Nama: ${_namaController.text}');
-          Log.info('  - Saldo Awal: 0.0');
-          Log.info('  - Diperbarui: DateTime.now()');
+          L.i('Membuat objek DompetModel baru dengan data:');
+          L.i('  - ID: $newId');
+          L.i('  - Nama: ${_namaController.text}');
+          L.i('  - Saldo Awal: 0.0');
+          L.i('  - Diperbarui: DateTime.now()');
 
           final nuevoDompet = DompetModel(
             id: newId,
@@ -193,89 +187,85 @@ class _FormDompetState extends State<FormDompet> {
             diperbarui: DateTime.now(),
           );
 
-          Log.info('Objek DompetModel berhasil dibuat.');
-          Log.info(
+          L.i('Objek DompetModel berhasil dibuat.');
+          L.i(
             'Memanggil _dompetOperasi.createDompet() untuk menyimpan dompet baru ke database.',
           );
           await _dompetOperasi.createDompet(nuevoDompet);
 
-          Log.info('Dompet baru BERHASIL disimpan ke database.');
-          Log.info('Detail dompet yang disimpan:');
-          Log.info('  - ID: ${nuevoDompet.id}');
-          Log.info('  - Nama: ${nuevoDompet.namaDompet}');
-          Log.info('  - Saldo: ${nuevoDompet.saldo}');
-          Log.info('  - Diperbarui: ${nuevoDompet.diperbarui}');
+          L.i('Dompet baru BERHASIL disimpan ke database.');
+          L.i('Detail dompet yang disimpan:');
+          L.i('  - ID: ${nuevoDompet.id}');
+          L.i('  - Nama: ${nuevoDompet.namaDompet}');
+          L.i('  - Saldo: ${nuevoDompet.saldo}');
+          L.i('  - Diperbarui: ${nuevoDompet.diperbarui}');
 
           if (!mounted) {
-            Log.warning(
+            L.w(
               'Widget sudah tidak mounted setelah create berhasil. '
               'Tidak dapat melakukan Navigator.pop atau menampilkan SnackBar.',
             );
             return;
           }
 
-          Log.info(
+          L.i(
             'Widget masih mounted. Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
           );
-          Log.info(
+          L.i(
             'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada data baru.',
           );
           Navigator.pop(context, true);
-          Log.info('Navigator.pop berhasil dijalankan.');
+          L.i('Navigator.pop berhasil dijalankan.');
 
-          Log.info('Menampilkan SnackBar sukses tambah dompet.');
+          L.i('Menampilkan SnackBar sukses tambah dompet.');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Dompet baru berhasil ditambahkan!'),
               backgroundColor: Colors.green,
             ),
           );
-          Log.info('SnackBar sukses tambah dompet telah ditampilkan.');
+          L.i('SnackBar sukses tambah dompet telah ditampilkan.');
         }
       } catch (e, s) {
-        Log.error(
+        L.e(
           'Gagal menyimpan dompet. '
           'Proses ${_isEditMode ? "update" : "create"} dompet mengalami kegagalan. '
           'Kemungkinan penyebab: koneksi database gagal, constraint violation, '
-          'data tidak valid, atau terjadi error saat operasi database.',
-          error: e,
-          stackTrace: s,
+          'data tidak valid, atau terjadi error saat operasi database. Error: $e $s',
         );
 
         if (!mounted) {
-          Log.warning(
+          L.w(
             'Widget sudah tidak mounted setelah error. Tidak dapat menampilkan SnackBar error.',
           );
           return;
         }
 
-        Log.info(
-          'Widget masih mounted. Menampilkan SnackBar error ke pengguna.',
-        );
+        L.i('Widget masih mounted. Menampilkan SnackBar error ke pengguna.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal menyimpan dompet: $e'),
             backgroundColor: Colors.red,
           ),
         );
-        Log.info('SnackBar error telah ditampilkan.');
+        L.i('SnackBar error telah ditampilkan.');
       }
     } else {
-      Log.warning('Validasi form GAGAL. Terdapat input yang tidak valid.');
-      Log.warning(
+      L.w('Validasi form GAGAL. Terdapat input yang tidak valid.');
+      L.w(
         'Kemungkinan penyebab: Nama dompet kosong atau tidak memenuhi kriteria validasi.',
       );
-      Log.info('Form tidak akan disimpan sampai semua input valid.');
+      L.i('Form tidak akan disimpan sampai semua input valid.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: build() - Membangun UI FormDompet');
-    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
-    Log.info('Nama di controller: "${_namaController.text}"');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: build() - Membangun UI FormDompet');
+    L.i('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    L.i('Nama di controller: "${_namaController.text}"');
+    L.i('========================================');
 
     return Scaffold(
       appBar: AppBar(
@@ -283,7 +273,7 @@ class _FormDompetState extends State<FormDompet> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Log.info(
+            L.i(
               'NAVIGASI: Tombol Kembali ditekan. '
               'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).',
             );
@@ -307,34 +297,34 @@ class _FormDompetState extends State<FormDompet> {
                 ),
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) {
-                  Log.info(
+                  L.i(
                     'INPUT: Field nama dompet disubmit melalui keyboard (TextInputAction.done).',
                   );
-                  Log.info('Nilai yang disubmit: "${_namaController.text}"');
-                  Log.info('Memanggil _simpanForm() secara otomatis.');
+                  L.i('Nilai yang disubmit: "${_namaController.text}"');
+                  L.i('Memanggil _simpanForm() secara otomatis.');
                   _simpanForm();
                 },
                 onChanged: (value) {
-                  Log.info(
+                  L.i(
                     'INPUT: Nama dompet berubah menjadi: "$value" (panjang: ${value.length} karakter)',
                   );
                 },
                 validator: (value) {
-                  Log.info(
+                  L.i(
                     'VALIDASI: Memvalidasi input nama dompet. Nilai: "${value ?? "NULL"}"',
                   );
                   if (value == null || value.isEmpty) {
-                    Log.warning('VALIDASI GAGAL: Nama dompet kosong.');
+                    L.w('VALIDASI GAGAL: Nama dompet kosong.');
                     return 'Nama dompet tidak boleh kosong';
                   }
-                  Log.info('VALIDASI BERHASIL: Nama dompet valid.');
+                  L.i('VALIDASI BERHASIL: Nama dompet valid.');
                   return null;
                 },
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
-                  Log.info('AKSI: Tombol Simpan ditekan oleh pengguna.');
+                  L.i('AKSI: Tombol Simpan ditekan oleh pengguna.');
                   _simpanForm();
                 },
                 style: ElevatedButton.styleFrom(

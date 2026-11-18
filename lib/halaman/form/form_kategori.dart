@@ -3,11 +3,11 @@
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
+import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:flutter/material.dart';
-import 'package:admin_wifi/model/kategori_model.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:uuid/uuid.dart';
 
 class FormKategoriPage extends StatefulWidget {
@@ -47,264 +47,327 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
   void initState() {
     super.initState();
     final isEditMode = widget.kategori != null || widget.subKategori != null;
-    final isSubKategoriMode = widget.subKategori != null || widget.idKategoriInduk != null;
-    
-    Log.info('Membuat state untuk FormKategoriPage. '
-        'Mode: ${isEditMode ? "EDIT" : "TAMBAH BARU"}, '
-        'Jenis: ${isSubKategoriMode ? "SUB-KATEGORI" : "KATEGORI UTAMA"}, '
-        '${widget.kategori != null ? "Kategori: ${widget.kategori!.nama} (ID: ${widget.kategori!.id})" : ""}'
-        '${widget.subKategori != null ? "Sub-Kategori: ${widget.subKategori!.nama} (ID: ${widget.subKategori!.id})" : ""}'
-        '${widget.idKategoriInduk != null ? "ID Kategori Induk: ${widget.idKategoriInduk}" : ""}');
+    final isSubKategoriMode =
+        widget.subKategori != null || widget.idKategoriInduk != null;
 
-    Log.info('========================================');
-    Log.info('LIFECYCLE: initState() - Halaman FormKategoriPage');
-    Log.info('========================================');
-    
-    Log.info('Membuat TextEditingController untuk input nama.');
+    L.i(
+      'Membuat state untuk FormKategoriPage. '
+      'Mode: ${isEditMode ? "EDIT" : "TAMBAH BARU"}, '
+      'Jenis: ${isSubKategoriMode ? "SUB-KATEGORI" : "KATEGORI UTAMA"}, '
+      '${widget.kategori != null ? "Kategori: ${widget.kategori!.nama} (ID: ${widget.kategori!.id})" : ""}'
+      '${widget.subKategori != null ? "Sub-Kategori: ${widget.subKategori!.nama} (ID: ${widget.subKategori!.id})" : ""}'
+      '${widget.idKategoriInduk != null ? "ID Kategori Induk: ${widget.idKategoriInduk}" : ""}',
+    );
+
+    L.i('========================================');
+    L.i('LIFECYCLE: initState() - Halaman FormKategoriPage');
+    L.i('========================================');
+
+    L.i('Membuat TextEditingController untuk input nama.');
     _namaController = TextEditingController();
-    Log.info('TextEditingController berhasil dibuat.');
+    L.i('TextEditingController berhasil dibuat.');
 
-    Log.info('Membuat FocusNode untuk input nama.');
-    Log.info('FocusNode berhasil dibuat: ${_namaFocusNode.hashCode}');
+    L.i('Membuat FocusNode untuk input nama.');
+    L.i('FocusNode berhasil dibuat: ${_namaFocusNode.hashCode}');
 
     if (widget.kategori != null) {
-      Log.info('MODE EDIT KATEGORI UTAMA terdeteksi.');
-      Log.info('Data kategori yang akan diedit:');
-      Log.info('  - ID: ${widget.kategori!.id}');
-      Log.info('  - Nama: ${widget.kategori!.nama}');
-      Log.info('  - Tipe: ${widget.kategori!.tipe}');
-      Log.info('  - Jumlah Sub-Kategori: ${widget.kategori!.subKategori.length}');
-      Log.info('  - Diperbarui: ${widget.kategori!.diperbarui}');
-      Log.info('  - isDeleted: ${widget.kategori!.isDeleted}');
-      Log.info('  - Diarsipkan: ${widget.kategori!.diarsipkan ?? "NULL"}');
-      
-      Log.info('Mengisi TextEditingController dengan nama kategori: "${widget.kategori!.nama}"');
+      L.i('MODE EDIT KATEGORI UTAMA terdeteksi.');
+      L.i('Data kategori yang akan diedit:');
+      L.i('  - ID: ${widget.kategori!.id}');
+      L.i('  - Nama: ${widget.kategori!.nama}');
+      L.i('  - Tipe: ${widget.kategori!.tipe}');
+      L.i('  - Jumlah Sub-Kategori: ${widget.kategori!.subKategori.length}');
+      L.i('  - Diperbarui: ${widget.kategori!.diperbarui}');
+      L.i('  - isDeleted: ${widget.kategori!.isDeleted}');
+      L.i('  - Diarsipkan: ${widget.kategori!.diarsipkan ?? "NULL"}');
+
+      L.i(
+        'Mengisi TextEditingController dengan nama kategori: "${widget.kategori!.nama}"',
+      );
       _namaController.text = widget.kategori!.nama;
       _tipe = widget.kategori!.tipe;
-      Log.info('Tipe kategori diatur ke: ${widget.kategori!.tipe}');
-      
+      L.i('Tipe kategori diatur ke: ${widget.kategori!.tipe}');
     } else if (widget.subKategori != null) {
-      Log.info('MODE EDIT SUB-KATEGORI terdeteksi.');
-      Log.info('Data sub-kategori yang akan diedit:');
-      Log.info('  - ID: ${widget.subKategori!.id}');
-      Log.info('  - Nama: ${widget.subKategori!.nama}');
-      Log.info('  - ID Kategori Induk: ${widget.subKategori!.idKategori}');
-      Log.info('  - Diperbarui: ${widget.subKategori!.diperbarui}');
-      
-      Log.info('Mengisi TextEditingController dengan nama sub-kategori: "${widget.subKategori!.nama}"');
+      L.i('MODE EDIT SUB-KATEGORI terdeteksi.');
+      L.i('Data sub-kategori yang akan diedit:');
+      L.i('  - ID: ${widget.subKategori!.id}');
+      L.i('  - Nama: ${widget.subKategori!.nama}');
+      L.i('  - ID Kategori Induk: ${widget.subKategori!.idKategori}');
+      L.i('  - Diperbarui: ${widget.subKategori!.diperbarui}');
+
+      L.i(
+        'Mengisi TextEditingController dengan nama sub-kategori: "${widget.subKategori!.nama}"',
+      );
       _namaController.text = widget.subKategori!.nama;
-      
     } else {
-      Log.info('MODE TAMBAH BARU terdeteksi.');
-      Log.info('Form akan membuat kategori baru dengan:');
-      Log.info('  - ID: Akan digenerate otomatis menggunakan UUID v4');
-      Log.info('  - Tipe Default: pemasukan');
-      Log.info('  - Nama: Dari input pengguna');
-      Log.info('  - Sub-Kategori: Opsional, bisa ditambahkan multiple');
-      Log.info('  - Diperbarui: DateTime.now()');
-      
-      Log.info('Mengatur tipe default ke pemasukan.');
+      L.i('MODE TAMBAH BARU terdeteksi.');
+      L.i('Form akan membuat kategori baru dengan:');
+      L.i('  - ID: Akan digenerate otomatis menggunakan UUID v4');
+      L.i('  - Tipe Default: pemasukan');
+      L.i('  - Nama: Dari input pengguna');
+      L.i('  - Sub-Kategori: Opsional, bisa ditambahkan multiple');
+      L.i('  - Diperbarui: DateTime.now()');
+
+      L.i('Mengatur tipe default ke pemasukan.');
       _tipe = TipeKategori.pemasukan;
-      Log.info('Tipe kategori diatur ke: $_tipe');
-      
-      Log.info('Menambahkan field input sub-kategori pertama secara default.');
+      L.i('Tipe kategori diatur ke: $_tipe');
+
+      L.i('Menambahkan field input sub-kategori pertama secara default.');
       _tambahInputSubKategori();
     }
-    
-    Log.info('Inisialisasi FormKategoriPage selesai. Siap menerima input dari pengguna.');
+
+    L.i(
+      'Inisialisasi FormKategoriPage selesai. Siap menerima input dari pengguna.',
+    );
   }
 
   @override
   void dispose() {
-    Log.info('========================================');
-    Log.info('LIFECYCLE: dispose() - Halaman FormKategoriPage');
-    Log.info('Membersihkan resource:');
-    Log.info('  - Mendispose TextEditingController utama (_namaController)');
-    Log.info('  - Mendispose FocusNode (_namaFocusNode)');
-    Log.info('  - Mendispose ${_subKategoriControllers.length} TextEditingController sub-kategori');
-    Log.info('========================================');
-    
+    L.i('========================================');
+    L.i('LIFECYCLE: dispose() - Halaman FormKategoriPage');
+    L.i('Membersihkan resource:');
+    L.i('  - Mendispose TextEditingController utama (_namaController)');
+    L.i('  - Mendispose FocusNode (_namaFocusNode)');
+    L.i(
+      '  - Mendispose ${_subKategoriControllers.length} TextEditingController sub-kategori',
+    );
+    L.i('========================================');
+
     _namaController.dispose();
     _namaFocusNode.dispose();
-    
+
     for (int i = 0; i < _subKategoriControllers.length; i++) {
-      Log.info('  Mendispose sub-kategori controller ke-${i + 1}');
+      L.i('  Mendispose sub-kategori controller ke-${i + 1}');
       _subKategoriControllers[i].dispose();
     }
-    
-    Log.info('Semua resource berhasil dibersihkan.');
+
+    L.i('Semua resource berhasil dibersihkan.');
     super.dispose();
   }
 
   void _tambahInputSubKategori() {
-    Log.info('========================================');
-    Log.info('AKSI: Menambahkan field input sub-kategori baru');
-    Log.info('Jumlah field sub-kategori sebelum ditambah: ${_subKategoriControllers.length}');
-    Log.info('========================================');
-    
+    L.i('========================================');
+    L.i('AKSI: Menambahkan field input sub-kategori baru');
+    L.i(
+      'Jumlah field sub-kategori sebelum ditambah: ${_subKategoriControllers.length}',
+    );
+    L.i('========================================');
+
     setState(() {
       _subKategoriControllers.add(TextEditingController());
     });
-    
-    Log.info('Field sub-kategori baru berhasil ditambahkan.');
-    Log.info('Jumlah field sub-kategori sekarang: ${_subKategoriControllers.length}');
-    Log.info('Index field baru: ${_subKategoriControllers.length - 1}');
+
+    L.i('Field sub-kategori baru berhasil ditambahkan.');
+    L.i(
+      'Jumlah field sub-kategori sekarang: ${_subKategoriControllers.length}',
+    );
+    L.i('Index field baru: ${_subKategoriControllers.length - 1}');
   }
 
   void _hapusInputSubKategori(int index) {
-    Log.info('========================================');
-    Log.info('AKSI: Menghapus field input sub-kategori');
-    Log.info('Index yang akan dihapus: $index');
-    Log.info('Jumlah field sub-kategori sebelum dihapus: ${_subKategoriControllers.length}');
-    
+    L.i('========================================');
+    L.i('AKSI: Menghapus field input sub-kategori');
+    L.i('Index yang akan dihapus: $index');
+    L.i(
+      'Jumlah field sub-kategori sebelum dihapus: ${_subKategoriControllers.length}',
+    );
+
     if (index >= 0 && index < _subKategoriControllers.length) {
-      Log.info('Nilai field sebelum dihapus: "${_subKategoriControllers[index].text}"');
+      L.i(
+        'Nilai field sebelum dihapus: "${_subKategoriControllers[index].text}"',
+      );
     } else {
-      Log.warning('Index $index tidak valid. Jumlah field: ${_subKategoriControllers.length}');
+      L.w(
+        'Index $index tidak valid. Jumlah field: ${_subKategoriControllers.length}',
+      );
     }
-    Log.info('========================================');
-    
+    L.i('========================================');
+
     setState(() {
-      Log.info('Mendispose controller pada index $index.');
+      L.i('Mendispose controller pada index $index.');
       _subKategoriControllers[index].dispose();
-      Log.info('Menghapus controller dari list.');
+      L.i('Menghapus controller dari list.');
       _subKategoriControllers.removeAt(index);
     });
-    
-    Log.info('Field sub-kategori berhasil dihapus.');
-    Log.info('Jumlah field sub-kategori sekarang: ${_subKategoriControllers.length}');
+
+    L.i('Field sub-kategori berhasil dihapus.');
+    L.i(
+      'Jumlah field sub-kategori sekarang: ${_subKategoriControllers.length}',
+    );
   }
 
   void _simpanForm() async {
-    Log.info('========================================');
-    Log.info('AKSI: Tombol Simpan Ditekan');
-    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
-    Log.info('Jenis: ${_isSubKategoriMode ? "SUB-KATEGORI" : "KATEGORI UTAMA"}');
-    Log.info('Nama yang akan disimpan: "${_namaController.text}"');
-    Log.info('Tipe kategori: $_tipe');
-    Log.info('========================================');
-    
-    Log.info('Memvalidasi form...');
+    L.i('========================================');
+    L.i('AKSI: Tombol Simpan Ditekan');
+    L.i('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    L.i('Jenis: ${_isSubKategoriMode ? "SUB-KATEGORI" : "KATEGORI UTAMA"}');
+    L.i('Nama yang akan disimpan: "${_namaController.text}"');
+    L.i('Tipe kategori: $_tipe');
+    L.i('========================================');
+
+    L.i('Memvalidasi form...');
     if (_formKey.currentState!.validate()) {
-      Log.info('Validasi form BERHASIL. Semua input valid.');
-      
+      L.i('Validasi form BERHASIL. Semua input valid.');
+
       try {
         if (_isEditMode && widget.subKategori != null) {
-          Log.info('========================================');
-          Log.info('PROSES UPDATE SUB-KATEGORI (MODE EDIT SUB-KATEGORI)');
-          Log.info('========================================');
-          
-          Log.info('Data sub-kategori sebelum update:');
-          Log.info('  - ID: ${widget.subKategori!.id}');
-          Log.info('  - Nama Lama: ${widget.subKategori!.nama}');
-          Log.info('  - Nama Baru: ${_namaController.text}');
-          Log.info('  - ID Kategori Induk: ${widget.idKategoriInduk}');
-          
+          L.i('========================================');
+          L.i('PROSES UPDATE SUB-KATEGORI (MODE EDIT SUB-KATEGORI)');
+          L.i('========================================');
+
+          L.i('Data sub-kategori sebelum update:');
+          L.i('  - ID: ${widget.subKategori!.id}');
+          L.i('  - Nama Lama: ${widget.subKategori!.nama}');
+          L.i('  - Nama Baru: ${_namaController.text}');
+          L.i('  - ID Kategori Induk: ${widget.idKategoriInduk}');
+
           if (widget.idKategoriInduk == null) {
-            Log.error('ID kategori induk tidak ditemukan saat mengedit sub-kategori. '
-                'Ini adalah kesalahan logika karena sub-kategori harus selalu memiliki kategori induk.');
-            throw Exception('ID kategori induk tidak ditemukan saat mengedit sub-kategori.');
+            L.e(
+              'ID kategori induk tidak ditemukan saat mengedit sub-kategori. '
+              'Ini adalah kesalahan logika karena sub-kategori harus selalu memiliki kategori induk.',
+            );
+            throw Exception(
+              'ID kategori induk tidak ditemukan saat mengedit sub-kategori.',
+            );
           }
-          
-          Log.info('Mengambil data kategori induk dengan ID: ${widget.idKategoriInduk}');
-          final kategoriInduk = await _kategoriOperasi.getKategoriById(widget.idKategoriInduk!);
-          
-          Log.info('Kategori induk ditemukan: ${kategoriInduk.nama} (memiliki ${kategoriInduk.subKategori.length} sub-kategori).');
-          Log.info('Mencari index sub-kategori dengan ID: ${widget.subKategori!.id} dalam daftar sub-kategori.');
-          
-          final subKategoriIndex = kategoriInduk.subKategori.indexWhere((s) => s.id == widget.subKategori!.id);
+
+          L.i(
+            'Mengambil data kategori induk dengan ID: ${widget.idKategoriInduk}',
+          );
+          final kategoriInduk = await _kategoriOperasi.getKategoriById(
+            widget.idKategoriInduk!,
+          );
+
+          L.i(
+            'Kategori induk ditemukan: ${kategoriInduk.nama} (memiliki ${kategoriInduk.subKategori.length} sub-kategori).',
+          );
+          L.i(
+            'Mencari index sub-kategori dengan ID: ${widget.subKategori!.id} dalam daftar sub-kategori.',
+          );
+
+          final subKategoriIndex = kategoriInduk.subKategori.indexWhere(
+            (s) => s.id == widget.subKategori!.id,
+          );
 
           if (subKategoriIndex != -1) {
-            Log.info('Sub-kategori ditemukan pada index: $subKategoriIndex');
-            Log.info('Nama sub-kategori sebelum update: "${kategoriInduk.subKategori[subKategoriIndex].nama}"');
-            
-            Log.info('Membuat salinan sub-kategori dengan nama baru dan timestamp diperbarui.');
-            final subKategoriDiperbarui = kategoriInduk.subKategori[subKategoriIndex].copyWith(
-              nama: _namaController.text,
-              diperbarui: DateTime.now(),
+            L.i('Sub-kategori ditemukan pada index: $subKategoriIndex');
+            L.i(
+              'Nama sub-kategori sebelum update: "${kategoriInduk.subKategori[subKategoriIndex].nama}"',
             );
-            
-            Log.info('Mengganti sub-kategori pada index $subKategoriIndex dengan data baru.');
+
+            L.i(
+              'Membuat salinan sub-kategori dengan nama baru dan timestamp diperbarui.',
+            );
+            final subKategoriDiperbarui = kategoriInduk
+                .subKategori[subKategoriIndex]
+                .copyWith(
+                  nama: _namaController.text,
+                  diperbarui: DateTime.now(),
+                );
+
+            L.i(
+              'Mengganti sub-kategori pada index $subKategoriIndex dengan data baru.',
+            );
             kategoriInduk.subKategori[subKategoriIndex] = subKategoriDiperbarui;
-            
-            Log.info('Memanggil _kategoriOperasi.update() untuk menyimpan perubahan kategori induk.');
+
+            L.i(
+              'Memanggil _kategoriOperasi.update() untuk menyimpan perubahan kategori induk.',
+            );
             await _kategoriOperasi.update(kategoriInduk);
-            
-            Log.info('Update sub-kategori BERHASIL.');
-            Log.info('Nama sub-kategori berubah dari "${widget.subKategori!.nama}" menjadi "${_namaController.text}"');
+
+            L.i('Update sub-kategori BERHASIL.');
+            L.i(
+              'Nama sub-kategori berubah dari "${widget.subKategori!.nama}" menjadi "${_namaController.text}"',
+            );
           } else {
-            Log.error('Sub-kategori dengan ID ${widget.subKategori!.id} tidak ditemukan dalam daftar sub-kategori kategori induk.');
+            L.e(
+              'Sub-kategori dengan ID ${widget.subKategori!.id} tidak ditemukan dalam daftar sub-kategori kategori induk.',
+            );
             throw Exception('Sub-kategori tidak ditemukan untuk diedit.');
           }
-          
         } else if (_isEditMode && widget.kategori != null) {
-          Log.info('========================================');
-          Log.info('PROSES UPDATE KATEGORI UTAMA (MODE EDIT KATEGORI)');
-          Log.info('========================================');
-          
-          Log.info('Data kategori sebelum update:');
-          Log.info('  - ID: ${widget.kategori!.id}');
-          Log.info('  - Nama Lama: ${widget.kategori!.nama}');
-          Log.info('  - Nama Baru: ${_namaController.text}');
-          Log.info('  - Tipe Lama: ${widget.kategori!.tipe}');
-          Log.info('  - Tipe Baru: $_tipe');
-          
-          Log.info('Membuat salinan kategori dengan data baru dan timestamp diperbarui.');
+          L.i('========================================');
+          L.i('PROSES UPDATE KATEGORI UTAMA (MODE EDIT KATEGORI)');
+          L.i('========================================');
+
+          L.i('Data kategori sebelum update:');
+          L.i('  - ID: ${widget.kategori!.id}');
+          L.i('  - Nama Lama: ${widget.kategori!.nama}');
+          L.i('  - Nama Baru: ${_namaController.text}');
+          L.i('  - Tipe Lama: ${widget.kategori!.tipe}');
+          L.i('  - Tipe Baru: $_tipe');
+
+          L.i(
+            'Membuat salinan kategori dengan data baru dan timestamp diperbarui.',
+          );
           final kategoriDiperbarui = widget.kategori!.copyWith(
             nama: _namaController.text,
             tipe: _tipe,
             diperbarui: DateTime.now(),
           );
-          
-          Log.info('Objek KategoriModel baru:');
-          Log.info('  - ID: ${kategoriDiperbarui.id}');
-          Log.info('  - Nama: ${kategoriDiperbarui.nama}');
-          Log.info('  - Tipe: ${kategoriDiperbarui.tipe}');
-          Log.info('  - Diperbarui: ${kategoriDiperbarui.diperbarui}');
-          
-          Log.info('Memanggil _kategoriOperasi.update() untuk menyimpan perubahan.');
+
+          L.i('Objek KategoriModel baru:');
+          L.i('  - ID: ${kategoriDiperbarui.id}');
+          L.i('  - Nama: ${kategoriDiperbarui.nama}');
+          L.i('  - Tipe: ${kategoriDiperbarui.tipe}');
+          L.i('  - Diperbarui: ${kategoriDiperbarui.diperbarui}');
+
+          L.i('Memanggil _kategoriOperasi.update() untuk menyimpan perubahan.');
           await _kategoriOperasi.update(kategoriDiperbarui);
-          
-          Log.info('Update kategori utama BERHASIL.');
-          Log.info('Nama kategori berubah dari "${widget.kategori!.nama}" menjadi "${_namaController.text}"');
-          Log.info('Tipe kategori berubah dari "${widget.kategori!.tipe}" menjadi "$_tipe"');
-          
+
+          L.i('Update kategori utama BERHASIL.');
+          L.i(
+            'Nama kategori berubah dari "${widget.kategori!.nama}" menjadi "${_namaController.text}"',
+          );
+          L.i(
+            'Tipe kategori berubah dari "${widget.kategori!.tipe}" menjadi "$_tipe"',
+          );
         } else {
-          Log.info('========================================');
-          Log.info('PROSES TAMBAH KATEGORI BARU (MODE TAMBAH)');
-          Log.info('========================================');
-          
-          Log.info('Menggenerate UUID v4 untuk ID kategori baru.');
+          L.i('========================================');
+          L.i('PROSES TAMBAH KATEGORI BARU (MODE TAMBAH)');
+          L.i('========================================');
+
+          L.i('Menggenerate UUID v4 untuk ID kategori baru.');
           final String kategoriId = const Uuid().v4();
-          Log.info('UUID berhasil digenerate: $kategoriId');
-          
-          Log.info('Memproses ${_subKategoriControllers.length} field input sub-kategori.');
-          
+          L.i('UUID berhasil digenerate: $kategoriId');
+
+          L.i(
+            'Memproses ${_subKategoriControllers.length} field input sub-kategori.',
+          );
+
           int subKategoriKosong = 0;
           int subKategoriTerisi = 0;
-          
+
           final List<SubKategoriModel> subKategoriList = _subKategoriControllers
               .where((controller) {
                 final isEmpty = controller.text.isEmpty;
                 if (isEmpty) {
                   subKategoriKosong++;
-                  Log.info('  Sub-kategori dengan nilai "${controller.text}" akan DIABAIKAN karena kosong.');
+                  L.i(
+                    '  Sub-kategori dengan nilai "${controller.text}" akan DIABAIKAN karena kosong.',
+                  );
                 } else {
                   subKategoriTerisi++;
-                  Log.info('  Sub-kategori dengan nilai "${controller.text}" akan DISIMPAN.');
+                  L.i(
+                    '  Sub-kategori dengan nilai "${controller.text}" akan DISIMPAN.',
+                  );
                 }
                 return !isEmpty;
               })
-              .map((controller) => SubKategoriModel(
-                    nama: controller.text,
-                    idKategori: kategoriId,
-                    diperbarui: DateTime.now(),
-                  ))
+              .map(
+                (controller) => SubKategoriModel(
+                  nama: controller.text,
+                  idKategori: kategoriId,
+                  diperbarui: DateTime.now(),
+                ),
+              )
               .toList();
-          
-          Log.info('Ringkasan sub-kategori: $subKategoriTerisi akan disimpan, $subKategoriKosong diabaikan.');
-          
-          Log.info('Membuat objek KategoriModel baru.');
+
+          L.i(
+            'Ringkasan sub-kategori: $subKategoriTerisi akan disimpan, $subKategoriKosong diabaikan.',
+          );
+
+          L.i('Membuat objek KategoriModel baru.');
           final kategoriBaru = KategoriModel(
             id: kategoriId,
             nama: _namaController.text,
@@ -312,89 +375,103 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
             subKategori: subKategoriList,
             diperbarui: DateTime.now(),
           );
-          
-          Log.info('Objek KategoriModel berhasil dibuat:');
-          Log.info('  - ID: ${kategoriBaru.id}');
-          Log.info('  - Nama: ${kategoriBaru.nama}');
-          Log.info('  - Tipe: ${kategoriBaru.tipe}');
-          Log.info('  - Jumlah Sub-Kategori: ${kategoriBaru.subKategori.length}');
-          Log.info('  - Diperbarui: ${kategoriBaru.diperbarui}');
-          
-          Log.info('Memanggil _kategoriOperasi.createKategori() untuk menyimpan kategori baru.');
+
+          L.i('Objek KategoriModel berhasil dibuat:');
+          L.i('  - ID: ${kategoriBaru.id}');
+          L.i('  - Nama: ${kategoriBaru.nama}');
+          L.i('  - Tipe: ${kategoriBaru.tipe}');
+          L.i('  - Jumlah Sub-Kategori: ${kategoriBaru.subKategori.length}');
+          L.i('  - Diperbarui: ${kategoriBaru.diperbarui}');
+
+          L.i(
+            'Memanggil _kategoriOperasi.createKategori() untuk menyimpan kategori baru.',
+          );
           await _kategoriOperasi.createKategori(kategoriBaru);
-          
-          Log.info('Kategori baru BERHASIL disimpan ke database lokal.');
+
+          L.i('Kategori baru BERHASIL disimpan ke database lokal.');
         }
 
-        Log.info('========================================');
-        Log.info('MEMERIKSA KONEKSI INTERNET UNTUK SINKRONISASI');
-        Log.info('========================================');
-        
-        Log.info('Memeriksa koneksi internet...');
+        L.i('========================================');
+        L.i('MEMERIKSA KONEKSI INTERNET UNTUK SINKRONISASI');
+        L.i('========================================');
+
+        L.i('Memeriksa koneksi internet...');
         final isOnline = await _cekKoneksi.cekKoneksi();
-        Log.info('Status koneksi: ${isOnline ? "ONLINE" : "OFFLINE"}');
-        
+        L.i('Status koneksi: ${isOnline ? "ONLINE" : "OFFLINE"}');
+
         if (isOnline) {
-          Log.info('Koneksi internet tersedia. Melakukan sinkronisasi data kategori ke Firestore.');
+          L.i(
+            'Koneksi internet tersedia. Melakukan sinkronisasi data kategori ke Firestore.',
+          );
           await _layananUnggahData.unggahDataKategori();
-          Log.info('Sinkronisasi data kategori ke cloud BERHASIL.');
+          L.i('Sinkronisasi data kategori ke cloud BERHASIL.');
         } else {
-          Log.info('Tidak ada koneksi internet. Data hanya disimpan secara lokal.');
-          Log.info('Sinkronisasi akan dilakukan saat koneksi tersedia nanti.');
+          L.i('Tidak ada koneksi internet. Data hanya disimpan secara lokal.');
+          L.i('Sinkronisasi akan dilakukan saat koneksi tersedia nanti.');
         }
 
-        Log.info('========================================');
-        Log.info('PENYIMPANAN DATA BERHASIL');
-        Log.info('========================================');
+        L.i('========================================');
+        L.i('PENYIMPANAN DATA BERHASIL');
+        L.i('========================================');
 
         if (!mounted) {
-          Log.warning('Widget sudah tidak mounted setelah penyimpanan berhasil. '
-              'Tidak dapat menampilkan SnackBar atau melakukan Navigator.pop.');
+          L.w(
+            'Widget sudah tidak mounted setelah penyimpanan berhasil. '
+            'Tidak dapat menampilkan SnackBar atau melakukan Navigator.pop.',
+          );
           return;
         }
 
-        Log.info('Widget masih mounted. Menampilkan SnackBar sukses.');
+        L.i('Widget masih mounted. Menampilkan SnackBar sukses.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${_isSubKategoriMode ? 'Sub-Kategori' : 'Kategori'} berhasil disimpan!'),
+            content: Text(
+              '${_isSubKategoriMode ? 'Sub-Kategori' : 'Kategori'} berhasil disimpan!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
-        Log.info('SnackBar sukses telah ditampilkan.');
-        
-        Log.info('Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.');
-        Log.info('Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.');
+        L.i('SnackBar sukses telah ditampilkan.');
+
+        L.i(
+          'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+        );
+        L.i(
+          'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.',
+        );
         Navigator.pop(context, true);
-        Log.info('Navigator.pop berhasil dijalankan.');
-        
+        L.i('Navigator.pop berhasil dijalankan.');
       } catch (e, s) {
-        Log.error(
+        L.e(
           'Gagal menyimpan ${_isSubKategoriMode ? 'sub-kategori' : 'kategori'}. '
           'Proses ${_isEditMode ? 'update' : 'create'} mengalami kegagalan. '
           'Kemungkinan penyebab: koneksi database gagal, constraint violation, '
-          'data tidak valid, atau terjadi error saat operasi database.',
-          error: e,
-          stackTrace: s,
+          'data tidak valid, atau terjadi error saat operasi database. '
+          'Error: $e $s',
         );
-        
+
         if (!mounted) {
-          Log.warning('Widget sudah tidak mounted setelah error. Tidak dapat menampilkan SnackBar error.');
+          L.w(
+            'Widget sudah tidak mounted setelah error. Tidak dapat menampilkan SnackBar error.',
+          );
           return;
         }
-        
-        Log.info('Widget masih mounted. Menampilkan SnackBar error ke pengguna.');
+
+        L.i('Widget masih mounted. Menampilkan SnackBar error ke pengguna.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal menyimpan: $e'),
             backgroundColor: Colors.red,
           ),
         );
-        Log.info('SnackBar error telah ditampilkan.');
+        L.i('SnackBar error telah ditampilkan.');
       }
     } else {
-      Log.warning('Validasi form GAGAL. Terdapat input yang tidak valid.');
-      Log.warning('Kemungkinan penyebab: Nama kategori/sub-kategori kosong atau tidak memenuhi kriteria validasi.');
-      Log.info('Form tidak akan disimpan sampai semua input valid.');
+      L.w('Validasi form GAGAL. Terdapat input yang tidak valid.');
+      L.w(
+        'Kemungkinan penyebab: Nama kategori/sub-kategori kosong atau tidak memenuhi kriteria validasi.',
+      );
+      L.i('Form tidak akan disimpan sampai semua input valid.');
     }
   }
 
@@ -403,26 +480,30 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
     String judul = 'Form Kategori';
     if (_isEditMode && widget.kategori != null) judul = 'Edit Kategori';
     if (_isEditMode && widget.subKategori != null) judul = 'Edit Sub-Kategori';
-    if (!_isEditMode && widget.idKategoriInduk != null) judul = 'Tambah Sub-Kategori';
-    if (!_isEditMode && widget.kategori == null && widget.subKategori == null) judul = 'Tambah Kategori Baru';
+    if (!_isEditMode && widget.idKategoriInduk != null)
+      judul = 'Tambah Sub-Kategori';
+    if (!_isEditMode && widget.kategori == null && widget.subKategori == null)
+      judul = 'Tambah Kategori Baru';
 
-    Log.info('========================================');
-    Log.info('LIFECYCLE: build() - Membangun UI FormKategoriPage');
-    Log.info('Judul halaman: "$judul"');
-    Log.info('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
-    Log.info('Jenis: ${_isSubKategoriMode ? "SUB-KATEGORI" : "KATEGORI UTAMA"}');
-    Log.info('Nama di controller: "${_namaController.text}"');
-    Log.info('Tipe terpilih: $_tipe');
-    Log.info('Jumlah field sub-kategori: ${_subKategoriControllers.length}');
-    Log.info('========================================');
+    L.i('========================================');
+    L.i('LIFECYCLE: build() - Membangun UI FormKategoriPage');
+    L.i('Judul halaman: "$judul"');
+    L.i('Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}');
+    L.i('Jenis: ${_isSubKategoriMode ? "SUB-KATEGORI" : "KATEGORI UTAMA"}');
+    L.i('Nama di controller: "${_namaController.text}"');
+    L.i('Tipe terpilih: $_tipe');
+    L.i('Jumlah field sub-kategori: ${_subKategoriControllers.length}');
+    L.i('========================================');
 
     return Scaffold(
       appBar: AppBar(
         title: Text(judul),
         leading: BackButton(
           onPressed: () {
-            Log.info('NAVIGASI: Tombol Kembali ditekan. '
-                'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).');
+            L.i(
+              'NAVIGASI: Tombol Kembali ditekan. '
+              'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).',
+            );
             Navigator.pop(context, false);
           },
         ),
@@ -439,26 +520,34 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
                   controller: _namaController,
                   focusNode: _namaFocusNode,
                   decoration: InputDecoration(
-                    labelText: _isSubKategoriMode ? 'Nama Sub-Kategori' : 'Nama Kategori',
+                    labelText: _isSubKategoriMode
+                        ? 'Nama Sub-Kategori'
+                        : 'Nama Kategori',
                     border: const OutlineInputBorder(),
                   ),
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) {
-                    Log.info('INPUT: Field nama disubmit melalui keyboard (TextInputAction.done).');
-                    Log.info('Nilai yang disubmit: "${_namaController.text}"');
-                    Log.info('Menghilangkan fokus dari input.');
+                    L.i(
+                      'INPUT: Field nama disubmit melalui keyboard (TextInputAction.done).',
+                    );
+                    L.i('Nilai yang disubmit: "${_namaController.text}"');
+                    L.i('Menghilangkan fokus dari input.');
                     FocusScope.of(context).unfocus();
                   },
                   onChanged: (value) {
-                    Log.info('INPUT: Nama ${_isSubKategoriMode ? "sub-kategori" : "kategori"} berubah menjadi: "$value" (panjang: ${value.length} karakter)');
+                    L.i(
+                      'INPUT: Nama ${_isSubKategoriMode ? "sub-kategori" : "kategori"} berubah menjadi: "$value" (panjang: ${value.length} karakter)',
+                    );
                   },
                   validator: (value) {
-                    Log.info('VALIDASI: Memvalidasi input nama. Nilai: "${value ?? "NULL"}"');
+                    L.i(
+                      'VALIDASI: Memvalidasi input nama. Nilai: "${value ?? "NULL"}"',
+                    );
                     if (value == null || value.isEmpty) {
-                      Log.warning('VALIDASI GAGAL: Nama kosong.');
+                      L.w('VALIDASI GAGAL: Nama kosong.');
                       return 'Nama tidak boleh kosong';
                     }
-                    Log.info('VALIDASI BERHASIL: Nama valid.');
+                    L.i('VALIDASI BERHASIL: Nama valid.');
                     return null;
                   },
                 ),
@@ -473,22 +562,24 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
                     items: TipeKategori.values
                         .where((tipe) => tipe != TipeKategori.transfer)
                         .map((TipeKategori tipe) {
-                      return DropdownMenuItem<TipeKategori>(
-                        value: tipe,
-                        child: Text(
-                          tipe.name.substring(0, 1).toUpperCase() + tipe.name.substring(1),
-                        ),
-                      );
-                    }).toList(),
+                          return DropdownMenuItem<TipeKategori>(
+                            value: tipe,
+                            child: Text(
+                              tipe.name.substring(0, 1).toUpperCase() +
+                                  tipe.name.substring(1),
+                            ),
+                          );
+                        })
+                        .toList(),
                     onChanged: (TipeKategori? newValue) {
                       if (newValue != null) {
-                        Log.info('DROPDOWN: Tipe kategori diubah.');
-                        Log.info('  - Tipe Lama: $_tipe');
-                        Log.info('  - Tipe Baru: $newValue');
+                        L.i('DROPDOWN: Tipe kategori diubah.');
+                        L.i('  - Tipe Lama: $_tipe');
+                        L.i('  - Tipe Baru: $newValue');
                         setState(() {
                           _tipe = newValue;
                         });
-                        Log.info('State _tipe berhasil diperbarui ke: $_tipe');
+                        L.i('State _tipe berhasil diperbarui ke: $_tipe');
                       }
                     },
                   ),
@@ -515,14 +606,21 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
                                   border: const OutlineInputBorder(),
                                 ),
                                 onChanged: (value) {
-                                  Log.info('INPUT: Sub-kategori ke-${index + 1} berubah menjadi: "$value" (panjang: ${value.length} karakter)');
+                                  L.i(
+                                    'INPUT: Sub-kategori ke-${index + 1} berubah menjadi: "$value" (panjang: ${value.length} karakter)',
+                                  );
                                 },
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
                               onPressed: () {
-                                Log.info('AKSI: Tombol hapus sub-kategori ke-${index + 1} ditekan.');
+                                L.i(
+                                  'AKSI: Tombol hapus sub-kategori ke-${index + 1} ditekan.',
+                                );
                                 _hapusInputSubKategori(index);
                               },
                             ),
@@ -536,7 +634,9 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
                       onPressed: () {
-                        Log.info('AKSI: Tombol "Tambah Input" sub-kategori ditekan.');
+                        L.i(
+                          'AKSI: Tombol "Tambah Input" sub-kategori ditekan.',
+                        );
                         _tambahInputSubKategori();
                       },
                       icon: const Icon(Icons.add),
@@ -547,7 +647,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    Log.info('AKSI: Tombol Simpan ditekan oleh pengguna.');
+                    L.i('AKSI: Tombol Simpan ditekan oleh pengguna.');
                     _simpanForm();
                   },
                   style: ElevatedButton.styleFrom(

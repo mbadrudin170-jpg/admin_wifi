@@ -1,11 +1,11 @@
 // path: lib/halaman/lainnya/kategori.dart
 
-import 'package:admin_wifi/debug/log.dart';
-import 'package:flutter/material.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/halaman/form/form_kategori.dart';
 import 'package:admin_wifi/model/kategori_model.dart';
 import 'package:admin_wifi/model/sub_kategori_model.dart';
+import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class KategoriPage extends StatefulWidget {
   const KategoriPage({super.key});
@@ -24,12 +24,12 @@ class _KategoriPageState extends State<KategoriPage> {
   @override
   void initState() {
     super.initState();
-    Log.info('Menginisialisasi halaman Kategori');
+    L.i('Menginisialisasi halaman Kategori');
     _loadKategori();
   }
 
   void _loadKategori() {
-    Log.info('Memuat data kategori dari database');
+    L.i('Memuat data kategori dari database');
     setState(() {
       _listaKategoriFuture = _kategoriOperasi
           .getKategori()
@@ -38,21 +38,19 @@ class _KategoriPageState extends State<KategoriPage> {
               0,
               (sum, kat) => sum + kat.subKategori.length,
             );
-            Log.info(
+            L.i(
               'Berhasil memuat ${data.length} kategori utama dengan total $totalSubKategori sub-kategori',
             );
             for (var kat in data) {
-              Log.info(
+              L.i(
                 'Kategori: ${kat.nama} (ID: ${kat.id}, Tipe: ${kat.tipe.name}, Sub: ${kat.subKategori.length}, Diarsipkan: ${kat.diarsipkan != null ? "Ya" : "Tidak"})',
               );
             }
             return data;
           })
           .catchError((error, stackTrace) {
-            Log.error(
-              'Gagal memuat data kategori dari database',
-              error: error,
-              stackTrace: stackTrace,
+            L.e(
+              'Gagal memuat data kategori dari database Error: $error $stackTrace',
             );
             throw error;
           });
@@ -60,23 +58,21 @@ class _KategoriPageState extends State<KategoriPage> {
   }
 
   void _tambahKategori() async {
-    Log.info('Navigasi ke Form Tambah Kategori');
+    L.i('Navigasi ke Form Tambah Kategori');
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormKategoriPage()),
     );
     if (result == true) {
-      Log.info(
-        'Kategori baru berhasil ditambahkan, menyegarkan daftar kategori',
-      );
+      L.i('Kategori baru berhasil ditambahkan, menyegarkan daftar kategori');
       _loadKategori();
     } else {
-      Log.info('Kembali dari Form Tambah Kategori tanpa menambah data');
+      L.i('Kembali dari Form Tambah Kategori tanpa menambah data');
     }
   }
 
   Future<bool> _tampilkanDialogKonfirmasi(String judul, String konten) async {
-    Log.info('Menampilkan dialog konfirmasi: "$judul"');
+    L.i('Menampilkan dialog konfirmasi: "$judul"');
     final konfirmasi = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -86,14 +82,14 @@ class _KategoriPageState extends State<KategoriPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Log.info('Dialog "$judul" - User memilih Batal');
+                L.i('Dialog "$judul" - User memilih Batal');
                 Navigator.of(context).pop(false);
               },
               child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () {
-                Log.info('Dialog "$judul" - User memilih Ya');
+                L.i('Dialog "$judul" - User memilih Ya');
                 Navigator.of(context).pop(true);
               },
               child: const Text('Ya'),
@@ -102,14 +98,14 @@ class _KategoriPageState extends State<KategoriPage> {
         );
       },
     );
-    Log.info(
+    L.i(
       'Hasil konfirmasi dialog "$judul": ${konfirmasi == true ? "Ya" : "Batal"}',
     );
     return konfirmasi ?? false;
   }
 
   Future<void> _arsipkanKategoriUtama(KategoriModel kategori) async {
-    Log.info(
+    L.i(
       'Memproses pengarsipan kategori utama: ${kategori.nama} (ID: ${kategori.id})',
     );
     final bool konfirmasi = await _tampilkanDialogKonfirmasi(
@@ -117,19 +113,19 @@ class _KategoriPageState extends State<KategoriPage> {
       'Anda yakin ingin mengarsipkan "${kategori.nama}"? Kategori ini tidak akan bisa digunakan lagi.',
     );
     if (!mounted || !konfirmasi) {
-      Log.info(
+      L.i(
         'Pengarsipan kategori ${kategori.nama} dibatalkan (konfirmasi: $konfirmasi, mounted: $mounted)',
       );
       return;
     }
 
     try {
-      Log.info(
+      L.i(
         'Mengarsipkan kategori utama ID: ${kategori.id}, nama: ${kategori.nama}',
       );
       final kategoriDiperbarui = kategori.copyWith(diarsipkan: DateTime.now());
       await _kategoriOperasi.update(kategoriDiperbarui);
-      Log.info(
+      L.i(
         'Kategori ${kategori.nama} (ID: ${kategori.id}) berhasil diarsipkan pada ${kategoriDiperbarui.diarsipkan}',
       );
 
@@ -139,10 +135,8 @@ class _KategoriPageState extends State<KategoriPage> {
       );
       _loadKategori();
     } catch (e, stackTrace) {
-      Log.error(
-        'Gagal mengarsipkan kategori ID: ${kategori.id}, nama: ${kategori.nama}',
-        error: e,
-        stackTrace: stackTrace,
+      L.e(
+        'Gagal mengarsipkan kategori ID: ${kategori.id}, nama: ${kategori.nama} Error: $e $stackTrace',
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -155,7 +149,7 @@ class _KategoriPageState extends State<KategoriPage> {
     KategoriModel kategoriInduk,
     SubKategoriModel subKategori,
   ) async {
-    Log.info(
+    L.i(
       'Memproses pengarsipan sub-kategori: ${subKategori.nama} (ID: ${subKategori.id}) dari kategori induk: ${kategoriInduk.nama}',
     );
     final bool konfirmasi = await _tampilkanDialogKonfirmasi(
@@ -163,14 +157,14 @@ class _KategoriPageState extends State<KategoriPage> {
       'Anda yakin ingin mengarsipkan sub-kategori "${subKategori.nama}"?',
     );
     if (!mounted || !konfirmasi) {
-      Log.info(
+      L.i(
         'Pengarsipan sub-kategori ${subKategori.nama} dibatalkan (konfirmasi: $konfirmasi, mounted: $mounted)',
       );
       return;
     }
 
     try {
-      Log.info(
+      L.i(
         'Mengarsipkan sub-kategori ID: ${subKategori.id}, nama: ${subKategori.nama}',
       );
       final subKategoriDiperbarui = subKategori.copyWith(
@@ -185,7 +179,7 @@ class _KategoriPageState extends State<KategoriPage> {
       );
 
       await _kategoriOperasi.update(kategoriIndukDiperbarui);
-      Log.info(
+      L.i(
         'Sub-kategori ${subKategori.nama} (ID: ${subKategori.id}) berhasil diarsipkan, kategori induk ${kategoriInduk.nama} diperbarui',
       );
 
@@ -195,10 +189,8 @@ class _KategoriPageState extends State<KategoriPage> {
       );
       _loadKategori();
     } catch (e, stackTrace) {
-      Log.error(
-        'Gagal mengarsipkan sub-kategori ID: ${subKategori.id}, nama: ${subKategori.nama}',
-        error: e,
-        stackTrace: stackTrace,
+      L.e(
+        'Gagal mengarsipkan sub-kategori ID: ${subKategori.id}, nama: ${subKategori.nama} Error: $e $stackTrace',
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -209,7 +201,7 @@ class _KategoriPageState extends State<KategoriPage> {
 
   @override
   Widget build(BuildContext context) {
-    Log.info(
+    L.i(
       'Membangun UI halaman Kategori (Mode Edit: $_isEdit, Mode Arsip: $_isArsipMode, Filter Tipe: ${_selectedTipe.name})',
     );
     return Scaffold(
@@ -223,9 +215,9 @@ class _KategoriPageState extends State<KategoriPage> {
                 _isArsipMode = !_isArsipMode;
                 if (_isArsipMode) {
                   _isEdit = false;
-                  Log.info('Mode ARSIP diaktifkan, Mode EDIT dinonaktifkan');
+                  L.i('Mode ARSIP diaktifkan, Mode EDIT dinonaktifkan');
                 } else {
-                  Log.info('Mode ARSIP dinonaktifkan');
+                  L.i('Mode ARSIP dinonaktifkan');
                 }
               });
             },
@@ -238,9 +230,9 @@ class _KategoriPageState extends State<KategoriPage> {
                 _isEdit = !_isEdit;
                 if (_isEdit) {
                   _isArsipMode = false;
-                  Log.info('Mode EDIT diaktifkan, Mode ARSIP dinonaktifkan');
+                  L.i('Mode EDIT diaktifkan, Mode ARSIP dinonaktifkan');
                 } else {
-                  Log.info('Mode EDIT dinonaktifkan');
+                  L.i('Mode EDIT dinonaktifkan');
                 }
               });
             },
@@ -255,7 +247,7 @@ class _KategoriPageState extends State<KategoriPage> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  Log.info('Filter tipe diubah ke PEMASUKAN');
+                  L.i('Filter tipe diubah ke PEMASUKAN');
                   setState(() => _selectedTipe = TipeKategori.pemasukan);
                 },
                 style: ElevatedButton.styleFrom(
@@ -267,7 +259,7 @@ class _KategoriPageState extends State<KategoriPage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  Log.info('Filter tipe diubah ke PENGELUARAN');
+                  L.i('Filter tipe diubah ke PENGELUARAN');
                   setState(() => _selectedTipe = TipeKategori.pengeluaran);
                 },
                 style: ElevatedButton.styleFrom(
@@ -286,16 +278,12 @@ class _KategoriPageState extends State<KategoriPage> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  Log.error(
-                    'Terjadi error saat memuat data kategori di FutureBuilder',
-                    error: snapshot.error,
-                    stackTrace: snapshot.stackTrace,
+                  L.e(
+                    'Terjadi error saat memuat data kategori di FutureBuilder Error: $snapshot.error $snapshot.stackTrace',
                   );
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  Log.info(
-                    'Data kategori kosong, tidak ada kategori ditemukan',
-                  );
+                  L.i('Data kategori kosong, tidak ada kategori ditemukan');
                   return const Center(
                     child: Text('Tidak ada kategori ditemukan.'),
                   );
@@ -306,7 +294,7 @@ class _KategoriPageState extends State<KategoriPage> {
                       )
                       .toList();
 
-                  Log.info(
+                  L.i(
                     'Menampilkan ${filteredKategori.length} kategori dengan tipe ${_selectedTipe.name} (total data: ${snapshot.data!.length}, difilter: ${snapshot.data!.length - filteredKategori.length} diarsipkan/beda tipe)',
                   );
 
@@ -321,7 +309,7 @@ class _KategoriPageState extends State<KategoriPage> {
                           trailing: _isEdit
                               ? IconButton(
                                   onPressed: () async {
-                                    Log.info(
+                                    L.i(
                                       'Navigasi ke Form Edit Kategori Utama: ${kategori.nama} (ID: ${kategori.id})',
                                     );
                                     final result = await Navigator.push(
@@ -333,12 +321,12 @@ class _KategoriPageState extends State<KategoriPage> {
                                       ),
                                     );
                                     if (result == true) {
-                                      Log.info(
+                                      L.i(
                                         'Kategori ${kategori.nama} berhasil diedit, menyegarkan daftar',
                                       );
                                       _loadKategori();
                                     } else {
-                                      Log.info(
+                                      L.i(
                                         'Kembali dari Form Edit Kategori tanpa perubahan',
                                       );
                                     }
@@ -360,7 +348,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                   trailing: _isEdit
                                       ? IconButton(
                                           onPressed: () async {
-                                            Log.info(
+                                            L.i(
                                               'Navigasi ke Form Edit Sub-Kategori: ${sub.nama} (ID: ${sub.id})',
                                             );
                                             final result = await Navigator.push(
@@ -375,12 +363,12 @@ class _KategoriPageState extends State<KategoriPage> {
                                               ),
                                             );
                                             if (result == true) {
-                                              Log.info(
+                                              L.i(
                                                 'Sub-kategori ${sub.nama} berhasil diedit, menyegarkan daftar',
                                               );
                                               _loadKategori();
                                             } else {
-                                              Log.info(
+                                              L.i(
                                                 'Kembali dari Form Edit Sub-Kategori tanpa perubahan',
                                               );
                                             }

@@ -5,12 +5,12 @@
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/debug/log.dart';
 import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 
 class DetailLanggananTransaksiPage extends StatefulWidget {
   final String idTransaksi;
@@ -34,39 +34,38 @@ class _DetailLanggananTransaksiPageState
   void initState() {
     super.initState();
 
-    Log.info(
+    L.i(
       'Memulai inisialisasi halaman detail langganan untuk ID transaksi: ${widget.idTransaksi}.',
     );
 
     _transaksiFuture = _transaksiOperasi.getTransaksiById(widget.idTransaksi);
 
-    Log.info(
+    L.i(
       'Future transaksi berhasil dibuat untuk proses pengambilan data transaksi.',
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    Log.info('Membangun UI halaman detail langganan transaksi.');
+    L.i('Membangun UI halaman detail langganan transaksi.');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Langganan')),
       body: FutureBuilder<TransaksiModel?>(
         future: _transaksiFuture,
         builder: (context, snapshot) {
-          Log.info(
+          L.i(
             'FutureBuilder transaksi dijalankan dengan state: ${snapshot.connectionState}.',
           );
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            Log.info('Data transaksi masih dalam proses loading.');
+            L.i('Data transaksi masih dalam proses loading.');
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            Log.error(
-              'Terjadi kesalahan saat mengambil data transaksi.',
-              error: snapshot.error,
+            L.e(
+              'Terjadi kesalahan saat mengambil data transaksi. Error: $snapshot.error',
             );
             return Center(child: Text('Error: ${snapshot.error}'));
           }
@@ -74,13 +73,11 @@ class _DetailLanggananTransaksiPageState
           final transaksi = snapshot.data;
 
           if (transaksi == null) {
-            Log.warning('Data transaksi tidak ditemukan di database.');
+            L.w('Data transaksi tidak ditemukan di database.');
             return const Center(child: Text('Transaksi tidak ditemukan'));
           }
 
-          Log.info(
-            'Berhasil memuat data transaksi dengan ID: ${transaksi.id}.',
-          );
+          L.i('Berhasil memuat data transaksi dengan ID: ${transaksi.id}.');
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -156,11 +153,11 @@ class _DetailLanggananTransaksiPageState
 
   // ditambahkan: Widget untuk menampilkan informasi poin
   Widget _buildInfoPoin(TransaksiModel transaksi) {
-    Log.info('Membangun widget informasi poin transaksi.');
+    L.i('Membangun widget informasi poin transaksi.');
 
     // Jika tidak ada perubahan poin, tidak perlu menampilkan widget
     if (transaksi.poinYangDihasilkan == 0 && transaksi.poinYangDigunakan == 0) {
-      Log.info('Tidak ada perubahan poin pada transaksi ini.');
+      L.i('Tidak ada perubahan poin pada transaksi ini.');
       return const SizedBox.shrink();
     }
 
@@ -169,7 +166,7 @@ class _DetailLanggananTransaksiPageState
     final selisihPoin =
         transaksi.poinYangDihasilkan - transaksi.poinYangDigunakan;
 
-    Log.info(
+    L.i(
       'Poin dihasilkan: ${transaksi.poinYangDihasilkan}, '
       'Poin digunakan: ${transaksi.poinYangDigunakan}, '
       'Selisih: $selisihPoin poin (${isPenambahan ? "PENAMBAHAN" : "PENGURANGAN"}).',
@@ -203,7 +200,7 @@ class _DetailLanggananTransaksiPageState
   }
 
   Widget _buildInfoCard(String title, List<Widget> children) {
-    Log.info('Membangun info card dengan judul: $title.');
+    L.i('Membangun info card dengan judul: $title.');
 
     return Card(
       elevation: 2,
@@ -231,17 +228,17 @@ class _DetailLanggananTransaksiPageState
     String tag,
     List<Widget> Function(T? data) builder,
   ) {
-    Log.info('Membangun Future info card untuk data $tag.');
+    L.i('Membangun Future info card untuk data $tag.');
 
     return FutureBuilder<T?>(
       future: future,
       builder: (context, snapshot) {
-        Log.info(
+        L.i(
           'FutureBuilder $tag dijalankan dengan state: ${snapshot.connectionState}.',
         );
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          Log.info('Data $tag masih dalam proses loading.');
+          L.i('Data $tag masih dalam proses loading.');
           return _buildInfoCard(title, [
             const Center(
               child: Padding(
@@ -253,14 +250,14 @@ class _DetailLanggananTransaksiPageState
         }
 
         if (snapshot.hasError) {
-          Log.error('Gagal memuat data $tag.', error: snapshot.error);
+          L.e('Gagal memuat data $tag. Error: $snapshot.error');
           return _buildInfoCard(title, [const Text('Gagal memuat data')]);
         }
 
         if (snapshot.hasData) {
-          Log.info('Data $tag berhasil dimuat secara asynchronous.');
+          L.i('Data $tag berhasil dimuat secara asynchronous.');
         } else {
-          Log.warning('Data $tag tidak ditemukan.');
+          L.w('Data $tag tidak ditemukan.');
         }
 
         return _buildInfoCard(title, builder(snapshot.data));
@@ -269,7 +266,7 @@ class _DetailLanggananTransaksiPageState
   }
 
   Widget _buildDetailRow(String label, String value) {
-    Log.info('Membangun detail row dengan label: $label dan value: $value.');
+    L.i('Membangun detail row dengan label: $label dan value: $value.');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -297,7 +294,7 @@ class _DetailLanggananTransaksiPageState
     FontWeight fontWeight, {
     double fontSize = 14,
   }) {
-    Log.info(
+    L.i(
       'Membangun detail row berwarna dengan label: $label dan value: $value.',
     );
 
