@@ -1,4 +1,4 @@
-// path: lib/fitur/pelanggan_aktif/screens/pelanggan_aktif.dart
+// path: lib/fitur/pelanggan_aktif/screens/pelanggan_aktif_screen.dart
 
 import 'dart:async';
 
@@ -18,6 +18,7 @@ import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 enum OpsiHapusPilihan { hapusSemua, arsipkanKadaluarsa, batal }
@@ -34,15 +35,15 @@ enum OpsiUrutkan {
   paketTidakAktif,
 }
 
-class PelangganAktifPage extends StatefulWidget {
-  const PelangganAktifPage({super.key});
+class PelangganAktifScreen extends StatefulWidget {
+  const PelangganAktifScreen({super.key});
 
   @override
-  State<PelangganAktifPage> createState() => _PelangganAktifPageState();
+  State<PelangganAktifScreen> createState() => _PelangganAktifScreenState();
 }
 
-class _PelangganAktifPageState extends State<PelangganAktifPage>
-    with AutomaticKeepAliveClientMixin<PelangganAktifPage> {
+class _PelangganAktifScreenState extends State<PelangganAktifScreen>
+    with AutomaticKeepAliveClientMixin<PelangganAktifScreen> {
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final now = DateTime.now();
@@ -541,13 +542,9 @@ class _PelangganAktifPageState extends State<PelangganAktifPage>
                               L.i(
                                 'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelanggan.id}.',
                               );
-                              await Navigator.push(
+                              await Nav.to(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailPelangganAktif(
-                                    pelanggan: pelanggan,
-                                  ),
-                                ),
+                                DetailPelangganAktif(pelanggan: pelanggan),
                               );
                               _loadData(forceRefresh: true);
                             },
