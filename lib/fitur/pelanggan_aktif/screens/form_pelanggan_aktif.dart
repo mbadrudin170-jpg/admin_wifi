@@ -13,7 +13,7 @@
 // diperbaiki: Kesalahan sintaks pada string multi-baris di SnackBar.
 // diperbaiki: Memperbaiki bug dimana edit pelanggan aktif tidak mengupdate transaksi yang ada.
 // diubah: Memindahkan logika pengiriman WhatsApp ke UI dan menambahkan penanganan error.
-// diubah: Menggunakan SnackBarUtil untuk menampilkan notifikasi.
+// diubah: Menggunakan AppToast (share_global_saya) untuk menampilkan notifikasi sementara.
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
@@ -32,11 +32,12 @@ import 'package:admin_wifi/model/paket_model.dart';
 import 'package:admin_wifi/model/pelanggan_model.dart';
 import 'package:admin_wifi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'package:admin_wifi/utils/snackbar_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/src/widget/toast_widget.dart';
 import 'package:uuid/uuid.dart';
 
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
@@ -141,7 +142,9 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
   @override
   void initState() {
     super.initState();
-    _loadAllData();
+    _loadAllData().catchError(
+      (e, s) => L.e('Gagal memuat data referensi (unawaited). Error: $e $s'),
+    );
   }
 
   Future<void> _loadAllData() async {
@@ -186,7 +189,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     } catch (e, s) {
       L.e('Gagal memuat data referensi Error: $e $s');
       if (mounted) {
-        SnackBarUtil.showError(context, 'Gagal memuat data: $e');
+        AppToast.gagal(context, 'Gagal memuat data: $e');
         setState(() {
           _isLoading = false;
         });
@@ -208,7 +211,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     } catch (e) {
       _selectedPaket = null;
       if (mounted) {
-        SnackBarUtil.showWarning(
+        AppToast.warning(
           context,
           'Peringatan: Paket asli (ID: ${pa.idPaket}) tidak ditemukan. Harap pilih paket baru.',
         );
@@ -391,21 +394,15 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
                 key: _formKey,
                 child: SingleChildScrollView(
                   child: Column(
+                    spacing: 16,
                     children: [
                       _buildPoinSwitch(),
-                      const SizedBox(height: 16),
                       _buildPelangganDropdown(),
-                      const SizedBox(height: 16),
                       _buildPaketDropdown(),
-                      const SizedBox(height: 16),
                       _buildDompetDropdown(),
-                      const SizedBox(height: 16),
                       _buildKategoriDropdown(),
-                      const SizedBox(height: 24),
                       _buildDateTimePicker(),
-                      const SizedBox(height: 8),
                       _buildStatusPembayaranButtons(),
-                      const SizedBox(height: 16),
                       _buildInfoTanggal(),
                     ],
                   ),
@@ -420,7 +417,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -428,20 +425,26 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 4,
             children: [
               const Text(
                 'Gunakan Poin',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
               if (_gunakanPoin)
                 Text(
                   'Poin dipakai: ${hitungPoinEfektif()}',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 ),
               Text(
                 'Sisa poin: ${hitungSisaPoin()}',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -543,12 +546,12 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
   Widget _buildDateTimePicker() {
     return Column(
+      spacing: 8,
       children: [
         const Text(
           'Pilih Tanggal & Waktu Aktif:',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -578,34 +581,34 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
   Widget _buildStatusPembayaranButtons() {
     return Row(
+      spacing: 8,
       children: [
         Expanded(
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: _statusPembayaran == StatusPembayaranEnum.lunas
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey[200],
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               foregroundColor: _statusPembayaran == StatusPembayaranEnum.lunas
-                  ? Colors.white
-                  : Colors.black,
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             onPressed: () =>
                 setState(() => _statusPembayaran = StatusPembayaranEnum.lunas),
             child: Text(StatusPembayaranEnum.lunas.label),
           ),
         ),
-        const SizedBox(width: 8),
         Expanded(
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor:
                   _statusPembayaran == StatusPembayaranEnum.belumLunas
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey[200],
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               foregroundColor:
                   _statusPembayaran == StatusPembayaranEnum.belumLunas
-                  ? Colors.white
-                  : Colors.black,
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             onPressed: () => setState(
               () => _statusPembayaran = StatusPembayaranEnum.belumLunas,
@@ -619,6 +622,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
 
   Widget _buildInfoTanggal() {
     return Column(
+      spacing: 8,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -642,7 +646,6 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -679,21 +682,19 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: () async {
-          final navigator = Navigator.of(context);
-
           final hasil = await _saveForm();
 
           if (!mounted) return;
 
           if (hasil.sukses) {
-            SnackBarUtil.showSuccess(context, hasil.pesan);
+            AppToast.sukses(context, hasil.pesan);
             if (hasil.data != null) {
               try {
                 await PesanInfoPaket.kirimRincianPaket(hasil.data!);
               } catch (e) {
                 L.w('Gagal mengirim pesan WhatsApp: $e');
                 if (mounted) {
-                  SnackBarUtil.showWarning(
+                  AppToast.warning(
                     context,
                     'Gagal mengirim pesan WhatsApp. Aplikasi tidak terpasang?',
                   );
@@ -702,10 +703,10 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             }
             await Future.delayed(const Duration(milliseconds: 300));
             if (mounted) {
-              navigator.pop(true);
+              Nav.pop(context, true);
             }
           } else {
-            SnackBarUtil.showError(context, hasil.pesan);
+            AppToast.gagal(context, hasil.pesan);
           }
         },
         style: ElevatedButton.styleFrom(
