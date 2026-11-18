@@ -591,7 +591,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             ),
             onPressed: () =>
                 setState(() => _statusPembayaran = StatusPembayaranEnum.lunas),
-            child: const Text('Lunas'),
+            child: Text(StatusPembayaranEnum.lunas.label),
           ),
         ),
         const SizedBox(width: 8),
@@ -610,7 +610,7 @@ class _FormPelangganAktifState extends State<FormPelangganAktif> {
             onPressed: () => setState(
               () => _statusPembayaran = StatusPembayaranEnum.belumLunas,
             ),
-            child: const Text('Belum Lunas'),
+            child: Text(StatusPembayaranEnum.belumLunas.label),
           ),
         ),
       ],

@@ -550,9 +550,9 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 4,
                           children: [
                             NamaPaketWidget(idPaket: pelanggan.idPaket),
-                            const SizedBox(height: 4),
                             Text(
                               'Pembayaran: ${statusPembayaran.label}',
                               style: TextStyle(
@@ -564,7 +564,6 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
                             Text(
                               'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelanggan.tanggalBerakhir)}',
                               style: TextStyle(
@@ -574,7 +573,6 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
                             Text(
                               'Berakhir: ${FormatTanggal.formatTanggalBasic(pelanggan.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelanggan.tanggalBerakhir)}',
                             ),
