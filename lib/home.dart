@@ -20,6 +20,10 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
+  // Penanda tab yang sudah pernah dibuka; tab yang belum pernah dibuka
+  // belum dibangun (lazy loading), tetapi setelah dibuka state-nya tetap
+  // terjaga di dalam IndexedStack.
+  final Set<int> _tabDibangun = <int>{0};
 
   final List<Widget> _widgetOptions = <Widget>[
     const PelangganAktifPage(),
@@ -43,6 +47,7 @@ class _HomeState extends State<Home> {
     setState(() {
       L.i('Mengubah selected index dari $_selectedIndex menjadi $index.');
 
+      _tabDibangun.add(index);
       _selectedIndex = index;
     });
   }
@@ -90,7 +95,15 @@ class _HomeState extends State<Home> {
     L.i('Membangun UI halaman utama dengan selected index: $_selectedIndex.');
 
     return Scaffold(
-      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: <Widget>[
+          for (var i = 0; i < _widgetOptions.length; i++)
+            _tabDibangun.contains(i)
+                ? SizedBox.expand(child: _widgetOptions[i])
+                : const SizedBox.shrink(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
