@@ -356,6 +356,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
               })
               .map(
                 (controller) => SubKategoriModel(
+                  id: const Uuid().v4(),
                   nama: controller.text,
                   idKategori: kategoriId,
                   diperbarui: DateTime.now(),

@@ -9,6 +9,7 @@ import 'package:admin_wifi/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 
 class FormPaket extends StatefulWidget {
   final PaketModel? paket;
@@ -146,7 +147,7 @@ class _FormPaketState extends State<FormPaket> {
 
       L.i('Membuat objek PaketModel baru dari data form.');
       final newPaket = PaketModel(
-        id: _isEditMode ? widget.paket!.id : null,
+        id: _isEditMode ? widget.paket!.id : const Uuid().v4(),
         nama: _namaController.text,
         harga: int.parse(_hargaController.text),
         durasi: int.parse(_durasiController.text),

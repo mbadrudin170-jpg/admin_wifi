@@ -2,27 +2,31 @@
 // diubah: Menghapus properti 'id' yang tidak diperlukan karena tabel pengaturan tidak memilikinya.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
-class PengaturanModel {
-  final int intervalSinkronisasiOtomatis;
-  final int hapusOtomatisDataArsip;
-  final bool modePemeliharaan;
-  final String infoPemeliharaan;
-  final DateTime? diperbarui;
+part 'pengaturan_model.freezed.dart';
 
-  PengaturanModel({
-    this.intervalSinkronisasiOtomatis = 24,
-    this.hapusOtomatisDataArsip = 30,
-    this.modePemeliharaan = false,
-    this.infoPemeliharaan = '',
-    this.diperbarui,
-  });
+@freezed
+abstract class PengaturanModel with _$PengaturanModel {
+  const PengaturanModel._();
 
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is String) return DateTime.tryParse(dateValue);
-    return null;
+  const factory PengaturanModel({
+    @Default(24) int intervalSinkronisasiOtomatis,
+    @Default(30) int hapusOtomatisDataArsip,
+    @Default(false) bool modePemeliharaan,
+    @Default('') String infoPemeliharaan,
+    DateTime? diperbarui,
+  }) = _PengaturanModel;
+
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
+
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   // =========================
@@ -31,22 +35,32 @@ class PengaturanModel {
 
   factory PengaturanModel.fromSqlite(Map<String, dynamic> map) {
     return PengaturanModel(
-      intervalSinkronisasiOtomatis:
-          map['interval_sinkronisasi_otomatis'] as int? ?? 24,
-      hapusOtomatisDataArsip: map['hapus_otomatis_data_arsip'] as int? ?? 30,
-      modePemeliharaan: (map['mode_pemeliharaan'] as int? ?? 0) == 1,
-      infoPemeliharaan: map['info_pemeliharaan'] as String? ?? '',
-      diperbarui: _parseDateTime(map['diperbarui']),
+      intervalSinkronisasiOtomatis: ParserUtil.parseInt(
+        map[PengaturanSkema.intervalSinkronisasiOtomatis],
+        defaultValue: 24,
+      ),
+      hapusOtomatisDataArsip: ParserUtil.parseInt(
+        map[PengaturanSkema.hapusOtomatisDataArsip],
+        defaultValue: 30,
+      ),
+      modePemeliharaan: ParserUtil.parseBool(
+        map[PengaturanSkema.modePemeliharaan],
+      ),
+      infoPemeliharaan: ParserUtil.parseString(
+        map[PengaturanSkema.infoPemeliharaan],
+      ),
+      diperbarui: _parseTanggal(map[PengaturanSkema.diperbarui]),
     );
   }
 
   Map<String, dynamic> toSqlite() {
     return {
-      'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
-      'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
-      'mode_pemeliharaan': modePemeliharaan ? 1 : 0,
-      'info_pemeliharaan': infoPemeliharaan,
-      'diperbarui': DateTime.now().toIso8601String(),
+      PengaturanSkema.intervalSinkronisasiOtomatis:
+          intervalSinkronisasiOtomatis,
+      PengaturanSkema.hapusOtomatisDataArsip: hapusOtomatisDataArsip,
+      PengaturanSkema.modePemeliharaan: modePemeliharaan ? 1 : 0,
+      PengaturanSkema.infoPemeliharaan: infoPemeliharaan,
+      PengaturanSkema.diperbarui: DateTime.now().toUtc().toIso8601String(),
     };
   }
 
@@ -56,22 +70,32 @@ class PengaturanModel {
 
   factory PengaturanModel.fromFirebase(Map<String, dynamic> data) {
     return PengaturanModel(
-      intervalSinkronisasiOtomatis:
-          data['interval_sinkronisasi_otomatis'] as int? ?? 24,
-      hapusOtomatisDataArsip: data['hapus_otomatis_data_arsip'] as int? ?? 30,
-      modePemeliharaan: data['mode_pemeliharaan'] as bool? ?? false,
-      infoPemeliharaan: data['info_pemeliharaan'] as String? ?? '',
-      diperbarui: _parseDateTime(data['diperbarui']),
+      intervalSinkronisasiOtomatis: ParserUtil.parseInt(
+        data[PengaturanSkema.intervalSinkronisasiOtomatis],
+        defaultValue: 24,
+      ),
+      hapusOtomatisDataArsip: ParserUtil.parseInt(
+        data[PengaturanSkema.hapusOtomatisDataArsip],
+        defaultValue: 30,
+      ),
+      modePemeliharaan: ParserUtil.parseBool(
+        data[PengaturanSkema.modePemeliharaan],
+      ),
+      infoPemeliharaan: ParserUtil.parseString(
+        data[PengaturanSkema.infoPemeliharaan],
+      ),
+      diperbarui: _parseTanggal(data[PengaturanSkema.diperbarui]),
     );
   }
 
   Map<String, dynamic> toFirebase() {
     return {
-      'interval_sinkronisasi_otomatis': intervalSinkronisasiOtomatis,
-      'hapus_otomatis_data_arsip': hapusOtomatisDataArsip,
-      'mode_pemeliharaan': modePemeliharaan,
-      'info_pemeliharaan': infoPemeliharaan,
-      'diperbarui': FieldValue.serverTimestamp(),
+      PengaturanSkema.intervalSinkronisasiOtomatis:
+          intervalSinkronisasiOtomatis,
+      PengaturanSkema.hapusOtomatisDataArsip: hapusOtomatisDataArsip,
+      PengaturanSkema.modePemeliharaan: modePemeliharaan,
+      PengaturanSkema.infoPemeliharaan: infoPemeliharaan,
+      PengaturanSkema.diperbarui: FieldValue.serverTimestamp(),
     };
   }
 }

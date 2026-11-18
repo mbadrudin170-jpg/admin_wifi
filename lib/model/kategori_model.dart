@@ -4,54 +4,35 @@ import 'dart:convert';
 
 import 'package:admin_wifi/model/sub_kategori_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
+
+part 'kategori_model.freezed.dart';
 
 enum TipeKategori { pemasukan, pengeluaran, transfer }
 
-class KategoriModel {
-  final String id;
-  final String nama;
-  final TipeKategori tipe;
-  final List<SubKategoriModel> subKategori;
-  final DateTime? diperbarui;
-  final bool isDeleted;
-  final DateTime? diarsipkan;
+@freezed
+abstract class KategoriModel with _$KategoriModel {
+  const KategoriModel._();
 
-  KategoriModel({
-    String? id,
-    required this.nama,
-    required this.tipe,
-    this.subKategori = const [],
-    this.diperbarui,
-    this.isDeleted = false,
-    this.diarsipkan,
-  }) : id = id ?? const Uuid().v4();
-
-  KategoriModel copyWith({
-    String? id,
-    String? nama,
-    TipeKategori? tipe,
-    List<SubKategoriModel>? subKategori,
+  const factory KategoriModel({
+    required String id,
+    required String nama,
+    required TipeKategori tipe,
+    @Default(<SubKategoriModel>[]) List<SubKategoriModel> subKategori,
     DateTime? diperbarui,
-    bool? isDeleted,
+    @Default(false) bool isDeleted,
     DateTime? diarsipkan,
-  }) {
-    return KategoriModel(
-      id: id ?? this.id,
-      nama: nama ?? this.nama,
-      tipe: tipe ?? this.tipe,
-      subKategori: subKategori ?? this.subKategori,
-      diperbarui: diperbarui ?? this.diperbarui,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-    );
-  }
+  }) = _KategoriModel;
 
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is String) return DateTime.tryParse(dateValue);
-    return null;
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
+
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   // diubah: Nama metode dari fromMap menjadi fromSqlite
@@ -79,31 +60,33 @@ class KategoriModel {
     }
 
     return KategoriModel(
-      id: map['id'],
-      nama: map['nama'] ?? '',
-      tipe: TipeKategori.values.firstWhere(
-        (e) => e.name == map['tipe'],
-        orElse: () => TipeKategori.pemasukan,
-      ),
-      subKategori: parseSubKategori(map['id_sub_kategori']),
-      diperbarui: _parseDateTime(map['diperbarui']),
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
-      diarsipkan: _parseDateTime(map['diarsipkan']),
+      id: ParserUtil.parseString(map[KategoriSkema.id]),
+      nama: ParserUtil.parseString(map[KategoriSkema.nama]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeKategori.values,
+            ParserUtil.parseStringOrNull(map[KategoriSkema.tipe]),
+          ) ??
+          TipeKategori.pemasukan,
+      subKategori: parseSubKategori(map[KategoriSkema.idSubKategori]),
+      diperbarui: _parseTanggal(map[KategoriSkema.diperbarui]),
+      isDeleted: ParserUtil.parseBool(map[KategoriSkema.isDeleted]),
+      diarsipkan: _parseTanggal(map[KategoriSkema.diarsipkan]),
     );
   }
 
   // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'nama': nama,
-      'tipe': tipe.name,
-      'id_sub_kategori': jsonEncode(
+      KategoriSkema.id: id,
+      KategoriSkema.nama: nama,
+      KategoriSkema.tipe: tipe.name,
+      KategoriSkema.idSubKategori: jsonEncode(
         subKategori.map((sub) => sub.toSqlite()).toList(),
       ),
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0,
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      KategoriSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      KategoriSkema.isDeleted: isDeleted ? 1 : 0,
+      KategoriSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
   }
 
@@ -114,7 +97,7 @@ class KategoriModel {
         return subKategoriData
             .map(
               (item) => SubKategoriModel.fromFirebase(
-                item['id'],
+                ParserUtil.parseString(item['id']),
                 item as Map<String, dynamic>,
               ),
             )
@@ -126,29 +109,34 @@ class KategoriModel {
 
     return KategoriModel(
       id: id,
-      nama: data['nama'] ?? '',
-      tipe: TipeKategori.values.firstWhere(
-        (e) => e.name == data['tipe'],
-        orElse: () => TipeKategori.pemasukan,
-      ),
-      subKategori: parseSubKategori(data['id_sub_kategori']),
-      diperbarui: _parseDateTime(data['diperbarui']),
-      isDeleted: data['isDeleted'] ?? false,
-      diarsipkan: _parseDateTime(data['diarsipkan']),
+      nama: ParserUtil.parseString(data[KategoriSkema.nama]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeKategori.values,
+            ParserUtil.parseStringOrNull(data[KategoriSkema.tipe]),
+          ) ??
+          TipeKategori.pemasukan,
+      subKategori: parseSubKategori(data[KategoriSkema.idSubKategori]),
+      diperbarui: _parseTanggal(data[KategoriSkema.diperbarui]),
+      isDeleted: ParserUtil.parseBool(data[KategoriSkema.isDeleted]),
+      diarsipkan: _parseTanggal(data[KategoriSkema.diarsipkan]),
     );
   }
 
   // diubah: Nama metode dan logika penyimpanan subkategori diubah
   Map<String, dynamic> toFirebase() {
     return {
-      'id': id,
-      'nama': nama,
-      'tipe': tipe.name,
+      KategoriSkema.id: id,
+      KategoriSkema.nama: nama,
+      KategoriSkema.tipe: tipe.name,
       // diubah: Menyimpan subkategori sebagai List<Map> asli
-      'id_sub_kategori': subKategori.map((sub) => sub.toFirebase()).toList(),
-      'diperbarui': FieldValue.serverTimestamp(),
-      'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      KategoriSkema.idSubKategori: subKategori
+          .map((sub) => sub.toFirebase())
+          .toList(),
+      KategoriSkema.diperbarui: FieldValue.serverTimestamp(),
+      KategoriSkema.isDeleted: isDeleted,
+      if (diarsipkan != null)
+        KategoriSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
     };
   }
 }

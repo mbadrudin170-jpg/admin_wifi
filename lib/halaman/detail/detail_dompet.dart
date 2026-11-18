@@ -286,8 +286,9 @@ class _DetailDompetState extends State<DetailDompet> {
               );
               L.i('Nama dompet dari widget: ${widget.dompet.namaDompet}');
 
-              final dompetUntukEdit = _namaDompetTerbaru != null
-                  ? widget.dompet.copyWith(namaDompet: _namaDompetTerbaru)
+              final namaDompetTerbaru = _namaDompetTerbaru;
+              final dompetUntukEdit = namaDompetTerbaru != null
+                  ? widget.dompet.copyWith(namaDompet: namaDompetTerbaru)
                   : widget.dompet;
 
               L.i('Data dompet yang akan dikirim ke FormDompet:');

@@ -2,7 +2,10 @@
 // ditambahkan: Import cloud_firestore untuk FieldValue dan Timestamp.
 // diubah: Menghapus field `jumlahPoin` yang tidak lagi digunakan.
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
+
+part 'paket_model.freezed.dart';
 
 enum TipeDurasi {
   menit,
@@ -24,90 +27,36 @@ enum TipeDurasi {
   }
 }
 
-class PaketModel {
-  final String id;
-  final String nama;
-  final int harga;
-  final int durasi;
-  final TipeDurasi tipe;
+@freezed
+abstract class PaketModel with _$PaketModel {
+  const PaketModel._();
 
-  final int poinHadiah;
-  final int poinPenukaran;
-
-  final bool isPublic;
-  final DateTime? diperbarui;
-  final bool isDeleted;
-  final DateTime? diarsipkan;
-
-  PaketModel({
-    String? id,
-    required this.nama,
-    required this.harga,
-    required this.durasi,
-    required this.tipe,
-    this.poinHadiah = 0,
-    this.poinPenukaran = 0,
-    this.isPublic = true,
-    this.diperbarui,
-    this.isDeleted = false,
-    this.diarsipkan,
-  }) : id = id ?? const Uuid().v4();
-
-  // =========================
-  // COPY WITH
-  // =========================
-  PaketModel copyWith({
-    String? id,
-    String? nama,
-    int? harga,
-    int? durasi,
-    TipeDurasi? tipe,
-    int? poinHadiah,
-    int? poinPenukaran,
-    bool? isPublic,
+  const factory PaketModel({
+    required String id,
+    required String nama,
+    required int harga,
+    required int durasi,
+    required TipeDurasi tipe,
+    @Default(0) int poinHadiah,
+    @Default(0) int poinPenukaran,
+    @Default(true) bool isPublic,
     DateTime? diperbarui,
-    bool? isDeleted,
+    @Default(false) bool isDeleted,
     DateTime? diarsipkan,
-  }) {
-    return PaketModel(
-      id: id ?? this.id,
-      nama: nama ?? this.nama,
-      harga: harga ?? this.harga,
-      durasi: durasi ?? this.durasi,
-      tipe: tipe ?? this.tipe,
-      poinHadiah: poinHadiah ?? this.poinHadiah,
-      poinPenukaran: poinPenukaran ?? this.poinPenukaran,
-      isPublic: isPublic ?? this.isPublic,
-      diperbarui: diperbarui ?? this.diperbarui,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-    );
-  }
+  }) = _PaketModel;
 
   // =========================
   // PARSER UTIL
   // =========================
 
-  static DateTime? _parseDateTime(dynamic value) {
-    if (value == null) return null;
-    if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    if (value is String) return DateTime.tryParse(value);
-    return null;
-  }
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
 
-  static bool _parseBool(dynamic value) {
-    if (value == true || value == 1) return true;
-    if (value == false || value == 0 || value == null) return false;
-    if (value is String) return value.toLowerCase() == 'true';
-    return false;
-  }
-
-  static TipeDurasi _parseTipe(dynamic value) {
-    return TipeDurasi.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => TipeDurasi.hari,
-    );
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   // =========================
@@ -116,33 +65,38 @@ class PaketModel {
 
   factory PaketModel.fromSqlite(Map<String, dynamic> map) {
     return PaketModel(
-      id: map['id'],
-      nama: map['nama'] ?? '',
-      harga: map['harga'] ?? 0,
-      durasi: map['durasi'] ?? 0,
-      tipe: _parseTipe(map['tipe']),
-      poinHadiah: map['poin_hadiah'] ?? 0,
-      poinPenukaran: map['poin_penukaran'] ?? 0,
-      isPublic: _parseBool(map['isPublic']),
-      isDeleted: _parseBool(map['isDeleted']),
-      diperbarui: _parseDateTime(map['diperbarui']),
-      diarsipkan: _parseDateTime(map['diarsipkan']),
+      id: ParserUtil.parseString(map[PaketSkema.id]),
+      nama: ParserUtil.parseString(map[PaketSkema.nama]),
+      harga: ParserUtil.parseInt(map[PaketSkema.harga]),
+      durasi: ParserUtil.parseInt(map[PaketSkema.durasi]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeDurasi.values,
+            ParserUtil.parseStringOrNull(map[PaketSkema.tipe]),
+          ) ??
+          TipeDurasi.hari,
+      poinHadiah: ParserUtil.parseInt(map[PaketSkema.poinHadiah]),
+      poinPenukaran: ParserUtil.parseInt(map[PaketSkema.poinPenukaran]),
+      isPublic: ParserUtil.parseBool(map[PaketSkema.isPublic]),
+      isDeleted: ParserUtil.parseBool(map[PaketSkema.isDeleted]),
+      diperbarui: _parseTanggal(map[PaketSkema.diperbarui]),
+      diarsipkan: _parseTanggal(map[PaketSkema.diarsipkan]),
     );
   }
 
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'nama': nama,
-      'harga': harga,
-      'durasi': durasi,
-      'tipe': tipe.name,
-      'poin_hadiah': poinHadiah,
-      'poin_penukaran': poinPenukaran,
-      'isPublic': isPublic ? 1 : 0,
-      'isDeleted': isDeleted ? 1 : 0,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      PaketSkema.id: id,
+      PaketSkema.nama: nama,
+      PaketSkema.harga: harga,
+      PaketSkema.durasi: durasi,
+      PaketSkema.tipe: tipe.name,
+      PaketSkema.poinHadiah: poinHadiah,
+      PaketSkema.poinPenukaran: poinPenukaran,
+      PaketSkema.isPublic: isPublic ? 1 : 0,
+      PaketSkema.isDeleted: isDeleted ? 1 : 0,
+      PaketSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      PaketSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
   }
 
@@ -153,35 +107,40 @@ class PaketModel {
   factory PaketModel.fromFirebase(String id, Map<String, dynamic> data) {
     return PaketModel(
       id: id,
-      nama: data['nama'] ?? '',
-      harga: data['harga'] ?? 0,
-      durasi: data['durasi'] ?? 0,
-      tipe: _parseTipe(data['tipe']),
-      poinHadiah: data['poin_hadiah'] ?? 0,
-      poinPenukaran: data['poin_penukaran'] ?? 0,
-      isPublic: _parseBool(data['isPublic']),
-      isDeleted: _parseBool(data['isDeleted']),
-      diperbarui: _parseDateTime(data['diperbarui']),
-      diarsipkan: _parseDateTime(data['diarsipkan']),
+      nama: ParserUtil.parseString(data[PaketSkema.nama]),
+      harga: ParserUtil.parseInt(data[PaketSkema.harga]),
+      durasi: ParserUtil.parseInt(data[PaketSkema.durasi]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeDurasi.values,
+            ParserUtil.parseStringOrNull(data[PaketSkema.tipe]),
+          ) ??
+          TipeDurasi.hari,
+      poinHadiah: ParserUtil.parseInt(data[PaketSkema.poinHadiah]),
+      poinPenukaran: ParserUtil.parseInt(data[PaketSkema.poinPenukaran]),
+      isPublic: ParserUtil.parseBool(data[PaketSkema.isPublic]),
+      isDeleted: ParserUtil.parseBool(data[PaketSkema.isDeleted]),
+      diperbarui: _parseTanggal(data[PaketSkema.diperbarui]),
+      diarsipkan: _parseTanggal(data[PaketSkema.diarsipkan]),
     );
   }
 
   // diubah: Menggunakan FieldValue.serverTimestamp() dan Timestamp untuk konsistensi.
   Map<String, dynamic> toFirebase() {
     final Map<String, dynamic> data = {
-      'id': id,
-      'nama': nama,
-      'harga': harga,
-      'durasi': durasi,
-      'tipe': tipe.name,
-      'poin_hadiah': poinHadiah,
-      'poin_penukaran': poinPenukaran,
-      'isPublic': isPublic,
-      'isDeleted': isDeleted,
-      'diperbarui': FieldValue.serverTimestamp(),
+      PaketSkema.id: id,
+      PaketSkema.nama: nama,
+      PaketSkema.harga: harga,
+      PaketSkema.durasi: durasi,
+      PaketSkema.tipe: tipe.name,
+      PaketSkema.poinHadiah: poinHadiah,
+      PaketSkema.poinPenukaran: poinPenukaran,
+      PaketSkema.isPublic: isPublic,
+      PaketSkema.isDeleted: isDeleted,
+      PaketSkema.diperbarui: FieldValue.serverTimestamp(),
     };
     if (diarsipkan != null) {
-      data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
+      data[PaketSkema.diarsipkan] = Timestamp.fromDate(diarsipkan!.toUtc());
     }
     return data;
   }

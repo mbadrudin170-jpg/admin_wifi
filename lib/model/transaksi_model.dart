@@ -4,244 +4,217 @@ import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/model/paket_model.dart'; // Impor untuk TipeDurasi
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
+
+part 'transaksi_model.freezed.dart';
 
 // ditambahkan: tipe 'langganan' untuk mencatat aktivasi/penukaran paket.
 
-class TransaksiModel {
-  final String id;
-  final DateTime tanggal;
-  final String keterangan;
-  final double jumlah;
-  final TipeTransaksi tipe;
-  final String idDompet;
-  final String idKategori;
-  final String? idDompetTujuan;
-  final String? idPelanggan;
-  final String? idPaket;
-  final String? idSubKategori;
-  final StatusPembayaranEnum statusPembayaran;
-  final int poinYangDihasilkan;
-  final int poinYangDigunakan;
-  final DateTime? diperbarui;
-  final DateTime? diarsipkan;
-  final bool isDeleted;
+@freezed
+abstract class TransaksiModel with _$TransaksiModel {
+  const TransaksiModel._();
 
-  // ditambahkan: Properti dari RiwayatLanggananModel
-  final int? durasiPaket;
-  final TipeDurasi? tipeDurasiPaket;
-  final DateTime? tanggalMulai;
-  final DateTime? tanggalBerakhir;
-  final bool aktivasiPaket;
+  const factory TransaksiModel({
+    required String id,
+    required DateTime tanggal,
+    required String keterangan,
+    required double jumlah,
+    required TipeTransaksi tipe,
+    required String idDompet,
+    required String idKategori,
+    String? idDompetTujuan,
+    String? idPelanggan,
+    String? idPaket,
+    String? idSubKategori,
+    @Default(StatusPembayaranEnum.belumLunas)
+    StatusPembayaranEnum statusPembayaran,
+    @Default(0) int poinYangDihasilkan,
+    @Default(0) int poinYangDigunakan,
+    DateTime? diperbarui,
+    DateTime? diarsipkan,
+    @Default(false) bool isDeleted,
+    int? durasiPaket,
+    TipeDurasi? tipeDurasiPaket,
+    DateTime? tanggalMulai,
+    DateTime? tanggalBerakhir,
+    @Default(false) bool aktivasiPaket,
+  }) = _TransaksiModel;
 
-  TransaksiModel({
-    required this.id,
-    required this.tanggal,
-    required this.keterangan,
-    required this.jumlah,
-    required this.tipe,
-    required this.idDompet,
-    required this.idKategori,
-    this.idDompetTujuan,
-    this.idPelanggan,
-    this.idPaket,
-    this.idSubKategori,
-    this.statusPembayaran = StatusPembayaranEnum.belumLunas,
-    this.poinYangDihasilkan = 0,
-    this.poinYangDigunakan = 0,
-    this.diperbarui,
-    this.diarsipkan,
-    this.isDeleted = false,
-    this.durasiPaket,
-    this.tipeDurasiPaket,
-    this.tanggalMulai,
-    this.tanggalBerakhir,
-    this.aktivasiPaket = false,
-  });
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
 
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is DateTime) return dateValue;
-    if (dateValue is String) return DateTime.tryParse(dateValue);
-    return null;
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   factory TransaksiModel.fromSqlite(Map<String, dynamic> map) {
     return TransaksiModel(
-      id: map['id'] as String,
-      tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
-      keterangan: map['keterangan'] ?? '',
-      jumlah: (map['jumlah'] as num? ?? 0).toDouble(),
-      tipe: TipeTransaksi.values.firstWhere(
-        (e) => e.name == map['tipe'],
-        orElse: () => TipeTransaksi.pengeluaran,
+      id: ParserUtil.parseString(map[TransaksiSkema.id]),
+      tanggal:
+          _parseTanggal(map[TransaksiSkema.tanggal]) ??
+          (throw ArgumentError.notNull('tanggal dari SQLite')),
+      keterangan: ParserUtil.parseString(map[TransaksiSkema.keterangan]),
+      jumlah: ParserUtil.parseDouble(map[TransaksiSkema.jumlah]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeTransaksi.values,
+            ParserUtil.parseStringOrNull(map[TransaksiSkema.tipe]),
+          ) ??
+          TipeTransaksi.pengeluaran,
+      idDompet: ParserUtil.parseString(map[TransaksiSkema.idDompet]),
+      idKategori: ParserUtil.parseString(map[TransaksiSkema.idKategori]),
+      idDompetTujuan: ParserUtil.parseStringOrNull(
+        map[TransaksiSkema.idDompetTujuan],
       ),
-      idDompet: map['id_dompet'] ?? '',
-      idKategori: map['id_kategori'] ?? '',
-      idDompetTujuan: map['id_dompet_tujuan'],
-      idPelanggan: map['id_pelanggan'],
-      idPaket: map['id_paket'],
-      idSubKategori: map['id_sub_kategori'],
-      statusPembayaran: StatusPembayaranEnum.values.firstWhere(
-        (e) => e.name == map['status_pembayaran'],
-        orElse: () => StatusPembayaranEnum.belumLunas,
+      idPelanggan: ParserUtil.parseStringOrNull(
+        map[TransaksiSkema.idPelanggan],
       ),
-      poinYangDihasilkan: (map['poin_yang_dihasilkan'] as num? ?? 0).toInt(),
-      poinYangDigunakan: (map['poin_yang_digunakan'] as num? ?? 0).toInt(),
-      diperbarui: _parseDateTime(map['diperbarui']),
-      diarsipkan: _parseDateTime(map['diarsipkan']),
-      isDeleted: (map['isDeleted'] == 1),
-      durasiPaket: (map['durasi_paket'] as num?)?.toInt(),
-      tipeDurasiPaket: map['tipe_durasi_paket'] != null
-          ? TipeDurasi.values.byName(map['tipe_durasi_paket'])
-          : null,
-      tanggalMulai: _parseDateTime(map['tanggal_mulai']),
-      tanggalBerakhir: _parseDateTime(map['tanggal_berakhir']),
-      aktivasiPaket: map['aktivasi_paket'] == 1,
+      idPaket: ParserUtil.parseStringOrNull(map[TransaksiSkema.idPaket]),
+      idSubKategori: ParserUtil.parseStringOrNull(
+        map[TransaksiSkema.idSubKategori],
+      ),
+      statusPembayaran:
+          ParserUtil.safeParseEnum(
+            StatusPembayaranEnum.values,
+            ParserUtil.parseStringOrNull(map[TransaksiSkema.statusPembayaran]),
+          ) ??
+          StatusPembayaranEnum.belumLunas,
+      poinYangDihasilkan: ParserUtil.parseInt(
+        map[TransaksiSkema.poinYangDihasilkan],
+      ),
+      poinYangDigunakan: ParserUtil.parseInt(
+        map[TransaksiSkema.poinYangDigunakan],
+      ),
+      diperbarui: _parseTanggal(map[TransaksiSkema.diperbarui]),
+      diarsipkan: _parseTanggal(map[TransaksiSkema.diarsipkan]),
+      isDeleted: ParserUtil.parseBool(map[TransaksiSkema.isDeleted]),
+      durasiPaket: ParserUtil.parseIntOrNull(map[TransaksiSkema.durasiPaket]),
+      tipeDurasiPaket: ParserUtil.safeParseEnum(
+        TipeDurasi.values,
+        ParserUtil.parseStringOrNull(map[TransaksiSkema.tipeDurasiPaket]),
+      ),
+      tanggalMulai: _parseTanggal(map[TransaksiSkema.tanggalMulai]),
+      tanggalBerakhir: _parseTanggal(map[TransaksiSkema.tanggalBerakhir]),
+      aktivasiPaket: ParserUtil.parseBool(map[TransaksiSkema.aktivasiPaket]),
     );
   }
 
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'tanggal': tanggal.toIso8601String(),
-      'keterangan': keterangan,
-      'jumlah': jumlah,
-      'tipe': tipe.name,
-      'id_dompet': idDompet,
-      'id_kategori': idKategori,
-      'id_dompet_tujuan': idDompetTujuan,
-      'id_pelanggan': idPelanggan,
-      'id_paket': idPaket,
-      'id_sub_kategori': idSubKategori,
-      'status_pembayaran': statusPembayaran.name,
-      'poin_yang_dihasilkan': poinYangDihasilkan,
-      'poin_yang_digunakan': poinYangDigunakan,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'diarsipkan': diarsipkan?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0,
-      'durasi_paket': durasiPaket,
-      'tipe_durasi_paket': tipeDurasiPaket?.name,
-      'tanggal_mulai': tanggalMulai?.toIso8601String(),
-      'tanggal_berakhir': tanggalBerakhir?.toIso8601String(),
-      'aktivasi_paket': aktivasiPaket ? 1 : 0,
+      TransaksiSkema.id: id,
+      TransaksiSkema.tanggal: tanggal.toUtc().toIso8601String(),
+      TransaksiSkema.keterangan: keterangan,
+      TransaksiSkema.jumlah: jumlah,
+      TransaksiSkema.tipe: tipe.name,
+      TransaksiSkema.idDompet: idDompet,
+      TransaksiSkema.idKategori: idKategori,
+      TransaksiSkema.idDompetTujuan: idDompetTujuan,
+      TransaksiSkema.idPelanggan: idPelanggan,
+      TransaksiSkema.idPaket: idPaket,
+      TransaksiSkema.idSubKategori: idSubKategori,
+      TransaksiSkema.statusPembayaran: statusPembayaran.name,
+      TransaksiSkema.poinYangDihasilkan: poinYangDihasilkan,
+      TransaksiSkema.poinYangDigunakan: poinYangDigunakan,
+      TransaksiSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      TransaksiSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+      TransaksiSkema.isDeleted: isDeleted ? 1 : 0,
+      TransaksiSkema.durasiPaket: durasiPaket,
+      TransaksiSkema.tipeDurasiPaket: tipeDurasiPaket?.name,
+      TransaksiSkema.tanggalMulai: tanggalMulai?.toUtc().toIso8601String(),
+      TransaksiSkema.tanggalBerakhir: tanggalBerakhir
+          ?.toUtc()
+          .toIso8601String(),
+      TransaksiSkema.aktivasiPaket: aktivasiPaket ? 1 : 0,
     };
   }
 
   factory TransaksiModel.fromFirebase(String id, Map<String, dynamic> data) {
     return TransaksiModel(
       id: id,
-      tanggal: _parseDateTime(data['tanggal']) ?? DateTime.now(),
-      keterangan: data['keterangan'] ?? '',
-      jumlah: (data['jumlah'] as num? ?? 0).toDouble(),
-      tipe: TipeTransaksi.values.firstWhere(
-        (e) => e.name == data['tipe'],
-        orElse: () => TipeTransaksi.pengeluaran,
+      tanggal:
+          _parseTanggal(data[TransaksiSkema.tanggal]) ??
+          (throw ArgumentError.notNull('tanggal dari Firebase')),
+      keterangan: ParserUtil.parseString(data[TransaksiSkema.keterangan]),
+      jumlah: ParserUtil.parseDouble(data[TransaksiSkema.jumlah]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeTransaksi.values,
+            ParserUtil.parseStringOrNull(data[TransaksiSkema.tipe]),
+          ) ??
+          TipeTransaksi.pengeluaran,
+      idDompet: ParserUtil.parseString(data[TransaksiSkema.idDompet]),
+      idKategori: ParserUtil.parseString(data[TransaksiSkema.idKategori]),
+      idDompetTujuan: ParserUtil.parseStringOrNull(
+        data[TransaksiSkema.idDompetTujuan],
       ),
-      idDompet: data['id_dompet'] ?? '',
-      idKategori: data['id_kategori'] ?? '',
-      idDompetTujuan: data['id_dompet_tujuan'],
-      idPelanggan: data['id_pelanggan'],
-      idPaket: data['id_paket'],
-      idSubKategori: data['id_sub_kategori'],
-      statusPembayaran: StatusPembayaranEnum.values.firstWhere(
-        (e) => e.name == data['status_pembayaran'],
-        orElse: () => StatusPembayaranEnum.belumLunas,
+      idPelanggan: ParserUtil.parseStringOrNull(
+        data[TransaksiSkema.idPelanggan],
       ),
-      poinYangDihasilkan: (data['poin_yang_dihasilkan'] as num? ?? 0).toInt(),
-      poinYangDigunakan: (data['poin_yang_digunakan'] as num? ?? 0).toInt(),
-      diperbarui: _parseDateTime(data['diperbarui']),
-      diarsipkan: _parseDateTime(data['diarsipkan']),
-      isDeleted: data['isDeleted'] ?? false,
-      durasiPaket: (data['durasiPaket'] as num?)?.toInt(),
-      tipeDurasiPaket: data['tipeDurasiPaket'] != null
-          ? TipeDurasi.values.byName(data['tipeDurasiPaket'])
-          : null,
-      tanggalMulai: _parseDateTime(data['tanggalMulai']),
-      tanggalBerakhir: _parseDateTime(data['tanggalBerakhir']),
-      aktivasiPaket: data['aktivasiPaket'] ?? false,
+      idPaket: ParserUtil.parseStringOrNull(data[TransaksiSkema.idPaket]),
+      idSubKategori: ParserUtil.parseStringOrNull(
+        data[TransaksiSkema.idSubKategori],
+      ),
+      statusPembayaran:
+          ParserUtil.safeParseEnum(
+            StatusPembayaranEnum.values,
+            ParserUtil.parseStringOrNull(data[TransaksiSkema.statusPembayaran]),
+          ) ??
+          StatusPembayaranEnum.belumLunas,
+      poinYangDihasilkan: ParserUtil.parseInt(
+        data[TransaksiSkema.poinYangDihasilkan],
+      ),
+      poinYangDigunakan: ParserUtil.parseInt(
+        data[TransaksiSkema.poinYangDigunakan],
+      ),
+      diperbarui: _parseTanggal(data[TransaksiSkema.diperbarui]),
+      diarsipkan: _parseTanggal(data[TransaksiSkema.diarsipkan]),
+      isDeleted: ParserUtil.parseBool(data[TransaksiSkema.isDeleted]),
+      durasiPaket: ParserUtil.parseIntOrNull(data[TransaksiSkema.durasiPaket]),
+      tipeDurasiPaket: ParserUtil.safeParseEnum(
+        TipeDurasi.values,
+        ParserUtil.parseStringOrNull(data[TransaksiSkema.tipeDurasiPaket]),
+      ),
+      tanggalMulai: _parseTanggal(data[TransaksiSkema.tanggalMulai]),
+      tanggalBerakhir: _parseTanggal(data[TransaksiSkema.tanggalBerakhir]),
+      aktivasiPaket: ParserUtil.parseBool(data[TransaksiSkema.aktivasiPaket]),
     );
   }
 
   Map<String, dynamic> toFirebase() {
     return {
-      'id': id,
-      'tanggal': tanggal,
-      'keterangan': keterangan,
-      'jumlah': jumlah,
-      'tipe': tipe.name,
-      'id_dompet': idDompet,
-      'id_kategori': idKategori,
-      'id_dompet_tujuan': idDompetTujuan,
-      'id_pelanggan': idPelanggan,
-      'id_paket': idPaket,
-      'id_sub_kategori': idSubKategori,
-      'status_pembayaran': statusPembayaran.name,
-      'poin_yang_dihasilkan': poinYangDihasilkan,
-      'poin_yang_digunakan': poinYangDigunakan,
-      'diperbarui': FieldValue.serverTimestamp(),
-      'diarsipkan': diarsipkan,
-      'isDeleted': isDeleted,
-      'durasiPaket': durasiPaket,
-      'tipeDurasiPaket': tipeDurasiPaket?.name,
-      'tanggalMulai': tanggalMulai != null
-          ? Timestamp.fromDate(tanggalMulai!)
+      TransaksiSkema.id: id,
+      TransaksiSkema.tanggal: Timestamp.fromDate(tanggal.toUtc()),
+      TransaksiSkema.keterangan: keterangan,
+      TransaksiSkema.jumlah: jumlah,
+      TransaksiSkema.tipe: tipe.name,
+      TransaksiSkema.idDompet: idDompet,
+      TransaksiSkema.idKategori: idKategori,
+      TransaksiSkema.idDompetTujuan: idDompetTujuan,
+      TransaksiSkema.idPelanggan: idPelanggan,
+      TransaksiSkema.idPaket: idPaket,
+      TransaksiSkema.idSubKategori: idSubKategori,
+      TransaksiSkema.statusPembayaran: statusPembayaran.name,
+      TransaksiSkema.poinYangDihasilkan: poinYangDihasilkan,
+      TransaksiSkema.poinYangDigunakan: poinYangDigunakan,
+      TransaksiSkema.diperbarui: FieldValue.serverTimestamp(),
+      TransaksiSkema.diarsipkan: diarsipkan != null
+          ? Timestamp.fromDate(diarsipkan!.toUtc())
           : null,
-      'tanggalBerakhir': tanggalBerakhir != null
-          ? Timestamp.fromDate(tanggalBerakhir!)
+      TransaksiSkema.isDeleted: isDeleted,
+      TransaksiSkema.durasiPaket: durasiPaket,
+      TransaksiSkema.tipeDurasiPaket: tipeDurasiPaket?.name,
+      TransaksiSkema.tanggalMulai: tanggalMulai != null
+          ? Timestamp.fromDate(tanggalMulai!.toUtc())
           : null,
-      'aktivasiPaket': aktivasiPaket,
+      TransaksiSkema.tanggalBerakhir: tanggalBerakhir != null
+          ? Timestamp.fromDate(tanggalBerakhir!.toUtc())
+          : null,
+      TransaksiSkema.aktivasiPaket: aktivasiPaket,
     };
-  }
-
-  TransaksiModel copyWith({
-    String? id,
-    DateTime? tanggal,
-    String? keterangan,
-    double? jumlah,
-    TipeTransaksi? tipe,
-    String? idDompet,
-    String? idKategori,
-    String? idDompetTujuan,
-    String? idPelanggan,
-    String? idPaket,
-    String? idSubKategori,
-    StatusPembayaranEnum? statusPembayaran,
-    int? poinYangDihasilkan,
-    int? poinYangDigunakan,
-    DateTime? diperbarui,
-    DateTime? diarsipkan,
-    bool? isDeleted,
-    int? durasiPaket,
-    TipeDurasi? tipeDurasiPaket,
-    DateTime? tanggalMulai,
-    DateTime? tanggalBerakhir,
-    bool? aktivasiPaket,
-  }) {
-    return TransaksiModel(
-      id: id ?? this.id,
-      tanggal: tanggal ?? this.tanggal,
-      keterangan: keterangan ?? this.keterangan,
-      jumlah: jumlah ?? this.jumlah,
-      tipe: tipe ?? this.tipe,
-      idDompet: idDompet ?? this.idDompet,
-      idKategori: idKategori ?? this.idKategori,
-      idDompetTujuan: idDompetTujuan ?? this.idDompetTujuan,
-      idPelanggan: idPelanggan ?? this.idPelanggan,
-      idPaket: idPaket ?? this.idPaket,
-      idSubKategori: idSubKategori ?? this.idSubKategori,
-      statusPembayaran: statusPembayaran ?? this.statusPembayaran,
-      poinYangDihasilkan: poinYangDihasilkan ?? this.poinYangDihasilkan,
-      poinYangDigunakan: poinYangDigunakan ?? this.poinYangDigunakan,
-      diperbarui: diperbarui ?? this.diperbarui,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-      isDeleted: isDeleted ?? this.isDeleted,
-      durasiPaket: durasiPaket ?? this.durasiPaket,
-      tipeDurasiPaket: tipeDurasiPaket ?? this.tipeDurasiPaket,
-      tanggalMulai: tanggalMulai ?? this.tanggalMulai,
-      tanggalBerakhir: tanggalBerakhir ?? this.tanggalBerakhir,
-      aktivasiPaket: aktivasiPaket ?? this.aktivasiPaket,
-    );
   }
 }
 

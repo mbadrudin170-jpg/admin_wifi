@@ -10,6 +10,7 @@ void main() {
     test('Objek PaketModel dapat dibuat dengan nilai default yang benar', () {
       // Arrange: Buat objek hanya dengan properti yang wajib diisi
       final paket = PaketModel(
+        id: 'paket-dasar-123',
         nama: 'Paket Dasar',
         harga: 10000,
         durasi: 1,
@@ -17,8 +18,7 @@ void main() {
       );
 
       // Assert: Periksa nilai-nilai defaultnya
-      expect(paket.id, isNotNull); // ID harus dibuat secara otomatis
-      expect(paket.id, isA<String>());
+      expect(paket.id, 'paket-dasar-123');
       // dihapus: expect(paket.jumlahPoin, 0);
       // ditambah: Memeriksa nilai default untuk field poin yang baru.
       expect(paket.poinHadiah, 0);
@@ -161,6 +161,7 @@ void main() {
     test('saat unggah data ke firebase isDeleted harus boolean (true)', () {
       // Arrange
       final paket = PaketModel(
+        id: 'paket-firebase-true',
         nama: 'Paket Firebase',
         harga: 100,
         durasi: 1,
@@ -180,6 +181,7 @@ void main() {
     test('saat unggah data ke firebase isDeleted harus boolean (false)', () {
       // Arrange
       final paket = PaketModel(
+        id: 'paket-firebase-false',
         nama: 'Paket Firebase',
         harga: 100,
         durasi: 1,

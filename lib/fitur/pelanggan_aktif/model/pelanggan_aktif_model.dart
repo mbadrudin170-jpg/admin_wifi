@@ -4,6 +4,7 @@ import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
 part 'pelanggan_aktif_model.freezed.dart';
 
@@ -49,46 +50,23 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
     DateTime? diarsipkan,
   }) = _PelangganAktifModel;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'idPelanggan': idPelanggan,
-      'idPaket': idPaket,
-      'idTransaksi': idTransaksi,
-      'tanggalMulai': tanggalMulai.toIso8601String(),
-      'tanggalBerakhir': tanggalBerakhir.toIso8601String(),
-      'status': status.name,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted,
-      'diarsipkan': diarsipkan?.toIso8601String(),
-    };
-  }
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string.
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
 
-  static DateTime? _parseDateTime(dynamic value) {
-    if (value == null) return null;
-    if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    if (value is String) return DateTime.tryParse(value);
-
-    L.w('Format DateTime tidak dikenali: $value');
-    return null;
-  }
-
-  static bool _parseBool(dynamic value) {
-    if (value == null) return false;
-    if (value is bool) return value;
-    if (value is int) return value == 1;
-    if (value is String) return value.toLowerCase() == 'true';
-
-    L.w('Format Boolean tidak dikenali, default ke false: $value');
-    return false;
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   factory PelangganAktifModel.fromSqlite(Map<String, dynamic> map) {
     try {
-      // diubah: Menggunakan key snake_case 'tanggal_mulai' dan 'tanggal_berakhir' agar cocok dengan database.
-      final tanggalMulai = _parseDateTime(map['tanggal_mulai']);
-      final tanggalBerakhir = _parseDateTime(map['tanggal_berakhir']);
+      // diubah: Key snake_case 'tanggal_mulai' dan 'tanggal_berakhir' disamakan dengan konstanta skema.
+      final tanggalMulai = _parseTanggal(map[PelangganAktifSkema.tanggalMulai]);
+      final tanggalBerakhir = _parseTanggal(
+        map[PelangganAktifSkema.tanggalBerakhir],
+      );
 
       // diubah: Menghapus fallback DateTime.now() yang berbahaya dan menggantinya dengan validasi.
       if (tanggalMulai == null) {
@@ -99,19 +77,25 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
       }
 
       final model = PelangganAktifModel(
-        id: map['id'] as String,
-        idPelanggan: map['id_pelanggan'] as String? ?? '',
-        idPaket: map['id_paket'] as String? ?? '',
-        idTransaksi: map['id_transaksi'] as String?,
+        id: ParserUtil.parseString(map[PelangganAktifSkema.id]),
+        idPelanggan: ParserUtil.parseString(
+          map[PelangganAktifSkema.idPelanggan],
+        ),
+        idPaket: ParserUtil.parseString(map[PelangganAktifSkema.idPaket]),
+        idTransaksi: ParserUtil.parseStringOrNull(
+          map[PelangganAktifSkema.idTransaksi],
+        ),
         tanggalMulai: tanggalMulai,
         tanggalBerakhir: tanggalBerakhir,
-        status: StatusPembayaranEnum.values.firstWhere(
-          (e) => e.name == map['status'],
-          orElse: () => StatusPembayaranEnum.lunas,
-        ),
-        diperbarui: _parseDateTime(map['diperbarui']),
-        isDeleted: _parseBool(map['isDeleted']),
-        diarsipkan: _parseDateTime(map['diarsipkan']),
+        status:
+            ParserUtil.safeParseEnum(
+              StatusPembayaranEnum.values,
+              ParserUtil.parseStringOrNull(map[PelangganAktifSkema.status]),
+            ) ??
+            StatusPembayaranEnum.lunas,
+        diperbarui: _parseTanggal(map[PelangganAktifSkema.diperbarui]),
+        isDeleted: ParserUtil.parseBool(map[PelangganAktifSkema.isDeleted]),
+        diarsipkan: _parseTanggal(map[PelangganAktifSkema.diarsipkan]),
       );
 
       L.i('Data dimuat dari SQLite');
@@ -128,30 +112,41 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
   ) {
     try {
       // diubah: Menghapus fallback DateTime.now() yang berbahaya dan menggantinya dengan validasi.
-      final tanggalMulai = _parseDateTime(data['tanggalMulai']);
-      final tanggalBerakhir = _parseDateTime(data['tanggalBerakhir']);
+      // Nama field Firestore disamakan dengan kolom SQLite (snake_case).
+      final tanggalMulai = _parseTanggal(
+        data[PelangganAktifSkema.tanggalMulai],
+      );
+      final tanggalBerakhir = _parseTanggal(
+        data[PelangganAktifSkema.tanggalBerakhir],
+      );
 
       if (tanggalMulai == null) {
-        throw ArgumentError.notNull('tanggalMulai dari Firebase');
+        throw ArgumentError.notNull('tanggal_mulai dari Firebase');
       }
       if (tanggalBerakhir == null) {
-        throw ArgumentError.notNull('tanggalBerakhir dari Firebase');
+        throw ArgumentError.notNull('tanggal_berakhir dari Firebase');
       }
 
       final model = PelangganAktifModel(
         id: id,
-        idPelanggan: data['id_pelanggan'] as String? ?? '',
-        idPaket: data['id_paket'] as String? ?? '',
-        idTransaksi: data['id_transaksi'] as String?,
+        idPelanggan: ParserUtil.parseString(
+          data[PelangganAktifSkema.idPelanggan],
+        ),
+        idPaket: ParserUtil.parseString(data[PelangganAktifSkema.idPaket]),
+        idTransaksi: ParserUtil.parseStringOrNull(
+          data[PelangganAktifSkema.idTransaksi],
+        ),
         tanggalMulai: tanggalMulai,
         tanggalBerakhir: tanggalBerakhir,
-        status: StatusPembayaranEnum.values.firstWhere(
-          (e) => e.name == data['status'],
-          orElse: () => StatusPembayaranEnum.lunas,
-        ),
-        diperbarui: _parseDateTime(data['diperbarui']),
-        isDeleted: _parseBool(data['isDeleted']),
-        diarsipkan: _parseDateTime(data['diarsipkan']),
+        status:
+            ParserUtil.safeParseEnum(
+              StatusPembayaranEnum.values,
+              ParserUtil.parseStringOrNull(data[PelangganAktifSkema.status]),
+            ) ??
+            StatusPembayaranEnum.lunas,
+        diperbarui: _parseTanggal(data[PelangganAktifSkema.diperbarui]),
+        isDeleted: ParserUtil.parseBool(data[PelangganAktifSkema.isDeleted]),
+        diarsipkan: _parseTanggal(data[PelangganAktifSkema.diarsipkan]),
       );
 
       L.i('Data ditarik dari Firebase');
@@ -164,33 +159,41 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
 
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'id_pelanggan': idPelanggan,
-      'id_paket': idPaket,
-      'id_transaksi': idTransaksi,
-      'tanggal_mulai': tanggalMulai.toIso8601String(), // snake_case
-      'tanggal_berakhir': tanggalBerakhir.toIso8601String(), // snake_case
-      'status': status.name,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0,
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      PelangganAktifSkema.id: id,
+      PelangganAktifSkema.idPelanggan: idPelanggan,
+      PelangganAktifSkema.idPaket: idPaket,
+      PelangganAktifSkema.idTransaksi: idTransaksi,
+      PelangganAktifSkema.tanggalMulai: tanggalMulai.toUtc().toIso8601String(),
+      PelangganAktifSkema.tanggalBerakhir: tanggalBerakhir
+          .toUtc()
+          .toIso8601String(),
+      PelangganAktifSkema.status: status.name,
+      PelangganAktifSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      PelangganAktifSkema.isDeleted: isDeleted ? 1 : 0,
+      PelangganAktifSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
   }
 
   Map<String, dynamic> toFirebase() {
     final Map<String, dynamic> data = {
-      'id': id,
-      'id_pelanggan': idPelanggan,
-      'id_paket': idPaket,
-      'id_transaksi': idTransaksi,
-      'tanggalMulai': Timestamp.fromDate(tanggalMulai), // camelCase
-      'tanggalBerakhir': Timestamp.fromDate(tanggalBerakhir), // camelCase
-      'status': status.name,
-      'isDeleted': isDeleted,
-      'diperbarui': FieldValue.serverTimestamp(),
+      PelangganAktifSkema.id: id,
+      PelangganAktifSkema.idPelanggan: idPelanggan,
+      PelangganAktifSkema.idPaket: idPaket,
+      PelangganAktifSkema.idTransaksi: idTransaksi,
+      PelangganAktifSkema.tanggalMulai: Timestamp.fromDate(
+        tanggalMulai.toUtc(),
+      ),
+      PelangganAktifSkema.tanggalBerakhir: Timestamp.fromDate(
+        tanggalBerakhir.toUtc(),
+      ),
+      PelangganAktifSkema.status: status.name,
+      PelangganAktifSkema.isDeleted: isDeleted,
+      PelangganAktifSkema.diperbarui: FieldValue.serverTimestamp(),
     };
     if (diarsipkan != null) {
-      data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
+      data[PelangganAktifSkema.diarsipkan] = Timestamp.fromDate(
+        diarsipkan!.toUtc(),
+      );
     }
 
     L.api('Firestore/Pelanggan/$id', data, method: 'SET');

@@ -1,66 +1,54 @@
 // path: lib/model/kritik_saran_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase diperbaiki.
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
-class KritikSaranModel {
-  final String id;
-  final String isi;
-  final DateTime tanggal;
-  final String userId;
-  final DateTime? diperbarui;
+part 'kritik_saran_model.freezed.dart';
 
-  KritikSaranModel({
-    String? id,
-    required this.isi,
-    required this.tanggal,
-    required this.userId,
-    this.diperbarui,
-  }) : id = id ?? const Uuid().v4();
+@freezed
+abstract class KritikSaranModel with _$KritikSaranModel {
+  const KritikSaranModel._();
 
-  KritikSaranModel copyWith({
-    String? id,
-    String? isi,
-    DateTime? tanggal,
-    String? userId,
+  const factory KritikSaranModel({
+    required String id,
+    required String isi,
+    required DateTime tanggal,
+    required String userId,
     DateTime? diperbarui,
-  }) {
-    return KritikSaranModel(
-      id: id ?? this.id,
-      isi: isi ?? this.isi,
-      tanggal: tanggal ?? this.tanggal,
-      userId: userId ?? this.userId,
-      diperbarui: diperbarui ?? this.diperbarui,
-    );
-  }
+  }) = _KritikSaranModel;
 
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is DateTime) return dateValue;
-    if (dateValue is String) return DateTime.tryParse(dateValue);
-    return null;
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
+
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   // diubah: Nama metode dari fromMap menjadi fromSqlite
   factory KritikSaranModel.fromSqlite(Map<String, dynamic> map) {
     return KritikSaranModel(
-      id: map['id'] as String?,
-      isi: map['isi'] ?? '',
-      userId: map['userId'] ?? '',
-      tanggal: _parseDateTime(map['tanggal']) ?? DateTime.now(),
-      diperbarui: _parseDateTime(map['diperbarui']),
+      id: ParserUtil.parseStringOrNull(map[KritikSaranSkema.id]) ?? '',
+      isi: ParserUtil.parseString(map[KritikSaranSkema.isi]),
+      userId: ParserUtil.parseString(map[KritikSaranSkema.userId]),
+      tanggal:
+          _parseTanggal(map[KritikSaranSkema.tanggal]) ??
+          (throw ArgumentError.notNull('tanggal dari SQLite')),
+      diperbarui: _parseTanggal(map[KritikSaranSkema.diperbarui]),
     );
   }
 
   // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'isi': isi,
-      'tanggal': tanggal.toIso8601String(),
-      'userId': userId,
-      'diperbarui': diperbarui?.toIso8601String(),
+      KritikSaranSkema.id: id,
+      KritikSaranSkema.isi: isi,
+      KritikSaranSkema.tanggal: tanggal.toUtc().toIso8601String(),
+      KritikSaranSkema.userId: userId,
+      KritikSaranSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
     };
   }
 
@@ -68,21 +56,23 @@ class KritikSaranModel {
   factory KritikSaranModel.fromFirebase(String id, Map<String, dynamic> data) {
     return KritikSaranModel(
       id: id,
-      isi: data['isi'] ?? '',
-      userId: data['userId'] ?? '',
-      tanggal: _parseDateTime(data['tanggal']) ?? DateTime.now(),
-      diperbarui: _parseDateTime(data['diperbarui']),
+      isi: ParserUtil.parseString(data[KritikSaranSkema.isi]),
+      userId: ParserUtil.parseString(data[KritikSaranSkema.userId]),
+      tanggal:
+          _parseTanggal(data[KritikSaranSkema.tanggal]) ??
+          (throw ArgumentError.notNull('tanggal dari Firebase')),
+      diperbarui: _parseTanggal(data[KritikSaranSkema.diperbarui]),
     );
   }
 
   // diubah: Nama metode dan logika diperbarui diubah
   Map<String, dynamic> toFirebase() {
     return {
-      'id': id,
-      'isi': isi,
-      'tanggal': Timestamp.fromDate(tanggal),
-      'userId': userId,
-      'diperbarui': FieldValue.serverTimestamp(),
+      KritikSaranSkema.id: id,
+      KritikSaranSkema.isi: isi,
+      KritikSaranSkema.tanggal: Timestamp.fromDate(tanggal.toUtc()),
+      KritikSaranSkema.userId: userId,
+      KritikSaranSkema.diperbarui: FieldValue.serverTimestamp(),
     };
   }
 }

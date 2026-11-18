@@ -52,8 +52,9 @@ void main() {
     test(
       '2. getKritikSaran harus mengembalikan data terurut tanggal DESC',
       () async {
-        final modelLama = buatModel(userId: 'user-lama')
-          ..copyWith(tanggal: DateTime.now().subtract(const Duration(days: 1)));
+        final modelLama = buatModel(userId: 'user-lama').copyWith(
+          tanggal: DateTime.now().subtract(const Duration(days: 1)),
+        );
         final modelBaru = buatModel(userId: 'user-baru');
 
         await operasi.createKritikSaran(modelLama);

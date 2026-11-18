@@ -1,74 +1,58 @@
 // path: lib/model/dompet_model.dart
 // diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
-// ditambahkan: Metode fromFirestore dan toFirestore untuk interaksi dengan Firebase.
+// diubah: Direfactor menggunakan Freezed (abstract class + const factory).
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
-class DompetModel {
-  final String id; // diubah: menjadi non-nullable
-  final String namaDompet;
-  final double saldo;
-  final DateTime? diperbarui;
-  final bool isDeleted;
-  final DateTime? diarsipkan;
+part 'dompet_model.freezed.dart';
 
-  DompetModel({
-    String? id, // diubah: id bisa null saat pembuatan
-    required this.namaDompet,
-    required this.saldo,
-    this.diperbarui,
-    this.isDeleted = false,
-    this.diarsipkan,
-  }) : id = id ?? const Uuid().v4(); // ditambah: inisialisasi UUID jika id null
+@freezed
+abstract class DompetModel with _$DompetModel {
+  const DompetModel._();
 
-  DompetModel copyWith({
-    String? id,
-    String? namaDompet,
-    double? saldo,
+  const factory DompetModel({
+    required String id,
+    required String namaDompet,
+    required double saldo,
     DateTime? diperbarui,
-    bool? isDeleted,
+    @Default(false) bool isDeleted,
     DateTime? diarsipkan,
-  }) {
-    return DompetModel(
-      id: id ?? this.id,
-      namaDompet: namaDompet ?? this.namaDompet,
-      saldo: saldo ?? this.saldo,
-      diperbarui: diperbarui ?? this.diperbarui,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-    );
-  }
+  }) = _DompetModel;
 
-  static DateTime? _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return null;
-    if (dateValue is Timestamp) return dateValue.toDate();
-    if (dateValue is String) return DateTime.tryParse(dateValue);
-    return null;
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
+
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   // Konversi dari format database lokal (SQLite)
   // diubah: nama metode dari fromMap menjadi fromSqlite untuk konsistensi
   factory DompetModel.fromSqlite(Map<String, dynamic> map) {
     return DompetModel(
-      id: map['id'],
-      namaDompet: map['namaDompet'] ?? '',
-      saldo: (map['saldo'] as num?)?.toDouble() ?? 0.0,
-      diperbarui: _parseDateTime(map['diperbarui']),
-      isDeleted: map['isDeleted'] == true || map['isDeleted'] == 1,
-      diarsipkan: _parseDateTime(map['diarsipkan']),
+      id: ParserUtil.parseString(map[DompetSkema.id]),
+      namaDompet: ParserUtil.parseString(map[DompetSkema.namaDompet]),
+      saldo: ParserUtil.parseDouble(map[DompetSkema.saldo]),
+      diperbarui: _parseTanggal(map[DompetSkema.diperbarui]),
+      isDeleted: ParserUtil.parseBool(map[DompetSkema.isDeleted]),
+      diarsipkan: _parseTanggal(map[DompetSkema.diarsipkan]),
     );
   }
 
   // Konversi ke format database lokal (SQLite)
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'namaDompet': namaDompet,
-      'saldo': saldo,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'isDeleted': isDeleted ? 1 : 0,
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      DompetSkema.id: id,
+      DompetSkema.namaDompet: namaDompet,
+      DompetSkema.saldo: saldo,
+      DompetSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      DompetSkema.isDeleted: isDeleted ? 1 : 0,
+      DompetSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
   }
 
@@ -78,11 +62,11 @@ class DompetModel {
   factory DompetModel.fromFirebase(String id, Map<String, dynamic> data) {
     return DompetModel(
       id: id,
-      namaDompet: data['namaDompet'] ?? '',
-      saldo: (data['saldo'] as num?)?.toDouble() ?? 0.0,
-      diperbarui: _parseDateTime(data['diperbarui']),
-      isDeleted: data['isDeleted'] ?? false,
-      diarsipkan: _parseDateTime(data['diarsipkan']),
+      namaDompet: ParserUtil.parseString(data[DompetSkema.namaDompet]),
+      saldo: ParserUtil.parseDouble(data[DompetSkema.saldo]),
+      diperbarui: _parseTanggal(data[DompetSkema.diperbarui]),
+      isDeleted: ParserUtil.parseBool(data[DompetSkema.isDeleted]),
+      diarsipkan: _parseTanggal(data[DompetSkema.diarsipkan]),
     );
   }
 
@@ -90,12 +74,12 @@ class DompetModel {
   Map<String, dynamic> toFirebase() {
     // saya ubah ke toFirebase
     return {
-      'namaDompet': namaDompet,
-      'saldo': saldo,
-      'diperbarui':
-          FieldValue.serverTimestamp(), // Praktik terbaik untuk Firestore
-      'isDeleted': isDeleted,
-      if (diarsipkan != null) 'diarsipkan': Timestamp.fromDate(diarsipkan!),
+      DompetSkema.namaDompet: namaDompet,
+      DompetSkema.saldo: saldo,
+      DompetSkema.diperbarui: FieldValue.serverTimestamp(),
+      DompetSkema.isDeleted: isDeleted,
+      if (diarsipkan != null)
+        DompetSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
     };
   }
 }

@@ -1,58 +1,28 @@
 // path: lib/model/pelanggan_model.dart
 // diubah: Logika Firebase disesuaikan dengan standar Timestamp.
+// diubah: Direfactor menggunakan Freezed (abstract class + const factory).
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
-class PelangganModel {
-  final String id;
-  final String nama;
-  final String telepon;
-  final String alamat;
-  final String password;
-  final String macAddress;
+part 'pelanggan_model.freezed.dart';
 
-  final bool isDeleted;
-  final DateTime? diperbarui;
-  final DateTime? diarsipkan;
+@freezed
+abstract class PelangganModel with _$PelangganModel {
+  const PelangganModel._();
 
-  PelangganModel({
-    String? id,
-    required this.nama,
-    required this.telepon,
-    required this.alamat,
-    required this.password,
-    this.macAddress = '',
-    this.isDeleted = false,
-    this.diperbarui,
-    this.diarsipkan,
-  }) : id = id ?? const Uuid().v4();
-
-  // =========================
-  // COPY WITH
-  // =========================
-  PelangganModel copyWith({
-    String? id,
-    String? nama,
-    String? telepon,
-    String? alamat,
-    String? password,
-    String? macAddress,
-    bool? isDeleted,
+  const factory PelangganModel({
+    required String id,
+    required String nama,
+    required String telepon,
+    required String alamat,
+    required String password,
+    @Default('') String macAddress,
+    @Default(false) bool isDeleted,
     DateTime? diperbarui,
     DateTime? diarsipkan,
-  }) {
-    return PelangganModel(
-      id: id ?? this.id,
-      nama: nama ?? this.nama,
-      telepon: telepon ?? this.telepon,
-      alamat: alamat ?? this.alamat,
-      password: password ?? this.password,
-      macAddress: macAddress ?? this.macAddress,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diperbarui: diperbarui ?? this.diperbarui,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-    );
-  }
+  }) = _PelangganModel;
 
   // =========================
   // JSON SERIALIZATION (FOR LOGGING)
@@ -76,22 +46,14 @@ class PelangganModel {
   // PARSER UTIL
   // =========================
 
-  // diubah: Menambahkan penanganan untuk tipe data Timestamp dari Firebase.
-  static DateTime? _parseDateTime(dynamic value) {
-    if (value == null) return null;
-    if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    if (value is String) {
-      return DateTime.tryParse(value);
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
     }
-    return null;
-  }
 
-  static bool _parseBool(dynamic value) {
-    if (value == true || value == 1) return true;
-    if (value == false || value == 0 || value == null) return false;
-    if (value is String) return value.toLowerCase() == 'true';
-    return false;
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   // =========================
@@ -100,29 +62,29 @@ class PelangganModel {
 
   factory PelangganModel.fromSqlite(Map<String, dynamic> map) {
     return PelangganModel(
-      id: map['id'] ?? '',
-      nama: map['nama'] ?? '',
-      telepon: map['telepon'] ?? '',
-      alamat: map['alamat'] ?? '',
-      password: map['password'] ?? '',
-      macAddress: map['mac_address'] ?? '',
-      isDeleted: _parseBool(map['isDeleted']),
-      diperbarui: _parseDateTime(map['diperbarui']),
-      diarsipkan: _parseDateTime(map['diarsipkan']),
+      id: ParserUtil.parseString(map[PelangganSkema.id]),
+      nama: ParserUtil.parseString(map[PelangganSkema.nama]),
+      telepon: ParserUtil.parseString(map[PelangganSkema.telepon]),
+      alamat: ParserUtil.parseString(map[PelangganSkema.alamat]),
+      password: ParserUtil.parseString(map[PelangganSkema.password]),
+      macAddress: ParserUtil.parseString(map[PelangganSkema.macAddress]),
+      isDeleted: ParserUtil.parseBool(map[PelangganSkema.isDeleted]),
+      diperbarui: _parseTanggal(map[PelangganSkema.diperbarui]),
+      diarsipkan: _parseTanggal(map[PelangganSkema.diarsipkan]),
     );
   }
 
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'nama': nama,
-      'telepon': telepon,
-      'alamat': alamat,
-      'password': password,
-      'mac_address': macAddress,
-      'isDeleted': isDeleted ? 1 : 0,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'diarsipkan': diarsipkan?.toIso8601String(),
+      PelangganSkema.id: id,
+      PelangganSkema.nama: nama,
+      PelangganSkema.telepon: telepon,
+      PelangganSkema.alamat: alamat,
+      PelangganSkema.password: password,
+      PelangganSkema.macAddress: macAddress,
+      PelangganSkema.isDeleted: isDeleted ? 1 : 0,
+      PelangganSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      PelangganSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
   }
 
@@ -133,31 +95,31 @@ class PelangganModel {
   factory PelangganModel.fromFirebase(String id, Map<String, dynamic> data) {
     return PelangganModel(
       id: id,
-      nama: data['nama'] ?? '',
-      telepon: data['telepon'] ?? '',
-      alamat: data['alamat'] ?? '',
-      password: data['password'] ?? '',
-      macAddress: data['mac_address'] ?? '',
-      isDeleted: _parseBool(data['isDeleted']),
-      diperbarui: _parseDateTime(data['diperbarui']),
-      diarsipkan: _parseDateTime(data['diarsipkan']),
+      nama: ParserUtil.parseString(data[PelangganSkema.nama]),
+      telepon: ParserUtil.parseString(data[PelangganSkema.telepon]),
+      alamat: ParserUtil.parseString(data[PelangganSkema.alamat]),
+      password: ParserUtil.parseString(data[PelangganSkema.password]),
+      macAddress: ParserUtil.parseString(data[PelangganSkema.macAddress]),
+      isDeleted: ParserUtil.parseBool(data[PelangganSkema.isDeleted]),
+      diperbarui: _parseTanggal(data[PelangganSkema.diperbarui]),
+      diarsipkan: _parseTanggal(data[PelangganSkema.diarsipkan]),
     );
   }
 
   // diubah: Menggunakan FieldValue.serverTimestamp() dan menyertakan ID.
   Map<String, dynamic> toFirebase() {
     final Map<String, dynamic> data = {
-      'id': id,
-      'nama': nama,
-      'telepon': telepon,
-      'alamat': alamat,
-      'password': password,
-      'mac_address': macAddress,
-      'isDeleted': isDeleted,
-      'diperbarui': FieldValue.serverTimestamp(),
+      PelangganSkema.id: id,
+      PelangganSkema.nama: nama,
+      PelangganSkema.telepon: telepon,
+      PelangganSkema.alamat: alamat,
+      PelangganSkema.password: password,
+      PelangganSkema.macAddress: macAddress,
+      PelangganSkema.isDeleted: isDeleted,
+      PelangganSkema.diperbarui: FieldValue.serverTimestamp(),
     };
     if (diarsipkan != null) {
-      data['diarsipkan'] = Timestamp.fromDate(diarsipkan!);
+      data[PelangganSkema.diarsipkan] = Timestamp.fromDate(diarsipkan!.toUtc());
     }
     return data;
   }

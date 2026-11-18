@@ -9,19 +9,18 @@ import 'dart:developer' as developer;
 void main() {
   group('DompetModel Unit Test', () {
     
-    test('Inisialisasi: Harus membuat UUID otomatis jika id tidak disediakan', () {
-      developer.log('Menjalankan test: Inisialisasi UUID otomatis');
+    test('Inisialisasi: id wajib disediakan secara eksplisit', () {
+      developer.log('Menjalankan test: Inisialisasi dengan id eksplisit');
       
       final dompet = DompetModel(
+        id: 'dompet-utama-123',
         namaDompet: 'Dompet Utama',
         saldo: 500000,
       );
 
-      expect(dompet.id, isNotNull);
-      expect(dompet.id, isA<String>());
-      expect(dompet.id.length, greaterThan(10));
+      expect(dompet.id, 'dompet-utama-123');
       
-      developer.log('Berhasil: ID dihasilkan -> ${dompet.id}');
+      developer.log('Berhasil: ID eksplisit -> ${dompet.id}');
     });
 
     group('SQLite Mapping', () {
@@ -98,6 +97,7 @@ void main() {
             developer.log('Menjalankan test: toFirebase');
 
             final model = DompetModel(
+                id: 'test-id-untuk-firebase',
                 namaDompet: 'Dana Darurat',
                 saldo: 10000,
                 isDeleted: false,

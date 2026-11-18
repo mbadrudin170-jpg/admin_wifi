@@ -4,31 +4,29 @@ import 'dart:convert';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
-class VersiApkUserModel {
-  final String id;
-  final String catatanRilis;
-  final Map<ArsitekturApkEnum, int> nomorBuildTerbaru;
-  final Map<ArsitekturApkEnum, String> tautanUnduhan;
-  final String versiTerbaru;
-  final bool wajibUpdate;
-  final String youtubeTutorial;
-  final bool isDeleted;
-  final DateTime? diarsipkan;
-  final DateTime? diperbarui;
+part 'versi_apk_user_model.freezed.dart';
 
-  VersiApkUserModel({
-    required this.id,
-    this.catatanRilis = '',
-    this.nomorBuildTerbaru = defaultNomorBuildTerbaru,
-    this.tautanUnduhan = defaultTautanUnduhan,
-    this.versiTerbaru = '',
-    this.wajibUpdate = false,
-    this.youtubeTutorial = '',
-    this.isDeleted = false,
-    this.diarsipkan,
-    this.diperbarui,
-  });
+@freezed
+abstract class VersiApkUserModel with _$VersiApkUserModel {
+  const VersiApkUserModel._();
+
+  const factory VersiApkUserModel({
+    required String id,
+    @Default('') String catatanRilis,
+    @Default(VersiApkUserModel.defaultNomorBuildTerbaru)
+    Map<ArsitekturApkEnum, int> nomorBuildTerbaru,
+    @Default(VersiApkUserModel.defaultTautanUnduhan)
+    Map<ArsitekturApkEnum, String> tautanUnduhan,
+    @Default('') String versiTerbaru,
+    @Default(false) bool wajibUpdate,
+    @Default('') String youtubeTutorial,
+    @Default(false) bool isDeleted,
+    DateTime? diarsipkan,
+    DateTime? diperbarui,
+  }) = _VersiApkUserModel;
 
   // =========================
   // JSON SERIALIZATION (FOR LOGGING)
@@ -58,35 +56,39 @@ class VersiApkUserModel {
   // =========================
   factory VersiApkUserModel.fromSqlite(Map<String, dynamic> map) {
     return VersiApkUserModel(
-      id: map['id'] as String? ?? '',
-      catatanRilis: map['catatan_rilis'] as String? ?? '',
-      versiTerbaru: map['versi_terbaru'] as String? ?? '',
-      youtubeTutorial: map['youtube_tutorial'] as String? ?? '',
-      wajibUpdate: map['wajib_update'] == 1,
-      isDeleted: map['isDeleted'] == 1,
-      nomorBuildTerbaru: _parseNomorBuild(map['nomor_build_terbaru']),
-      tautanUnduhan: _parseTautanUnduhan(map['tautan_unduhan']),
-      diarsipkan: _parseDateTime(map['diarsipkan']),
-      diperbarui: _parseDateTime(map['diperbarui']),
+      id: ParserUtil.parseString(map[VersiApkUserSkema.id]),
+      catatanRilis: ParserUtil.parseString(map[VersiApkUserSkema.catatanRilis]),
+      versiTerbaru: ParserUtil.parseString(map[VersiApkUserSkema.versiTerbaru]),
+      youtubeTutorial: ParserUtil.parseString(
+        map[VersiApkUserSkema.youtubeTutorial],
+      ),
+      wajibUpdate: ParserUtil.parseBool(map[VersiApkUserSkema.wajibUpdate]),
+      isDeleted: ParserUtil.parseBool(map[VersiApkUserSkema.isDeleted]),
+      nomorBuildTerbaru: _parseNomorBuild(
+        map[VersiApkUserSkema.nomorBuildTerbaru],
+      ),
+      tautanUnduhan: _parseTautanUnduhan(map[VersiApkUserSkema.tautanUnduhan]),
+      diarsipkan: _parseTanggal(map[VersiApkUserSkema.diarsipkan]),
+      diperbarui: _parseTanggal(map[VersiApkUserSkema.diperbarui]),
     );
   }
 
   Map<String, dynamic> toSqlite() {
     return {
-      'id': id,
-      'catatan_rilis': catatanRilis,
-      'versi_terbaru': versiTerbaru,
-      'youtube_tutorial': youtubeTutorial,
-      'diarsipkan': diarsipkan?.toIso8601String(),
-      'diperbarui': diperbarui?.toIso8601String(),
-      'nomor_build_terbaru': jsonEncode(
+      VersiApkUserSkema.id: id,
+      VersiApkUserSkema.catatanRilis: catatanRilis,
+      VersiApkUserSkema.versiTerbaru: versiTerbaru,
+      VersiApkUserSkema.youtubeTutorial: youtubeTutorial,
+      VersiApkUserSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+      VersiApkUserSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
+      VersiApkUserSkema.nomorBuildTerbaru: jsonEncode(
         nomorBuildTerbaru.map((key, value) => MapEntry(key.name, value)),
       ),
-      'tautan_unduhan': jsonEncode(
+      VersiApkUserSkema.tautanUnduhan: jsonEncode(
         tautanUnduhan.map((key, value) => MapEntry(key.name, value)),
       ),
-      'wajib_update': wajibUpdate ? 1 : 0,
-      'isDeleted': isDeleted ? 1 : 0,
+      VersiApkUserSkema.wajibUpdate: wajibUpdate ? 1 : 0,
+      VersiApkUserSkema.isDeleted: isDeleted ? 1 : 0,
     };
   }
 
@@ -96,34 +98,39 @@ class VersiApkUserModel {
   factory VersiApkUserModel.fromFirebase(String id, Map<String, dynamic> map) {
     return VersiApkUserModel(
       id: id,
-      catatanRilis: map['catatan_rilis'] as String? ?? '',
-      versiTerbaru: map['versi_terbaru'] as String? ?? '',
-      youtubeTutorial: map['youtube_tutorial'] as String? ?? '',
-      wajibUpdate: map['wajib_update'] == true,
-      isDeleted: map['isDeleted'] == true,
-      nomorBuildTerbaru: _parseNomorBuild(map['nomor_build_terbaru']),
-      tautanUnduhan: _parseTautanUnduhan(map['tautan_unduhan']),
-      diarsipkan: _parseDateTime(map['diarsipkan']),
-      diperbarui: _parseDateTime(map['diperbarui']),
+      catatanRilis: ParserUtil.parseString(map[VersiApkUserSkema.catatanRilis]),
+      versiTerbaru: ParserUtil.parseString(map[VersiApkUserSkema.versiTerbaru]),
+      youtubeTutorial: ParserUtil.parseString(
+        map[VersiApkUserSkema.youtubeTutorial],
+      ),
+      wajibUpdate: ParserUtil.parseBool(map[VersiApkUserSkema.wajibUpdate]),
+      isDeleted: ParserUtil.parseBool(map[VersiApkUserSkema.isDeleted]),
+      nomorBuildTerbaru: _parseNomorBuild(
+        map[VersiApkUserSkema.nomorBuildTerbaru],
+      ),
+      tautanUnduhan: _parseTautanUnduhan(map[VersiApkUserSkema.tautanUnduhan]),
+      diarsipkan: _parseTanggal(map[VersiApkUserSkema.diarsipkan]),
+      diperbarui: _parseTanggal(map[VersiApkUserSkema.diperbarui]),
     );
   }
 
   Map<String, dynamic> toFirebase() {
     return {
-      'id': id,
-      'catatan_rilis': catatanRilis,
-      'versi_terbaru': versiTerbaru,
-      'youtube_tutorial': youtubeTutorial,
-      'diperbarui': FieldValue.serverTimestamp(),
-      if (diarsipkan != null) 'diarsipkan': Timestamp.fromDate(diarsipkan!),
-      'nomor_build_terbaru': nomorBuildTerbaru.map(
+      VersiApkUserSkema.id: id,
+      VersiApkUserSkema.catatanRilis: catatanRilis,
+      VersiApkUserSkema.versiTerbaru: versiTerbaru,
+      VersiApkUserSkema.youtubeTutorial: youtubeTutorial,
+      VersiApkUserSkema.diperbarui: FieldValue.serverTimestamp(),
+      if (diarsipkan != null)
+        VersiApkUserSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
+      VersiApkUserSkema.nomorBuildTerbaru: nomorBuildTerbaru.map(
         (key, value) => MapEntry(key.name, value),
       ),
-      'tautan_unduhan': tautanUnduhan.map(
+      VersiApkUserSkema.tautanUnduhan: tautanUnduhan.map(
         (key, value) => MapEntry(key.name, value),
       ),
-      'wajib_update': wajibUpdate,
-      'isDeleted': isDeleted,
+      VersiApkUserSkema.wajibUpdate: wajibUpdate,
+      VersiApkUserSkema.isDeleted: isDeleted,
     };
   }
 
@@ -131,10 +138,14 @@ class VersiApkUserModel {
   // HELPERS
   // =========================
 
-  static DateTime? _parseDateTime(dynamic date) {
-    if (date is Timestamp) return date.toDate();
-    if (date is String) return DateTime.tryParse(date);
-    return null;
+  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
+  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  static DateTime? _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toLocal();
+    }
+
+    return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
   static const Map<ArsitekturApkEnum, int> defaultNomorBuildTerbaru = {
@@ -148,14 +159,6 @@ class VersiApkUserModel {
     ArsitekturApkEnum.bit_64: '',
     ArsitekturApkEnum.universal: '',
   };
-
-  static ArsitekturApkEnum? _arsitekturDariString(String value) {
-    try {
-      return ArsitekturApkEnum.values.firstWhere((e) => e.name == value);
-    } catch (_) {
-      return null;
-    }
-  }
 
   static Map<ArsitekturApkEnum, int> _parseNomorBuild(dynamic data) {
     final hasil = <ArsitekturApkEnum, int>{};
@@ -178,11 +181,12 @@ class VersiApkUserModel {
 
     if (mapData != null) {
       for (final item in mapData.entries) {
-        final arsitektur = _arsitekturDariString(item.key.toString());
+        final arsitektur = ParserUtil.safeParseEnum(
+          ArsitekturApkEnum.values,
+          item.key.toString(),
+        );
         if (arsitektur != null) {
-          hasil[arsitektur] = item.value is num
-              ? (item.value as num).toInt()
-              : 0;
+          hasil[arsitektur] = ParserUtil.parseInt(item.value);
         }
       }
     }
@@ -211,40 +215,17 @@ class VersiApkUserModel {
 
     if (mapData != null) {
       for (final item in mapData.entries) {
-        final arsitektur = _arsitekturDariString(item.key.toString());
+        final arsitektur = ParserUtil.safeParseEnum(
+          ArsitekturApkEnum.values,
+          item.key.toString(),
+        );
         if (arsitektur != null) {
-          hasil[arsitektur] = item.value?.toString() ?? '';
+          hasil[arsitektur] = ParserUtil.parseString(item.value);
         }
       }
     }
 
     return {...defaultTautanUnduhan, ...hasil};
-  }
-
-  VersiApkUserModel copyWith({
-    String? id,
-    String? catatanRilis,
-    Map<ArsitekturApkEnum, int>? nomorBuildTerbaru,
-    Map<ArsitekturApkEnum, String>? tautanUnduhan,
-    String? versiTerbaru,
-    bool? wajibUpdate,
-    String? youtubeTutorial,
-    bool? isDeleted,
-    DateTime? diarsipkan,
-    DateTime? diperbarui,
-  }) {
-    return VersiApkUserModel(
-      id: id ?? this.id,
-      catatanRilis: catatanRilis ?? this.catatanRilis,
-      nomorBuildTerbaru: nomorBuildTerbaru ?? this.nomorBuildTerbaru,
-      tautanUnduhan: tautanUnduhan ?? this.tautanUnduhan,
-      versiTerbaru: versiTerbaru ?? this.versiTerbaru,
-      wajibUpdate: wajibUpdate ?? this.wajibUpdate,
-      youtubeTutorial: youtubeTutorial ?? this.youtubeTutorial,
-      isDeleted: isDeleted ?? this.isDeleted,
-      diarsipkan: diarsipkan ?? this.diarsipkan,
-      diperbarui: diperbarui ?? this.diperbarui,
-    );
   }
 }
 
