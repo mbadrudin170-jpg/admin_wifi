@@ -6,6 +6,7 @@ import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class HalamanPesan extends StatefulWidget {
   const HalamanPesan({super.key});
@@ -171,14 +172,14 @@ class _HalamanPesanState extends State<HalamanPesan> {
           TextButton(
             onPressed: () {
               L.i('Dialog Hapus: Pengguna memilih BATAL.');
-              Navigator.pop(context, false);
+              Nav.pop(context, false);
             },
             child: const Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () {
               L.i('Dialog Hapus: Pengguna memilih HAPUS.');
-              Navigator.pop(context, true);
+              Nav.pop(context, true);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Hapus'),

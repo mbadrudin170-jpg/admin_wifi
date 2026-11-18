@@ -8,6 +8,7 @@ import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
@@ -211,7 +212,7 @@ class _FormPaketState extends State<FormPaket> {
         if (!mounted) {
           L.w(
             'Widget sudah tidak mounted setelah operasi database berhasil. '
-            'Tidak dapat menampilkan SnackBar atau melakukan Navigator.pop.',
+            'Tidak dapat menampilkan SnackBar atau melakukan Nav.pop.',
           );
           return;
         }
@@ -232,13 +233,13 @@ class _FormPaketState extends State<FormPaket> {
         L.i('SnackBar sukses telah ditampilkan.');
 
         L.i(
-          'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+          'Melakukan Nav.pop(context, true) untuk kembali ke halaman sebelumnya.',
         );
         L.i(
           'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.',
         );
-        Navigator.pop(context, true);
-        L.i('Navigator.pop berhasil dijalankan.');
+        Nav.pop(context, true);
+        L.i('Nav.pop berhasil dijalankan.');
       } on DatabaseException catch (e, s) {
         L.i('========================================');
         L.i('ERROR DATABASE TERDETEKSI');
@@ -338,7 +339,7 @@ class _FormPaketState extends State<FormPaket> {
               'NAVIGASI: Tombol Kembali ditekan. '
               'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).',
             );
-            Navigator.pop(context, false);
+            Nav.pop(context, false);
           },
         ),
       ),

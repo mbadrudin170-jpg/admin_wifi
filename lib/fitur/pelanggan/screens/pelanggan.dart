@@ -1,11 +1,14 @@
 // path: lib/halaman/lainnya/pelanggan.dart
 
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/detail_pelanggan.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class PelangganPage extends StatefulWidget {
   const PelangganPage({super.key});
@@ -134,10 +137,7 @@ class _PelangganPageState extends State<PelangganPage> {
     L.i(
       'Tombol FAB (+) ditekan. Menavigasi ke FormPelanggan untuk menambah data baru.',
     );
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const FormPelanggan()),
-    );
+    final result = await Nav.to(context, const FormPelanggan());
     if (result == true) {
       L.i(
         'Kembali dari FormPelanggan dengan hasil sukses (true). Memanggil _refreshPelangganList untuk memuat ulang data.',
@@ -169,13 +169,14 @@ class _PelangganPageState extends State<PelangganPage> {
                   L.i(
                     'Opsi "Edit Pelanggan" dipilih. Menutup dialog dan menavigasi ke FormPelanggan dengan data yang ada.',
                   );
-                  Navigator.of(dialogContext).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FormPelanggan(pelanggan: pelanggan),
-                    ),
-                  ).then((_) => _refreshPelangganList());
+                  Nav.pop(dialogContext);
+                  unawaited(
+                    Nav.to(context, FormPelanggan(pelanggan: pelanggan))
+                        .then((_) => _refreshPelangganList())
+                        .catchError((Object e, StackTrace s) {
+                          L.e('Navigasi gagal: $e $s');
+                        }),
+                  );
                 },
               ),
               ListTile(
@@ -185,7 +186,7 @@ class _PelangganPageState extends State<PelangganPage> {
                   L.i(
                     'Opsi "Arsipkan Pelanggan" dipilih. Menutup dialog dan memanggil _showDialogArsipkan.',
                   );
-                  Navigator.of(dialogContext).pop();
+                  Nav.pop(dialogContext);
                   _showDialogArsipkan(pelanggan);
                 },
               ),
@@ -213,7 +214,7 @@ class _PelangganPageState extends State<PelangganPage> {
               child: const Text('Batal'),
               onPressed: () {
                 L.i('Pengguna membatalkan proses pengarsipan.');
-                Navigator.of(context).pop();
+                Nav.pop(context);
               },
             ),
             TextButton(
@@ -225,7 +226,7 @@ class _PelangganPageState extends State<PelangganPage> {
                 L.i(
                   'Pengguna mengonfirmasi pengarsipan. Memanggil _arsipkanPelanggan dengan ID: ${pelanggan.id}.',
                 );
-                Navigator.of(context).pop();
+                Nav.pop(context);
                 _arsipkanPelanggan(pelanggan.id);
               },
             ),
@@ -315,12 +316,14 @@ class _PelangganPageState extends State<PelangganPage> {
               L.i(
                 'ListTile untuk pelanggan "${pelanggan.nama}" ditekan. Menavigasi ke DetailPelangganPage.',
               );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      DetailPelangganPage(idPelanggan: pelanggan.id),
-                ),
+              unawaited(
+                Nav.to(
+                  context,
+                  DetailPelangganPage(idPelanggan: pelanggan.id),
+                ).catchError((Object e, StackTrace s) {
+                  L.e('Navigasi gagal: $e $s');
+                  return null;
+                }),
               );
             },
             onLongPress: () {

@@ -5,6 +5,7 @@ import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Halaman formulir untuk mengedit dan menyimpan pengaturan aplikasi.
 class FormPengaturan extends StatefulWidget {
@@ -98,7 +99,7 @@ class _FormPengaturanState extends State<FormPengaturan> {
           L.i(
             'SnackBar sukses ditampilkan, navigasi kembali dengan result true',
           );
-          Navigator.pop(context, true);
+          Nav.pop(context, true);
         } else {
           L.i(
             'Widget tidak mounted setelah simpan berhasil, tidak dapat navigasi',
@@ -142,7 +143,7 @@ class _FormPengaturanState extends State<FormPengaturan> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             L.i('Kembali ke halaman Pengaturan tanpa menyimpan');
-            Navigator.of(context).pop();
+            Nav.pop(context);
           },
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:admin_wifi/fitur/paket/screens/form_paket.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class DetailPaketPage extends StatefulWidget {
   final PaketModel paket;
@@ -35,16 +36,7 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
       'Memulai navigasi ke halaman form edit paket untuk paket: ${_paket.nama}.',
     );
 
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          L.i('Membangun halaman FormPaket untuk proses edit.');
-
-          return FormPaket(paket: _paket);
-        },
-      ),
-    );
+    final result = await Nav.to<bool>(context, FormPaket(paket: _paket));
 
     L.i('Halaman edit paket selesai ditutup dengan hasil: $result.');
 
@@ -56,7 +48,7 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
           'Widget masih mounted. Mengirim sinyal refresh ke halaman sebelumnya.',
         );
 
-        Navigator.pop(context, true);
+        Nav.pop(context, true);
 
         L.i('Berhasil kembali ke halaman sebelumnya dengan status refresh.');
       } else {
@@ -83,7 +75,7 @@ class _DetailPaketPageState extends State<DetailPaketPage> {
           onPressed: () {
             L.i('Pengguna menekan tombol kembali pada halaman detail paket.');
 
-            Navigator.pop(context);
+            Nav.pop(context);
 
             L.i('Berhasil kembali ke halaman sebelumnya.');
           },

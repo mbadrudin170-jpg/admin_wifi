@@ -10,6 +10,7 @@ import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
 class FormTransaksiPage extends StatefulWidget {
@@ -264,7 +265,7 @@ class _FormTransaksiPageState extends State<FormTransaksiPage> {
         L.i(
           'Penyimpanan berhasil. Menutup form dan kembali dengan hasil true.',
         );
-        Navigator.pop(context, true);
+        Nav.pop(context, true);
       } catch (e, s) {
         L.e('Gagal menyimpan transaksi ke database. Error: $e $s');
         if (!mounted) return;

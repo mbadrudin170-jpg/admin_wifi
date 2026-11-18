@@ -1,11 +1,14 @@
 // path: lib/halaman/lainnya/paket.dart
 
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/fitur/paket/screens/detail_paket.dart';
 import 'package:admin_wifi/fitur/paket/screens/form_paket.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class PaketPage extends StatefulWidget {
   const PaketPage({super.key});
@@ -44,23 +47,24 @@ class _PaketPageState extends State<PaketPage> {
             TextButton(
               onPressed: () {
                 L.i('Memilih navigasi ke Form Edit untuk paket: ${paket.nama}');
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FormPaket(paket: paket),
-                  ),
-                ).then((_) {
-                  L.i('Kembali dari Form Edit, menyegarkan daftar paket');
-                  _refreshPaketList();
-                });
+                Nav.pop(context);
+                unawaited(
+                  Nav.to(context, FormPaket(paket: paket))
+                      .then((_) {
+                        L.i('Kembali dari Form Edit, menyegarkan daftar paket');
+                        _refreshPaketList();
+                      })
+                      .catchError((Object e, StackTrace s) {
+                        L.e('Navigasi gagal: $e $s');
+                      }),
+                );
               },
               child: const Text('Edit'),
             ),
             TextButton(
               onPressed: () {
                 L.i('Memilih opsi Hapus untuk paket: ${paket.nama}');
-                Navigator.pop(context);
+                Nav.pop(context);
                 _showDeleteConfirmationDialog(paket);
               },
               child: const Text('Hapus'),
@@ -88,7 +92,7 @@ class _PaketPageState extends State<PaketPage> {
               child: const Text('Batal'),
               onPressed: () {
                 L.i('Penghapusan paket ${paket.nama} dibatalkan oleh user');
-                Navigator.of(dialogContext).pop();
+                Nav.pop(dialogContext);
               },
             ),
             TextButton(
@@ -96,7 +100,7 @@ class _PaketPageState extends State<PaketPage> {
               child: const Text('Hapus'),
               onPressed: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                Navigator.of(dialogContext).pop();
+                Nav.pop(dialogContext);
 
                 try {
                   L.i(
@@ -146,7 +150,7 @@ class _PaketPageState extends State<PaketPage> {
               child: const Text('Batal'),
               onPressed: () {
                 L.i('Penghapusan massal semua paket dibatalkan oleh user');
-                Navigator.of(dialogContext).pop();
+                Nav.pop(dialogContext);
               },
             ),
             TextButton(
@@ -154,7 +158,7 @@ class _PaketPageState extends State<PaketPage> {
               child: const Text('Hapus Semua'),
               onPressed: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                Navigator.of(dialogContext).pop();
+                Nav.pop(dialogContext);
 
                 try {
                   L.i('Menjalankan operasi hapus semua paket dari database');
@@ -227,17 +231,18 @@ class _PaketPageState extends State<PaketPage> {
                   L.i(
                     'Navigasi ke halaman Detail Paket: ${paket.nama} (ID: ${paket.id})',
                   );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailPaketPage(paket: paket),
-                    ),
-                  ).then((_) {
-                    L.i(
-                      'Kembali dari halaman Detail Paket, menyegarkan daftar',
-                    );
-                    _refreshPaketList();
-                  });
+                  unawaited(
+                    Nav.to(context, DetailPaketPage(paket: paket))
+                        .then((_) {
+                          L.i(
+                            'Kembali dari halaman Detail Paket, menyegarkan daftar',
+                          );
+                          _refreshPaketList();
+                        })
+                        .catchError((Object e, StackTrace s) {
+                          L.e('Navigasi gagal: $e $s');
+                        }),
+                  );
                 },
                 onLongPress: () {
                   L.i(
@@ -268,13 +273,16 @@ class _PaketPageState extends State<PaketPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           L.i('Navigasi ke Form Tambah Paket');
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const FormPaket()),
-          ).then((_) {
-            L.i('Kembali dari Form Tambah Paket, menyegarkan daftar');
-            _refreshPaketList();
-          });
+          unawaited(
+            Nav.to(context, const FormPaket())
+                .then((_) {
+                  L.i('Kembali dari Form Tambah Paket, menyegarkan daftar');
+                  _refreshPaketList();
+                })
+                .catchError((Object e, StackTrace s) {
+                  L.e('Navigasi gagal: $e $s');
+                }),
+          );
         },
         tooltip: 'Tambah Paket',
         child: const Icon(Icons.add),

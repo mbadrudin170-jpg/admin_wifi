@@ -6,6 +6,7 @@ import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class KategoriPage extends StatefulWidget {
   const KategoriPage({super.key});
@@ -59,10 +60,7 @@ class _KategoriPageState extends State<KategoriPage> {
 
   void _tambahKategori() async {
     L.i('Navigasi ke Form Tambah Kategori');
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const FormKategoriPage()),
-    );
+    final result = await Nav.to(context, const FormKategoriPage());
     if (result == true) {
       L.i('Kategori baru berhasil ditambahkan, menyegarkan daftar kategori');
       _loadKategori();
@@ -83,14 +81,14 @@ class _KategoriPageState extends State<KategoriPage> {
             TextButton(
               onPressed: () {
                 L.i('Dialog "$judul" - User memilih Batal');
-                Navigator.of(context).pop(false);
+                Nav.pop(context, false);
               },
               child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () {
                 L.i('Dialog "$judul" - User memilih Ya');
-                Navigator.of(context).pop(true);
+                Nav.pop(context, true);
               },
               child: const Text('Ya'),
             ),
@@ -312,13 +310,9 @@ class _KategoriPageState extends State<KategoriPage> {
                                     L.i(
                                       'Navigasi ke Form Edit Kategori Utama: ${kategori.nama} (ID: ${kategori.id})',
                                     );
-                                    final result = await Navigator.push(
+                                    final result = await Nav.to(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => FormKategoriPage(
-                                          kategori: kategori,
-                                        ),
-                                      ),
+                                      FormKategoriPage(kategori: kategori),
                                     );
                                     if (result == true) {
                                       L.i(
@@ -351,15 +345,11 @@ class _KategoriPageState extends State<KategoriPage> {
                                             L.i(
                                               'Navigasi ke Form Edit Sub-Kategori: ${sub.nama} (ID: ${sub.id})',
                                             );
-                                            final result = await Navigator.push(
+                                            final result = await Nav.to(
                                               context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    FormKategoriPage(
-                                                      subKategori: sub,
-                                                      idKategoriInduk:
-                                                          kategori.id,
-                                                    ),
+                                              FormKategoriPage(
+                                                subKategori: sub,
+                                                idKategoriInduk: kategori.id,
                                               ),
                                             );
                                             if (result == true) {

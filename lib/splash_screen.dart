@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -195,9 +196,14 @@ class _SplashScreenState extends State<SplashScreen>
     L.i(
       'Semua proses inisialisasi selesai. Menavigasi ke HalamanUtama dengan status offline: ${!isOnline}',
     );
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => Home(isOffline: !isOnline)),
+    unawaited(
+      Nav.toReplacement(context, Home(isOffline: !isOnline)).catchError((
+        Object e,
+        StackTrace s,
+      ) {
+        L.e('Navigasi gagal: $e $s');
+        return null;
+      }),
     );
   }
 

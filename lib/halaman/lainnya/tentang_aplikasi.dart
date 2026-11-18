@@ -8,6 +8,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Halaman yang menampilkan detail tentang aplikasi.
 class TentangAplikasiPage extends StatefulWidget {
@@ -95,7 +96,7 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             L.i('Kembali ke halaman sebelumnya dari Tentang Aplikasi');
-            Navigator.of(context).pop();
+            Nav.pop(context);
           },
         ),
       ),

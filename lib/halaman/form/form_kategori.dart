@@ -8,6 +8,7 @@ import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
 class FormKategoriPage extends StatefulWidget {
@@ -418,7 +419,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
         if (!mounted) {
           L.w(
             'Widget sudah tidak mounted setelah penyimpanan berhasil. '
-            'Tidak dapat menampilkan SnackBar atau melakukan Navigator.pop.',
+            'Tidak dapat menampilkan SnackBar atau melakukan Nav.pop.',
           );
           return;
         }
@@ -435,13 +436,13 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
         L.i('SnackBar sukses telah ditampilkan.');
 
         L.i(
-          'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+          'Melakukan Nav.pop(context, true) untuk kembali ke halaman sebelumnya.',
         );
         L.i(
           'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.',
         );
-        Navigator.pop(context, true);
-        L.i('Navigator.pop berhasil dijalankan.');
+        Nav.pop(context, true);
+        L.i('Nav.pop berhasil dijalankan.');
       } catch (e, s) {
         L.e(
           'Gagal menyimpan ${_isSubKategoriMode ? 'sub-kategori' : 'kategori'}. '
@@ -505,7 +506,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
               'NAVIGASI: Tombol Kembali ditekan. '
               'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).',
             );
-            Navigator.pop(context, false);
+            Nav.pop(context, false);
           },
         ),
       ),

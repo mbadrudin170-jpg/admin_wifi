@@ -4,6 +4,7 @@ import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // untuk menampilkan detail dari sebuah versi apk
 class DetailVersiApkUser extends StatelessWidget {
@@ -29,17 +30,9 @@ class DetailVersiApkUser extends StatelessWidget {
                 'Pengguna menekan tombol edit untuk versi APK: ${versiApk.versiTerbaru}.',
               );
 
-              final result = await Navigator.push<bool>(
+              final result = await Nav.to<bool>(
                 context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    L.i(
-                      'Membangun halaman FormVersiApkUser untuk proses edit.',
-                    );
-
-                    return FormVersiApkUser(versiApkUser: versiApk);
-                  },
-                ),
+                FormVersiApkUser(versiApkUser: versiApk),
               );
 
               L.i(
@@ -51,7 +44,7 @@ class DetailVersiApkUser extends StatelessWidget {
                   'Berhasil edit data versi APK dan mengirim sinyal refresh ke halaman sebelumnya.',
                 );
 
-                Navigator.pop(context, true);
+                Nav.pop(context, true);
 
                 L.i(
                   'Berhasil kembali ke halaman sebelumnya dengan status refresh.',

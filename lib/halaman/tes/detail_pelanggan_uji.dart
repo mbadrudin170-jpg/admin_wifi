@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class DetailPelangganPage extends StatefulWidget {
   const DetailPelangganPage({super.key});
@@ -112,7 +113,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
                     children: [
                       _ActionButton(
                         icon: Icons.arrow_back,
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Nav.pop(context),
                       ),
                       const Text(
                         'Detail Pelanggan',

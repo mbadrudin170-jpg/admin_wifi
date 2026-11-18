@@ -7,6 +7,7 @@ import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Enum untuk mengontrol tab yang aktif
 enum MenuPoin { penukaran, riwayat }
@@ -179,7 +180,7 @@ class _HalamanPoinState extends State<HalamanPoin> {
             L.i(
               'NAVIGASI: Tombol Kembali ditekan. Kembali ke halaman sebelumnya.',
             );
-            Navigator.pop(context);
+            Nav.pop(context);
           },
         ),
       ),

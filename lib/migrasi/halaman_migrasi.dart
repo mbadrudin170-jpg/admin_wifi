@@ -3,6 +3,7 @@ import 'migrasi_timestamp.dart';
 import 'package:admin_wifi/migrasi/migrasi_diarsipkan.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class HalamanMigrasi extends StatefulWidget {
   const HalamanMigrasi({super.key});
@@ -51,7 +52,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
           TextButton(
             onPressed: () {
               L.i('Pengguna menekan Batal pada dialog konfirmasi.');
-              Navigator.of(context).pop(false);
+              Nav.pop(context, false);
             },
             child: const Text('Batal'),
           ),
@@ -61,7 +62,7 @@ class _HalamanMigrasiState extends State<HalamanMigrasi> {
             ),
             onPressed: () {
               L.i('Pengguna menekan Jalankan pada dialog konfirmasi.');
-              Navigator.of(context).pop(true);
+              Nav.pop(context, true);
             },
             child: const Text('Ya, Jalankan'),
           ),

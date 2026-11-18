@@ -5,6 +5,7 @@ import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
 class FormVersiApkUser extends StatefulWidget {
@@ -141,11 +142,11 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Nav.pop(context, false),
               child: const Text('Periksa Kembali'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Nav.pop(context, true),
               child: const Text('Ya, Simpan'),
             ),
           ],
@@ -222,7 +223,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.of(context).pop(dataToSave);
+        Nav.pop(context, dataToSave);
       } catch (e, s) {
         L.e('Terjadi kesalahan saat menyimpan data Error: $e $s');
         if (!mounted) return;

@@ -6,6 +6,7 @@ import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
 class FormDompet extends StatefulWidget {
@@ -143,19 +144,19 @@ class _FormDompetState extends State<FormDompet> {
           if (!mounted) {
             L.w(
               'Widget sudah tidak mounted setelah update berhasil. '
-              'Tidak dapat melakukan Navigator.pop atau menampilkan SnackBar.',
+              'Tidak dapat melakukan Nav.pop atau menampilkan SnackBar.',
             );
             return;
           }
 
           L.i(
-            'Widget masih mounted. Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+            'Widget masih mounted. Melakukan Nav.pop(context, true) untuk kembali ke halaman sebelumnya.',
           );
           L.i(
             'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada perubahan data.',
           );
-          Navigator.pop(context, true);
-          L.i('Navigator.pop berhasil dijalankan.');
+          Nav.pop(context, true);
+          L.i('Nav.pop berhasil dijalankan.');
 
           L.i('Menampilkan SnackBar sukses update dompet.');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -203,19 +204,19 @@ class _FormDompetState extends State<FormDompet> {
           if (!mounted) {
             L.w(
               'Widget sudah tidak mounted setelah create berhasil. '
-              'Tidak dapat melakukan Navigator.pop atau menampilkan SnackBar.',
+              'Tidak dapat melakukan Nav.pop atau menampilkan SnackBar.',
             );
             return;
           }
 
           L.i(
-            'Widget masih mounted. Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+            'Widget masih mounted. Melakukan Nav.pop(context, true) untuk kembali ke halaman sebelumnya.',
           );
           L.i(
             'Nilai result true dikirim untuk memberitahu halaman sebelumnya bahwa ada data baru.',
           );
-          Navigator.pop(context, true);
-          L.i('Navigator.pop berhasil dijalankan.');
+          Nav.pop(context, true);
+          L.i('Nav.pop berhasil dijalankan.');
 
           L.i('Menampilkan SnackBar sukses tambah dompet.');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -277,7 +278,7 @@ class _FormDompetState extends State<FormDompet> {
               'NAVIGASI: Tombol Kembali ditekan. '
               'Kembali ke halaman sebelumnya dengan result false (tidak ada perubahan).',
             );
-            Navigator.pop(context, false);
+            Nav.pop(context, false);
           },
         ),
       ),

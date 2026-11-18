@@ -9,6 +9,7 @@ import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class DetailDompetData {
   final DompetModel dompet;
@@ -260,13 +261,13 @@ class _DetailDompetState extends State<DetailDompet> {
             L.i('User menekan tombol back di AppBar halaman DetailDompet.');
             L.i('ID Dompet saat ini: ${widget.dompet.id}');
             L.i(
-              'Melakukan Navigator.pop(context, true) untuk kembali ke halaman sebelumnya.',
+              'Melakukan Nav.pop(context, true) untuk kembali ke halaman sebelumnya.',
             );
             L.i(
               'Nilai result true dikirim agar halaman sebelumnya tahu bahwa mungkin ada perubahan data.',
             );
             L.i('========================================');
-            Navigator.pop(context, true);
+            Nav.pop(context, true);
           },
         ),
         actions: [
@@ -297,15 +298,13 @@ class _DetailDompetState extends State<DetailDompet> {
               L.i('  - Saldo: ${dompetUntukEdit.saldo}');
 
               L.i(
-                'Membuka halaman FormDompet dengan Navigator.push. '
+                'Membuka halaman FormDompet dengan Nav.to. '
                 'Menunggu hasil kembalian dari FormDompet setelah user selesai mengedit.',
               );
 
-              final result = await Navigator.push(
+              final result = await Nav.to(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => FormDompet(dompet: dompetUntukEdit),
-                ),
+                FormDompet(dompet: dompetUntukEdit),
               );
 
               L.i('========================================');

@@ -7,6 +7,7 @@ import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // diubah: RingkasanTransaksi sekarang menjadi StatelessWidget yang hanya menerima data.
 class RingkasanTransaksi extends StatelessWidget {
@@ -129,10 +130,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
   // untuk menavigasi ke halaman tambah transaksi dan memuat ulang data jika berhasil.
   void _tambahTransaksi() async {
     L.i('Membuka FormTransaksiPage untuk menambah entri baru.');
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const FormTransaksiPage()),
-    );
+    final result = await Nav.to(context, const FormTransaksiPage());
     if (result == true) {
       L.i(
         'Form ditutup dengan hasil sukses (true). Memuat ulang data transaksi.',

@@ -233,11 +233,11 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Nav.pop(context, false),
               child: const Text('Batal'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Nav.pop(context, true),
               child: Text(
                 'Arsipkan',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -277,7 +277,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           return Container(
             color: isSelected ? Theme.of(context).highlightColor : null,
             child: SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, value),
+              onPressed: () => Nav.pop(context, value),
               child: Text(
                 text,
                 style: TextStyle(
@@ -308,7 +308,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
             ),
             SimpleDialogOption(
               child: const Text('Batal'),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Nav.pop(context),
             ),
           ],
         );
@@ -327,10 +327,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
 
   void _tambahPelangganAktif() async {
     L.i('Navigasi ke halaman tambah pelanggan aktif.');
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => FormPelangganAktif()),
-    );
+    final result = await Nav.to(context, FormPelangganAktif());
     if (!mounted) return;
     if (result == true) {
       L.i('Berhasil menambahkan pelanggan aktif baru.');
@@ -348,19 +345,18 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () =>
-                  Navigator.pop(context, OpsiHapusPilihan.arsipkanKadaluarsa),
+                  Nav.pop(context, OpsiHapusPilihan.arsipkanKadaluarsa),
               child: const Text('Arsipkan pelanggan kadaluarsa'),
             ),
             SimpleDialogOption(
-              onPressed: () =>
-                  Navigator.pop(context, OpsiHapusPilihan.hapusSemua),
+              onPressed: () => Nav.pop(context, OpsiHapusPilihan.hapusSemua),
               child: Text(
                 'Hapus Semua Pelanggan Aktif',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
             SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, OpsiHapusPilihan.batal),
+              onPressed: () => Nav.pop(context, OpsiHapusPilihan.batal),
               child: const Text('Batal'),
             ),
           ],

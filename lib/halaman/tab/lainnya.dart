@@ -1,14 +1,17 @@
 // path: lib/halaman/tab/lainnya.dart
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
+import 'package:admin_wifi/fitur/kritik_saran/screens/kritik_saran.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 // import '../../data/services/notifikasi_servis.dart';
 import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
-import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
-import '../lainnya/kategori.dart';
-import 'package:admin_wifi/fitur/kritik_saran/screens/kritik_saran.dart';
 import '../../fitur/paket/screens/paket.dart';
 import '../../fitur/pelanggan/screens/pelanggan.dart';
+import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
+import '../lainnya/kategori.dart';
 import '../lainnya/pengaturan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
@@ -42,7 +45,12 @@ class _LainnyaTabState extends State<LainnyaPage> {
 
   void _handleNavigation(String pageName, Widget page) {
     L.i('Navigasi ke halaman: $pageName');
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+    unawaited(
+      Nav.to(context, page).catchError((Object e, StackTrace s) {
+        L.e('Navigasi gagal: $e $s');
+        return null;
+      }),
+    );
   }
 
   @override
@@ -70,7 +78,6 @@ class _LainnyaTabState extends State<LainnyaPage> {
             icon: Icons.feedback,
             onTap: () async {
               L.i('Memulai proses untuk membuka halaman Kritik & Saran.');
-              final navigator = Navigator.of(context);
 
               L.i('Mengunduh data Kritik & Saran dari Firebase.');
               final dataFromFirebase =
@@ -85,11 +92,7 @@ class _LainnyaTabState extends State<LainnyaPage> {
               }
 
               if (!mounted) return;
-              await navigator.push(
-                MaterialPageRoute(
-                  builder: (context) => const KritikSaranPage(),
-                ),
-              );
+              await Nav.to(context, const KritikSaranPage());
             },
           ),
           _buildNavigationButton(

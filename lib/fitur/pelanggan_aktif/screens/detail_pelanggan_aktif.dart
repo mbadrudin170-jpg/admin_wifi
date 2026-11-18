@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -68,12 +69,9 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
   }
 
   void _navigateToEdit(PelangganAktifModel pelangganAktif) async {
-    final result = await Navigator.push(
+    final result = await Nav.to<bool>(
       context,
-      MaterialPageRoute(
-        builder: (context) =>
-            FormPelangganAktif(pelangganAktif: pelangganAktif),
-      ),
+      FormPelangganAktif(pelangganAktif: pelangganAktif),
     );
 
     if (result != true) {
@@ -150,7 +148,7 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context, true);
+            Nav.pop(context, true);
           },
         ),
         actions: [
@@ -182,13 +180,18 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                         child: TextButton(
                           onPressed: () {
                             if (pelanggan != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailPelangganPage(
+                              unawaited(
+                                Nav.to(
+                                  context,
+                                  DetailPelangganPage(
                                     idPelanggan: pelanggan.id,
                                   ),
-                                ),
+                                ).catchError((Object e, StackTrace s) {
+                                  L.e(
+                                    'Gagal navigasi ke detail pelanggan: $e $s',
+                                  );
+                                  return null;
+                                }),
                               );
                             } else {
                               L.w(
@@ -216,12 +219,14 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                       InkWell(
                         onTap: () {
                           if (paket != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailPaketPage(paket: paket),
-                              ),
+                            unawaited(
+                              Nav.to(
+                                context,
+                                DetailPaketPage(paket: paket),
+                              ).catchError((Object e, StackTrace s) {
+                                L.e('Gagal navigasi ke detail paket: $e $s');
+                                return null;
+                              }),
                             );
                           } else {
                             L.w(

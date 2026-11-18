@@ -7,6 +7,7 @@ import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_dari_id.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class KritikSaranPage extends StatefulWidget {
   const KritikSaranPage({super.key});
@@ -67,7 +68,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
               L.i(
                 'Dialog hapus kritik/saran ID: ${item.id} - User memilih Batal',
               );
-              Navigator.of(context).pop(false);
+              Nav.pop(context, false);
             },
             child: const Text('Batal'),
           ),
@@ -76,7 +77,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
               L.i(
                 'Dialog hapus kritik/saran ID: ${item.id} - User memilih Hapus',
               );
-              Navigator.of(context).pop(true);
+              Nav.pop(context, true);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
@@ -159,12 +160,9 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
                       L.i(
                         'Navigasi ke halaman Detail Kritik/Saran ID: ${item.id}',
                       );
-                      final result = await Navigator.push(
+                      final result = await Nav.to(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DetailKritikSaranPage(id: item.id),
-                        ),
+                        DetailKritikSaranPage(id: item.id),
                       );
 
                       if (result == true) {

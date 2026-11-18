@@ -1,4 +1,6 @@
 // path: lib/halaman/detail/detail_pelanggan.dart
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
@@ -7,6 +9,7 @@ import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Mengganti developer log standar dengan log custom
 
@@ -102,12 +105,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
     L.i(
       'Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${pelanggan!.id}',
     );
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FormPelanggan(pelanggan: pelanggan),
-      ),
-    );
+    final result = await Nav.to(context, FormPelanggan(pelanggan: pelanggan));
 
     if (result == true && mounted) {
       L.i(
@@ -218,16 +216,21 @@ MAC : ${pelanggan.macAddress}
                   L.i(
                     'Interaksi pengguna: Mengetuk kartu Poin. Melakukan navigasi push ke HalamanPoin untuk pelanggan: ${pelanggan!.nama}',
                   );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
+                  unawaited(
+                    Nav.to(
+                          context,
                           HalamanPoin(idPelanggan: widget.idPelanggan),
-                    ),
-                  ).then((_) {
-                    L.i('Kembali dari HalamanPoin ke DetailPelangganPage.');
-                    _loadData(); // ditambahkan: muat ulang data poin jika ada perubahan
-                  });
+                        )
+                        .then((_) {
+                          L.i(
+                            'Kembali dari HalamanPoin ke DetailPelangganPage.',
+                          );
+                          _loadData(); // ditambahkan: muat ulang data poin jika ada perubahan
+                        })
+                        .catchError((Object e, StackTrace s) {
+                          L.e('Navigasi gagal: $e $s');
+                        }),
+                  );
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(16),

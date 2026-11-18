@@ -8,6 +8,7 @@ import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 class DummyScreen extends ConsumerStatefulWidget {
@@ -181,11 +182,11 @@ class _DummyScreenState extends ConsumerState<DummyScreen> {
           content: Text(pesan),
           actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Nav.pop(context, false),
               child: const Text('Batal'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Nav.pop(context, true),
               child: Text(
                 labelAksi,
                 style: TextStyle(

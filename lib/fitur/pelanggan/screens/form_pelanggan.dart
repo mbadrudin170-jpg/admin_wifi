@@ -4,6 +4,7 @@ import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
 class FormPelanggan extends StatefulWidget {
@@ -105,7 +106,7 @@ class _FormPelangganState extends State<FormPelanggan> {
           L.i(
             'Penyimpanan berhasil. Menutup form dan kembali dengan hasil true.',
           );
-          Navigator.pop(context, true);
+          Nav.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Data pelanggan berhasil disimpan.'),
@@ -140,7 +141,7 @@ class _FormPelangganState extends State<FormPelanggan> {
         leading: BackButton(
           onPressed: () {
             L.i('Tombol "Back" ditekan. Kembali tanpa menyimpan.');
-            Navigator.pop(context, false);
+            Nav.pop(context, false);
           },
         ),
       ),

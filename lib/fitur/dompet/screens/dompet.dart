@@ -11,6 +11,7 @@ import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class DompetPage extends StatefulWidget {
   const DompetPage({super.key});
@@ -44,10 +45,7 @@ class _DompetPageState extends State<DompetPage> {
   // Fungsi untuk menavigasi ke halaman tambah dompet
   void _tambahDompet() async {
     L.i('Navigasi ke halaman tambah dompet.');
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const FormDompet()),
-    );
+    final result = await Nav.to(context, const FormDompet());
     if (!mounted) return;
     if (result == true) {
       L.i('Berhasil menambahkan dompet baru, memuat ulang data.');
@@ -82,14 +80,14 @@ class _DompetPageState extends State<DompetPage> {
               child: const Text('Batal'),
               onPressed: () {
                 L.i('Pengguna membatalkan penghapusan semua dompet.');
-                Navigator.of(context).pop();
+                Nav.pop(context);
               },
             ),
             TextButton(
               child: const Text('Hapus'),
               onPressed: () {
                 L.w('Pengguna mengkonfirmasi penghapusan semua dompet.');
-                Navigator.of(context).pop(); // Tutup dialog sebelum operasi
+                Nav.pop(context); // Tutup dialog sebelum operasi
                 _hapusSemuaDompet();
               },
             ),
@@ -119,7 +117,7 @@ class _DompetPageState extends State<DompetPage> {
                 L.i(
                   'Pengguna membatalkan pengarsipan dompet: "${dompet.namaDompet}".',
                 );
-                Navigator.of(context).pop();
+                Nav.pop(context);
               },
             ),
             TextButton(
@@ -128,7 +126,7 @@ class _DompetPageState extends State<DompetPage> {
                 L.w(
                   'Pengguna mengkonfirmasi pengarsipan dompet: "${dompet.namaDompet}".',
                 );
-                Navigator.of(context).pop(); // Tutup dialog sebelum operasi
+                Nav.pop(context); // Tutup dialog sebelum operasi
                 _hapusSatuDompet(dompet);
               },
             ),
@@ -227,13 +225,7 @@ class _DompetPageState extends State<DompetPage> {
                           L.i(
                             'Navigasi ke detail dompet: "${dompet.namaDompet}".',
                           );
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DetailDompet(dompet: dompet),
-                            ),
-                          );
+                          await Nav.to(context, DetailDompet(dompet: dompet));
                           if (!mounted) return;
                           _loadDompet();
                         },

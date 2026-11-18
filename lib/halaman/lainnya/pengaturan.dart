@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 import '../form/form_pengaturan.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Halaman untuk menampilkan konfigurasi pengaturan aplikasi.
 class PengaturanPage extends StatefulWidget {
@@ -55,12 +56,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
       'Data pengaturan sebelum edit - Interval: ${pengaturan.intervalSinkronisasiOtomatis} jam, Hapus arsip: ${pengaturan.hapusOtomatisDataArsip} hari, Mode pemeliharaan: ${pengaturan.modePemeliharaan}, Info: ${pengaturan.infoPemeliharaan.isNotEmpty ? pengaturan.infoPemeliharaan : "(kosong)"}',
     );
 
-    final hasil = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FormPengaturan(pengaturan: pengaturan),
-      ),
-    );
+    final hasil = await Nav.to(context, FormPengaturan(pengaturan: pengaturan));
 
     if (hasil == true && mounted) {
       L.i(
@@ -84,7 +80,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             L.i('Kembali ke halaman sebelumnya dari Pengaturan');
-            Navigator.of(context).pop();
+            Nav.pop(context);
           },
         ),
       ),

@@ -6,6 +6,7 @@ import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_dari_id.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class DetailKritikSaranPage extends StatefulWidget {
   final String id;
@@ -70,7 +71,7 @@ class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
                   'Pengguna membatalkan proses penghapusan kritik dan saran.',
                 );
 
-                Navigator.of(context).pop(false);
+                Nav.pop(context, false);
               },
               child: const Text('Batal'),
             ),
@@ -78,7 +79,7 @@ class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
               onPressed: () {
                 L.i('Pengguna mengonfirmasi penghapusan kritik dan saran.');
 
-                Navigator.of(context).pop(true);
+                Nav.pop(context, true);
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Hapus'),
@@ -115,7 +116,7 @@ class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
         if (mounted) {
           L.i('Menutup loading dialog.');
 
-          Navigator.of(context).pop();
+          Nav.pop(context);
         }
 
         if (mounted) {
@@ -132,7 +133,7 @@ class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
         if (mounted) {
           L.i('Kembali ke halaman sebelumnya dengan status sukses.');
 
-          Navigator.of(context).pop(true);
+          Nav.pop(context, true);
         }
       } catch (e, stackTrace) {
         L.e(
@@ -142,7 +143,7 @@ class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
         if (mounted) {
           L.w('Menutup loading dialog karena terjadi error.');
 
-          Navigator.of(context).pop();
+          Nav.pop(context);
         }
 
         if (mounted) {

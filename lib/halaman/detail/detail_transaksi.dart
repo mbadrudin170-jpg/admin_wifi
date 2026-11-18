@@ -1,6 +1,8 @@
 // path: lib/halaman/detail/detail_transaksi.dart
 // Halaman ini menampilkan detail dari satu transaksi.
 
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
@@ -18,6 +20,7 @@ import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 class DetailTransaksiPage extends StatefulWidget {
   final TransaksiModel transaksi;
@@ -106,22 +109,27 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
     L.i(
       'Navigasi ke FormTransaksiPage mode edit untuk ID: ${_transaksiSaatIni.id}',
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FormTransaksiPage(transaksi: _transaksiSaatIni),
-      ),
-    ).then((transaksiYangDiperbarui) {
-      if (transaksiYangDiperbarui != null &&
-          transaksiYangDiperbarui is TransaksiModel) {
-        L.i('Kembali dari form edit, data telah berubah. Memperbarui UI.');
-        setState(() {
-          _transaksiSaatIni = transaksiYangDiperbarui;
-        });
-      } else {
-        L.i('Kembali dari form edit, tidak ada perubahan data.');
-      }
-    });
+    unawaited(
+      Nav.to<TransaksiModel>(
+            context,
+            FormTransaksiPage(transaksi: _transaksiSaatIni),
+          )
+          .then((transaksiYangDiperbarui) {
+            if (transaksiYangDiperbarui != null) {
+              L.i(
+                'Kembali dari form edit, data telah berubah. Memperbarui UI.',
+              );
+              setState(() {
+                _transaksiSaatIni = transaksiYangDiperbarui;
+              });
+            } else {
+              L.i('Kembali dari form edit, tidak ada perubahan data.');
+            }
+          })
+          .catchError((Object e, StackTrace s) {
+            L.e('Navigasi gagal: $e $s');
+          }),
+    );
   }
 
   @override
@@ -139,7 +147,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
             L.i(
               'Kembali ke halaman sebelumnya dari Detail Transaksi ID: ${transaksi.id}',
             );
-            Navigator.pop(context);
+            Nav.pop(context);
           },
         ),
         // ditambah: tombol aksi untuk edit

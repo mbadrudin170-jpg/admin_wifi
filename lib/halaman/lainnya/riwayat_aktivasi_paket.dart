@@ -9,6 +9,7 @@ import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
@@ -196,7 +197,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
               L.i(
                 'User memilih opsi urutkan: ${value.name} (${isSelected ? "sudah aktif" : "berubah"} dari ${_urutanAktif.name})',
               );
-              Navigator.pop(context, value);
+              Nav.pop(context, value);
             },
             child: Text(
               text,
@@ -252,7 +253,7 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             L.i('Kembali ke halaman sebelumnya dari Riwayat Aktivasi Paket');
-            Navigator.of(context).pop();
+            Nav.pop(context);
           },
         ),
         actions: [
@@ -310,13 +311,9 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
                       L.i(
                         'Navigasi ke halaman Detail Transaksi ID: ${transaksi.id}, Pelanggan ID: ${transaksi.idPelanggan ?? "N/A"}',
                       );
-                      final result = await Navigator.push(
+                      final result = await Nav.to(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailLanggananTransaksiPage(
-                            idTransaksi: transaksi.id,
-                          ),
-                        ),
+                        DetailLanggananTransaksiPage(idTransaksi: transaksi.id),
                       );
                       if (result == true) {
                         L.i(

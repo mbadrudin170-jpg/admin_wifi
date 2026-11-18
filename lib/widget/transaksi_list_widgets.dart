@@ -10,6 +10,7 @@ import 'package:admin_wifi/halaman/form/form_transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter/material.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 Map<DateTime, List<TransaksiModel>> groupTransaksiByDate(
   List<TransaksiModel> transaksi,
@@ -111,12 +112,9 @@ class _TransaksiTileState extends State<TransaksiTile> {
       child: ListTile(
         key: ValueKey(widget.transaksi.id),
         onTap: () async {
-          final result = await Navigator.push(
+          final result = await Nav.to(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  DetailTransaksiPage(transaksi: widget.transaksi),
-            ),
+            DetailTransaksiPage(transaksi: widget.transaksi),
           );
           if (result == true) {
             widget.onDataChanged();
@@ -133,13 +131,10 @@ class _TransaksiTileState extends State<TransaksiTile> {
               actions: [
                 TextButton(
                   onPressed: () async {
-                    Navigator.pop(context);
-                    final result = await Navigator.push(
+                    Nav.pop(context);
+                    final result = await Nav.to(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            FormTransaksiPage(transaksi: widget.transaksi),
-                      ),
+                      FormTransaksiPage(transaksi: widget.transaksi),
                     );
                     if (result == true) {
                       widget.onDataChanged();
@@ -149,7 +144,7 @@ class _TransaksiTileState extends State<TransaksiTile> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Nav.pop(context);
                     _arsipkanTransaksi();
                   },
                   child: const Text('Hapus'),

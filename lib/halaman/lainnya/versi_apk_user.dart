@@ -1,5 +1,7 @@
 // path: lib/halaman/lainnya/versi_apk_user.dart
 
+import 'dart:async';
+
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/halaman/detail/detail_versi_apk_user.dart';
@@ -7,6 +9,7 @@ import 'package:admin_wifi/halaman/form/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 enum Urutan { buildZA, buildAZ, versiZA, versiAZ }
 
@@ -169,28 +172,24 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
     L.i(
       'Navigasi ke halaman Detail Versi APK - ID: ${versiApk.id}, Versi: ${versiApk.versiTerbaru}',
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailVersiApkUser(versiApk: versiApk),
-      ),
-    ).then((_) {
-      L.i('Kembali dari halaman Detail Versi APK ID: ${versiApk.id}');
-    });
+    unawaited(
+      Nav.to(context, DetailVersiApkUser(versiApk: versiApk))
+          .then((_) {
+            L.i('Kembali dari halaman Detail Versi APK ID: ${versiApk.id}');
+          })
+          .catchError((Object e, StackTrace s) {
+            L.e('Navigasi gagal: $e $s');
+          }),
+    );
   }
 
   void _keFormEdit(VersiApkUserModel versiApk) async {
     L.i(
       'Navigasi ke Form Edit Versi APK - ID: ${versiApk.id}, Versi: ${versiApk.versiTerbaru}',
     );
-    final hasil = await Navigator.push<VersiApkUserModel>(
+    final hasil = await Nav.to<VersiApkUserModel>(
       context,
-      MaterialPageRoute(
-        builder: (context) => FormVersiApkUser(
-          versiApkUser: versiApk,
-          operasi: _versiApkUserOperasi,
-        ),
-      ),
+      FormVersiApkUser(versiApkUser: versiApk, operasi: _versiApkUserOperasi),
     );
 
     if (hasil != null && mounted) {
@@ -207,11 +206,9 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
 
   void _keFormTambah() async {
     L.i('Navigasi ke Form Tambah Versi APK');
-    final hasil = await Navigator.push<VersiApkUserModel>(
+    final hasil = await Nav.to<VersiApkUserModel>(
       context,
-      MaterialPageRoute(
-        builder: (context) => FormVersiApkUser(operasi: _versiApkUserOperasi),
-      ),
+      FormVersiApkUser(operasi: _versiApkUserOperasi),
     );
 
     if (hasil != null && mounted) {
@@ -265,7 +262,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
                   child: const Text('Batal'),
                   onPressed: () {
                     L.i('Dialog urutkan dibatalkan oleh user');
-                    Navigator.of(context).pop();
+                    Nav.pop(context);
                   },
                 ),
                 TextButton(
@@ -274,7 +271,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
                     L.i(
                       'User mengonfirmasi urutan: ${selectedUrutan != null ? _getNamaUrutan(selectedUrutan!) : "null"}',
                     );
-                    Navigator.of(context).pop(selectedUrutan);
+                    Nav.pop(context, selectedUrutan);
                   },
                 ),
               ],
@@ -326,7 +323,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           SimpleDialogOption(
             onPressed: () {
               L.i('Opsi Edit dipilih untuk Versi: ${versi.versiTerbaru}');
-              Navigator.pop(c);
+              Nav.pop(c);
               _keFormEdit(versi);
             },
             child: const ListTile(
@@ -337,7 +334,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           SimpleDialogOption(
             onPressed: () {
               L.i('Opsi Arsipkan dipilih untuk Versi: ${versi.versiTerbaru}');
-              Navigator.pop(c);
+              Nav.pop(c);
               _tampilkanDialogArsip(versi);
             },
             child: const ListTile(
@@ -368,14 +365,14 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
               L.i(
                 'Pengarsipan versi ${versi.versiTerbaru} dibatalkan oleh user',
               );
-              Navigator.pop(c);
+              Nav.pop(c);
             },
           ),
           TextButton(
             child: const Text('Arsipkan'),
             onPressed: () {
               L.i('User mengonfirmasi pengarsipan versi ${versi.versiTerbaru}');
-              Navigator.pop(c);
+              Nav.pop(c);
               _arsipkan(versi.id);
             },
           ),
@@ -455,7 +452,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             L.i('Kembali ke halaman sebelumnya dari Versi APK User');
-            Navigator.of(context).pop();
+            Nav.pop(context);
           },
         ),
         actions: [
