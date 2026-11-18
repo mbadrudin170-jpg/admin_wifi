@@ -554,7 +554,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
                             NamaPaketWidget(idPaket: pelanggan.idPaket),
                             const SizedBox(height: 4),
                             Text(
-                              'Pembayaran: ${statusPembayaran.displayName}',
+                              'Pembayaran: ${statusPembayaran.label}',
                               style: TextStyle(
                                 color:
                                     statusPembayaran ==

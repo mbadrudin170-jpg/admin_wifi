@@ -84,7 +84,9 @@ class _FormPelangganState extends State<FormPelanggan> {
         diperbarui: DateTime.now(),
       );
 
-      L.i('Model Pelanggan yang akan disimpan: ${newPelanggan.toJson()}');
+      L.i(
+        'Model Pelanggan yang akan disimpan — id: ${newPelanggan.id}, nama: ${newPelanggan.nama}',
+      );
 
       try {
         if (!_isEditMode) {

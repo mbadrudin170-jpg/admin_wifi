@@ -13,7 +13,7 @@ enum TipeDurasi {
   hari,
   bulan;
 
-  String get displayName {
+  String get label {
     switch (this) {
       case TipeDurasi.menit:
         return 'Menit';

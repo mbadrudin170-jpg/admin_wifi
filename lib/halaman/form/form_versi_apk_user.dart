@@ -199,7 +199,9 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
         tautanUnduhan: tautanUnduhan,
       );
 
-      L.i('Model Versi APK yang akan disimpan: ${dataToSave.toJson()}');
+      L.i(
+        'Model Versi APK yang akan disimpan: versi=${dataToSave.versiTerbaru}, wajibUpdate=${dataToSave.wajibUpdate}',
+      );
 
       try {
         if (_isEdit) {

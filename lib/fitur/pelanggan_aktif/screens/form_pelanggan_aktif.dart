@@ -43,7 +43,7 @@ DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
   L.i('FUNGSI GLOBAL: hitungTanggalBerakhir() dipanggil.');
   L.i('  - Tanggal Mulai: ${startDate.toIso8601String()}');
   L.i('  - Nama Paket: ${paket.nama}');
-  L.i('  - Tipe Durasi: ${paket.tipe.displayName}');
+  L.i('  - Tipe Durasi: ${paket.tipe.label}');
   L.i('  - Durasi: ${paket.durasi}');
 
   DateTime hasil;

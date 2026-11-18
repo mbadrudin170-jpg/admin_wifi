@@ -206,7 +206,7 @@
 //                 items: StatusPembayaran.values.map((StatusPembayaran status) {
 //                   return DropdownMenuItem<StatusPembayaran>(
 //                     value: status,
-//                     child: Text(status.displayName),
+//                     child: Text(status.label),
 //                   );
 //                 }).toList(),
 //                 onChanged: (StatusPembayaran? newValue) {

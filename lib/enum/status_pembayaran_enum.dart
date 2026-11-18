@@ -7,8 +7,8 @@ enum StatusPembayaranEnum {
   lunas,
   belumLunas;
 
-  String get displayName {
-    L.i('Mengakses getter displayName untuk enum StatusPembayaranEnum.');
+  String get label {
+    L.i('Mengakses getter label untuk enum StatusPembayaranEnum.');
     L.i('Nilai enum saat ini: $this');
 
     switch (this) {

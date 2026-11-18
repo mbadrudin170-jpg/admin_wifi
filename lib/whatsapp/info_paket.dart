@@ -52,7 +52,7 @@ class PesanInfoPaket {
       );
 
       // 2. Dapatkan status pembayaran langsung dari model PelangganAktif.
-      final String statusPembayaran = pelangganAktif.status.displayName;
+      final String statusPembayaran = pelangganAktif.status.label;
       L.i('Status pembayaran yang akan dikirim: $statusPembayaran');
 
       // 3. Buat string pesan yang akan dikirim.

@@ -25,24 +25,6 @@ abstract class PelangganModel with _$PelangganModel {
   }) = _PelangganModel;
 
   // =========================
-  // JSON SERIALIZATION (FOR LOGGING)
-  // ditambahkan: karena butuh serialisasi untuk logging
-  // =========================
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'nama': nama,
-      'telepon': telepon,
-      'alamat': alamat,
-      'password': '[TERSEMBUNYI]', // Keamanan: Jangan log password
-      'macAddress': macAddress,
-      'isDeleted': isDeleted,
-      'diperbarui': diperbarui?.toIso8601String(),
-      'diarsipkan': diarsipkan?.toIso8601String(),
-    };
-  }
-
-  // =========================
   // PARSER UTIL
   // =========================
 

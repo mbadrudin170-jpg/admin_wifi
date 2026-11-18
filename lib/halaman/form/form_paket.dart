@@ -52,7 +52,7 @@ class _FormPaketState extends State<FormPaket> {
     // dihapus: Variabel lokal isEditMode tidak digunakan
     L.i(
       'Mode: ${_isEditMode ? "EDIT" : "TAMBAH BARU"}, '
-      '${_isEditMode ? "ID: ${widget.paket!.id}, Nama: ${widget.paket!.nama}, Harga: ${widget.paket!.harga}, Durasi: ${widget.paket!.durasi} ${widget.paket!.tipe.displayName}" : ""}',
+      '${_isEditMode ? "ID: ${widget.paket!.id}, Nama: ${widget.paket!.nama}, Harga: ${widget.paket!.harga}, Durasi: ${widget.paket!.durasi} ${widget.paket!.tipe.label}" : ""}',
     );
 
     L.i(
@@ -72,7 +72,7 @@ class _FormPaketState extends State<FormPaket> {
       L.i('  - Nama: ${widget.paket!.nama}');
       L.i('  - Harga: ${widget.paket!.harga}');
       L.i('  - Durasi: ${widget.paket!.durasi}');
-      L.i('  - Tipe Durasi: ${widget.paket!.tipe.displayName}');
+      L.i('  - Tipe Durasi: ${widget.paket!.tipe.label}');
       L.i('  - Poin Hadiah: ${widget.paket!.poinHadiah}');
       L.i('  - Poin Penukaran: ${widget.paket!.poinPenukaran}');
       L.i('  - isPublic: ${widget.paket!.isPublic}');
@@ -99,7 +99,7 @@ class _FormPaketState extends State<FormPaket> {
       );
 
       _selectedTipe = widget.paket!.tipe;
-      L.i('  - _selectedTipe = ${widget.paket!.tipe.displayName}');
+      L.i('  - _selectedTipe = ${widget.paket!.tipe.label}');
 
       _isPublic = widget.paket!.isPublic;
       L.i('  - _isPublic = ${widget.paket!.isPublic}');
@@ -133,7 +133,7 @@ class _FormPaketState extends State<FormPaket> {
       L.i('  - Nama: "${_namaController.text}"');
       L.i('  - Harga: ${_hargaController.text}');
       L.i('  - Durasi: ${_durasiController.text}');
-      L.i('  - Tipe Durasi: ${_selectedTipe.displayName}');
+      L.i('  - Tipe Durasi: ${_selectedTipe.label}');
       L.i(
         '  - Poin Hadiah: ${_poinHadiahController.text.isNotEmpty ? _poinHadiahController.text : "0 (default)"}',
       );
@@ -162,7 +162,7 @@ class _FormPaketState extends State<FormPaket> {
       L.i('  - Nama: ${newPaket.nama}');
       L.i('  - Harga: ${newPaket.harga}');
       L.i('  - Durasi: ${newPaket.durasi}');
-      L.i('  - Tipe: ${newPaket.tipe.displayName}');
+      L.i('  - Tipe: ${newPaket.tipe.label}');
       L.i('  - Poin Hadiah: ${newPaket.poinHadiah}');
       L.i('  - Poin Penukaran: ${newPaket.poinPenukaran}');
       L.i('  - isPublic: ${newPaket.isPublic}');
@@ -177,7 +177,7 @@ class _FormPaketState extends State<FormPaket> {
           L.i('  - Harga: ${widget.paket!.harga} -> ${newPaket.harga}');
           L.i('  - Durasi: ${widget.paket!.durasi} -> ${newPaket.durasi}');
           L.i(
-            '  - Tipe: ${widget.paket!.tipe.displayName} -> ${newPaket.tipe.displayName}',
+            '  - Tipe: ${widget.paket!.tipe.label} -> ${newPaket.tipe.label}',
           );
           L.i(
             '  - Poin Hadiah: ${widget.paket!.poinHadiah} -> ${newPaket.poinHadiah}',
@@ -322,7 +322,7 @@ class _FormPaketState extends State<FormPaket> {
     L.i('  - Nama: "${_namaController.text}"');
     L.i('  - Harga: "${_hargaController.text}"');
     L.i('  - Durasi: "${_durasiController.text}"');
-    L.i('  - Tipe Durasi: ${_selectedTipe.displayName}');
+    L.i('  - Tipe Durasi: ${_selectedTipe.label}');
     L.i('  - Poin Hadiah: "${_poinHadiahController.text}"');
     L.i('  - Poin Penukaran: "${_poinPenukaranController.text}"');
     L.i('  - isPublic: $_isPublic');
@@ -537,19 +537,19 @@ class _FormPaketState extends State<FormPaket> {
                   items: TipeDurasi.values.map((TipeDurasi tipe) {
                     return DropdownMenuItem<TipeDurasi>(
                       value: tipe,
-                      child: Text(tipe.displayName),
+                      child: Text(tipe.label),
                     );
                   }).toList(),
                   onChanged: (TipeDurasi? newValue) {
                     if (newValue != null) {
                       L.i('DROPDOWN: Tipe durasi diubah.');
-                      L.i('  - Tipe Lama: ${_selectedTipe.displayName}');
-                      L.i('  - Tipe Baru: ${newValue.displayName}');
+                      L.i('  - Tipe Lama: ${_selectedTipe.label}');
+                      L.i('  - Tipe Baru: ${newValue.label}');
                       setState(() {
                         _selectedTipe = newValue;
                       });
                       L.i(
-                        'State _selectedTipe berhasil diperbarui ke: ${_selectedTipe.displayName}',
+                        'State _selectedTipe berhasil diperbarui ke: ${_selectedTipe.label}',
                       );
                     }
                   },

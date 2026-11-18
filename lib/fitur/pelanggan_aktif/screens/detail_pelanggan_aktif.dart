@@ -30,7 +30,7 @@ class DetailPelangganAktif extends StatefulWidget {
       'ID Pelanggan Aktif: ${pelanggan.id}, '
       'ID Pelanggan: ${pelanggan.idPelanggan}, '
       'ID Paket: ${pelanggan.idPaket}, '
-      'Status: ${pelanggan.status.displayName}',
+      'Status: ${pelanggan.status.label}',
     );
     return _DetailPelangganAktifState();
   }
@@ -51,7 +51,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
     L.i('  - ID Pelanggan Aktif: ${widget.pelanggan.id}');
     L.i('  - ID Pelanggan: ${widget.pelanggan.idPelanggan}');
     L.i('  - ID Paket: ${widget.pelanggan.idPaket}');
-    L.i('  - Status: ${widget.pelanggan.status.displayName}');
+    L.i('  - Status: ${widget.pelanggan.status.label}');
     L.i('  - Tanggal Mulai: ${widget.pelanggan.tanggalMulai}');
     L.i('  - Tanggal Berakhir: ${widget.pelanggan.tanggalBerakhir}');
     L.i('========================================');
@@ -254,7 +254,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
     L.i('  - ID Pelanggan Aktif: ${_pelangganAktif.id}');
     L.i('  - ID Pelanggan: ${_pelangganAktif.idPelanggan}');
     L.i('  - ID Paket: ${_pelangganAktif.idPaket}');
-    L.i('  - Status Saat Ini: ${_pelangganAktif.status.displayName}');
+    L.i('  - Status Saat Ini: ${_pelangganAktif.status.label}');
     L.i('========================================');
 
     L.i(
@@ -292,7 +292,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
       );
 
       L.i(
-        'Hasil query data terbaru: ${updatedPelangganAktif != null ? "Ditemukan (Status: ${updatedPelangganAktif.status.displayName})" : "NULL - Data tidak ditemukan"}',
+        'Hasil query data terbaru: ${updatedPelangganAktif != null ? "Ditemukan (Status: ${updatedPelangganAktif.status.label})" : "NULL - Data tidak ditemukan"}',
       );
 
       if (mounted && updatedPelangganAktif != null) {
@@ -304,7 +304,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
         });
         L.i(
           '_pelangganAktif berhasil diperbarui. '
-          'Status baru: ${updatedPelangganAktif.status.displayName}, '
+          'Status baru: ${updatedPelangganAktif.status.label}, '
           'Tanggal Berakhir: ${updatedPelangganAktif.tanggalBerakhir}',
         );
 
@@ -467,7 +467,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
                             ),
                             _buildInfoRow(
                               'Status',
-                              _pelangganAktif.status.displayName,
+                              _pelangganAktif.status.label,
                             ),
                             if (_paket != null)
                               _buildInfoRow(
@@ -518,7 +518,7 @@ class _DetailPelangganAktifState extends State<DetailPelangganAktif> {
                                   '  - Nama Paket: ${_paket?.nama ?? "Tidak ada"}',
                                 );
                                 L.i(
-                                  '  - Status: ${_pelangganAktif.status.displayName}',
+                                  '  - Status: ${_pelangganAktif.status.label}',
                                 );
                                 L.i(
                                   '  - Masa Aktif: ${PerhitunganUtil.getTeksSisaMasaAktif(_pelangganAktif.tanggalBerakhir)}',
