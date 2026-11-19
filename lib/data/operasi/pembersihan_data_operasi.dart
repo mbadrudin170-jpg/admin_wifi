@@ -1,6 +1,6 @@
 // path: lib/data/operasi/pembersihan_data_operasi.dart
 
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class PembersihanDataOperasi {
