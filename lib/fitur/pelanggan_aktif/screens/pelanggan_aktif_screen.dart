@@ -22,7 +22,6 @@ import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:provider/provider.dart' as provider;
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/confirmation_dialog.dart';
@@ -75,10 +74,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   Future<void> _loadData({bool forceRefresh = false}) async {
     if (!mounted) return;
 
-    final syncManager = provider.Provider.of<SyncManager>(
-      context,
-      listen: false,
-    );
+    final syncManager = ref.read(syncManagerProvider);
 
     try {
       final koneksiTersedia = await _koneksiService.cekKoneksi();

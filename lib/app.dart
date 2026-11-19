@@ -1,36 +1,9 @@
 // path: lib/app.dart
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
-import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:provider/provider.dart';
 import 'package:share_global_saya/src/utils/l.dart';
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    L.i('Membangun widget MyApp, menyiapkan MultiProvider.');
-    return MultiProvider(
-      providers: [
-        Provider<SyncManager>(
-          create: (_) {
-            L.i('Membuat dan menyediakan instance SyncManager.');
-            return SyncManager();
-          },
-        ),
-      ],
-      child: Builder(
-        builder: (context) {
-          L.i('Membangun child dari MultiProvider, yaitu AppMaterial.');
-          return const AppMaterial();
-        },
-      ),
-    );
-  }
-}
 
 class AppMaterial extends StatelessWidget {
   const AppMaterial({super.key});

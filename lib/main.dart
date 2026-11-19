@@ -64,7 +64,7 @@ void main() async {
                 // PengelolaOverlayLogDebug menyisipkan ikon/panel ke Overlay.maybeOf(context);
                 // Overlay dibuat di root agar pemanggilannya menemukan ancestor (rootOverlay).
                 builder: (context) =>
-                    const PengelolaOverlayLogDebug(child: MyApp()),
+                    const PengelolaOverlayLogDebug(child: AppMaterial()),
               ),
             ],
           ),

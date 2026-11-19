@@ -1,5 +1,6 @@
 // path: lib/utils/sync_manager.dart
 import 'package:admin_wifi/data/services/preferensi_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class SyncManager {
@@ -33,3 +34,6 @@ class SyncManager {
     L.i('Timestamp terakhir unggah berhasil disimpan');
   }
 }
+
+/// Provider Riverpod untuk [SyncManager].
+final syncManagerProvider = Provider<SyncManager>((ref) => SyncManager());

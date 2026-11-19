@@ -28,7 +28,6 @@ dependencies:
   package_info_plus: ^9.0.1
   path: ^1.9.1
   path_provider: ^2.1.5
-  provider: ^6.1.5+1
   pub_semver: ^2.2.0
   riverpod_annotation: ^4.0.8
   # ditambahkan: logger L + infra debug (overlay log) dari paket bersama
