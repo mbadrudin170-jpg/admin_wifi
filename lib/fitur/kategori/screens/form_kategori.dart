@@ -1,4 +1,4 @@
-// path: lib/halaman/form/form_kategori.dart
+// path: lib/fitur/kategori/screens/form_kategori.dart
 // Halaman ini menyediakan formulir untuk menambah atau mengedit kategori dan sub-kategori.
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';

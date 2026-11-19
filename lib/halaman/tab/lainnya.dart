@@ -11,7 +11,7 @@ import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
 import '../../fitur/paket/screens/paket.dart';
 import '../../fitur/pelanggan/screens/pelanggan.dart';
 import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
-import '../lainnya/kategori.dart';
+import 'package:admin_wifi/fitur/kategori/screens/kategori.dart';
 import '../lainnya/pengaturan.dart';
 import '../lainnya/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
