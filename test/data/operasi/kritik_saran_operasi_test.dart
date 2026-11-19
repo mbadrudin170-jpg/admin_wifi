@@ -1,7 +1,7 @@
 // path: test/data/operasi/kritik_saran_operasi_test.dart
 // diubah: Menyesuaikan dengan KritikSaranModel (isi, userId)
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';

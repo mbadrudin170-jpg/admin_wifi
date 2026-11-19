@@ -1,6 +1,6 @@
 // path: lib/data/operasi/kritik_saran_operasi.dart
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_global_saya/src/utils/l.dart';

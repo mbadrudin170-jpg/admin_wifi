@@ -1,6 +1,6 @@
 // path: lib/data/sync/unggah_data.dart
 
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';

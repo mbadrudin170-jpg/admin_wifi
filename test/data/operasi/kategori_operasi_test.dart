@@ -2,7 +2,7 @@
 // diubah: Menyesuaikan pemanggilan fromMap menjadi fromSqlite
 
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';

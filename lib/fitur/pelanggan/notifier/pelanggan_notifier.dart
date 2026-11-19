@@ -1,7 +1,7 @@
 // path: lib/fitur/pelanggan/notifier/pelanggan_notifier.dart
 
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/db/operasi_sqlite.dart';
+import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

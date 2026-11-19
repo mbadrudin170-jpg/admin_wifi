@@ -1,7 +1,7 @@
 // path: lib/fitur/paket/notifier/paket_notifier.dart
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/db/operasi_sqlite.dart';
+import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

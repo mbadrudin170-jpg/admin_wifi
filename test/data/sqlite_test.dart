@@ -2,7 +2,7 @@
 // diubah: Menyesuaikan pembuatan TransaksiModel di tes agar cocok dengan konstruktor baru (tanpa namaDompet/namaKategori).
 // diubah: Menghapus kolom usang dari pernyataan INSERT manual.
 
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:flutter_test/flutter_test.dart';

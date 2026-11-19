@@ -1,7 +1,7 @@
 // path: lib/data/sync/unduhan_awal.dart
 
 import 'package:admin_wifi/data/sync/unduh_data.dart';
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
 

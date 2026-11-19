@@ -1,6 +1,6 @@
 // path: lib/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart
 
-import 'package:admin_wifi/db/operasi_sqlite.dart';
+import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';

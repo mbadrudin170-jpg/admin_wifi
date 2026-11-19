@@ -1,6 +1,6 @@
 // path: lib/fitur/kategori/notifier/kategori_notifier.dart
 
-import 'package:admin_wifi/db/operasi_sqlite.dart';
+import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/state/kategori_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

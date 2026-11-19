@@ -1,7 +1,7 @@
 // path: test/data/sync/unggah_data_test.dart
 // diubah: Menyesuaikan ID dokumen yang dicari untuk 'pengaturan' menjadi 'konfigurasi_global'.
 
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';

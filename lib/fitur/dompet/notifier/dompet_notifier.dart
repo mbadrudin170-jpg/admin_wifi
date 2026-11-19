@@ -1,7 +1,7 @@
 // path: lib/fitur/dompet/notifier/dompet_notifier.dart
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
-import 'package:admin_wifi/db/operasi_sqlite.dart';
+import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/state/dompet_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

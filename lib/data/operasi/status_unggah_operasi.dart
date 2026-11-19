@@ -1,6 +1,6 @@
 // path: lib/data/operasi/status_unggah_operasi.dart
 
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Kelas ini mengelola satu flag tunggal di database: apakah ada
