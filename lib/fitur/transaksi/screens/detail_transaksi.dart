@@ -3,43 +3,37 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-// ditambah: Navigasi ke form edit
-import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
-import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
-import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
-class DetailTransaksiPage extends StatefulWidget {
+class DetailTransaksiPage extends ConsumerStatefulWidget {
   final TransaksiModel transaksi;
 
   const DetailTransaksiPage({super.key, required this.transaksi});
 
   @override
-  State<DetailTransaksiPage> createState() => _DetailTransaksiPageState();
+  ConsumerState<DetailTransaksiPage> createState() =>
+      _DetailTransaksiPageState();
 }
 
-class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
-  final DompetOperasi _dompetOperasi = DompetOperasi();
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
-  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-  final PaketOperasi _paketOperasi = PaketOperasi();
-  final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
-
-  late TransaksiModel
-  _transaksiSaatIni; // ditambah: Variabel state untuk menampung data transaksi
+class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
+  late TransaksiModel _transaksiSaatIni;
 
   @override
   void initState() {
@@ -136,6 +130,10 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   Widget build(BuildContext context) {
     final TransaksiModel transaksi =
         _transaksiSaatIni; // diubah: Menggunakan data dari state
+    final idDompetTujuan = transaksi.idDompetTujuan;
+    final idSubKategori = transaksi.idSubKategori;
+    final idPelanggan = transaksi.idPelanggan;
+    final idPaket = transaksi.idPaket;
     L.i('Membangun UI Detail Transaksi ID: ${transaksi.id}');
 
     return Scaffold(
@@ -181,19 +179,24 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
             _buildFutureDetailRow(
               'Dompet',
               _getNama(
-                (id) => _dompetOperasi.getDompetById(id),
+                (id) async {
+                  final state = await ref.read(dompetProvider.future);
+                  return state.listDompet.firstWhereOrNull((d) => d.id == id);
+                },
                 transaksi.idDompet,
                 'Dompet',
               ),
             ),
 
-            if (transaksi.idDompetTujuan != null &&
-                transaksi.idDompetTujuan!.isNotEmpty)
+            if (idDompetTujuan != null && idDompetTujuan.isNotEmpty)
               _buildFutureDetailRow(
                 'Dompet Tujuan',
                 _getNama(
-                  (id) => _dompetOperasi.getDompetById(id),
-                  transaksi.idDompetTujuan!,
+                  (id) async {
+                    final state = await ref.read(dompetProvider.future);
+                    return state.listDompet.firstWhereOrNull((d) => d.id == id);
+                  },
+                  idDompetTujuan,
                   'Dompet Tujuan',
                 ),
               ),
@@ -201,40 +204,58 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
             _buildFutureDetailRow(
               'Kategori',
               _getNama(
-                (id) => _kategoriOperasi.getKategoriById(id),
+                (id) async {
+                  final state = await ref.read(kategoriProvider.future);
+                  return state.listKategori.firstWhereOrNull((k) => k.id == id);
+                },
                 transaksi.idKategori,
                 'Kategori',
               ),
             ),
 
-            if (transaksi.idSubKategori != null &&
-                transaksi.idSubKategori!.isNotEmpty)
+            if (idSubKategori != null && idSubKategori.isNotEmpty)
               _buildFutureDetailRow(
                 'Sub Kategori',
                 _getNama(
-                  (id) => _subKategoriOperasi.getSubKategoriById(id),
-                  transaksi.idSubKategori!,
+                  (id) async {
+                    final state = await ref.read(kategoriProvider.future);
+                    for (final k in state.listKategori) {
+                      final found = k.subKategori.firstWhereOrNull(
+                        (sk) => sk.id == id,
+                      );
+                      if (found != null) return found;
+                    }
+                    return null;
+                  },
+                  idSubKategori,
                   'Sub-Kategori',
                 ),
               ),
 
-            if (transaksi.idPelanggan != null &&
-                transaksi.idPelanggan!.isNotEmpty)
+            if (idPelanggan != null && idPelanggan.isNotEmpty)
               _buildFutureDetailRow(
                 'Pelanggan',
                 _getNama(
-                  (id) => _pelangganOperasi.getPelangganById(id),
-                  transaksi.idPelanggan!,
+                  (id) async {
+                    final state = await ref.read(pelangganProvider.future);
+                    return state.listPelanggan.firstWhereOrNull(
+                      (p) => p.id == id,
+                    );
+                  },
+                  idPelanggan,
                   'Pelanggan',
                 ),
               ),
 
-            if (transaksi.idPaket != null && transaksi.idPaket!.isNotEmpty)
+            if (idPaket != null && idPaket.isNotEmpty)
               _buildFutureDetailRow(
                 'Paket',
                 _getNama(
-                  (id) => _paketOperasi.getPaketById(id),
-                  transaksi.idPaket!,
+                  (id) async {
+                    final state = await ref.read(paketProvider.future);
+                    return state.listPaket.firstWhereOrNull((p) => p.id == id);
+                  },
+                  idPaket,
                   'Paket',
                 ),
               ),
