@@ -36,14 +36,14 @@ jobs:
         run: flutter analyze
 
       - name: Build APK release
-        run: flutter build apk --release --split-per-abi --target-platform android-arm64
+        run: flutter build apk --release --flavor dev --split-per-abi --target-platform android-arm64
 
       - name: Ganti nama APK
-        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/admin_wifi-arm64-v8a-release.apk
+        run: mv build/app/outputs/flutter-apk/app-dev-arm64-v8a-release.apk build/app/outputs/flutter-apk/admin_wifi-dev-arm64-v8a-release.apk
 
       - name: Unggah artefak APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: build/app/outputs/flutter-apk/admin_wifi-arm64-v8a-release.apk
+          path: build/app/outputs/flutter-apk/admin_wifi-dev-arm64-v8a-release.apk
           retention-days: 14
