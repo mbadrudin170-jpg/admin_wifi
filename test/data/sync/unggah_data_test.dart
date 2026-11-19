@@ -61,7 +61,7 @@ void main() {
         () async {
           final lastSyncTime = DateTime(2023, 1, 1);
           when(
-            mockSyncManager.getTerakhirUnggah(),
+            () => mockSyncManager.getTerakhirUnggah(),
           ).thenAnswer((_) async => lastSyncTime);
 
           final dompet = DompetModel(
@@ -110,9 +110,9 @@ void main() {
       test('harus tetap mengunggah data baru', () async {
         final lastSyncTime = DateTime(2023, 1, 1);
         final newTimestamp = DateTime(2023, 1, 2);
-when(
-            () => mockSyncManager.getTerakhirUnggah(),
-          ).thenAnswer((_) async => lastSyncTime);
+        when(
+          () => mockSyncManager.getTerakhirUnggah(),
+        ).thenAnswer((_) async => lastSyncTime);
 
         final kritikBaru = KritikSaranModel(
           id: 'ks1',
@@ -160,7 +160,7 @@ when(
         () async {
           final lastSyncTime = DateTime(2024, 1, 1);
           when(
-            mockSyncManager.getTerakhirUnggah(),
+            () => mockSyncManager.getTerakhirUnggah(),
           ).thenAnswer((_) async => lastSyncTime);
 
           final pengaturan = PengaturanModel(

@@ -1,6 +1,5 @@
 // path: test/halaman/form/form_versi_apk_user_test.dart
 
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/enum/enum.dart';
@@ -63,9 +62,7 @@ void main() {
     when(
       () => mockOperasi.perbaruiVersiApkUser(any()),
     ).thenAnswer((_) async {});
-    when(
-      () => mockOperasi.tambahVersiApkUser(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockOperasi.tambahVersiApkUser(any())).thenAnswer((_) async {});
 
     // Stub untuk memuat data di mode 'Tambah'
     when(

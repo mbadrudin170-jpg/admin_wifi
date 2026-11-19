@@ -62,14 +62,17 @@ void main() {
         () async {
           final modelBaru = _buatModel(versi: '1.0.1');
           when(
-            mockOperasiDasar.sisipkan(any, any),
-          ).thenAnswer((_) async => Future.value());
+            () => mockOperasiDasar.sisipkan(any(), any()),
+          ).thenAnswer((_) async {});
 
           await operasi.tambahVersiApkUser(modelBaru);
 
           // diubah: Menggunakan toSqlite() agar konsisten dengan implementasi
           verify(
-            mockOperasiDasar.sisipkan('versi_apk_user', modelBaru.toSqlite()),
+            () => mockOperasiDasar.sisipkan(
+              'versi_apk_user',
+              modelBaru.toSqlite(),
+            ),
           ).called(1);
         },
       );
@@ -79,13 +82,13 @@ void main() {
         () async {
           final model = _buatModel(versi: '1.0.2');
           when(
-            mockOperasiDasar.perbarui(any, any, any),
-          ).thenAnswer((_) async => Future.value());
+            () => mockOperasiDasar.perbarui(any(), any(), any()),
+          ).thenAnswer((_) async {});
 
           await operasi.perbaruiVersiApkUser(model);
 
           verify(
-            mockOperasiDasar.perbarui(
+            () => mockOperasiDasar.perbarui(
               'versi_apk_user',
               model.toSqlite(),
               model.id,
@@ -105,17 +108,17 @@ void main() {
           await sisipkanDataManual(model); // Masukkan data awal ke DB
 
           when(
-            mockOperasiDasar.perbarui(any, any, any),
-          ).thenAnswer((_) async => Future.value());
+            () => mockOperasiDasar.perbarui(any(), any(), any()),
+          ).thenAnswer((_) async {});
 
           await operasi.arsipkanVersiApkUser(model.id);
 
           // Verifikasi bahwa `perbarui` dipanggil dengan data yang memiliki isDeleted = true
           final captured =
               verify(
-                    mockOperasiDasar.perbarui(
+                    () => mockOperasiDasar.perbarui(
                       'versi_apk_user',
-                      captureAny,
+                      captureAny(),
                       model.id,
                     ),
                   ).captured.single

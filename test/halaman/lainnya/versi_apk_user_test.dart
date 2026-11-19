@@ -4,7 +4,6 @@
 // ditambahkan: Memperbarui catatan rilis di pengujian edit untuk validasi yang akurat.
 // diperbaiki: Kompatibilitas dengan model VersiApkUserModel terbaru (ArsitekturApkEnum)
 
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/detail_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/versi_apk_user.dart';
@@ -66,13 +65,17 @@ void main() {
     });
 
     // Konfigurasi mock untuk `arsipkanVersiApkUser`
-    when(() => mockOperasi.arsipkanVersiApkUser(any())).thenAnswer((invocation) async {
+    when(() => mockOperasi.arsipkanVersiApkUser(any())).thenAnswer((
+      invocation,
+    ) async {
       final id = invocation.positionalArguments.first;
       dataLokal.removeWhere((item) => item.id == id);
     });
 
     // Konfigurasi mock untuk `perbaruiVersiApkUser`
-    when(() => mockOperasi.perbaruiVersiApkUser(any())).thenAnswer((invocation) async {
+    when(() => mockOperasi.perbaruiVersiApkUser(any())).thenAnswer((
+      invocation,
+    ) async {
       final versiDiperbarui =
           invocation.positionalArguments.first as VersiApkUserModel;
       final index = dataLokal.indexWhere((v) => v.id == versiDiperbarui.id);
@@ -82,7 +85,9 @@ void main() {
     });
 
     // Konfigurasi mock untuk `tambahVersiApkUser`
-    when(() => mockOperasi.tambahVersiApkUser(any())).thenAnswer((invocation) async {
+    when(() => mockOperasi.tambahVersiApkUser(any())).thenAnswer((
+      invocation,
+    ) async {
       final versiBaru =
           invocation.positionalArguments.first as VersiApkUserModel;
       dataLokal.add(versiBaru);

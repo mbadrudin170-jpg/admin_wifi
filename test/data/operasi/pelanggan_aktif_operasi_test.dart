@@ -30,9 +30,11 @@ void main() {
     mockNotifikasiServis = MockNotifikasiServis();
     operasi = PelangganAktifOperasi(notifikasiServis: mockNotifikasiServis);
 
-    when(() => mockNotifikasiServis.batalNotifikasi(any())).thenAnswer((_) async {});
+    when(
+      () => mockNotifikasiServis.batalNotifikasi(any()),
+    ).thenAnswer((_) async {});
 
-when(
+    when(
       () => mockNotifikasiServis.jadwalNotifikasi(
         id: any(named: 'id'),
         title: any(named: 'title'),

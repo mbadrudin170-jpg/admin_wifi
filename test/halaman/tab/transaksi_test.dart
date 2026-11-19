@@ -1,7 +1,6 @@
 // path: test/halaman/tab/transaksi_test.dart
 // diubah: Menghapus parameter namaDompet dan namaKategori yang sudah usang dari fungsi helper.
 
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/transaksi.dart';
@@ -128,12 +127,12 @@ void main() {
     testWidgets('menampilkan pesan error saat terjadi kegagalan', (
       tester,
     ) async {
-      await pumpTransaksiPage(
-        tester,
-        error: Exception('Database Error'),
-      );
+      await pumpTransaksiPage(tester, error: Exception('Database Error'));
       await tester.pumpAndSettle();
-      expect(find.text('Gagal memuat data transaksi: Exception: Database Error'), findsOneWidget);
+      expect(
+        find.text('Gagal memuat data transaksi: Exception: Database Error'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('menampilkan pesan saat tidak ada transaksi', (tester) async {
