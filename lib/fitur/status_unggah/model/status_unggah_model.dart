@@ -5,47 +5,53 @@ import 'package:share_global_saya/src/utils/parser_util.dart';
 
 part 'status_unggah_model.freezed.dart';
 
-/// Model ini merepresentasikan satu baris tunggal dalam tabel `status_unggah`.
-/// Tujuannya adalah untuk bertindak sebagai "bendera" global yang menandakan
-/// apakah ada perubahan lokal yang perlu diunggah ke server.
+/// Model ini merepresentasikan satu baris dalam tabel `status_unggah`.
+/// Tabel menyimpan status sinkronisasi per tabel (kolom `tabel` sebagai
+/// PRIMARY KEY), bukan bendera tunggal; bendera `perlu_unggah` global
+/// disimpan di tabel `status_aplikasi` oleh `StatusUnggahOperasi`.
 @freezed
 abstract class StatusUnggahModel with _$StatusUnggahModel {
   const StatusUnggahModel._();
 
   const factory StatusUnggahModel({
-    /// ID unik untuk baris ini, biasanya akan selalu 1.
-    required int id,
+    /// Nama tabel yang dilacak; kolom `tabel` (PRIMARY KEY).
+    required String namaTabel,
 
-    /// Bendera yang menandakan status. `true` jika ada data untuk diunggah,
-    /// `false` jika tidak.
-    required bool perluUnggah,
+    /// Status sinkronisasi (integer; 0 = sinkron, selain itu ada perubahan).
+    required int status,
+
+    /// Daftar ID baris yang perlu diunggah, dipisahkan koma.
+    required String ids,
+
+    /// Waktu terakhir baris diperbarui.
+    DateTime? diperbarui,
   }) = _StatusUnggahModel;
 
-  // diubah: Nama metode diubah dari fromMap menjadi fromSqlite agar lebih jelas tujuannya
   /// Konversi dari Map (yang didapat dari database SQLite) ke model.
   factory StatusUnggahModel.fromSqlite(Map<String, dynamic> map) {
     return StatusUnggahModel(
-      id: ParserUtil.parseInt(map[StatusUnggahSkema.id], defaultValue: 1),
-      // Database SQLite tidak punya tipe boolean, jadi kita simpan sebagai integer (0 atau 1).
-      // Konversi 1 menjadi true, dan lainnya menjadi false.
-      perluUnggah: ParserUtil.parseBool(map[StatusUnggahSkema.perluUnggah]),
+      namaTabel: ParserUtil.parseString(map[StatusUnggahSkema.namaTabel]),
+      status: ParserUtil.parseInt(map[StatusUnggahSkema.status]),
+      ids: ParserUtil.parseString(map[StatusUnggahSkema.ids]),
+      diperbarui: ParserUtil.parseDateTime(
+        map[StatusUnggahSkema.diperbarui],
+      )?.toLocal(),
     );
   }
 
-  // diubah: Nama metode diubah dari toMap menjadi toSqlite agar lebih jelas tujuannya
-  /// Konversi dari model ke Map untuk disimpan ke database SQLite.
+  /// Konversi dari model ke Map untuk disimpan ke database SQLite (UTC).
   Map<String, dynamic> toSqlite() {
     return {
-      StatusUnggahSkema.id: id,
-      StatusUnggahSkema.perluUnggah: perluUnggah ? 1 : 0,
+      StatusUnggahSkema.namaTabel: namaTabel,
+      StatusUnggahSkema.status: status,
+      StatusUnggahSkema.ids: ids,
+      StatusUnggahSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
     };
   }
 }
 
 abstract final class StatusUnggahSkema {
   static const String tabel = 'status_unggah';
-  static const String id = 'id';
-  static const String perluUnggah = 'perlu_unggah';
   static const String namaTabel = 'tabel';
   static const String status = 'status';
   static const String ids = 'ids';

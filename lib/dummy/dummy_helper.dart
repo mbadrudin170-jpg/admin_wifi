@@ -67,7 +67,9 @@ abstract final class DummyHelper {
       await _paketOperasi.sisipkanAtauPerbaruiBatch(PaketDummy.dummyList);
       L.i('Semua data dummy paket berhasil ditambahkan');
 
-      L.i('Menambahkan ${PelangganDummy.dummyList.length} data dummy pelanggan');
+      L.i(
+        'Menambahkan ${PelangganDummy.dummyList.length} data dummy pelanggan',
+      );
       await _pelangganOperasi.sisipkanAtauPerbaruiBatch(
         PelangganDummy.dummyList,
       );
@@ -126,7 +128,9 @@ abstract final class DummyHelper {
       );
       L.i('Semua data dummy kritik saran berhasil ditambahkan');
 
-      L.i('Menambahkan ${TransaksiDummy.dummyList.length} data dummy transaksi');
+      L.i(
+        'Menambahkan ${TransaksiDummy.dummyList.length} data dummy transaksi',
+      );
       await _transaksiOperasi.sisipkanAtauPerbaruiBatch(
         TransaksiDummy.dummyList,
       );
@@ -163,9 +167,11 @@ abstract final class DummyHelper {
     final idKritikSaran = KritikSaranDummy.dummyList
         .map((item) => item.id)
         .toList();
-    final idTransaksi = TransaksiDummy.dummyList.map((item) => item.id).toList();
-    final idStatusUnggah = StatusUnggahDummy.dummyList
+    final idTransaksi = TransaksiDummy.dummyList
         .map((item) => item.id)
+        .toList();
+    final namaTabelStatusUnggah = StatusUnggahDummy.dummyList
+        .map((item) => item.namaTabel)
         .toList();
     final idVersiApkUser = VersiApkUserDummy.dummyList
         .map((item) => item.id)
@@ -180,7 +186,7 @@ abstract final class DummyHelper {
         idPesanan.isEmpty &&
         idKritikSaran.isEmpty &&
         idTransaksi.isEmpty &&
-        idStatusUnggah.isEmpty &&
+        namaTabelStatusUnggah.isEmpty &&
         idVersiApkUser.isEmpty) {
       L.i('Tidak ada ID dummy yang dikenal; penghapusan dibatalkan');
       return;
@@ -248,8 +254,9 @@ abstract final class DummyHelper {
         total += await _hapusDummyBerdasarkanId(
           txn,
           StatusUnggahSkema.tabel,
-          idStatusUnggah,
+          namaTabelStatusUnggah,
           'status unggah',
+          kolomKunci: StatusUnggahSkema.namaTabel,
         );
         total += await _hapusDummyBerdasarkanId(
           txn,
@@ -260,6 +267,7 @@ abstract final class DummyHelper {
         return total;
       });
       // Pengaturan tidak memiliki ID; reset dilakukan lewat penyisipan upsert.
+      // Status unggah dihapus lewat kolom `tabel` (PRIMARY KEY, bukan `id`).
       L.i('$count data dummy berhasil dihapus');
     } catch (e, s) {
       L.e('Gagal menghapus semua data dummy Error: $e $s');
@@ -284,14 +292,15 @@ abstract final class DummyHelper {
     Transaction txn,
     String tabel,
     List<Object> ids,
-    String label,
-  ) async {
+    String label, {
+    String kolomKunci = 'id',
+  }) async {
     if (ids.isEmpty) {
       return 0;
     }
     final count = await txn.delete(
       tabel,
-      where: 'id IN (${List.filled(ids.length, '?').join(',')})',
+      where: '$kolomKunci IN (${List.filled(ids.length, '?').join(',')})',
       whereArgs: ids,
     );
     L.i('$count data dummy $label terhapus');

@@ -6,39 +6,66 @@ void main() {
   group('StatusUnggahModel', () {
     // Pengujian untuk konstruktor dan properti dasar
     test('Konstruktor harus menginisialisasi properti dengan benar', () {
-      final model = StatusUnggahModel(id: 1, perluUnggah: true);
+      final diperbarui = DateTime.utc(2026, 11, 19, 10);
+      final model = StatusUnggahModel(
+        namaTabel: 'transaksi',
+        status: 1,
+        ids: 'dd000001-0000-4000-8000-000000000001',
+        diperbarui: diperbarui,
+      );
 
-      expect(model.id, 1);
-      expect(model.perluUnggah, isTrue);
+      expect(model.namaTabel, 'transaksi');
+      expect(model.status, 1);
+      expect(model.ids, 'dd000001-0000-4000-8000-000000000001');
+      expect(model.diperbarui, diperbarui);
     });
 
     group('Konversi SQLite', () {
       // Pengujian untuk metode fromSqlite
       test('fromSqlite harus membuat model dari Map SQLite', () {
-        // Kasus 1: perlu_unggah adalah 1 (true)
-        final map1 = {'id': 1, 'perlu_unggah': 1};
-        final model1 = StatusUnggahModel.fromSqlite(map1);
-        expect(model1.id, 1);
-        expect(model1.perluUnggah, isTrue);
+        final diperbarui = DateTime.utc(2026, 11, 19, 10);
+        final map = {
+          StatusUnggahSkema.namaTabel: 'pelanggan',
+          StatusUnggahSkema.status: 0,
+          StatusUnggahSkema.ids: '',
+          StatusUnggahSkema.diperbarui: diperbarui.toIso8601String(),
+        };
 
-        // Kasus 2: perlu_unggah adalah 0 (false)
-        final map2 = {'id': 1, 'perlu_unggah': 0};
-        final model2 = StatusUnggahModel.fromSqlite(map2);
-        expect(model2.id, 1);
-        expect(model2.perluUnggah, isFalse);
+        final model = StatusUnggahModel.fromSqlite(map);
+        expect(model.namaTabel, 'pelanggan');
+        expect(model.status, 0);
+        expect(model.ids, '');
+        expect(model.diperbarui, diperbarui.toLocal());
       });
 
       // Pengujian untuk metode toSqlite
       test('toSqlite harus mengonversi model ke format Map SQLite', () {
-        // Kasus 1: perluUnggah adalah true
-        final model1 = StatusUnggahModel(id: 1, perluUnggah: true);
-        final map1 = model1.toSqlite();
-        expect(map1, {'id': 1, 'perlu_unggah': 1});
+        final diperbarui = DateTime.utc(2026, 11, 19, 10);
+        final model = StatusUnggahModel(
+          namaTabel: 'pelanggan',
+          status: 0,
+          ids: '',
+          diperbarui: diperbarui,
+        );
 
-        // Kasus 2: perluUnggah adalah false
-        final model2 = StatusUnggahModel(id: 1, perluUnggah: false);
-        final map2 = model2.toSqlite();
-        expect(map2, {'id': 1, 'perlu_unggah': 0});
+        final map = model.toSqlite();
+        expect(map, {
+          StatusUnggahSkema.namaTabel: 'pelanggan',
+          StatusUnggahSkema.status: 0,
+          StatusUnggahSkema.ids: '',
+          StatusUnggahSkema.diperbarui: '2026-11-19T10:00:00.000Z',
+        });
+
+        // diperbarui null ditulis sebagai null (kolom nullable).
+        final modelTanpaTanggal = StatusUnggahModel(
+          namaTabel: 'pelanggan',
+          status: 0,
+          ids: '',
+        );
+        expect(
+          modelTanpaTanggal.toSqlite()[StatusUnggahSkema.diperbarui],
+          isNull,
+        );
       });
     });
   });

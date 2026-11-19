@@ -1,15 +1,29 @@
 // path: lib/fitur/status_unggah/dummy/status_unggah_dummy.dart
 
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/transaksi/dummy/transaksi_dummy.dart';
+import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/status_unggah/model/status_unggah_model.dart';
 
 /// Data dummy `StatusUnggahModel` untuk kebutuhan pratinjau UI dan
-/// pengembangan. Tanggal mengikuti `DateTime.now()` agar tetap relevan.
+/// pengembangan. Model tidak memiliki kolom `id` (PRIMARY KEY tabel
+/// `status_unggah` adalah kolom `tabel`), sehingga tidak ada konstanta ID;
+/// entri dikunci lewat nama tabel. Tanggal mengikuti `DateTime.now()` agar
+/// tetap relevan; referensi ID pada `ids` memakai ID dari `TransaksiDummy`.
 abstract final class StatusUnggahDummy {
-  static const int ID_STATUS_UNGGGAH_001 = 1;
-  static const int ID_STATUS_UNGGGAH_002 = 2;
-
   static final List<StatusUnggahModel> dummyList = [
-    StatusUnggahModel(id: ID_STATUS_UNGGGAH_001, perluUnggah: false),
-    StatusUnggahModel(id: ID_STATUS_UNGGGAH_002, perluUnggah: true),
+    StatusUnggahModel(
+      namaTabel: TransaksiSkema.tabel,
+      status: 1,
+      ids:
+          '${TransaksiDummy.ID_TRANSAKSI_001},${TransaksiDummy.ID_TRANSAKSI_003}',
+      diperbarui: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+    StatusUnggahModel(
+      namaTabel: PelangganSkema.tabel,
+      status: 0,
+      ids: '',
+      diperbarui: DateTime.now().subtract(const Duration(days: 1)),
+    ),
   ];
 }
