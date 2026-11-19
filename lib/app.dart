@@ -83,7 +83,7 @@ class AppMaterial extends StatelessWidget {
     L.i('Membuat objek ThemeData untuk mode terang (light theme).');
 
     L.i('Mengembalikan widget MaterialApp sebagai root UI.');
-    return MaterialApp(
+     return MaterialApp(
       title: 'Admin Wifi',
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
