@@ -6,14 +6,12 @@ import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dar
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';
-import 'package:uuid/uuid.dart';
 
 part 'pengguna_aktif_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
   final NotifikasiServis _notifikasiServis = NotifikasiServis();
-  final Uuid _uuid = const Uuid();
 
   @override
   Future<PelangganAktifState> build() async {
@@ -46,9 +44,7 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
 
   Future<PelangganAktifModel> tambah(PelangganAktifModel model) async {
     try {
-      final idBaru = model.id.isEmpty ? _uuid.v4() : model.id;
       final pelangganUntukDisimpan = model.copyWith(
-        id: idBaru,
         diperbarui: DateTime.now().toUtc(),
       );
 
