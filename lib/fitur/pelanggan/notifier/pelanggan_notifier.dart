@@ -1,6 +1,7 @@
 // path: lib/fitur/pelanggan/notifier/pelanggan_notifier.dart
 
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/db/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,7 +29,14 @@ class PelangganNotifier extends _$PelangganNotifier {
   }
 
   Future<PelangganState> _ambilSemua() async {
-    final daftar = await _operasi.getPelanggan();
+    final operasiSqlite = ref.read(operasiSqliteProvider);
+    final maps = await operasiSqlite.ambil(
+      PelangganSkema.tabel,
+      where:
+          '${PelangganSkema.diarsipkan} IS NULL AND ${PelangganSkema.isDeleted} = ?',
+      whereArgs: const [0],
+    );
+    final daftar = maps.map(PelangganModel.fromSqlite).toList();
     return PelangganState(
       listPelanggan: daftar,
       jumlahPelanggan: daftar.length,
@@ -47,7 +55,9 @@ class PelangganNotifier extends _$PelangganNotifier {
 
   Future<void> tambahBatch(List<PelangganModel> models) async {
     try {
-      await _operasi.sisipkanAtauPerbaruiBatch(models);
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final data = models.map((item) => item.toSqlite()).toList();
+      await operasiSqlite.tambahBatch(PelangganSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
       L.e('Gagal menambahkan batch pelanggan: $e\n$s');

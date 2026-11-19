@@ -1,6 +1,7 @@
 // path: lib/fitur/paket/notifier/paket_notifier.dart
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/db/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,7 +29,15 @@ class PaketNotifier extends _$PaketNotifier {
   }
 
   Future<PaketState> _ambilSemua() async {
-    final daftar = await _operasi.getPaket();
+    final operasiSqlite = ref.read(operasiSqliteProvider);
+    final maps = await operasiSqlite.ambil(
+      PaketSkema.tabel,
+      where: '${PaketSkema.isDeleted} = ?',
+      whereArgs: const [0],
+      orderBy:
+          "CASE tipe WHEN 'jam' THEN durasi WHEN 'hari' THEN durasi * 24 WHEN 'bulan' THEN durasi * 24 * 30 ELSE 999999 END ASC",
+    );
+    final daftar = maps.map(PaketModel.fromSqlite).toList();
     return PaketState(listPaket: daftar, jumlahPaket: daftar.length);
   }
 
@@ -44,7 +53,9 @@ class PaketNotifier extends _$PaketNotifier {
 
   Future<void> tambahBatch(List<PaketModel> models) async {
     try {
-      await _operasi.sisipkanAtauPerbaruiBatch(models);
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final data = models.map((item) => item.toSqlite()).toList();
+      await operasiSqlite.tambahBatch(PaketSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
       L.e('Gagal menambahkan batch paket: $e\n$s');

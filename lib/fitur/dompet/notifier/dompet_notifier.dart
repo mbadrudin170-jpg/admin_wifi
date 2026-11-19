@@ -1,6 +1,7 @@
 // path: lib/fitur/dompet/notifier/dompet_notifier.dart
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
+import 'package:admin_wifi/db/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/state/dompet_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,7 +29,13 @@ class DompetNotifier extends _$DompetNotifier {
   }
 
   Future<DompetState> _ambilSemua() async {
-    final daftar = await _operasi.getDompet();
+    final operasiSqlite = ref.read(operasiSqliteProvider);
+    final maps = await operasiSqlite.ambil(
+      DompetSkema.tabel,
+      where:
+          '${DompetSkema.isDeleted} = 0 AND ${DompetSkema.diarsipkan} IS NULL',
+    );
+    final daftar = maps.map(DompetModel.fromSqlite).toList();
     return DompetState(listDompet: daftar, jumlahDompet: daftar.length);
   }
 
@@ -44,7 +51,9 @@ class DompetNotifier extends _$DompetNotifier {
 
   Future<void> tambahBatch(List<DompetModel> models) async {
     try {
-      await _operasi.sisipkanAtauPerbaruiBatch(models);
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final data = models.map((item) => item.toSqlite()).toList();
+      await operasiSqlite.tambahBatch(DompetSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
       L.e('Gagal menambahkan batch dompet: $e\n$s');

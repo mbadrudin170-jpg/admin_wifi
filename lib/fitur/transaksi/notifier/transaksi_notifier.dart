@@ -1,6 +1,7 @@
 // path: lib/fitur/transaksi/notifier/transaksi_notifier.dart
 
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/db/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,7 +29,14 @@ class TransaksiNotifier extends _$TransaksiNotifier {
   }
 
   Future<TransaksiState> _ambilSemua() async {
-    final daftar = await _operasi.ambilSemuaTransaksi();
+    final operasiSqlite = ref.read(operasiSqliteProvider);
+    final maps = await operasiSqlite.ambil(
+      TransaksiSkema.tabel,
+      where: '${TransaksiSkema.isDeleted} = ?',
+      whereArgs: const [0],
+      orderBy: 'tanggal DESC',
+    );
+    final daftar = maps.map(TransaksiModel.fromSqlite).toList();
     return TransaksiState(
       listTransaksi: daftar,
       jumlahTransaksi: daftar.length,
