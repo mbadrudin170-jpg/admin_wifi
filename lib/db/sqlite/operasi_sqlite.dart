@@ -1,6 +1,6 @@
 // path: lib/db/operasi_sqlite.dart
 
-import 'package:admin_wifi/db/sqflite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';

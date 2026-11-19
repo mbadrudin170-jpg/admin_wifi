@@ -1,13 +1,13 @@
 // path: lib/db/sqflite.dart
 
 import 'dart:io';
-import 'package:share_global_saya/src/utils/l.dart';
 
-import 'package:admin_wifi/db/oncreate_sqflite.dart';
-import 'package:admin_wifi/db/onupgrade_sqflite.dart';
+import 'package:admin_wifi/db/sqlite/oncreate_sqflite.dart';
+import 'package:admin_wifi/db/sqlite/onupgrade_sqflite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
