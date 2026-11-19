@@ -20,6 +20,19 @@ class SubKategoriOperasi {
     );
   }
 
+  Future<List<SubKategoriModel>> getAllSubKategori() async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'sub_kategori',
+      where: 'isDeleted = ?',
+      whereArgs: [0],
+    );
+    return List.generate(
+      maps.length,
+      (i) => SubKategoriModel.fromSqlite(maps[i]),
+    );
+  }
+
   Future<List<SubKategoriModel>> getSubKategoriByKategoriId(
     String idKategori,
   ) async {

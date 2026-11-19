@@ -11,12 +11,16 @@ abstract final class PelangganAktifDummy {
   static const String ID_PA_003 = 'aa000003-0000-4000-8000-000000000003';
   static const String ID_PA_004 = 'aa000004-0000-4000-8000-000000000004';
   static const String ID_PA_005 = 'aa000005-0000-4000-8000-000000000005';
+  static const String ID_PA_006 = 'aa000006-0000-4000-8000-000000000006';
+  static const String ID_PA_007 = 'aa000007-0000-4000-8000-000000000007';
 
   static const String ID_PELANGGAN_001 = 'bb000001-0000-4000-8000-000000000001';
   static const String ID_PELANGGAN_002 = 'bb000002-0000-4000-8000-000000000002';
   static const String ID_PELANGGAN_003 = 'bb000003-0000-4000-8000-000000000003';
   static const String ID_PELANGGAN_004 = 'bb000004-0000-4000-8000-000000000004';
   static const String ID_PELANGGAN_005 = 'bb000005-0000-4000-8000-000000000005';
+  static const String ID_PELANGGAN_006 = 'bb000006-0000-4000-8000-000000000006';
+  static const String ID_PELANGGAN_007 = 'bb000007-0000-4000-8000-000000000007';
 
   static const String ID_PAKET_BULANAN = 'cc000001-0000-4000-8000-000000000001';
   static const String ID_PAKET_MINGGUAN =
@@ -73,6 +77,24 @@ abstract final class PelangganAktifDummy {
       tanggalBerakhir: DateTime.now().add(const Duration(days: 1)),
       status: StatusPembayaranEnum.belumLunas,
       diperbarui: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    PelangganAktifModel(
+      id: ID_PA_006,
+      idPelanggan: ID_PELANGGAN_006,
+      idPaket: ID_PAKET_BULANAN,
+      idTransaksi: ID_TRANSAKSI_001,
+      tanggalMulai: DateTime.now().subtract(const Duration(days: 40)),
+      tanggalBerakhir: DateTime.now().subtract(const Duration(days: 10)),
+      status: StatusPembayaranEnum.lunas,
+      diperbarui: DateTime.now().subtract(const Duration(days: 5)),
+    ),
+    PelangganAktifModel(
+      id: ID_PA_007,
+      idPelanggan: ID_PELANGGAN_007,
+      idPaket: ID_PAKET_MINGGUAN,
+      tanggalMulai: DateTime.now().subtract(const Duration(days: 15)),
+      tanggalBerakhir: DateTime.now().subtract(const Duration(days: 2)),
+      status: StatusPembayaranEnum.belumLunas,
     ),
   ];
 }

@@ -9,16 +9,17 @@ import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/enum/opsi_hapus_pilihan.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/enum/opsi_urutkan.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
-import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
-import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart' as provider;
@@ -26,20 +27,6 @@ import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/confirmation_dialog.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
-
-enum OpsiHapusPilihan { hapusSemua, arsipkanKadaluarsa, batal }
-
-enum OpsiUrutkan {
-  tanggalBerakhir,
-  tanggalMulai,
-  diPerbarui,
-  namaAZ,
-  namaZA,
-  lunas,
-  belumLunas,
-  paketAktif,
-  paketTidakAktif,
-}
 
 class PelangganAktifScreen extends ConsumerStatefulWidget {
   const PelangganAktifScreen({super.key});
@@ -215,36 +202,19 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
     L.i(
       'Meminta konfirmasi untuk mengarsipkan pelanggan aktif dengan ID: ${pelangganAktif.id}.',
     );
-    final bool? konfirmasi = await showDialog<bool>(
+    final pelanggan = ref
+        .read(pelangganProvider)
+        .value
+        ?.getById(pelangganAktif.idPelanggan);
+    final namaPelanggan = pelanggan?.nama ?? 'Pelanggan tidak ditemukan';
+
+    final bool? konfirmasi = await ConfirmationDialog.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi Arsipkan'),
-          content: Wrap(
-            children: [
-              const Text('Yakin ingin mengarsipkan '),
-              NamaPelangganWidget(
-                idPelanggan: pelangganAktif.idPelanggan,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text('?'),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Nav.pop(context, false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Nav.pop(context, true),
-              child: Text(
-                'Arsipkan',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ),
-          ],
-        );
-      },
+      title: 'Konfirmasi Arsipkan',
+      message: 'Yakin ingin mengarsipkan "$namaPelanggan"?',
+      confirmText: 'Arsipkan',
+      cancelText: 'Batal',
+      isDestructive: true,
     );
 
     if (konfirmasi == true) {
@@ -271,14 +241,14 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
     final OpsiUrutkan? pilihan = await showDialog<OpsiUrutkan>(
       context: context,
       builder: (BuildContext context) {
-        Widget buildOption(String text, OpsiUrutkan value) {
+        Widget buildOption(OpsiUrutkan value) {
           final bool isSelected = _urutanAktif == value;
           return Container(
             color: isSelected ? Theme.of(context).highlightColor : null,
             child: SimpleDialogOption(
               onPressed: () => Nav.pop(context, value),
               child: Text(
-                text,
+                value.label,
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -290,21 +260,15 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
         return SimpleDialog(
           title: const Text('Urutkan Berdasarkan'),
           children: <Widget>[
-            buildOption('Tanggal Berakhir', OpsiUrutkan.tanggalBerakhir),
-            buildOption('Tanggal Mulai', OpsiUrutkan.tanggalMulai),
-            buildOption('Terakhir Diperbarui', OpsiUrutkan.diPerbarui),
-            buildOption('Nama (A-Z)', OpsiUrutkan.namaAZ),
-            buildOption('Nama (Z-A)', OpsiUrutkan.namaZA),
-            buildOption('Status Pembayaran (Lunas)', OpsiUrutkan.lunas),
-            buildOption(
-              'Status Pembayaran (Belum Lunas)',
-              OpsiUrutkan.belumLunas,
-            ),
-            buildOption('Status Paket (Aktif)', OpsiUrutkan.paketAktif),
-            buildOption(
-              'Status Paket (Tidak Aktif)',
-              OpsiUrutkan.paketTidakAktif,
-            ),
+            buildOption(OpsiUrutkan.tanggalBerakhir),
+            buildOption(OpsiUrutkan.tanggalMulai),
+            buildOption(OpsiUrutkan.diPerbarui),
+            buildOption(OpsiUrutkan.namaAZ),
+            buildOption(OpsiUrutkan.namaZA),
+            buildOption(OpsiUrutkan.lunas),
+            buildOption(OpsiUrutkan.belumLunas),
+            buildOption(OpsiUrutkan.paketAktif),
+            buildOption(OpsiUrutkan.paketTidakAktif),
             SimpleDialogOption(
               child: const Text('Batal'),
               onPressed: () => Nav.pop(context),
@@ -454,13 +418,14 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   Widget _buildBody(
     PelangganState pelangganState,
     PaketState paketState,
-    PelangganAktifState pelangganAktifAsync,
+    PelangganAktifState pelangganAktifState,
   ) {
-    final semuaPelanggan = pelangganAktifAsync.listPelangganAktif;
+    final semuaPelanggan = pelangganAktifState.listPelangganAktif;
     final mapNamaPelanggan = {
       for (final p in pelangganState.listPelanggan) p.id: p.nama,
     };
     final hasilFilter = _filterAndSort(semuaPelanggan, mapNamaPelanggan);
+    final listJatuhTempo = pelangganAktifState.getListJatuhTempo();
 
     return RefreshIndicator(
       onRefresh: _refreshData,
@@ -468,72 +433,111 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           ? const Center(child: Text('Tidak ada pelanggan aktif ditemukan.'))
           : hasilFilter.isEmpty && _searchController.text.isNotEmpty
           ? const Center(child: Text('Pelanggan tidak ditemukan.'))
-          : ListView.builder(
-              itemCount: hasilFilter.length,
-              itemBuilder: (context, index) {
-                final pelangganAktif = hasilFilter[index];
-                final statusPembayaran = pelangganAktif.status;
-                final pelanggan = pelangganState.getById(
-                  pelangganAktif.idPelanggan,
-                );
-                final paket = paketState.getById(pelangganAktif.idPaket);
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onLongPress: () => _arsipkanPelanggan(pelangganAktif),
-                    onTap: () async {
-                      L.i(
-                        'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
-                      );
-                      await Nav.to(
-                        context,
-                        DetailPelangganAktif(pelanggan: pelangganAktif),
-                      );
-                      _loadData(forceRefresh: true);
-                    },
-                    child: ListTile(
-                      title: Text(
-                        pelanggan?.nama ?? 'Pelanggan tidak ditemukan',
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4,
-                        children: [
-                          Text(paket?.nama ?? 'Paket tidak ditemukan'),
-                          Text(
-                            'Pembayaran: ${statusPembayaran.label}',
-                            style: TextStyle(
-                              color:
-                                  statusPembayaran == StatusPembayaranEnum.lunas
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelangganAktif.tanggalBerakhir)}',
-                            style: TextStyle(
-                              color: PerhitunganUtil.getWarnaSisaMasaAktif(
-                                pelangganAktif.tanggalBerakhir,
-                              ),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Berakhir: ${FormatTanggal.formatTanggalRingkas(pelangganAktif.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalBerakhir)}',
-                          ),
-                        ],
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
+          : CustomScrollView(
+              slivers: [
+                if (listJatuhTempo.isNotEmpty)
+                  _buildSliverListJatuhTempo(listJatuhTempo, pelangganState),
+                _buildSliverListUtama(hasilFilter, pelangganState, paketState),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSliverListJatuhTempo(
+    List<PelangganAktifModel> listJatuhTempo,
+    PelangganState pelangganState,
+  ) {
+    return SliverList.separated(
+      itemCount: listJatuhTempo.length,
+      separatorBuilder: (context, index) =>
+          const Divider(height: 1, indent: 16, endIndent: 16),
+      itemBuilder: (context, index) {
+        final pelangganAktif = listJatuhTempo[index];
+        final pelanggan = pelangganState.getById(pelangganAktif.idPelanggan);
+        return ListTile(
+          onTap: () async {
+            L.i(
+              'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
+            );
+            await Nav.to(
+              context,
+              DetailPelangganAktif(pelanggan: pelangganAktif),
+            );
+          },
+          onLongPress: () => _arsipkanPelanggan(pelangganAktif),
+          title: Text(pelanggan?.nama ?? 'Tanpa Nama'),
+          subtitle: Text(
+            'Jatuh tempo: ${FormatTanggal.formatTanggalRingkas(pelangganAktif.tanggalBerakhir)}',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSliverListUtama(
+    List<PelangganAktifModel> hasilFilter,
+    PelangganState pelangganState,
+    PaketState paketState,
+  ) {
+    return SliverList.separated(
+      itemCount: hasilFilter.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 1),
+      itemBuilder: (context, index) {
+        final pelangganAktif = hasilFilter[index];
+        final statusPembayaran = pelangganAktif.status;
+        final pelanggan = pelangganState.getById(pelangganAktif.idPelanggan);
+        final paket = paketState.getById(pelangganAktif.idPaket);
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onLongPress: () => _arsipkanPelanggan(pelangganAktif),
+            onTap: () async {
+              L.i(
+                'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
+              );
+              await Nav.to(
+                context,
+                DetailPelangganAktif(pelanggan: pelangganAktif),
+              );
+              _loadData(forceRefresh: true);
+            },
+            child: ListTile(
+              title: Text(pelanggan?.nama ?? 'Pelanggan tidak ditemukan'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 4,
+                children: [
+                  Text(paket?.nama ?? 'Paket tidak ditemukan'),
+                  Text(
+                    'Pembayaran: ${statusPembayaran.label}',
+                    style: TextStyle(
+                      color: statusPembayaran == StatusPembayaranEnum.lunas
+                          ? Colors.green
+                          : Colors.red,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                );
-              },
+                  Text(
+                    'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelangganAktif.tanggalBerakhir)}',
+                    style: TextStyle(
+                      color: PerhitunganUtil.getWarnaSisaMasaAktif(
+                        pelangganAktif.tanggalBerakhir,
+                      ),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Berakhir: ${FormatTanggal.formatTanggalRingkas(pelangganAktif.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalBerakhir)}',
+                  ),
+                ],
+              ),
+              trailing: const Icon(Icons.chevron_right),
             ),
+          ),
+        );
+      },
     );
   }
 

@@ -20,4 +20,16 @@ abstract class PelangganAktifState with _$PelangganAktifState {
   /// Mengembalikan `null` bila tidak ditemukan.
   PelangganAktifModel? getById(String id) =>
       listPelangganAktif.firstWhereOrNull((item) => item.id == id);
+
+  /// Mengambil daftar pelanggan aktif yang sudah jatuh tempo
+  /// (tanggal berakhir sebelum waktu sekarang).
+  List<PelangganAktifModel> getListJatuhTempo() => listPelangganAktif
+      .where((item) => item.tanggalBerakhir.isBefore(DateTime.now()))
+      .toList();
+
+  /// Mengambil daftar pelanggan aktif yang belum jatuh tempo
+  /// (tanggal berakhir sama dengan atau setelah waktu sekarang).
+  List<PelangganAktifModel> getListBelumJatuhTempo() => listPelangganAktif
+      .where((item) => !item.tanggalBerakhir.isBefore(DateTime.now()))
+      .toList();
 }
