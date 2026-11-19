@@ -80,57 +80,20 @@ class PengaturanOperasi {
         'Data pengaturan berhasil dikonversi ke format SQLite - method: simpanAtauPerbaruiPengaturan',
       );
 
-      // Karena tabel pengaturan hanya memiliki 1 baris, kita perlu:
-      // 1. Hapus data yang ada (jika ada)
-      // 2. Insert data baru
-
+      // Karena tabel pengaturan hanya memiliki 1 baris dan tidak memiliki
+      // kolom id, pola hapus-lalu-insert dijalankan dalam satu transaksi
+      // tanpa membaca kolom id (mis. `first['id']` tidak tersedia).
       L.i(
-        'Mendapatkan koneksi database untuk operasi hapus dan insert - method: simpanAtauPerbaruiPengaturan',
+        'Menyimpan pengaturan dalam satu transaksi (hapus semua + insert) - method: simpanAtauPerbaruiPengaturan',
       );
-      final db = await DatabaseHelper.instance.database;
-
-      // Jalankan operasi dalam transaksi menggunakan OperasiDasar
-      L.i(
-        'Memulai transaksi database menggunakan OperasiDasar - method: simpanAtauPerbaruiPengaturan',
-      );
-
-      // Cek apakah data sudah ada
-      L.i(
-        'Memeriksa apakah data pengaturan sudah ada di database - method: simpanAtauPerbaruiPengaturan',
-      );
-      final existingData = await db.query(_namaTabel, limit: 1);
-
-      if (existingData.isNotEmpty) {
-        // Jika data sudah ada, hapus terlebih dahulu menggunakan OperasiDasar
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+        final rowsDeleted = await txn.delete(_namaTabel);
         L.i(
-          'Data pengaturan sudah ada, akan menghapus data lama - method: simpanAtauPerbaruiPengaturan',
+          'Pengaturan lama dihapus: $rowsDeleted baris - method: simpanAtauPerbaruiPengaturan',
         );
+        await txn.insert(_namaTabel, dataPengaturan);
+      });
 
-        // Ambil ID dari data yang ada
-        final existingId = existingData.first['id'].toString();
-        L.i(
-          'ID data pengaturan yang akan dihapus: $existingId - method: simpanAtauPerbaruiPengaturan',
-        );
-
-        await _operasiDasar.hapus(_namaTabel, existingId);
-        L.i(
-          'Data pengaturan lama berhasil dihapus menggunakan OperasiDasar.hapus - method: simpanAtauPerbaruiPengaturan',
-        );
-      } else {
-        L.i(
-          'Belum ada data pengaturan, akan langsung melakukan insert - method: simpanAtauPerbaruiPengaturan',
-        );
-      }
-
-      // Insert data baru menggunakan OperasiDasar
-      L.i(
-        'Menyisipkan data pengaturan baru menggunakan OperasiDasar.sisipkan - method: simpanAtauPerbaruiPengaturan',
-      );
-      await _operasiDasar.sisipkan(_namaTabel, dataPengaturan);
-
-      L.i(
-        'Data pengaturan baru berhasil disisipkan menggunakan OperasiDasar - method: simpanAtauPerbaruiPengaturan',
-      );
       L.i(
         'Pengaturan berhasil disimpan/diperbarui menggunakan OperasiDasar - method: simpanAtauPerbaruiPengaturan, waktu: ${DateTime.now()}',
       );
