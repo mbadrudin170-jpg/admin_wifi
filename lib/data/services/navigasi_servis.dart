@@ -1,6 +1,6 @@
 // path: lib/data/services/navigasi_servis.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// [NavigasiServis] menyediakan akses global ke [NavigatorState].
 /// Digunakan untuk navigasi tanpa [BuildContext], contohnya dari layanan notifikasi.

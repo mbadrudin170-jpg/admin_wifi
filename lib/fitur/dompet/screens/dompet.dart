@@ -8,7 +8,7 @@ import 'package:admin_wifi/fitur/dompet/screens/detail_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/screens/form_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';

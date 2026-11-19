@@ -7,7 +7,7 @@ import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 

@@ -5,7 +5,7 @@ import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/dompet/screens/detail_dompet.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 

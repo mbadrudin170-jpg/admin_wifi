@@ -2,8 +2,8 @@
 import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
@@ -83,7 +83,7 @@ class AppMaterial extends StatelessWidget {
     L.i('Membuat objek ThemeData untuk mode terang (light theme).');
 
     L.i('Mengembalikan widget MaterialApp sebagai root UI.');
-     return MaterialApp(
+    return MaterialApp(
       title: 'Admin Wifi',
       debugShowCheckedModeBanner: false,
       theme: lightTheme,

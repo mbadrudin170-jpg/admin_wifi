@@ -1,7 +1,7 @@
 // path: lib/widget/nama_dari_id.dart
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class NamaDariIdWidget extends StatelessWidget {
   final String userId;
