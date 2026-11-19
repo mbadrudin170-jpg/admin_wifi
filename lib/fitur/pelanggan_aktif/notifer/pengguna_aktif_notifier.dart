@@ -1,6 +1,7 @@
 // path: lib/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart
 
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
+import 'package:admin_wifi/db/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,7 +29,13 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
   }
 
   Future<PelangganAktifState> _ambilSemua() async {
-    final daftar = await _operasi.ambilSemuaPelangganAktif();
+    final operasiSqlite = ref.read(operasiSqliteProvider);
+    final maps = await operasiSqlite.ambil(
+      PelangganAktifSkema.tabel,
+      where: '${PelangganAktifSkema.isDeleted} = ?',
+      whereArgs: const [0],
+    );
+    final daftar = maps.map(PelangganAktifModel.fromSqlite).toList();
     return PelangganAktifState(
       listPelangganAktif: daftar,
       jumlahPelangganAktif: daftar.length,
@@ -48,7 +55,9 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
 
   Future<void> tambahBatch(List<PelangganAktifModel> models) async {
     try {
-      await _operasi.sisipkanAtauPerbaruiBatch(models);
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final data = models.map((item) => item.toSqlite()).toList();
+      await operasiSqlite.tambahBatch(PelangganAktifSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
       L.e('Gagal menambahkan batch pelanggan aktif: $e\n$s');
