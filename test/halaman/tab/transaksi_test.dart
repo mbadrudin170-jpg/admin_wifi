@@ -135,7 +135,7 @@ void main() {
         error: Exception('Database Error'),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Error: Exception: Database Error'), findsOneWidget);
+      expect(find.text('Gagal memuat data transaksi: Exception: Database Error'), findsOneWidget);
     });
 
     testWidgets('menampilkan pesan saat tidak ada transaksi', (tester) async {

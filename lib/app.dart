@@ -65,6 +65,7 @@ class AppMaterial extends StatelessWidget {
         titleTextStyle: GoogleFonts.oswald(
           fontSize: 24,
           fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

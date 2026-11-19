@@ -3,7 +3,7 @@
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'package:admin_wifi/widget/nama_dari_id.dart';
+import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
@@ -224,8 +224,8 @@ class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: NamaDariIdWidget(
-                              userId: kritikSaran.userId,
+                            child: NamaPelangganWidget(
+                              idPelanggan: kritikSaran.userId,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,

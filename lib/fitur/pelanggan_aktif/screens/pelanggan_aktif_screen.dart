@@ -6,9 +6,12 @@ import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
@@ -398,6 +401,142 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final asyncPelangganAktif = ref.watch(penggunaAktifProvider);
+    final asyncPelanggan = ref.watch(pelangganProvider);
+    final asyncPaket = ref.watch(paketProvider);
+
+    if (asyncPelangganAktif.isLoading ||
+        asyncPelanggan.isLoading ||
+        asyncPaket.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (asyncPelangganAktif.hasError) {
+      return Scaffold(
+        body: _buildMuatGagal(
+          'Gagal memuat data: ${asyncPelangganAktif.error}',
+          () => ref.refresh(penggunaAktifProvider),
+        ),
+      );
+    }
+    if (asyncPelanggan.hasError) {
+      return Scaffold(
+        body: _buildMuatGagal(
+          'Gagal memuat data: ${asyncPelanggan.error}',
+          () => ref.refresh(pelangganProvider),
+        ),
+      );
+    }
+    if (asyncPaket.hasError) {
+      return Scaffold(
+        body: _buildMuatGagal(
+          'Gagal memuat data: ${asyncPaket.error}',
+          () => ref.refresh(paketProvider),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: _buildBody(
+        asyncPelanggan.requireValue,
+        asyncPaket.requireValue,
+        asyncPelangganAktif.requireValue,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _tambahPelangganAktif,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildBody(
+    PelangganState pelangganState,
+    PaketState paketState,
+    PelangganAktifState pelangganAktifAsync,
+  ) {
+    final semuaPelanggan = pelangganAktifAsync.listPelangganAktif;
+    final mapNamaPelanggan = {
+      for (final p in pelangganState.listPelanggan) p.id: p.nama,
+    };
+    final hasilFilter = _filterAndSort(semuaPelanggan, mapNamaPelanggan);
+
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: semuaPelanggan.isEmpty
+          ? const Center(child: Text('Tidak ada pelanggan aktif ditemukan.'))
+          : hasilFilter.isEmpty && _searchController.text.isNotEmpty
+          ? const Center(child: Text('Pelanggan tidak ditemukan.'))
+          : ListView.builder(
+              itemCount: hasilFilter.length,
+              itemBuilder: (context, index) {
+                final pelangganAktif = hasilFilter[index];
+                final statusPembayaran = pelangganAktif.status;
+                final pelanggan = pelangganState.getById(
+                  pelangganAktif.idPelanggan,
+                );
+                final paket = paketState.getById(pelangganAktif.idPaket);
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onLongPress: () => _arsipkanPelanggan(pelangganAktif),
+                    onTap: () async {
+                      L.i(
+                        'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
+                      );
+                      await Nav.to(
+                        context,
+                        DetailPelangganAktif(pelanggan: pelangganAktif),
+                      );
+                      _loadData(forceRefresh: true);
+                    },
+                    child: ListTile(
+                      title: Text(
+                        pelanggan?.nama ?? 'Pelanggan tidak ditemukan',
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [
+                          Text(paket?.nama ?? 'Paket tidak ditemukan'),
+                          Text(
+                            'Pembayaran: ${statusPembayaran.label}',
+                            style: TextStyle(
+                              color:
+                                  statusPembayaran == StatusPembayaranEnum.lunas
+                                  ? Colors.green
+                                  : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelangganAktif.tanggalBerakhir)}',
+                            style: TextStyle(
+                              color: PerhitunganUtil.getWarnaSisaMasaAktif(
+                                pelangganAktif.tanggalBerakhir,
+                              ),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Berakhir: ${FormatTanggal.formatTanggalRingkas(pelangganAktif.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalBerakhir)}',
+                          ),
+                        ],
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
   AppBar _buildAppBar() {
     return AppBar(
       title: _isSearching ? _buildSearchField() : const Text('Pelanggan Aktif'),
@@ -486,133 +625,6 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
             FilledButton(onPressed: onCobaLagi, child: const Text('Coba Lagi')),
           ],
         ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final asyncPelangganAktif = ref.watch(penggunaAktifProvider);
-    final asyncPelanggan = ref.watch(pelangganProvider);
-    final asyncPaket = ref.watch(paketProvider);
-
-    Widget buildBody() {
-      if (asyncPelangganAktif.isLoading ||
-          asyncPelanggan.isLoading ||
-          asyncPaket.isLoading) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      if (asyncPelangganAktif.hasError) {
-        return _buildMuatGagal(
-          'Gagal memuat data: ${asyncPelangganAktif.error}',
-          () => ref.refresh(penggunaAktifProvider),
-        );
-      }
-      if (asyncPelanggan.hasError) {
-        return _buildMuatGagal(
-          'Gagal memuat data: ${asyncPelanggan.error}',
-          () => ref.refresh(pelangganProvider),
-        );
-      }
-      if (asyncPaket.hasError) {
-        return _buildMuatGagal(
-          'Gagal memuat data: ${asyncPaket.error}',
-          () => ref.refresh(paketProvider),
-        );
-      }
-
-      final pelangganState = asyncPelanggan.requireValue;
-      final paketState = asyncPaket.requireValue;
-      final pelangganAktifAsync = asyncPelangganAktif.requireValue;
-
-      final semuaPelanggan = pelangganAktifAsync.listPelangganAktif;
-      final mapNamaPelanggan = {
-        for (final p in pelangganState.listPelanggan) p.id: p.nama,
-      };
-      final hasilFilter = _filterAndSort(semuaPelanggan, mapNamaPelanggan);
-
-      return RefreshIndicator(
-        onRefresh: _refreshData,
-        child: semuaPelanggan.isEmpty
-            ? const Center(child: Text('Tidak ada pelanggan aktif ditemukan.'))
-            : hasilFilter.isEmpty && _searchController.text.isNotEmpty
-            ? const Center(child: Text('Pelanggan tidak ditemukan.'))
-            : ListView.builder(
-                itemCount: hasilFilter.length,
-                itemBuilder: (context, index) {
-                  final pelangganAktif = hasilFilter[index];
-                  final statusPembayaran = pelangganAktif.status;
-                  final pelanggan = pelangganState.getById(
-                    pelangganAktif.idPelanggan,
-                  );
-                  final paket = paketState.getById(pelangganAktif.idPaket);
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 7,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onLongPress: () => _arsipkanPelanggan(pelangganAktif),
-                      onTap: () async {
-                        L.i(
-                          'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
-                        );
-                        await Nav.to(
-                          context,
-                          DetailPelangganAktif(pelanggan: pelangganAktif),
-                        );
-                        _loadData(forceRefresh: true);
-                      },
-                      child: ListTile(
-                        title: Text(
-                          pelanggan?.nama ?? 'Pelanggan tidak ditemukan',
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 4,
-                          children: [
-                            Text(paket?.nama ?? 'Paket tidak ditemukan'),
-                            Text(
-                              'Pembayaran: ${statusPembayaran.label}',
-                              style: TextStyle(
-                                color:
-                                    statusPembayaran ==
-                                        StatusPembayaranEnum.lunas
-                                    ? Colors.green
-                                    : Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Status: ${PerhitunganUtil.getTeksSisaMasaAktif(pelangganAktif.tanggalBerakhir)}',
-                              style: TextStyle(
-                                color: PerhitunganUtil.getWarnaSisaMasaAktif(
-                                  pelangganAktif.tanggalBerakhir,
-                                ),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Berakhir: ${FormatTanggal.formatTanggalBasic(pelangganAktif.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalBerakhir)}',
-                            ),
-                          ],
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                      ),
-                    ),
-                  );
-                },
-              ),
-      );
-    }
-
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _tambahPelangganAktif,
-        child: const Icon(Icons.add),
       ),
     );
   }

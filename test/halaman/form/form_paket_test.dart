@@ -147,6 +147,8 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(buildFormPaket());
+      await tester.ensureVisible(find.text('Simpan'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Simpan'));
       await tester.pumpAndSettle();
       expect(find.text('Nama paket tidak boleh kosong'), findsOneWidget);
@@ -173,8 +175,10 @@ void main() {
       await tester.enterText(
         find.byType(TextFormField).at(4),
         '10',
-      ); // Poin Penukaran
+       ); // Poin Penukaran
 
+      await tester.ensureVisible(find.text('Simpan'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Simpan'));
       await tester.pump();
 
@@ -195,6 +199,8 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');
 
+      await tester.ensureVisible(find.text('Simpan'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Simpan'));
       await tester.pump();
 
@@ -222,8 +228,9 @@ void main() {
         await tester.enterText(find.byType(TextFormField).at(4), '10');
 
       await tester.ensureVisible(find.text('Simpan'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Simpan'));
-        await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
         expect(
           find.text('Nama paket sudah ada. Harap gunakan nama lain.'),
