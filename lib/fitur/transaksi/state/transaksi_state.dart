@@ -1,5 +1,6 @@
 // path: lib/fitur/transaksi/state/transaksi_state.dart
 
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -20,4 +21,17 @@ abstract class TransaksiState with _$TransaksiState {
   /// Mengembalikan `null` bila tidak ditemukan.
   TransaksiModel? getById(String id) =>
       listTransaksi.firstWhereOrNull((item) => item.id == id);
+
+  /// Total pemasukan dari seluruh transaksi.
+  double get totalPemasukan => listTransaksi
+      .where((t) => t.tipe == TipeTransaksi.pemasukan)
+      .fold<double>(0.0, (sum, t) => sum + t.jumlah);
+
+  /// Total pengeluaran dari seluruh transaksi.
+  double get totalPengeluaran => listTransaksi
+      .where((t) => t.tipe == TipeTransaksi.pengeluaran)
+      .fold<double>(0.0, (sum, t) => sum + t.jumlah);
+
+  /// Selisih pemasukan dikurangi pengeluaran.
+  double get netTotal => totalPemasukan - totalPengeluaran;
 }
