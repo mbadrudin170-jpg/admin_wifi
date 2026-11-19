@@ -2,9 +2,12 @@
 // diubah: Menghapus pengujian untuk field `jumlahPoin` yang sudah tidak ada dan menambahkan pengujian untuk `poinHadiah` dan `poinPenukaran`.
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/screens/form_paket.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -57,8 +60,28 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
 }
 
 @GenerateMocks([PaketOperasi])
+class FakePaketNotifier extends PaketNotifier {
+  FakePaketNotifier(this.mockPaketOperasi);
+
+  final MockPaketOperasi mockPaketOperasi;
+
+  @override
+  Future<PaketState> build() async => const PaketState();
+
+  @override
+  Future<void> tambah(PaketModel model) async {
+    await mockPaketOperasi.createPaket(model);
+  }
+
+  @override
+  Future<void> ubah(PaketModel model) async {
+    await mockPaketOperasi.updatePaket(model);
+  }
+}
+
 void main() {
   late MockPaketOperasi mockPaketOperasi;
+  late FakePaketNotifier fakePaketNotifier;
 
   // diubah: paketDummy diperbarui untuk menggunakan field poin yang relevan.
   final paketDummy = PaketModel(
@@ -73,13 +96,15 @@ void main() {
   );
 
   Widget buildFormPaket({PaketModel? paket}) {
-    return MaterialApp(
-      home: FormPaket(paket: paket, paketOperasi: mockPaketOperasi),
+    return ProviderScope(
+      overrides: [paketProvider.overrideWith(() => fakePaketNotifier)],
+      child: MaterialApp(home: FormPaket(paket: paket)),
     );
   }
 
   setUp(() {
     mockPaketOperasi = MockPaketOperasi();
+    fakePaketNotifier = FakePaketNotifier(mockPaketOperasi);
   });
 
   group('FormPaket - Inisialisasi', () {
@@ -196,7 +221,8 @@ void main() {
         await tester.enterText(find.byType(TextFormField).at(3), '50');
         await tester.enterText(find.byType(TextFormField).at(4), '10');
 
-        await tester.tap(find.text('Simpan'));
+      await tester.ensureVisible(find.text('Simpan'));
+      await tester.tap(find.text('Simpan'));
         await tester.pumpAndSettle();
 
         expect(

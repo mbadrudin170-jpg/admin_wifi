@@ -2,9 +2,12 @@
 // diubah: Menghapus parameter namaDompet dan namaKategori yang sudah usang dari fungsi helper.
 
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
-import 'package:admin_wifi/halaman/tab/transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/transaksi.dart';
+import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mockito/annotations.dart';
@@ -12,6 +15,29 @@ import 'package:mockito/mockito.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 
 import 'transaksi_test.mocks.dart';
+
+class FakeTransaksiNotifier extends TransaksiNotifier {
+  FakeTransaksiNotifier({
+    this.delay = Duration.zero,
+    this.initialState = const TransaksiState(),
+    this.error,
+  });
+
+  final Duration delay;
+  final TransaksiState initialState;
+  final Object? error;
+
+  @override
+  Future<TransaksiState> build() async {
+    if (delay > Duration.zero) {
+      await Future.delayed(delay);
+    }
+    if (error != null) {
+      throw error!;
+    }
+    return initialState;
+  }
+}
 
 TransaksiModel buatTransaksi({
   required String id,
@@ -36,7 +62,6 @@ TransaksiModel buatTransaksi({
   MockSpec<NavigatorObserver>(),
 ])
 void main() {
-  late MockTransaksiOperasi mockTransaksiOperasi;
   late MockNavigatorObserver mockNavigatorObserver;
 
   final pemasukan1 = buatTransaksi(
@@ -68,15 +93,27 @@ void main() {
   });
 
   setUp(() {
-    mockTransaksiOperasi = MockTransaksiOperasi();
     mockNavigatorObserver = MockNavigatorObserver();
   });
 
-  Future<void> pumpTransaksiPage(WidgetTester tester) async {
+  Future<void> pumpTransaksiPage(
+    WidgetTester tester, {
+    Duration delay = Duration.zero,
+    TransaksiState state = const TransaksiState(),
+    Object? error,
+  }) async {
+    final fake = FakeTransaksiNotifier(
+      delay: delay,
+      initialState: state,
+      error: error,
+    );
     await tester.pumpWidget(
-      MaterialApp(
-        home: TransaksiPage(transaksiOperasi: mockTransaksiOperasi),
-        navigatorObservers: [mockNavigatorObserver],
+      ProviderScope(
+        overrides: [transaksiProvider.overrideWith(() => fake)],
+        child: MaterialApp(
+          home: TransaksiPage(),
+          navigatorObservers: [mockNavigatorObserver],
+        ),
       ),
     );
   }
@@ -85,18 +122,7 @@ void main() {
     testWidgets('menampilkan CircularProgressIndicator saat loading', (
       tester,
     ) async {
-      when(mockTransaksiOperasi.ambilSemuaTransaksi()).thenAnswer((_) async {
-        await Future.delayed(const Duration(seconds: 2));
-        return [];
-      });
-      when(mockTransaksiOperasi.getTotalPemasukan()).thenAnswer((_) async => 0);
-      when(
-        mockTransaksiOperasi.getTotalPengeluaran(),
-      ).thenAnswer((_) async => 0);
-      when(mockTransaksiOperasi.getNetTotal()).thenAnswer((_) async => 0);
-
-      await pumpTransaksiPage(tester);
-
+      await pumpTransaksiPage(tester, delay: const Duration(seconds: 2));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
     });
@@ -104,54 +130,27 @@ void main() {
     testWidgets('menampilkan pesan error saat terjadi kegagalan', (
       tester,
     ) async {
-      when(
-        mockTransaksiOperasi.ambilSemuaTransaksi(),
-      ).thenThrow(Exception('Database Error'));
-      when(mockTransaksiOperasi.getTotalPemasukan()).thenAnswer((_) async => 0);
-      when(
-        mockTransaksiOperasi.getTotalPengeluaran(),
-      ).thenAnswer((_) async => 0);
-      when(mockTransaksiOperasi.getNetTotal()).thenAnswer((_) async => 0);
-
-      await pumpTransaksiPage(tester);
+      await pumpTransaksiPage(
+        tester,
+        error: Exception('Database Error'),
+      );
       await tester.pumpAndSettle();
-
       expect(find.text('Error: Exception: Database Error'), findsOneWidget);
     });
 
     testWidgets('menampilkan pesan saat tidak ada transaksi', (tester) async {
-      when(
-        mockTransaksiOperasi.ambilSemuaTransaksi(),
-      ).thenAnswer((_) async => []);
-      when(mockTransaksiOperasi.getTotalPemasukan()).thenAnswer((_) async => 0);
-      when(
-        mockTransaksiOperasi.getTotalPengeluaran(),
-      ).thenAnswer((_) async => 0);
-      when(mockTransaksiOperasi.getNetTotal()).thenAnswer((_) async => 0);
-
       await pumpTransaksiPage(tester);
       await tester.pumpAndSettle();
-
       expect(find.text('Tidak ada transaksi ditemukan.'), findsOneWidget);
     });
 
     testWidgets(
       'menampilkan data ringkasan dan daftar transaksi dengan benar saat sukses',
       (tester) async {
-        when(
-          mockTransaksiOperasi.ambilSemuaTransaksi(),
-        ).thenAnswer((_) async => semuaTransaksi);
-        when(
-          mockTransaksiOperasi.getTotalPemasukan(),
-        ).thenAnswer((_) async => 175000);
-        when(
-          mockTransaksiOperasi.getTotalPengeluaran(),
-        ).thenAnswer((_) async => 25000);
-        when(
-          mockTransaksiOperasi.getNetTotal(),
-        ).thenAnswer((_) async => 150000);
-
-        await pumpTransaksiPage(tester);
+        await pumpTransaksiPage(
+          tester,
+          state: TransaksiState(listTransaksi: semuaTransaksi),
+        );
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('Pemasukan')), findsOneWidget);
@@ -188,18 +187,10 @@ void main() {
     testWidgets('menavigasi ke DetailTransaksiPage saat item di-tap', (
       tester,
     ) async {
-      when(
-        mockTransaksiOperasi.ambilSemuaTransaksi(),
-      ).thenAnswer((_) async => semuaTransaksi);
-      when(
-        mockTransaksiOperasi.getTotalPemasukan(),
-      ).thenAnswer((_) async => 175000);
-      when(
-        mockTransaksiOperasi.getTotalPengeluaran(),
-      ).thenAnswer((_) async => 25000);
-      when(mockTransaksiOperasi.getNetTotal()).thenAnswer((_) async => 150000);
-
-      await pumpTransaksiPage(tester);
+      await pumpTransaksiPage(
+        tester,
+        state: TransaksiState(listTransaksi: semuaTransaksi),
+      );
       await tester.pumpAndSettle();
 
       clearInteractions(mockNavigatorObserver);

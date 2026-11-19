@@ -13,7 +13,7 @@ import '../../fitur/pelanggan/screens/pelanggan.dart';
 import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
 import 'package:admin_wifi/fitur/kategori/screens/kategori.dart';
 import '../lainnya/pengaturan.dart';
-import '../lainnya/riwayat_aktivasi_paket.dart';
+import 'package:admin_wifi/fitur/riwayat_langganan/screens/riwayat_aktivasi_paket.dart';
 import '../lainnya/tentang_aplikasi.dart';
 import '../../fitur/versi_apk_user/screens/versi_apk_user.dart';
 import 'pesanan.dart';
