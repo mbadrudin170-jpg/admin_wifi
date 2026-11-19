@@ -12,6 +12,9 @@ jobs:
       - name: Checkout kode
         uses: actions/checkout@v4
 
+      - name: Konfigurasi akses repo privat
+        run: git config --global url."https://${{ secrets.SHARE_GLOBAL_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
       - name: Siapkan Flutter
         uses: subosito/flutter-action@v2
         with:
