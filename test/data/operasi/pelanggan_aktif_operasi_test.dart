@@ -8,15 +8,12 @@ import 'package:admin_wifi/enum/enum.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
-import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'pelanggan_aktif_operasi_test.mocks.dart';
+import '../../mocks.dart';
 
-@GenerateMocks([NotifikasiServis])
 void main() {
   late PelangganAktifOperasi operasi;
   late Database db;
@@ -25,6 +22,7 @@ void main() {
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    registerFallbackValue(DateTime.now());
   });
 
   setUp(() async {
@@ -32,13 +30,14 @@ void main() {
     mockNotifikasiServis = MockNotifikasiServis();
     operasi = PelangganAktifOperasi(notifikasiServis: mockNotifikasiServis);
 
-    when(mockNotifikasiServis.batalNotifikasi(any)).thenAnswer((_) async {});
-    when(
-      mockNotifikasiServis.jadwalNotifikasi(
-        id: anyNamed('id'),
-        title: anyNamed('title'),
-        body: anyNamed('body'),
-        jadwal: anyNamed('jadwal'),
+    when(() => mockNotifikasiServis.batalNotifikasi(any())).thenAnswer((_) async {});
+
+when(
+      () => mockNotifikasiServis.jadwalNotifikasi(
+        id: any(named: 'id'),
+        title: any(named: 'title'),
+        body: any(named: 'body'),
+        jadwal: any(named: 'jadwal'),
       ),
     ).thenAnswer((_) async {});
 
@@ -70,11 +69,11 @@ void main() {
     test('createPelangganAktif harus menjadwalkan notifikasi', () async {
       await operasi.createPelangganAktif(buatModel());
       verify(
-        mockNotifikasiServis.jadwalNotifikasi(
-          id: anyNamed('id'),
-          title: anyNamed('title'),
-          body: anyNamed('body'),
-          jadwal: anyNamed('jadwal'),
+        () => mockNotifikasiServis.jadwalNotifikasi(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          jadwal: any(named: 'jadwal'),
         ),
       ).called(2);
     });
@@ -86,7 +85,7 @@ void main() {
       await operasi.arsipkanPelangganAktif(modelDibuat.id);
 
       // Harusnya 4 kali, 2 dari create, 2 dari arsip
-      verify(mockNotifikasiServis.batalNotifikasi(any)).called(4);
+      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(4);
     });
 
     test('arsipkanPelangganKadaluarsa harus memproses dengan benar', () async {
@@ -140,7 +139,7 @@ void main() {
       expect(result, 1);
 
       // Harusnya 6 kali. 2x2 dari create, 2 dari arsip pelanggan kadaluarsa
-      verify(mockNotifikasiServis.batalNotifikasi(any)).called(6);
+      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(6);
     });
   });
 }

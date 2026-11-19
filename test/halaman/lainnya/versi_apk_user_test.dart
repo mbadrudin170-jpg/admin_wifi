@@ -12,11 +12,10 @@ import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart'
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart'; // ✅ Tambahan import
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:uuid/uuid.dart';
 
-import 'versi_apk_user_test.mocks.dart';
+import '../../mocks.dart';
 
 // ✅ DIPERBAIKI: Fungsi helper menggunakan ArsitekturApkEnum sebagai key
 VersiApkUserModel _buatModel({
@@ -38,7 +37,6 @@ VersiApkUserModel _buatModel({
   );
 }
 
-@GenerateMocks([VersiApkUserOperasi])
 void main() {
   late MockVersiApkUserOperasi mockOperasi;
   late List<VersiApkUserModel> dataLokal;
@@ -46,6 +44,7 @@ void main() {
   // Inisialisasi mock dan data sebelum setiap tes
   setUp(() {
     mockOperasi = MockVersiApkUserOperasi();
+    registerFallbackValue(_buatModel());
     dataLokal = [
       _buatModel(
         id: 'id-10',
@@ -62,18 +61,18 @@ void main() {
     ];
 
     // Konfigurasi mock untuk `ambilSemuaVersiApkAktif`
-    when(mockOperasi.ambilSemuaVersiApkAktif()).thenAnswer((_) async {
+    when(() => mockOperasi.ambilSemuaVersiApkAktif()).thenAnswer((_) async {
       return List<VersiApkUserModel>.from(dataLokal);
     });
 
     // Konfigurasi mock untuk `arsipkanVersiApkUser`
-    when(mockOperasi.arsipkanVersiApkUser(any)).thenAnswer((invocation) async {
+    when(() => mockOperasi.arsipkanVersiApkUser(any())).thenAnswer((invocation) async {
       final id = invocation.positionalArguments.first;
       dataLokal.removeWhere((item) => item.id == id);
     });
 
     // Konfigurasi mock untuk `perbaruiVersiApkUser`
-    when(mockOperasi.perbaruiVersiApkUser(any)).thenAnswer((invocation) async {
+    when(() => mockOperasi.perbaruiVersiApkUser(any())).thenAnswer((invocation) async {
       final versiDiperbarui =
           invocation.positionalArguments.first as VersiApkUserModel;
       final index = dataLokal.indexWhere((v) => v.id == versiDiperbarui.id);
@@ -83,14 +82,14 @@ void main() {
     });
 
     // Konfigurasi mock untuk `tambahVersiApkUser`
-    when(mockOperasi.tambahVersiApkUser(any)).thenAnswer((invocation) async {
+    when(() => mockOperasi.tambahVersiApkUser(any())).thenAnswer((invocation) async {
       final versiBaru =
           invocation.positionalArguments.first as VersiApkUserModel;
       dataLokal.add(versiBaru);
     });
 
     // Konfigurasi mock untuk `ambilVersiApkTerbaru` untuk halaman tambah
-    when(mockOperasi.ambilVersiApkTerbaru()).thenAnswer((_) async {
+    when(() => mockOperasi.ambilVersiApkTerbaru()).thenAnswer((_) async {
       if (dataLokal.isEmpty) return null;
       dataLokal.sort((a, b) => b.diperbarui!.compareTo(a.diperbarui!));
       return dataLokal.first;
@@ -174,7 +173,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifikasi bahwa operasi dipanggil dan UI diperbarui
-      verify(mockOperasi.arsipkanVersiApkUser('id-10')).called(1);
+      verify(() => mockOperasi.arsipkanVersiApkUser('id-10')).called(1);
       expect(find.textContaining('Build: 10'), findsNothing);
       expect(find.byType(ListTile), findsOneWidget); // Harusnya sisa 1 item
     });
@@ -222,8 +221,8 @@ void main() {
       expect(find.textContaining('1.2.0'), findsNothing);
 
       // Verifikasi bahwa data tidak di-fetch ulang
-      verify(mockOperasi.ambilSemuaVersiApkAktif()).called(1);
-      verify(mockOperasi.perbaruiVersiApkUser(any)).called(1);
+      verify(() => mockOperasi.ambilSemuaVersiApkAktif()).called(1);
+      verify(() => mockOperasi.perbaruiVersiApkUser(any())).called(1);
     });
 
     testWidgets('6. Alur tambah memperbarui UI tanpa reload', (tester) async {
@@ -267,8 +266,8 @@ void main() {
       expect(find.byType(ListTile), findsNWidgets(3));
 
       // Verifikasi bahwa data tidak di-fetch ulang
-      verify(mockOperasi.ambilSemuaVersiApkAktif()).called(1);
-      verify(mockOperasi.tambahVersiApkUser(any)).called(1);
+      verify(() => mockOperasi.ambilSemuaVersiApkAktif()).called(1);
+      verify(() => mockOperasi.tambahVersiApkUser(any())).called(1);
     });
   });
 }

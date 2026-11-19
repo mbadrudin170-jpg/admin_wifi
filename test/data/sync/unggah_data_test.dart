@@ -1,21 +1,17 @@
 // path: test/data/sync/unggah_data_test.dart
 // diubah: Menyesuaikan ID dokumen yang dicari untuk 'pengaturan' menjadi 'konfigurasi_global'.
 
-import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
-import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'unggah_data_test.mocks.dart';
+import '../../mocks.dart';
 
-@GenerateMocks([DatabaseHelper, SyncManager])
 void main() {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
@@ -33,7 +29,7 @@ void main() {
       mockSyncManager = MockSyncManager();
 
       db = await databaseFactory.openDatabase(inMemoryDatabasePath);
-      when(mockDbHelper.database).thenAnswer((_) async => db);
+      when(() => mockDbHelper.database).thenAnswer((_) async => db);
 
       layananUnggahData = LayananUnggahData(
         dbHelper: mockDbHelper,
@@ -114,9 +110,9 @@ void main() {
       test('harus tetap mengunggah data baru', () async {
         final lastSyncTime = DateTime(2023, 1, 1);
         final newTimestamp = DateTime(2023, 1, 2);
-        when(
-          mockSyncManager.getTerakhirUnggah(),
-        ).thenAnswer((_) async => lastSyncTime);
+when(
+            () => mockSyncManager.getTerakhirUnggah(),
+          ).thenAnswer((_) async => lastSyncTime);
 
         final kritikBaru = KritikSaranModel(
           id: 'ks1',

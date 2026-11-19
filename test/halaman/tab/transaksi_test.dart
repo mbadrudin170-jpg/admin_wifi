@@ -10,11 +10,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 
-import 'transaksi_test.mocks.dart';
+import '../../mocks.dart';
 
 class FakeTransaksiNotifier extends TransaksiNotifier {
   FakeTransaksiNotifier({
@@ -57,10 +56,6 @@ TransaksiModel buatTransaksi({
   );
 }
 
-@GenerateNiceMocks([
-  MockSpec<TransaksiOperasi>(),
-  MockSpec<NavigatorObserver>(),
-])
 void main() {
   late MockNavigatorObserver mockNavigatorObserver;
 
@@ -94,6 +89,9 @@ void main() {
 
   setUp(() {
     mockNavigatorObserver = MockNavigatorObserver();
+    registerFallbackValue(
+      MaterialPageRoute<void>(builder: (_) => const SizedBox.shrink()),
+    );
   });
 
   Future<void> pumpTransaksiPage(
@@ -200,7 +198,7 @@ void main() {
       await tester.tap(itemToTap);
       await tester.pumpAndSettle();
 
-      verify(mockNavigatorObserver.didPush(any, any)).called(1);
+      verify(() => mockNavigatorObserver.didPush(any(), any())).called(1);
     });
   });
 }

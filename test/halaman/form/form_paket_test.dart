@@ -1,7 +1,6 @@
 // path: test/halaman/form/form_paket_test.dart
 // diubah: Menghapus pengujian untuk field `jumlahPoin` yang sudah tidak ada dan menambahkan pengujian untuk `poinHadiah` dan `poinPenukaran`.
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/screens/form_paket.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
@@ -9,11 +8,10 @@ import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common/sqlite_api.dart' as sqlite_api;
 
-import 'form_paket_test.mocks.dart';
+import '../../mocks.dart';
 
 // [Mocks and helper classes remain the same]
 class MockDatabaseException implements sqlite_api.DatabaseException {
@@ -59,7 +57,6 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
   bool isReadOnlyError() => false;
 }
 
-@GenerateMocks([PaketOperasi])
 class FakePaketNotifier extends PaketNotifier {
   FakePaketNotifier(this.mockPaketOperasi);
 
@@ -105,6 +102,7 @@ void main() {
   setUp(() {
     mockPaketOperasi = MockPaketOperasi();
     fakePaketNotifier = FakePaketNotifier(mockPaketOperasi);
+    registerFallbackValue(paketDummy);
   });
 
   group('FormPaket - Inisialisasi', () {
@@ -160,7 +158,7 @@ void main() {
       WidgetTester tester,
     ) async {
       when(
-        mockPaketOperasi.createPaket(any),
+        () => mockPaketOperasi.createPaket(any()),
       ).thenAnswer((_) async => paketDummy);
 
       await tester.pumpWidget(buildFormPaket());
@@ -182,7 +180,7 @@ void main() {
       await tester.tap(find.text('Simpan'));
       await tester.pump();
 
-      verify(mockPaketOperasi.createPaket(any)).called(1);
+      verify(() => mockPaketOperasi.createPaket(any())).called(1);
       expect(find.text('Data paket berhasil disimpan!'), findsOneWidget);
 
       await tester.pumpAndSettle();
@@ -192,7 +190,7 @@ void main() {
       WidgetTester tester,
     ) async {
       when(
-        mockPaketOperasi.updatePaket(any),
+        () => mockPaketOperasi.updatePaket(any()),
       ).thenAnswer((_) async => Future.value());
 
       await tester.pumpWidget(buildFormPaket(paket: paketDummy));
@@ -204,7 +202,7 @@ void main() {
       await tester.tap(find.text('Simpan'));
       await tester.pump();
 
-      verify(mockPaketOperasi.updatePaket(any)).called(1);
+      verify(() => mockPaketOperasi.updatePaket(any())).called(1);
       expect(find.text('Data paket berhasil diperbarui!'), findsOneWidget);
 
       await tester.pumpAndSettle();
@@ -216,7 +214,7 @@ void main() {
       'Menampilkan pesan "Nama paket sudah ada" saat unique constraint error',
       (WidgetTester tester) async {
         when(
-          mockPaketOperasi.createPaket(any),
+          () => mockPaketOperasi.createPaket(any()),
         ).thenThrow(MockDatabaseException.uniqueConstraint());
 
         await tester.pumpWidget(buildFormPaket());

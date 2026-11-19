@@ -3,13 +3,12 @@
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/enum/enum.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:admin_wifi/enum/enum.dart';
+import 'package:mocktail/mocktail.dart';
 
-import 'form_versi_apk_user_test.mocks.dart';
+import '../../mocks.dart';
 
 // ✅ DIPERBAIKI: Gunakan ArsitekturApkEnum sebagai key
 final dataUntukEdit = VersiApkUserModel(
@@ -47,10 +46,6 @@ final dataVersiTerakhir = VersiApkUserModel(
   catatanRilis: 'Terbaru',
 );
 
-@GenerateNiceMocks([
-  MockSpec<VersiApkUserOperasi>(),
-  MockSpec<NavigatorObserver>(),
-])
 void main() {
   late MockVersiApkUserOperasi mockOperasi;
   late MockNavigatorObserver mockObserver;
@@ -59,13 +54,22 @@ void main() {
     mockOperasi = MockVersiApkUserOperasi();
     mockObserver = MockNavigatorObserver();
 
+    registerFallbackValue(dataUntukEdit);
+    registerFallbackValue(
+      MaterialPageRoute<void>(builder: (_) => const SizedBox.shrink()),
+    );
+
     // Stub default untuk pemanggilan API
-    when(mockOperasi.perbaruiVersiApkUser(any)).thenAnswer((_) async {});
-    when(mockOperasi.tambahVersiApkUser(any)).thenAnswer((_) async {});
+    when(
+      () => mockOperasi.perbaruiVersiApkUser(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOperasi.tambahVersiApkUser(any()),
+    ).thenAnswer((_) async {});
 
     // Stub untuk memuat data di mode 'Tambah'
     when(
-      mockOperasi.ambilVersiApkTerbaru(),
+      () => mockOperasi.ambilVersiApkTerbaru(),
     ).thenAnswer((_) async => dataVersiTerakhir);
   });
 
@@ -82,7 +86,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verifikasi API dipanggil
-        verify(mockOperasi.ambilVersiApkTerbaru()).called(1);
+        verify(() => mockOperasi.ambilVersiApkTerbaru()).called(1);
 
         // Verifikasi field terisi dari data versi terakhir
         expect(find.widgetWithText(TextFormField, '1.9.9'), findsOneWidget);
@@ -99,7 +103,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifikasi API tidak dipanggil di mode edit
-      verifyNever(mockOperasi.ambilVersiApkTerbaru());
+      verifyNever(() => mockOperasi.ambilVersiApkTerbaru());
 
       // Verifikasi semua field terisi dengan benar
       expect(find.widgetWithText(TextFormField, '1.5.0'), findsOneWidget);
@@ -156,12 +160,12 @@ void main() {
 
       // ✅ DIPERBAIKI: Verifikasi captured dengan ArsitekturApkEnum
       final captured = verify(
-        mockOperasi.perbaruiVersiApkUser(captureAny),
+        () => mockOperasi.perbaruiVersiApkUser(captureAny()),
       ).captured;
       expect(captured.first.nomorBuildTerbaru[ArsitekturApkEnum.universal], 16);
 
       // Verifikasi navigasi pop (dialog + form)
-      verify(mockObserver.didPop(any, any)).called(2);
+      verify(() => mockObserver.didPop(any(), any())).called(2);
     });
 
     testWidgets(
@@ -200,7 +204,7 @@ void main() {
 
         // Verifikasi data tersimpan
         final captured = verify(
-          mockOperasi.tambahVersiApkUser(captureAny),
+          () => mockOperasi.tambahVersiApkUser(captureAny()),
         ).captured;
         expect(captured.first.versiTerbaru, '2.0.0');
         expect(captured.first.catatanRilis, 'Rilis baru!');
@@ -212,7 +216,7 @@ void main() {
         );
 
         // Verifikasi navigasi pop (dialog + form)
-        verify(mockObserver.didPop(any, any)).called(2);
+        verify(() => mockObserver.didPop(any(), any())).called(2);
       },
     );
 
@@ -233,11 +237,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifikasi tidak ada operasi yang dipanggil
-      verifyNever(mockOperasi.perbaruiVersiApkUser(any));
-      verifyNever(mockOperasi.tambahVersiApkUser(any));
+      verifyNever(() => mockOperasi.perbaruiVersiApkUser(any()));
+      verifyNever(() => mockOperasi.tambahVersiApkUser(any()));
 
       // Verifikasi hanya dialog yang di-pop
-      verify(mockObserver.didPop(any, any)).called(1);
+      verify(() => mockObserver.didPop(any(), any())).called(1);
     });
 
     testWidgets('6. UI: Tombol simpan harus ada di bawah form', (tester) async {

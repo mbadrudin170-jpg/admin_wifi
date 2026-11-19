@@ -1,18 +1,15 @@
 // path: test/data/operasi/versi_apk_user_operasi_test.dart
 
-import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
-import 'versi_apk_user_operasi_test.mocks.dart';
+import '../../mocks.dart';
 
-@GenerateMocks([OperasiDasar])
 VersiApkUserModel _buatModel({
   String? id,
   String versi = '1.0.0',
