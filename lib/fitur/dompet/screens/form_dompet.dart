@@ -93,7 +93,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
           diperbarui: DateTime.now(),
         );
 
-        await ref.read(dompetProvider.notifier).updateDompet(updatedDompet);
+        await ref.read(dompetProvider.notifier).ubah(updatedDompet);
 
         if (!mounted) return;
 
@@ -109,7 +109,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
           diperbarui: DateTime.now(),
         );
 
-        await ref.read(dompetProvider.notifier).createDompet(nuevoDompet);
+        await ref.read(dompetProvider.notifier).tambah(nuevoDompet);
 
         if (!mounted) return;
 

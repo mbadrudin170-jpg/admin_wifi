@@ -79,7 +79,7 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
 
   Future<String> _getNamaDompet() async {
     try {
-      final dompet = await dompetNotifierGlobal.getDompetById(
+      final dompet = ref.read(dompetProvider).requireValue.getDompetById(
         widget.transaksi.idDompet,
       );
       return dompet!.namaDompet;

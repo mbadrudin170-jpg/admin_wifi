@@ -56,7 +56,7 @@ class _DompetPageState extends ConsumerState<DompetPage> {
 
   // Fungsi untuk menampilkan dialog konfirmasi sebelum menghapus semua dompet
   void _tampilkanDialogHapusSemua() async {
-    final dompetList = await _dompetOperasi.getDompet();
+    final dompetList = ref.read(dompetProvider).requireValue.getDompet();
     if (!mounted) return;
 
     if (dompetList.isEmpty) {
@@ -211,21 +211,20 @@ class RingkasanKeuangan extends ConsumerStatefulWidget {
 }
 
 class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
-  late final DompetNotifier _dompetOperasi;
   late Future<List<double>> _summaryFuture;
 
   @override
   void initState() {
     super.initState();
-    _dompetOperasi = ref.read(dompetProvider.notifier);
     _loadSummary();
   }
 
   void _loadSummary() {
-    _summaryFuture = Future.wait([
-      _dompetOperasi.getTotalSaldoPositif(),
-      _dompetOperasi.getTotalSaldoNegatif(),
-      _dompetOperasi.getTotalSaldo(),
+    final state = ref.read(dompetProvider).requireValue;
+    _summaryFuture = Future.value([
+      state.getTotalSaldoPositif(),
+      state.getTotalSaldoNegatif(),
+      state.getTotalSaldo(),
     ]);
   }
 
