@@ -1,7 +1,7 @@
 // path: lib/fitur/kategori/screens/form_kategori.dart
 // Halaman ini menyediakan formulir untuk menambah atau mengedit kategori dan sub-kategori.
 
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
@@ -29,7 +29,6 @@ class FormKategoriPage extends StatefulWidget {
 
 class _FormKategoriPageState extends State<FormKategoriPage> {
   final _formKey = GlobalKey<FormState>();
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   final LayananUnggahData _layananUnggahData = LayananUnggahData();
 
   late TipeKategori _tipe;
@@ -235,7 +234,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
           L.i(
             'Mengambil data kategori induk dengan ID: ${widget.idKategoriInduk}',
           );
-          final kategoriInduk = await _kategoriOperasi.getKategoriById(
+          final kategoriInduk = await kategoriNotifierGlobal.getKategoriById(
             widget.idKategoriInduk!,
           );
 
@@ -274,7 +273,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
             L.i(
               'Memanggil _kategoriOperasi.update() untuk menyimpan perubahan kategori induk.',
             );
-            await _kategoriOperasi.update(kategoriInduk);
+            await kategoriNotifierGlobal.perbarui(kategoriInduk);
 
             L.i('Update sub-kategori BERHASIL.');
             L.i(
@@ -314,7 +313,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
           L.i('  - Diperbarui: ${kategoriDiperbarui.diperbarui}');
 
           L.i('Memanggil _kategoriOperasi.update() untuk menyimpan perubahan.');
-          await _kategoriOperasi.update(kategoriDiperbarui);
+          await kategoriNotifierGlobal.perbarui(kategoriDiperbarui);
 
           L.i('Update kategori utama BERHASIL.');
           L.i(
@@ -388,7 +387,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
           L.i(
             'Memanggil _kategoriOperasi.createKategori() untuk menyimpan kategori baru.',
           );
-          await _kategoriOperasi.createKategori(kategoriBaru);
+          await kategoriNotifierGlobal.createKategori(kategoriBaru);
 
           L.i('Kategori baru BERHASIL disimpan ke database lokal.');
         }

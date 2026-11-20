@@ -33,7 +33,7 @@ final class KategoriNotifierProvider
   KategoriNotifier create() => KategoriNotifier();
 }
 
-String _$kategoriNotifierHash() => r'17fd7b87f834bc54c550686507b0e515626c6314';
+String _$kategoriNotifierHash() => r'775b9bb5d456e61dc687fc58048f168d7b9ef46c';
 
 abstract class _$KategoriNotifier extends $AsyncNotifier<KategoriState> {
   FutureOr<KategoriState> build();

@@ -1,7 +1,7 @@
 // path: test/data/operasi/kategori_operasi_test.dart
-// diubah: Menyesuaikan pemanggilan fromMap menjadi fromSqlite
+// diubah: Menggunakan KategoriNotifier alih-alih KategoriOperasi
 
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,7 +17,6 @@ void main() {
   });
 
   group('KategoriOperasi Tests', () {
-    late KategoriOperasi kategoriOperasi;
     late Database db;
 
     // Fungsi helper untuk membersihkan dan menyiapkan database sebelum setiap tes
@@ -25,7 +24,6 @@ void main() {
       // Menggunakan database in-memory
       db = await DatabaseHelper.instance.database;
       await db.delete('kategori'); // Hapus semua data sebelumnya
-      kategoriOperasi = KategoriOperasi();
     });
 
     test(
@@ -37,10 +35,10 @@ void main() {
           tipe: TipeKategori.pemasukan,
         );
 
-        final kategoriBaru = await kategoriOperasi.createKategori(kategori);
+        final kategoriBaru = await kategoriNotifierGlobal.createKategori(kategori);
 
         // Verifikasi
-        final hasil = await kategoriOperasi.getKategori();
+        final hasil = await kategoriNotifierGlobal.getKategori();
         expect(hasil.length, 1);
         expect(hasil.first.nama, 'Test Pemasukan');
         expect(hasil.first.id, kategoriBaru.id);
@@ -49,14 +47,14 @@ void main() {
     );
 
     test('2. getKategori harus mengembalikan daftar kategori', () async {
-      await kategoriOperasi.createKategori(
+      await kategoriNotifierGlobal.createKategori(
         KategoriModel(
           id: const Uuid().v4(),
           nama: 'Kategori 1',
           tipe: TipeKategori.pemasukan,
         ),
       );
-      await kategoriOperasi.createKategori(
+      await kategoriNotifierGlobal.createKategori(
         KategoriModel(
           id: const Uuid().v4(),
           nama: 'Kategori 2',
@@ -64,19 +62,19 @@ void main() {
         ),
       );
 
-      final hasil = await kategoriOperasi.getKategori();
+      final hasil = await kategoriNotifierGlobal.getKategori();
       expect(hasil.length, 2);
     });
 
     test('3. getKategoriByTipe harus memfilter berdasarkan tipe', () async {
-      await kategoriOperasi.createKategori(
+      await kategoriNotifierGlobal.createKategori(
         KategoriModel(
           id: const Uuid().v4(),
           nama: 'Pemasukan 1',
           tipe: TipeKategori.pemasukan,
         ),
       );
-      await kategoriOperasi.createKategori(
+      await kategoriNotifierGlobal.createKategori(
         KategoriModel(
           id: const Uuid().v4(),
           nama: 'Pengeluaran 1',
@@ -84,15 +82,15 @@ void main() {
         ),
       );
 
-      final hasil = await kategoriOperasi.getKategoriByTipe(
+      final hasil = await kategoriNotifierGlobal.getKategoriByTipe(
         TipeKategori.pemasukan,
       );
       expect(hasil.length, 1);
       expect(hasil.first.nama, 'Pemasukan 1');
     });
 
-    test('4. update harus memperbarui data kategori', () async {
-      final kategoriAwal = await kategoriOperasi.createKategori(
+    test('4. perbarui harus memperbarui data kategori', () async {
+      final kategoriAwal = await kategoriNotifierGlobal.createKategori(
         KategoriModel(
           id: const Uuid().v4(),
           nama: 'Nama Lama',
@@ -101,7 +99,7 @@ void main() {
       );
 
       final kategoriUpdate = kategoriAwal.copyWith(nama: 'Nama Baru');
-      await kategoriOperasi.update(kategoriUpdate);
+      await kategoriNotifierGlobal.perbarui(kategoriUpdate);
 
       final hasilDb = await db.query(
         'kategori',
@@ -117,7 +115,7 @@ void main() {
     });
 
     test('5. delete harus menghapus kategori', () async {
-      final kategori = await kategoriOperasi.createKategori(
+      final kategori = await kategoriNotifierGlobal.createKategori(
         KategoriModel(
           id: const Uuid().v4(),
           nama: 'Untuk Dihapus',
@@ -125,15 +123,15 @@ void main() {
         ),
       );
 
-      await kategoriOperasi.delete(kategori.id);
+      await kategoriNotifierGlobal.delete(kategori.id);
 
-      final hasil = await kategoriOperasi.getKategori();
+      final hasil = await kategoriNotifierGlobal.getKategori();
       expect(hasil.isEmpty, isTrue);
     });
 
     test('6. sisipkanAtauPerbaruiBatch harus melakukan upsert', () async {
       // Buat data awal
-      final kategoriAwal = await kategoriOperasi.createKategori(
+      final kategoriAwal = await kategoriNotifierGlobal.createKategori(
         KategoriModel(id: '1', nama: 'Awal', tipe: TipeKategori.pemasukan),
       );
 
@@ -144,9 +142,9 @@ void main() {
         KategoriModel(id: '2', nama: 'Baru', tipe: TipeKategori.pengeluaran),
       ];
 
-      await kategoriOperasi.sisipkanAtauPerbaruiBatch(batch);
+      await kategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(batch);
 
-      final hasil = await kategoriOperasi.getKategori();
+      final hasil = await kategoriNotifierGlobal.getKategori();
       expect(hasil.length, 2);
       expect(hasil.firstWhere((k) => k.id == '1').nama, 'Update');
       expect(hasil.firstWhere((k) => k.id == '2').nama, 'Baru');
@@ -159,7 +157,7 @@ void main() {
         // diubah: Jeda diperpanjang untuk memastikan timestamp berbeda
         await Future.delayed(const Duration(milliseconds: 50));
 
-        await kategoriOperasi.createKategori(
+        await kategoriNotifierGlobal.createKategori(
           KategoriModel(
             id: const Uuid().v4(),
             nama: 'Perubahan 1',
@@ -167,7 +165,7 @@ void main() {
           ),
         );
 
-        final hasil = await kategoriOperasi.getPerubahan(waktuSekarang);
+        final hasil = await kategoriNotifierGlobal.getPerubahan(waktuSekarang);
         expect(
           hasil.length,
           1,

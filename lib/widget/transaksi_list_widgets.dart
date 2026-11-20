@@ -1,8 +1,8 @@
 // path: lib/widget/transaksi_list_widgets.dart
 // diubah: Menghapus operator null-aware yang tidak perlu dan memperbaiki penanganan error.
 
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
@@ -64,11 +64,9 @@ class TransaksiTile extends ConsumerStatefulWidget {
 }
 
 class _TransaksiTileState extends ConsumerState<TransaksiTile> {
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
-
   Future<String> _getNamaKategori() async {
     try {
-      final kategori = await _kategoriOperasi.getKategoriById(
+      final kategori = await kategoriNotifierGlobal.getKategoriById(
         widget.transaksi.idKategori,
       );
       return kategori.nama;

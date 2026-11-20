@@ -1,6 +1,6 @@
 // path: lib/halaman/lainnya/kategori.dart
 
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/screens/form_kategori.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
@@ -16,7 +16,6 @@ class KategoriPage extends StatefulWidget {
 }
 
 class _KategoriPageState extends State<KategoriPage> {
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   late Future<List<KategoriModel>> _listaKategoriFuture;
   TipeKategori _selectedTipe = TipeKategori.pemasukan;
   bool _isEdit = false;
@@ -32,7 +31,7 @@ class _KategoriPageState extends State<KategoriPage> {
   void _loadKategori() {
     L.i('Memuat data kategori dari database');
     setState(() {
-      _listaKategoriFuture = _kategoriOperasi
+      _listaKategoriFuture = kategoriNotifierGlobal
           .getKategori()
           .then((data) {
             int totalSubKategori = data.fold(
@@ -122,7 +121,7 @@ class _KategoriPageState extends State<KategoriPage> {
         'Mengarsipkan kategori utama ID: ${kategori.id}, nama: ${kategori.nama}',
       );
       final kategoriDiperbarui = kategori.copyWith(diarsipkan: DateTime.now());
-      await _kategoriOperasi.update(kategoriDiperbarui);
+      await kategoriNotifierGlobal.perbarui(kategoriDiperbarui);
       L.i(
         'Kategori ${kategori.nama} (ID: ${kategori.id}) berhasil diarsipkan pada ${kategoriDiperbarui.diarsipkan}',
       );
@@ -176,7 +175,7 @@ class _KategoriPageState extends State<KategoriPage> {
         diperbarui: DateTime.now(),
       );
 
-      await _kategoriOperasi.update(kategoriIndukDiperbarui);
+      await kategoriNotifierGlobal.perbarui(kategoriIndukDiperbarui);
       L.i(
         'Sub-kategori ${subKategori.nama} (ID: ${subKategori.id}) berhasil diarsipkan, kategori induk ${kategoriInduk.nama} diperbarui',
       );

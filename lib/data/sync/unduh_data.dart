@@ -1,6 +1,5 @@
 // path: lib/data/sync/unduh_data.dart
 
-import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
@@ -11,16 +10,17 @@ import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
-import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
@@ -33,7 +33,6 @@ class LayananUnduhData {
   final SyncManager _syncManager;
 
   // Operasi
-  final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   final PaketOperasi _paketOperasi = PaketOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
@@ -155,7 +154,7 @@ class LayananUnduhData {
       namaKoleksi: 'kategori',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => KategoriModel.fromSupabase(map),
-      operasiBatch: (data) => _kategoriOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => kategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
