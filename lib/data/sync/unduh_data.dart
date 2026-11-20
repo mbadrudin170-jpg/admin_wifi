@@ -9,7 +9,6 @@ import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,6 +22,7 @@ import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -38,7 +38,6 @@ class LayananUnduhData {
   final PaketOperasi _paketOperasi = PaketOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
-  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
   final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   final PesananOperasi _pesanOperasi = PesananOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
@@ -197,7 +196,7 @@ class LayananUnduhData {
       namaKoleksi: 'transaksi',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => TransaksiModel.fromSupabase(map),
-      operasiBatch: (data) => _transaksiOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => transaksiNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 

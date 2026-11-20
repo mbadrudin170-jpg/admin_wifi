@@ -1,6 +1,6 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -24,7 +24,7 @@ class HalamanPoin extends StatefulWidget {
 class _HalamanPoinState extends State<HalamanPoin> {
   MenuPoin _menuPilihan = MenuPoin.penukaran;
   final PaketOperasi _paketOperasi = PaketOperasi();
-  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
 
   int _totalPoin = 0;
   List<PaketModel> _daftarHadiah = [];

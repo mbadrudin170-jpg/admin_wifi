@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
@@ -24,7 +24,7 @@ class DetailPelangganPage extends StatefulWidget {
 
 class _DetailPelangganPageState extends State<DetailPelangganPage> {
   final PelangganOperasi pelangganOperasi = PelangganOperasi();
-  final TransaksiOperasi transaksiOperasi = TransaksiOperasi();
+  final TransaksiNotifier transaksiOperasi = transaksiNotifierGlobal;
 
   PelangganModel? pelanggan;
   int totalPoin = 0;

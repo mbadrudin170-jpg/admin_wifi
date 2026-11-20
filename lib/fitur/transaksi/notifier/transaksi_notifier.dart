@@ -1,23 +1,29 @@
 // path: lib/fitur/transaksi/notifier/transaksi_notifier.dart
 
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
+import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:sqflite/sqflite.dart';
 
 part 'transaksi_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class TransaksiNotifier extends _$TransaksiNotifier {
-  final TransaksiOperasi _operasi = TransaksiOperasi();
+  final OperasiDasar _operasiDasar = OperasiDasar();
 
   @override
   Future<TransaksiState> build() async {
     L.i('Memuat daftar transaksi dari database');
     return _ambilSemua();
   }
+
+  Future<Database> get _db async => await DatabaseHelper.instance.database;
 
   Future<void> muatUlang() async {
     try {
@@ -43,28 +49,394 @@ class TransaksiNotifier extends _$TransaksiNotifier {
     );
   }
 
-  /// Menghitung saldo poin akhir [idPelanggan].
-  Future<int> hitungTotalPoin(String idPelanggan) async {
-    return _operasi.getTotalPoin(idPelanggan);
+  Future<void> _recalculateAndUpdateDompetSaldo(
+    String idDompet,
+    DatabaseExecutor txn,
+  ) async {
+    try {
+      final totalResult = await txn.rawQuery(
+        '''
+        SELECT
+          COALESCE(SUM(
+            CASE
+              WHEN tipe = 'pemasukan'
+                AND id_dompet = ?
+              THEN jumlah
+
+              WHEN tipe = 'pengeluaran'
+                AND id_dompet = ?
+              THEN -jumlah
+
+              WHEN tipe = 'transfer'
+                AND id_dompet = ?
+              THEN -jumlah
+
+              WHEN tipe = 'transfer'
+                AND id_dompet_tujuan = ?
+              THEN jumlah
+
+              ELSE 0
+            END
+          ), 0) as total
+        FROM transaksi
+        WHERE is_deleted = 0 AND (id_dompet = ? OR id_dompet_tujuan = ?)
+        ''',
+        [idDompet, idDompet, idDompet, idDompet, idDompet, idDompet],
+      );
+
+      final totalSaldo =
+          (totalResult.first['total'] as num?)?.toDouble() ?? 0.0;
+
+      await txn.update(
+        'dompet',
+        {'saldo': totalSaldo},
+        where: 'id = ?',
+        whereArgs: [idDompet],
+      );
+    } catch (e, s) {
+      L.e('Gagal hitung ulang saldo Dompet ID: $idDompet. Error: $e $s');
+      rethrow;
+    }
+  }
+
+  Future<int> tambahTransaksi(TransaksiModel transaksi) async {
+    try {
+      final id = await _operasiDasar.jalankanOperasiKompleks<int>((txn) async {
+        final data = transaksi.copyWith(diperbarui: DateTime.now());
+
+        final newId = await txn.insert(
+          'transaksi',
+          data.toSqlite(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        await _recalculateAndUpdateDompetSaldo(data.idDompet, txn);
+        if (data.tipe == TipeTransaksi.transfer &&
+            data.idDompetTujuan != null) {
+          await _recalculateAndUpdateDompetSaldo(data.idDompetTujuan!, txn);
+        }
+        return newId;
+      });
+      state = AsyncValue.data(await _ambilSemua());
+      return id;
+    } catch (e, s) {
+      L.e('Gagal menambah transaksi ID: ${transaksi.id}. Error: $e $s');
+      rethrow;
+    }
   }
 
   Future<void> tambah(TransaksiModel model) async {
     try {
-      await _operasi.tambahTransaksi(model);
-      state = AsyncValue.data(await _ambilSemua());
+      await tambahTransaksi(model);
     } catch (e, s) {
       L.e('Gagal menambahkan transaksi: $e\n$s');
       rethrow;
     }
   }
 
+  Future<List<TransaksiModel>> ambilSemuaTransaksi() async {
+    final db = await _db;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        TransaksiSkema.tabel,
+        where: '${TransaksiSkema.isDeleted} = ?',
+        whereArgs: const [0],
+        orderBy: '${TransaksiSkema.tanggal} DESC',
+      );
+      return maps.map(TransaksiModel.fromSqlite).toList();
+    } catch (e, s) {
+      L.e('Gagal mengambil semua transaksi. Error: $e $s');
+      return [];
+    }
+  }
+
+  Future<TransaksiModel?> getTransaksiById(String id) async {
+    final db = await _db;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        TransaksiSkema.tabel,
+        where: '${TransaksiSkema.id} = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (maps.isEmpty) return null;
+      return TransaksiModel.fromSqlite(maps.first);
+    } catch (e, s) {
+      L.e('Gagal mengambil transaksi ID: $id. Error: $e $s');
+      return null;
+    }
+  }
+
+  Future<List<TransaksiModel>> ambilTransaksiByPelangganId(
+    String pelangganId,
+  ) async {
+    final db = await _db;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        TransaksiSkema.tabel,
+        where:
+            '${TransaksiSkema.idPelanggan} = ? AND ${TransaksiSkema.isDeleted} = ?',
+        whereArgs: [pelangganId, 0],
+        orderBy: '${TransaksiSkema.tanggal} DESC',
+      );
+      return maps.map(TransaksiModel.fromSqlite).toList();
+    } catch (e, s) {
+      L.e('Gagal mengambil transaksi pelanggan: $e $s');
+      return [];
+    }
+  }
+
+  Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
+    final db = await _db;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        TransaksiSkema.tabel,
+        where:
+            '(${TransaksiSkema.idDompet} = ? OR ${TransaksiSkema.idDompetTujuan} = ?) AND ${TransaksiSkema.isDeleted} = ?',
+        whereArgs: [dompetId, dompetId, 0],
+        orderBy: '${TransaksiSkema.tanggal} DESC',
+      );
+      return maps.map(TransaksiModel.fromSqlite).toList();
+    } catch (e, s) {
+      L.e('Gagal mengambil transaksi dompet: $e $s');
+      return [];
+    }
+  }
+
+  Future<List<TransaksiModel>> getTransaksiByAktivasiPaket() async {
+    final db = await _db;
+    try {
+      final List<Map<String, dynamic>> maps = await db.query(
+        TransaksiSkema.tabel,
+        where:
+            '${TransaksiSkema.aktivasiPaket} = ? AND ${TransaksiSkema.isDeleted} = ?',
+        whereArgs: [1, 0],
+        orderBy: '${TransaksiSkema.tanggal} DESC',
+      );
+      return maps.map(TransaksiModel.fromSqlite).toList();
+    } catch (e, s) {
+      L.e('Gagal mengambil transaksi aktivasi paket: $e $s');
+      return [];
+    }
+  }
+
+  Future<void> updateTransaksi(String id, TransaksiModel transaksiBaru) async {
+    try {
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+        final maps = await txn.query(
+          TransaksiSkema.tabel,
+          where: '${TransaksiSkema.id} = ?',
+          whereArgs: [id],
+        );
+
+        if (maps.isNotEmpty) {
+          final transaksiLama = TransaksiModel.fromSqlite(maps.first);
+          final dataUpdate = transaksiBaru.copyWith(diperbarui: DateTime.now());
+
+          await txn.update(
+            TransaksiSkema.tabel,
+            dataUpdate.toSqlite(),
+            where: '${TransaksiSkema.id} = ?',
+            whereArgs: [id],
+          );
+
+          final affectedWallets = <String>{};
+          affectedWallets.add(transaksiLama.idDompet);
+          affectedWallets.add(dataUpdate.idDompet);
+          if (transaksiLama.idDompetTujuan != null) {
+            affectedWallets.add(transaksiLama.idDompetTujuan!);
+          }
+          if (dataUpdate.idDompetTujuan != null) {
+            affectedWallets.add(dataUpdate.idDompetTujuan!);
+          }
+
+          for (final dompetId in affectedWallets) {
+            await _recalculateAndUpdateDompetSaldo(dompetId, txn);
+          }
+        }
+      });
+      state = AsyncValue.data(await _ambilSemua());
+    } catch (e, s) {
+      L.e('Gagal update transaksi ID: $id. Error: $e $s');
+      rethrow;
+    }
+  }
+
   Future<void> ubah(TransaksiModel model) async {
     try {
-      await _operasi.updateTransaksi(model.id, model);
-      state = AsyncValue.data(await _ambilSemua());
+      await updateTransaksi(model.id, model);
     } catch (e, s) {
       L.e('Gagal mengubah transaksi: $e\n$s');
       rethrow;
     }
   }
+
+  Future<void> arsipkanTransaksi(String id) async {
+    try {
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+        final maps = await txn.query(
+          TransaksiSkema.tabel,
+          where: '${TransaksiSkema.id} = ?',
+          whereArgs: [id],
+        );
+
+        if (maps.isNotEmpty) {
+          final transaksiLama = TransaksiModel.fromSqlite(maps.first);
+
+          await txn.update(
+            TransaksiSkema.tabel,
+            {
+              TransaksiSkema.isDeleted: 1,
+              TransaksiSkema.diperbarui: DateTime.now().toIso8601String(),
+            },
+            where: '${TransaksiSkema.id} = ?',
+            whereArgs: [id],
+          );
+
+          await _recalculateAndUpdateDompetSaldo(transaksiLama.idDompet, txn);
+          if (transaksiLama.tipe == TipeTransaksi.transfer &&
+              transaksiLama.idDompetTujuan != null) {
+            await _recalculateAndUpdateDompetSaldo(
+              transaksiLama.idDompetTujuan!,
+              txn,
+            );
+          }
+        }
+      });
+      state = AsyncValue.data(await _ambilSemua());
+    } catch (e, s) {
+      L.e('Gagal mengarsipkan transaksi ID: $id. Error: $e $s');
+      rethrow;
+    }
+  }
+
+  Future<double> getTotalPemasukan() async {
+    final db = await _db;
+    try {
+      final result = await db.rawQuery(
+        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND is_deleted = 0",
+      );
+      double total = 0.0;
+      if (result.isNotEmpty && result.first['jumlah'] != null) {
+        total = (result.first['jumlah'] as num).toDouble();
+      }
+      return total;
+    } catch (e, s) {
+      L.e('Error hitung total pemasukan: $e $s');
+      return 0.0;
+    }
+  }
+
+  Future<double> getTotalPengeluaran() async {
+    final db = await _db;
+    try {
+      final result = await db.rawQuery(
+        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND is_deleted = 0",
+      );
+      double total = 0.0;
+      if (result.isNotEmpty && result.first['jumlah'] != null) {
+        total = (result.first['jumlah'] as num).toDouble();
+      }
+      return total;
+    } catch (e, s) {
+      L.e('Error hitung total pengeluaran: $e $s');
+      return 0.0;
+    }
+  }
+
+  Future<double> getNetTotal() async {
+    final pemasukan = await getTotalPemasukan();
+    final pengeluaran = await getTotalPengeluaran();
+    return pemasukan - pengeluaran;
+  }
+
+  Future<int> getPoinYangDihasilkan(String idPelanggan) async {
+    final db = await _db;
+    try {
+      final result = await db.rawQuery(
+        'SELECT SUM(poin_yang_dihasilkan) as total FROM transaksi WHERE id_pelanggan = ? AND is_deleted = 0',
+        [idPelanggan],
+      );
+      return (result.first['total'] as int?) ?? 0;
+    } catch (e, s) {
+      L.e('Error hitung poin dihasilkan: $e $s');
+      return 0;
+    }
+  }
+
+  Future<int> getPoinYangDigunakan(String idPelanggan) async {
+    final db = await _db;
+    try {
+      final result = await db.rawQuery(
+        'SELECT SUM(poin_yang_digunakan) as total FROM transaksi WHERE id_pelanggan = ? AND is_deleted = 0',
+        [idPelanggan],
+      );
+      return (result.first['total'] as int?) ?? 0;
+    } catch (e, s) {
+      L.e('Error hitung poin digunakan: $e $s');
+      return 0;
+    }
+  }
+
+  Future<int> getTotalPoin(String idPelanggan) async {
+    final poinDihasilkan = await getPoinYangDihasilkan(idPelanggan);
+    final poinDigunakan = await getPoinYangDigunakan(idPelanggan);
+    return poinDihasilkan - poinDigunakan;
+  }
+
+  Future<int> hitungTotalPoin(String idPelanggan) async {
+    return getTotalPoin(idPelanggan);
+  }
+
+  Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
+    final affectedWallets = <String>{};
+    try {
+      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+        final batch = txn.batch();
+        for (final item in items) {
+          batch.insert(
+            TransaksiSkema.tabel,
+            item.copyWith(diperbarui: DateTime.now()).toSqlite(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          affectedWallets.add(item.idDompet);
+          if (item.idDompetTujuan != null) {
+            affectedWallets.add(item.idDompetTujuan!);
+          }
+        }
+        await batch.commit(noResult: true);
+
+        for (final dompetId in affectedWallets) {
+          await _recalculateAndUpdateDompetSaldo(dompetId, txn);
+        }
+      });
+      state = AsyncValue.data(await _ambilSemua());
+    } catch (e, s) {
+      L.e('Gagal menjalankan Batch transaksi. Error: $e $s');
+      rethrow;
+    }
+  }
+
+  Future<List<TransaksiModel>> getTransaksiByIds(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    final db = await _db;
+    try {
+      final placeholders = List.filled(ids.length, '?').join(',');
+      final List<Map<String, dynamic>> maps = await db.query(
+        TransaksiSkema.tabel,
+        where: 'id IN ($placeholders)',
+        whereArgs: ids,
+      );
+      return maps.map(TransaksiModel.fromSqlite).toList();
+    } catch (e, s) {
+      L.e('Error saat ambil transaksi by IDs: $e $s');
+      return [];
+    }
+  }
 }
+
+/// Kontainer global untuk mengakses [TransaksiNotifier] di luar konteks Riverpod.
+final ProviderContainer _transaksiGlobalContainer = ProviderContainer();
+
+TransaksiNotifier get transaksiNotifierGlobal =>
+    _transaksiGlobalContainer.read(transaksiProvider.notifier);

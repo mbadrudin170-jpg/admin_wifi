@@ -1,6 +1,6 @@
 // path: lib/fitur/riwayat_langganan/screens/riwayat_aktivasi_paket.dart
 
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
@@ -22,7 +22,7 @@ class RiwayatAktivasiPaketPage extends StatefulWidget {
 }
 
 class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
-  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
   late Future<List<TransaksiModel>> _listTransaksiFuture;
   OpsiUrutkan _urutanAktif = OpsiUrutkan.terbaru;
 

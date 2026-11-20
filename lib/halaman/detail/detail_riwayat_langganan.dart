@@ -4,7 +4,7 @@
 
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
@@ -24,7 +24,7 @@ class DetailLanggananTransaksiPage extends StatefulWidget {
 
 class _DetailLanggananTransaksiPageState
     extends State<DetailLanggananTransaksiPage> {
-  final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
+  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
   final PaketOperasi _paketOperasi = PaketOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 

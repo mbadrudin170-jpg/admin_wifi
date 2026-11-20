@@ -1,6 +1,6 @@
 // path: lib/fitur/dompet/screens/detail_dompet.dart
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/screens/form_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
@@ -28,7 +28,7 @@ class DetailDompetData {
 class DetailDompet extends StatefulWidget {
   final DompetModel dompet;
   final DompetOperasi? dompetOperasi;
-  final TransaksiOperasi? transaksiOperasi;
+  final TransaksiNotifier? transaksiOperasi;
 
   const DetailDompet({
     super.key,
@@ -44,7 +44,7 @@ class DetailDompet extends StatefulWidget {
 class _DetailDompetState extends State<DetailDompet> {
   late Future<DetailDompetData> _futureDetailData;
   late final DompetOperasi _dompetOperasi;
-  late final TransaksiOperasi _transaksiOperasi;
+  late final TransaksiNotifier _transaksiOperasi;
 
   String? _namaDompetTerbaru;
 
@@ -72,7 +72,7 @@ class _DetailDompetState extends State<DetailDompet> {
     L.i(
       'Menginisialisasi TransaksiOperasi. Menggunakan instance dari widget jika tersedia, jika tidak membuat instance baru.',
     );
-    _transaksiOperasi = widget.transaksiOperasi ?? TransaksiOperasi();
+    _transaksiOperasi = widget.transaksiOperasi ?? transaksiNotifierGlobal;
     L.i(
       'TransaksiOperasi berhasil diinisialisasi. Instance: ${_transaksiOperasi.hashCode}',
     );

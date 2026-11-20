@@ -3,11 +3,11 @@
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
@@ -51,7 +51,7 @@ Widget bangunHeaderSeksi(DateTime tanggal, double total) {
 class TransaksiTile extends StatefulWidget {
   final TransaksiModel transaksi;
   final VoidCallback onDataChanged;
-  final TransaksiOperasi transaksiOperasi;
+  final TransaksiNotifier transaksiOperasi;
 
   const TransaksiTile({
     super.key,
@@ -192,7 +192,7 @@ Widget bangunItemTransaksi(
   BuildContext context,
   TransaksiModel transaksi,
   VoidCallback onDataChanged,
-  TransaksiOperasi transaksiOperasi,
+  TransaksiNotifier transaksiOperasi,
 ) {
   return TransaksiTile(
     transaksi: transaksi,

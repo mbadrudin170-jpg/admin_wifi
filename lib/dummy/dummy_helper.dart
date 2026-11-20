@@ -10,7 +10,6 @@ import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/fitur/dompet/dummy/dompet_dummy.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
@@ -33,6 +32,7 @@ import 'package:admin_wifi/fitur/status_unggah/dummy/status_unggah_dummy.dart';
 import 'package:admin_wifi/fitur/status_unggah/model/status_unggah_model.dart';
 import 'package:admin_wifi/fitur/transaksi/dummy/transaksi_dummy.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/dummy/versi_apk_user_dummy.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -56,7 +56,6 @@ abstract final class DummyHelper {
   static final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
   static final PesananOperasi _pesananOperasi = PesananOperasi();
   static final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
-  static final TransaksiOperasi _transaksiOperasi = TransaksiOperasi();
   static final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
   static final OperasiDasar _operasiDasar = OperasiDasar();
 
@@ -131,7 +130,7 @@ abstract final class DummyHelper {
       L.i(
         'Menambahkan ${TransaksiDummy.dummyList.length} data dummy transaksi',
       );
-      await _transaksiOperasi.sisipkanAtauPerbaruiBatch(
+      await transaksiNotifierGlobal.sisipkanAtauPerbaruiBatch(
         TransaksiDummy.dummyList,
       );
       L.i('Semua data dummy transaksi berhasil ditambahkan');

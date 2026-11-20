@@ -1,6 +1,6 @@
 // path: test/halaman/detail/detail_dompet_test.dart
 
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
@@ -11,7 +11,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   late Database db;
-  late TransaksiOperasi transaksiOperasi;
+  late TransaksiNotifier transaksiOperasi = transaksiNotifierGlobal;
 
   setUpAll(() async {
     // INIT SQLITE FFI (WAJIB untuk test desktop)
@@ -20,8 +20,6 @@ void main() {
 
     // buka DB in-memory
     db = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
-
-    transaksiOperasi = TransaksiOperasi();
 
     // inject db instance kalau kamu pakai dependency injection
   });

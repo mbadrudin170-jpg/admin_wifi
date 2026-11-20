@@ -9,7 +9,6 @@
 
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
@@ -33,8 +32,6 @@ class MockOperasiDasar extends Mock implements OperasiDasar {}
 class MockPaketOperasi extends Mock implements PaketOperasi {}
 
 class MockVersiApkUserOperasi extends Mock implements VersiApkUserOperasi {}
-
-class MockTransaksiOperasi extends Mock implements TransaksiOperasi {}
 
 class MockNotifikasiServis extends Mock implements NotifikasiServis {}
 

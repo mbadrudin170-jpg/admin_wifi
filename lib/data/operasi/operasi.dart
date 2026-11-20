@@ -12,6 +12,5 @@ export 'pesanan_operasi.dart';
 export 'riwayat_langganan_operasi.dart';
 export 'status_unggah_operasi.dart';
 export 'sub_kategori_operasi.dart';
-export 'transaksi_operasi.dart';
 export 'versi_apk_user_operasi.dart';
 export 'operasi_dasar.dart';
