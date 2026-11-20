@@ -90,6 +90,6 @@ abstract final class PesananSkema {
   static const String tanggal = 'tanggal';
   static const String status = 'status';
   static const String diperbarui = 'diperbarui';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
 }

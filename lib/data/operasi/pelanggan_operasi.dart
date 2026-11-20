@@ -35,7 +35,7 @@ class PelangganOperasi {
       final db = await dbHelper.database;
       final List<Map<String, dynamic>> maps = await db.query(
         'pelanggan',
-        where: 'diarsipkan IS NULL AND isDeleted = ?',
+        where: 'diarsipkan IS NULL AND is_deleted = ?',
         whereArgs: [0],
       );
 
@@ -108,7 +108,7 @@ class PelangganOperasi {
     try {
       if (softDelete) {
         await _operasiDasar.perbarui('pelanggan', {
-          'isDeleted': 1,
+'is_deleted': 1,
           'diperbarui': DateTime.now().toIso8601String(),
         }, id);
         L.i('Berhasil melakukan soft delete pada pelanggan ID: $id.');

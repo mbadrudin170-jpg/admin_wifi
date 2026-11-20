@@ -74,7 +74,7 @@ class PaketOperasi {
             ELSE 999999
           END as urutan
         FROM paket
-        WHERE isDeleted = 0
+        WHERE is_deleted = 0
         ORDER BY urutan ASC
       ''');
 
@@ -111,7 +111,7 @@ class PaketOperasi {
             ELSE 999999
           END as urutan
         FROM paket
-        WHERE isDeleted = 0 AND isPublic = 1
+        WHERE is_deleted = 0 AND is_public = 1
         ORDER BY urutan ASC
       ''');
 

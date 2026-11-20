@@ -81,9 +81,9 @@ abstract class DompetModel with _$DompetModel {
 abstract final class DompetSkema {
   static const String tabel = 'dompet';
   static const String id = 'id';
-  static const String namaDompet = 'namaDompet';
+  static const String namaDompet = 'nama_dompet';
   static const String saldo = 'saldo';
   static const String diperbarui = 'diperbarui';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
 }

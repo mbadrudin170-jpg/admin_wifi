@@ -96,9 +96,9 @@ void main() {
         // ditambah: Memeriksa field poin yang baru.
         expect(map['poin_hadiah'], 50);
         expect(map['poin_penukaran'], 20);
-        expect(map['isPublic'], 0);
+        expect(map['is_public'], 0);
         expect(map['diperbarui'], now.toUtc().toIso8601String());
-        expect(map['isDeleted'], 1);
+        expect(map['is_deleted'], 1);
       },
     );
 
@@ -116,9 +116,9 @@ void main() {
         // ditambah: field poin yang baru.
         'poin_hadiah': 100,
         'poin_penukaran': 50,
-        'isPublic': 1,
+        'is_public': 1,
         'diperbarui': nowString,
-        'isDeleted': 1,
+        'is_deleted': 1,
       };
 
       // Act: Konversi dari map ke objek
@@ -147,7 +147,7 @@ void main() {
         'durasi': 60,
         'tipe': 'menit',
         'diperbarui': DateTime.now().toIso8601String(),
-        'isDeleted': 0,
+        'is_deleted': 0,
       };
 
       // Act: Konversi dari map ke objek
@@ -176,8 +176,8 @@ void main() {
        final hasil = paket.toSupabase();
 
       // Assert
-      expect(hasil['isDeleted'], isA<bool>());
-      expect(hasil['isDeleted'], true);
+      expect(hasil['is_deleted'], isA<bool>());
+      expect(hasil['is_deleted'], true);
     });
 
     // Tes ini juga tetap relevan
@@ -196,8 +196,8 @@ void main() {
        final hasil = paket.toSupabase();
 
       // Assert
-      expect(hasil['isDeleted'], isA<bool>());
-      expect(hasil['isDeleted'], false);
+      expect(hasil['is_deleted'], isA<bool>());
+      expect(hasil['is_deleted'], false);
     });
   });
 }

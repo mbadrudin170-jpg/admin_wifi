@@ -70,12 +70,12 @@ class PelangganAktifOperasi {
     try {
       final db = await dbHelper.database;
       L.i(
-        'Mengambil semua pelanggan aktif (isDeleted = 0) dari database lokal',
+        'Mengambil semua pelanggan aktif (is_deleted = 0) dari database lokal',
       );
 
       final List<Map<String, dynamic>> maps = await db.query(
         'pelanggan_aktif',
-        where: 'isDeleted = ?',
+        where: 'is_deleted = ?',
         whereArgs: [0],
       );
 
@@ -417,7 +417,7 @@ class PelangganAktifOperasi {
 
       final List<Map<String, dynamic>> pelangganKadaluarsa = await db.query(
         'pelanggan_aktif',
-        where: 'tanggal_berakhir < ? AND isDeleted = 0',
+        where: 'tanggal_berakhir < ? AND is_deleted = 0',
         whereArgs: [
           sekarang.toIso8601String(),
         ], // diubah: Membandingkan dengan string UTC
@@ -445,7 +445,7 @@ class PelangganAktifOperasi {
 
         await txn.update(
           'pelanggan_aktif',
-          {'isDeleted': 1, 'diarsipkan': now, 'diperbarui': now},
+          {'is_deleted': 1, 'diarsipkan': now, 'diperbarui': now},
           where: 'id IN (${List.filled(idsToArchive.length, '?').join(',')})',
           whereArgs: idsToArchive,
         );
@@ -491,7 +491,7 @@ class PelangganAktifOperasi {
 
         await txn.update(
           'pelanggan_aktif',
-          {'isDeleted': 1, 'diarsipkan': now, 'diperbarui': now},
+          {'is_deleted': 1, 'diarsipkan': now, 'diperbarui': now},
           where: 'id IN (${List.filled(idsToArchive.length, '?').join(',')})',
           whereArgs: idsToArchive,
         );

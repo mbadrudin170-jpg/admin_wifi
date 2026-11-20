@@ -195,7 +195,7 @@ abstract final class VersiApkUserSkema {
   static const String versiTerbaru = 'versi_terbaru';
   static const String wajibUpdate = 'wajib_update';
   static const String youtubeTutorial = 'youtube_tutorial';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
   static const String diperbarui = 'diperbarui';
 }

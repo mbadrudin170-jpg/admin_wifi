@@ -142,11 +142,11 @@ abstract final class PaketSkema {
   static const String harga = 'harga';
   static const String durasi = 'durasi';
   static const String tipe = 'tipe';
-  static const String jumlahPoin = 'jumlahPoin';
+  static const String jumlahPoin = 'jumlah_poin';
   static const String diperbarui = 'diperbarui';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
   static const String poinHadiah = 'poin_hadiah';
   static const String poinPenukaran = 'poin_penukaran';
-  static const String isPublic = 'isPublic';
+  static const String isPublic = 'is_public';
 }

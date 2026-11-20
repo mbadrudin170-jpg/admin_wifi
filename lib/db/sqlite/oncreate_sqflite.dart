@@ -264,7 +264,7 @@ Future<void> onCreateSqflite(Database db, int version) async {
       'CREATE INDEX idx_transaksi_dompet_tujuan ON transaksi(id_dompet_tujuan)',
     );
     await db.execute(
-      'CREATE INDEX idx_transaksi_isDeleted ON transaksi(isDeleted)',
+      'CREATE INDEX idx_transaksi_is_deleted ON transaksi(is_deleted)',
     );
     L.i('Semua 3 index berhasil dibuat.');
 

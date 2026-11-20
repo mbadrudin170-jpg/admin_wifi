@@ -74,6 +74,6 @@ abstract final class SubKategoriSkema {
   static const String nama = 'nama';
   static const String idKategori = 'id_kategori';
   static const String diperbarui = 'diperbarui';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
 }

@@ -156,7 +156,7 @@ class KritikSaranOperasi {
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
         final deletedCount = await txn.delete(
           'kritik_saran',
-          where: 'userId = ?',
+          where: 'user_id = ?',
           whereArgs: [userId],
         );
         L.i(

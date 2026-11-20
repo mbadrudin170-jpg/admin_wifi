@@ -31,6 +31,38 @@ Future<void> _addColumnIfNotExists(
   }
 }
 
+/// Utilitas aman untuk mengganti nama kolom (camelCase -> snake_case) bila
+/// kolom lama ada dan kolom baru belum ada.
+Future<void> _renameColumnIfNecessary(
+  Database db,
+  String tableName,
+  String oldColumnName,
+  String newColumnName,
+) async {
+  final List<Map<String, dynamic>> tableInfo = await db.rawQuery(
+    'PRAGMA table_info($tableName)',
+  );
+  final bool oldExists = tableInfo.any(
+    (column) => column['name'] == oldColumnName,
+  );
+  final bool newExists = tableInfo.any(
+    (column) => column['name'] == newColumnName,
+  );
+
+  if (oldExists && !newExists) {
+    await db.execute(
+      'ALTER TABLE $tableName RENAME COLUMN $oldColumnName TO $newColumnName',
+    );
+    L.i(
+      '[MIGRASI SUKSES] Kolom `$oldColumnName` pada tabel `$tableName` diganti menjadi `$newColumnName`.',
+    );
+  } else {
+    L.i(
+      '[MIGRASI DILEWATI] Kolom `$newColumnName` sudah ada atau `$oldColumnName` tidak ditemukan pada tabel `$tableName`.',
+    );
+  }
+}
+
 Future<void> onUpgradeSqflite(
   Database db,
   int oldVersion,
@@ -43,6 +75,30 @@ Future<void> onUpgradeSqflite(
   L.i('========================================');
 
   try {
+    // Migrasi nama kolom camelCase -> snake_case (sekali jalan).
+    await _renameColumnIfNecessary(db, 'dompet', 'namaDompet', 'nama_dompet');
+    await _renameColumnIfNecessary(db, 'dompet', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'paket', 'jumlahPoin', 'jumlah_poin');
+    await _renameColumnIfNecessary(db, 'paket', 'isDeleted', 'is_deleted');
+    await _renameColumnIfNecessary(db, 'paket', 'isPublic', 'is_public');
+
+    await _renameColumnIfNecessary(db, 'pelanggan', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'pelanggan_aktif', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'transaksi', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'kategori', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'sub_kategori', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'versi_apk_user', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'pesanan', 'isDeleted', 'is_deleted');
+
+    await _renameColumnIfNecessary(db, 'kritik_saran', 'userId', 'user_id');
+
     // Pendekatan idempoten: pastikan semua kolom yang diperlukan ada,
     // tanpa mempedulikan versi lama secara spesifik.
     // Ini menyelesaikan masalah migrasi yang terjebak atau tidak lengkap.

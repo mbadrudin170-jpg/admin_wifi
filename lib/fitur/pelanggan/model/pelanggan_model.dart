@@ -101,5 +101,5 @@ abstract final class PelangganSkema {
   static const String status = 'status';
   static const String diperbarui = 'diperbarui';
   static const String diarsipkan = 'diarsipkan';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
 }

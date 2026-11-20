@@ -29,8 +29,8 @@ class DompetOperasi {
       final db = await dbHelper.database;
       // diubah: query disesuaikan berdasarkan parameter
       final query = tampilkanDiarsipkan
-          ? 'isDeleted = 0'
-          : 'isDeleted = 0 AND diarsipkan IS NULL';
+          ? 'is_deleted = 0'
+          : 'is_deleted = 0 AND diarsipkan IS NULL';
       final List<Map<String, dynamic>> maps = await db.query(
         'dompet',
         where: query,
@@ -54,7 +54,7 @@ class DompetOperasi {
       final db = await dbHelper.database;
       final List<Map<String, dynamic>> maps = await db.query(
         'dompet',
-        where: 'id = ? AND isDeleted = 0',
+        where: 'id = ? AND is_deleted = 0',
         whereArgs: [id],
       );
 
@@ -132,7 +132,7 @@ class DompetOperasi {
       final Map<String, dynamic> dataToUpdate = {
         'diarsipkan': now.toIso8601String(),
         'diperbarui': now.toIso8601String(),
-        'isDeleted': 1,
+        'is_deleted': 1,
       };
 
       await _operasiDasar.perbarui('dompet', dataToUpdate, id);
@@ -151,7 +151,7 @@ class DompetOperasi {
     try {
       final db = await dbHelper.database;
       final result = await db.rawQuery(
-        'SELECT SUM(saldo) as total FROM dompet WHERE isDeleted = 0',
+        'SELECT SUM(saldo) as total FROM dompet WHERE is_deleted = 0',
       );
 
       double total = 0.0;
@@ -174,7 +174,7 @@ class DompetOperasi {
     try {
       final db = await dbHelper.database;
       final result = await db.rawQuery(
-        'SELECT SUM(saldo) as total FROM dompet WHERE saldo > 0 AND isDeleted = 0',
+        'SELECT SUM(saldo) as total FROM dompet WHERE saldo > 0 AND is_deleted = 0',
       );
 
       double total = 0.0;
@@ -197,7 +197,7 @@ class DompetOperasi {
     try {
       final db = await dbHelper.database;
       final result = await db.rawQuery(
-        'SELECT SUM(saldo) as total FROM dompet WHERE saldo < 0 AND isDeleted = 0',
+        'SELECT SUM(saldo) as total FROM dompet WHERE saldo < 0 AND is_deleted = 0',
       );
 
       double total = 0.0;

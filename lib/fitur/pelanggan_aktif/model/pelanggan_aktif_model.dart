@@ -14,7 +14,6 @@ part 'pelanggan_aktif_model.freezed.dart';
 ///
 /// Kelas terpisah dari `PelangganAktifModel` karena anggota statis tidak
 /// boleh senama dengan anggota instance freezed (`conflicting_static_and_instance`).
-/// Catatan: nama field `isDeleted` memang camelCase pada skema, jangan diubah.
 abstract final class PelangganAktifSkema {
   static const String tabel = 'pelanggan_aktif';
 
@@ -26,7 +25,7 @@ abstract final class PelangganAktifSkema {
   static const String tanggalBerakhir = 'tanggal_berakhir';
   static const String status = 'status';
   static const String diperbarui = 'diperbarui';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
 }
 

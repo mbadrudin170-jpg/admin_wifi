@@ -180,7 +180,7 @@ abstract final class TransaksiSkema {
   static const String idPaket = 'id_paket';
   static const String diperbarui = 'diperbarui';
   static const String diarsipkan = 'diarsipkan';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String idDompetTujuan = 'id_dompet_tujuan';
   static const String poinYangDihasilkan = 'poin_yang_dihasilkan';
   static const String poinYangDigunakan = 'poin_yang_digunakan';

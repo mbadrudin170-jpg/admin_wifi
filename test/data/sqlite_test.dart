@@ -58,7 +58,7 @@ void main() {
         'jumlah': 10000,
         'tanggal': DateTime.now().toIso8601String(),
         'tipe': 'pemasukan',
-        'isDeleted': 0,
+        'is_deleted': 0,
         'id_dompet': 'test',
         'id_kategori': 'test',
         'diperbarui': DateTime.now().toIso8601String(),
@@ -72,13 +72,13 @@ void main() {
     test('Default value isDeleted = 0', () async {
       await db.insert('dompet', {
         'id': const Uuid().v4(),
-        'namaDompet': 'Dompet Test',
+        'nama_dompet': 'Dompet Test',
         'saldo': 50000,
         'diperbarui': DateTime.now().toIso8601String(),
       });
 
       final hasil = await db.query('dompet');
-      expect(hasil.first['isDeleted'], 0);
+      expect(hasil.first['is_deleted'], 0);
     });
 
     test(
@@ -123,9 +123,9 @@ void main() {
 
       final kolomWajib = [
         'id',
-        'namaDompet',
+        'nama_dompet',
         'saldo',
-        'isDeleted',
+        'is_deleted',
         'diperbarui',
       ];
 

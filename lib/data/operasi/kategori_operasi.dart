@@ -125,7 +125,7 @@ class KategoriOperasi {
       final Map<String, dynamic> dataToUpdate = {
         'diarsipkan': now.toIso8601String(),
         'diperbarui': now.toIso8601String(),
-        'isDeleted': 1,
+        'is_deleted': 1,
       };
 
       await _operasiDasar.perbarui('kategori', dataToUpdate, id);

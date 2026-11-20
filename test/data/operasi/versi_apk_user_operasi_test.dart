@@ -124,7 +124,7 @@ void main() {
                   ).captured.single
                   as Map<String, dynamic>;
 
-          expect(captured['isDeleted'], 1);
+          expect(captured['is_deleted'], 1);
         },
       );
     });

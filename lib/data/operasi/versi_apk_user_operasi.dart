@@ -183,18 +183,18 @@ class VersiApkUserOperasi {
 
   Future<List<VersiApkUserModel>> ambilSemuaVersiApkAktif() async {
     L.i(
-      'Mengambil semua versi APK aktif (isDeleted = 0) dari tabel $_tableName',
+      'Mengambil semua versi APK aktif (is_deleted = 0) dari tabel $_tableName',
     );
 
     try {
       final db = await _dbHelper.database;
       L.i(
-        'Query: SELECT * FROM $_tableName WHERE isDeleted = 0 ORDER BY diperbarui DESC',
+        'Query: SELECT * FROM $_tableName WHERE is_deleted = 0 ORDER BY diperbarui DESC',
       );
 
       final maps = await db.query(
         _tableName,
-        where: 'isDeleted = 0',
+        where: 'is_deleted = 0',
         orderBy: 'diperbarui DESC',
       );
 
@@ -228,12 +228,12 @@ class VersiApkUserOperasi {
     try {
       final db = await _dbHelper.database;
       L.i(
-        'Query: SELECT * FROM $_tableName WHERE isDeleted = 0 ORDER BY diperbarui DESC LIMIT 1',
+        'Query: SELECT * FROM $_tableName WHERE is_deleted = 0 ORDER BY diperbarui DESC LIMIT 1',
       );
 
       final maps = await db.query(
         _tableName,
-        where: 'isDeleted = 0',
+        where: 'is_deleted = 0',
         orderBy: 'diperbarui DESC',
         limit: 1,
       );
@@ -261,11 +261,11 @@ class VersiApkUserOperasi {
 
     try {
       final db = await _dbHelper.database;
-      L.i('Query: SELECT * FROM $_tableName WHERE id = $id AND isDeleted = 0');
+      L.i('Query: SELECT * FROM $_tableName WHERE id = $id AND is_deleted = 0');
 
       final maps = await db.query(
         _tableName,
-        where: 'id = ? AND isDeleted = 0',
+        where: 'id = ? AND is_deleted = 0',
         whereArgs: [id],
       );
 

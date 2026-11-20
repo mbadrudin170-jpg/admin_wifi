@@ -59,7 +59,7 @@ class TransaksiOperasi {
             END
           ), 0) as total
         FROM transaksi
-        WHERE isDeleted = 0 AND (id_dompet = ? OR id_dompet_tujuan = ?)
+        WHERE is_deleted = 0 AND (id_dompet = ? OR id_dompet_tujuan = ?)
         ''',
         [idDompet, idDompet, idDompet, idDompet, idDompet, idDompet],
       );
@@ -128,11 +128,11 @@ class TransaksiOperasi {
     final db = await _dbHelper.database;
     try {
       L.i(
-        'Mengambil data semua transaksi (isDeleted = 0) - method: ambilSemuaTransaksi',
+        'Mengambil data semua transaksi (is_deleted = 0) - method: ambilSemuaTransaksi',
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
-        where: 'isDeleted = ?',
+        where: 'is_deleted = ?',
         whereArgs: [0],
         orderBy: 'tanggal DESC',
       );
@@ -189,7 +189,7 @@ class TransaksiOperasi {
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
-        where: 'id_pelanggan = ? AND isDeleted = ?',
+        where: 'id_pelanggan = ? AND is_deleted = ?',
         whereArgs: [pelangganId, 0],
         orderBy: 'tanggal DESC',
       );
@@ -215,7 +215,7 @@ class TransaksiOperasi {
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
-        where: '(id_dompet = ? OR id_dompet_tujuan = ?) AND isDeleted = ?',
+        where: '(id_dompet = ? OR id_dompet_tujuan = ?) AND is_deleted = ?',
         whereArgs: [dompetId, dompetId, 0],
         orderBy: 'tanggal DESC',
       );
@@ -242,7 +242,7 @@ class TransaksiOperasi {
       );
       final List<Map<String, dynamic>> maps = await db.query(
         'transaksi',
-        where: 'aktivasi_paket = ? AND isDeleted = ?',
+        where: 'aktivasi_paket = ? AND is_deleted = ?',
         whereArgs: [1, 0],
         orderBy: 'tanggal DESC',
       );
@@ -335,7 +335,7 @@ class TransaksiOperasi {
 
           await txn.update(
             'transaksi',
-            {'isDeleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
+            {'is_deleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
             where: 'id = ?',
             whereArgs: [id],
           );
@@ -371,7 +371,7 @@ class TransaksiOperasi {
     try {
       L.i('Menghitung total seluruh pemasukan - method: getTotalPemasukan');
       final result = await db.rawQuery(
-        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND isDeleted = 0",
+        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND is_deleted = 0",
       );
       double total = 0.0;
       if (result.isNotEmpty && result.first['jumlah'] != null) {
@@ -392,7 +392,7 @@ class TransaksiOperasi {
     try {
       L.i('Menghitung total seluruh pengeluaran - method: getTotalPengeluaran');
       final result = await db.rawQuery(
-        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND isDeleted = 0",
+        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND is_deleted = 0",
       );
       double total = 0.0;
       if (result.isNotEmpty && result.first['jumlah'] != null) {
@@ -424,7 +424,7 @@ class TransaksiOperasi {
         'Menghitung poin yang dihasilkan Pelanggan: $idPelanggan - method: getPoinYangDihasilkan',
       );
       final result = await db.rawQuery(
-        'SELECT SUM(poin_yang_dihasilkan) as total FROM transaksi WHERE id_pelanggan = ? AND isDeleted = 0',
+        'SELECT SUM(poin_yang_dihasilkan) as total FROM transaksi WHERE id_pelanggan = ? AND is_deleted = 0',
         [idPelanggan],
       );
       final total = result.first['total'] as int? ?? 0;
@@ -445,7 +445,7 @@ class TransaksiOperasi {
         'Menghitung poin yang digunakan Pelanggan: $idPelanggan - method: getPoinYangDigunakan',
       );
       final result = await db.rawQuery(
-        'SELECT SUM(poin_yang_digunakan) as total FROM transaksi WHERE id_pelanggan = ? AND isDeleted = 0',
+        'SELECT SUM(poin_yang_digunakan) as total FROM transaksi WHERE id_pelanggan = ? AND is_deleted = 0',
         [idPelanggan],
       );
       final total = result.first['total'] as int? ?? 0;

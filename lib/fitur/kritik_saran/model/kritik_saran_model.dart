@@ -70,6 +70,6 @@ abstract final class KritikSaranSkema {
   static const String id = 'id';
   static const String isi = 'isi';
   static const String tanggal = 'tanggal';
-  static const String userId = 'userId';
+  static const String userId = 'user_id';
   static const String diperbarui = 'diperbarui';
 }

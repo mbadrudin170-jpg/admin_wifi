@@ -24,7 +24,7 @@ class SubKategoriOperasi {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'sub_kategori',
-      where: 'isDeleted = ?',
+      where: 'is_deleted = ?',
       whereArgs: [0],
     );
     return List.generate(
@@ -39,7 +39,7 @@ class SubKategoriOperasi {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'sub_kategori',
-      where: 'id_kategori = ? AND isDeleted = ?',
+      where: 'id_kategori = ? AND is_deleted = ?',
       whereArgs: [idKategori, 0],
     );
     return List.generate(maps.length, (i) {
@@ -82,7 +82,7 @@ class SubKategoriOperasi {
     if (softDelete) {
       await db.update(
         'sub_kategori',
-        {'isDeleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
+        {'is_deleted': 1, 'diperbarui': DateTime.now().toIso8601String()},
         where: 'id = ?',
         whereArgs: [id],
       );

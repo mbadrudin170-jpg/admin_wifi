@@ -150,6 +150,6 @@ abstract final class KategoriSkema {
   static const String tipe = 'tipe';
   static const String idSubKategori = 'id_sub_kategori';
   static const String diperbarui = 'diperbarui';
-  static const String isDeleted = 'isDeleted';
+  static const String isDeleted = 'is_deleted';
   static const String diarsipkan = 'diarsipkan';
 }

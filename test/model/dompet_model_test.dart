@@ -28,10 +28,10 @@ void main() {
         final nowString = DateTime.now().toIso8601String();
         final Map<String, dynamic> dataSqlite = {
           'id': 'uuid-sqlite-123',
-          'namaDompet': 'Tabungan SQLite',
+          'nama_dompet': 'Tabungan SQLite',
           'saldo': 100.50,
           'diperbarui': nowString,
-          'isDeleted': 1, // SQLite boolean
+          'is_deleted': 1, // SQLite boolean
         };
 
         final model = DompetModel.fromSqlite(dataSqlite);
@@ -59,9 +59,9 @@ void main() {
         final map = model.toSqlite();
 
         expect(map['id'], 'uuid-sqlite-456');
-        expect(map['namaDompet'], 'Saku');
+        expect(map['nama_dompet'], 'Saku');
         expect(map['saldo'], 10);
-        expect(map['isDeleted'], 1); // bool to int
+        expect(map['is_deleted'], 1); // bool to int
         expect(map['diperbarui'], isA<String>());
 
         developer.log('Berhasil: isDeleted terkonversi ke 1 untuk SQLite');
@@ -74,10 +74,10 @@ void main() {
 
         final Map<String, dynamic> dataSupabase = {
           'id': 'supabase-id-123',
-          'namaDompet': 'Investasi',
+          'nama_dompet': 'Investasi',
           'saldo': 2500.75,
           'diperbarui': DateTime.now().toUtc().toIso8601String(),
-          'isDeleted': false,
+          'is_deleted': false,
         };
 
         final model = DompetModel.fromSupabase(dataSupabase);
@@ -104,9 +104,9 @@ void main() {
 
         final map = model.toSupabase();
 
-        expect(map['namaDompet'], 'Dana Darurat');
+        expect(map['nama_dompet'], 'Dana Darurat');
         expect(map['saldo'], 10000);
-        expect(map['isDeleted'], false);
+        expect(map['is_deleted'], false);
         expect(map['diperbarui'], isA<String>());
 
         developer.log('Berhasil: Model terkonversi ke map untuk Supabase.');

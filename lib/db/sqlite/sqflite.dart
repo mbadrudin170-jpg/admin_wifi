@@ -15,7 +15,7 @@ class DatabaseHelper {
   static Database? _database;
 
   // dinaikkan ke 43 untuk memaksa migrasi ulang yang aman dan idempoten
-  static const int _databaseVersion = 43;
+  static const int _databaseVersion = 44;
 
   DatabaseHelper._internal() {
     L.i('DatabaseHelper instance dibuat (singleton _internal).');
