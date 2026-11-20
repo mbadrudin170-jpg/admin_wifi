@@ -310,42 +310,8 @@ class TransaksiNotifier extends _$TransaksiNotifier {
     }
   }
 
-  Future<int> getPoinYangDihasilkan(String idPelanggan) async {
-    final db = await _db;
-    try {
-      final result = await db.rawQuery(
-        'SELECT SUM(poin_yang_dihasilkan) as total FROM transaksi WHERE id_pelanggan = ? AND is_deleted = 0',
-        [idPelanggan],
-      );
-      return (result.first['total'] as int?) ?? 0;
-    } catch (e, s) {
-      L.e('Error hitung poin dihasilkan: $e $s');
-      return 0;
-    }
-  }
-
-  Future<int> getPoinYangDigunakan(String idPelanggan) async {
-    final db = await _db;
-    try {
-      final result = await db.rawQuery(
-        'SELECT SUM(poin_yang_digunakan) as total FROM transaksi WHERE id_pelanggan = ? AND is_deleted = 0',
-        [idPelanggan],
-      );
-      return (result.first['total'] as int?) ?? 0;
-    } catch (e, s) {
-      L.e('Error hitung poin digunakan: $e $s');
-      return 0;
-    }
-  }
-
-  Future<int> getTotalPoin(String idPelanggan) async {
-    final poinDihasilkan = await getPoinYangDihasilkan(idPelanggan);
-    final poinDigunakan = await getPoinYangDigunakan(idPelanggan);
-    return poinDihasilkan - poinDigunakan;
-  }
-
   Future<int> hitungTotalPoin(String idPelanggan) async {
-    return getTotalPoin(idPelanggan);
+    return state.value?.getTotalPoin(idPelanggan) ?? 0;
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {

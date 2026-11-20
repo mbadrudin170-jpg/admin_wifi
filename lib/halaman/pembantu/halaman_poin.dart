@@ -1,10 +1,11 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
@@ -12,19 +13,18 @@ import 'package:share_global_saya/src/utils/navigator_helper.dart';
 // Enum untuk mengontrol tab yang aktif
 enum MenuPoin { penukaran, riwayat }
 
-class HalamanPoin extends StatefulWidget {
+class HalamanPoin extends ConsumerStatefulWidget {
   final String idPelanggan;
 
   const HalamanPoin({super.key, required this.idPelanggan});
 
   @override
-  State<HalamanPoin> createState() => _HalamanPoinState();
+  ConsumerState<HalamanPoin> createState() => _HalamanPoinState();
 }
 
-class _HalamanPoinState extends State<HalamanPoin> {
+class _HalamanPoinState extends ConsumerState<HalamanPoin> {
   MenuPoin _menuPilihan = MenuPoin.penukaran;
   final PaketOperasi _paketOperasi = PaketOperasi();
-  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
 
   int _totalPoin = 0;
   List<PaketModel> _daftarHadiah = [];
@@ -76,9 +76,9 @@ class _HalamanPoinState extends State<HalamanPoin> {
     try {
       // Load total poin dari database
       L.i('Menghitung total poin pelanggan dari transaksi...');
-      final totalPoin = await _transaksiOperasi.getTotalPoin(
-        widget.idPelanggan,
-      );
+      final totalPoin = await ref
+          .read(transaksiProvider.notifier)
+          .hitungTotalPoin(widget.idPelanggan);
 
       // Load daftar hadiah (paket aktif)
       L.i('Memuat daftar hadiah (paket aktif) dari database...');
@@ -127,7 +127,8 @@ class _HalamanPoinState extends State<HalamanPoin> {
 
     try {
       L.i('Mengambil riwayat transaksi dari database...');
-      final riwayatTransaksi = await _transaksiOperasi
+      final riwayatTransaksi = await ref
+          .read(transaksiProvider.notifier)
           .ambilTransaksiByPelangganId(widget.idPelanggan);
 
       // Filter transaksi yang berkaitan dengan poin (ada poin yang dihasilkan/digunakan)

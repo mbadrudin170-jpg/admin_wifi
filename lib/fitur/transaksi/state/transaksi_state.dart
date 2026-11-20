@@ -34,4 +34,18 @@ abstract class TransaksiState with _$TransaksiState {
 
   /// Selisih pemasukan dikurangi pengeluaran.
   double get netTotal => totalPemasukan - totalPengeluaran;
+
+  /// Total poin yang dihasilkan untuk [idPelanggan].
+  int getPoinYangDihasilkan(String idPelanggan) => listTransaksi
+      .where((t) => t.idPelanggan == idPelanggan)
+      .fold<int>(0, (sum, t) => sum + t.poinYangDihasilkan);
+
+  /// Total poin yang digunakan untuk [idPelanggan].
+  int getPoinYangDigunakan(String idPelanggan) => listTransaksi
+      .where((t) => t.idPelanggan == idPelanggan)
+      .fold<int>(0, (sum, t) => sum + t.poinYangDigunakan);
+
+  /// Saldo poin akhir untuk [idPelanggan].
+  int getTotalPoin(String idPelanggan) =>
+      getPoinYangDihasilkan(idPelanggan) - getPoinYangDigunakan(idPelanggan);
 }

@@ -62,7 +62,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       L.i(
         'Memulai request asinkron ke TransaksiOperasi untuk menghitung total poin pelanggan ID: ${widget.idPelanggan}',
       );
-      final hasilPoin = await transaksiOperasi.getTotalPoin(widget.idPelanggan);
+      final hasilPoin = await transaksiOperasi.hitungTotalPoin(widget.idPelanggan);
 
       if (!mounted) {
         L.w(
