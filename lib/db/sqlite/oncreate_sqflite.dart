@@ -1,4 +1,4 @@
-// path: lib/db/oncreate_sqflite.dart
+// path: lib/db/sqlite/oncreate_sqflite.dart
 
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
@@ -235,10 +235,6 @@ final String _tabelPesanan =
   ''';
 
 Future<void> onCreateSqflite(Database db, int version) async {
-  L.i('========================================');
-  L.i('MEMULAI PEMBUATAN TABEL DATABASE (onCreate) UNTUK VERSI $version');
-  L.i('========================================');
-
   try {
     await db.execute(_tabelKategori);
     await db.execute(_tabelSubKategori);
@@ -254,9 +250,7 @@ Future<void> onCreateSqflite(Database db, int version) async {
     await db.execute(_tabelStatusUnggah);
     await db.execute(_tabelStatusAplikasi);
     await db.execute(_tabelPesan);
-    L.i('Semua 14 tabel utama berhasil dibuat.');
 
-    L.i('Memulai pembuatan index...');
     await db.execute(
       'CREATE INDEX idx_transaksi_dompet ON transaksi(id_dompet)',
     );
@@ -266,11 +260,6 @@ Future<void> onCreateSqflite(Database db, int version) async {
     await db.execute(
       'CREATE INDEX idx_transaksi_is_deleted ON transaksi(is_deleted)',
     );
-    L.i('Semua 3 index berhasil dibuat.');
-
-    L.i('========================================');
-    L.i('PROSES PEMBUATAN TABEL & INDEX SELESAI');
-    L.i('========================================');
   } catch (e, st) {
     L.e('Gagal total saat membuat tabel atau index. Error: $e $st');
     rethrow;

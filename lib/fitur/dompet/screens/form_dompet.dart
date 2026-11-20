@@ -4,21 +4,22 @@
 
 import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
-class FormDompet extends StatefulWidget {
+class FormDompet extends ConsumerStatefulWidget {
   final DompetModel? dompet;
 
   const FormDompet({super.key, this.dompet});
 
   @override
-  State<FormDompet> createState() => _FormDompetState();
+  ConsumerState<FormDompet> createState() => _FormDompetState();
 }
 
-class _FormDompetState extends State<FormDompet> {
+class _FormDompetState extends ConsumerState<FormDompet> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
   final DompetOperasi _dompetOperasi = DompetOperasi();

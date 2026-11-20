@@ -1,4 +1,4 @@
-// path: lib/db/sqflite.dart
+// path: lib/db/sqlite/sqflite.dart
 
 import 'dart:io';
 
@@ -17,21 +17,15 @@ class DatabaseHelper {
   // dinaikkan ke 43 untuk memaksa migrasi ulang yang aman dan idempoten
   static const int _databaseVersion = 44;
 
-  DatabaseHelper._internal() {
-    L.i('DatabaseHelper instance dibuat (singleton _internal).');
-  }
+  DatabaseHelper._internal();
 
   Future<Database> get database async {
-    L.i('Memulai proses akses properti database getter.');
     if (_database != null) {
-      L.i('Instance database sudah ada di memori, mengembalikan...');
       return _database!;
     }
 
-    L.i('Instance database belum ada, memanggil _initDB().');
     try {
       _database = await _initDB();
-      L.i('Database berhasil diinisialisasi dan di-cache.');
       return _database!;
     } catch (e, st) {
       L.e('Gagal total mendapatkan instance database. Error: $e $st');
@@ -40,12 +34,10 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB() async {
-    L.i('Memulai inisialisasi database (_initDB).');
     try {
       if (kIsWeb) {
         // sqflite_common_ffi_web diinisialisasi di main() (kIsWeb);
         // di web, path database hanyalah nama (disimpan di IndexedDB).
-        L.i('Mode Web terdeteksi. Menggunakan database Web (IndexedDB).');
         return await openDatabase(
           'mydatabase.db',
           version: _databaseVersion,
@@ -54,7 +46,6 @@ class DatabaseHelper {
         );
       }
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        L.i('Mode TEST terdeteksi. Menggunakan database in-memory.');
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
         return await databaseFactory.openDatabase(
@@ -67,7 +58,6 @@ class DatabaseHelper {
         );
       }
 
-      L.i('Mode PRODUKSI/DEBUG. Menggunakan database fisik.');
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       String path = join(documentsDirectory.path, 'mydatabase.db');
       L.i('Path database: $path');

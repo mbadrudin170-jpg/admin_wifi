@@ -1,4 +1,4 @@
-// path: lib/main_prod.dart
+// path: lib/main.dart
 import 'package:admin_wifi/app.dart';
 import 'package:admin_wifi/db/supabase/supabase.dart';
 import 'package:flutter/foundation.dart';

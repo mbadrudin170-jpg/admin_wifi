@@ -1,4 +1,4 @@
-// path: lib/db/onupgrade_sqflite.dart
+// path: lib/db/sqlite/onupgrade_sqflite.dart
 
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -22,11 +22,11 @@ Future<void> _addColumnIfNotExists(
       'ALTER TABLE $tableName ADD COLUMN $columnName $columnType',
     );
     L.i(
-      '[MIGRASI SUKSES] Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.',
+      'Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.',
     );
   } else {
     L.i(
-      '[MIGRASI DILEWATI] Kolom `$columnName` sudah ada di tabel `$tableName`.',
+      'Kolom `$columnName` sudah ada di tabel `$tableName`, dilewati.',
     );
   }
 }
@@ -54,11 +54,11 @@ Future<void> _renameColumnIfNecessary(
       'ALTER TABLE $tableName RENAME COLUMN $oldColumnName TO $newColumnName',
     );
     L.i(
-      '[MIGRASI SUKSES] Kolom `$oldColumnName` pada tabel `$tableName` diganti menjadi `$newColumnName`.',
+      'Kolom `$oldColumnName` pada tabel `$tableName` diganti menjadi `$newColumnName`.',
     );
   } else {
     L.i(
-      '[MIGRASI DILEWATI] Kolom `$newColumnName` sudah ada atau `$oldColumnName` tidak ditemukan pada tabel `$tableName`.',
+      'Kolom `$newColumnName` sudah ada atau `$oldColumnName` tidak ditemukan pada tabel `$tableName`, dilewati.',
     );
   }
 }
@@ -68,60 +68,57 @@ Future<void> onUpgradeSqflite(
   int oldVersion,
   int newVersion,
 ) async {
-  L.i('========================================');
-  L.i('MEMULAI PROSES UPGRADE DATABASE (IDEMPOTEN)');
-  L.i('Versi database lama: $oldVersion');
-  L.i('Versi database baru: $newVersion');
-  L.i('========================================');
+  L.i('Memulai upgrade database dari versi $oldVersion ke $newVersion');
 
   try {
-    // Migrasi nama kolom camelCase -> snake_case (sekali jalan).
-    await _renameColumnIfNecessary(db, 'dompet', 'namaDompet', 'nama_dompet');
-    await _renameColumnIfNecessary(db, 'dompet', 'isDeleted', 'is_deleted');
+    // Versi 1-30: Migrasi kolom camelCase ke snake_case
+    if (oldVersion < 31) {
+      await _renameColumnIfNecessary(db, 'dompet', 'namaDompet', 'nama_dompet');
+      await _renameColumnIfNecessary(db, 'dompet', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'paket', 'jumlahPoin', 'jumlah_poin');
-    await _renameColumnIfNecessary(db, 'paket', 'isDeleted', 'is_deleted');
-    await _renameColumnIfNecessary(db, 'paket', 'isPublic', 'is_public');
+      await _renameColumnIfNecessary(db, 'paket', 'jumlahPoin', 'jumlah_poin');
+      await _renameColumnIfNecessary(db, 'paket', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'paket', 'isPublic', 'is_public');
 
-    await _renameColumnIfNecessary(db, 'pelanggan', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'pelanggan', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'pelanggan_aktif', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'pelanggan_aktif', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'transaksi', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'transaksi', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'kategori', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'kategori', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'sub_kategori', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'sub_kategori', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'versi_apk_user', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'versi_apk_user', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'pesanan', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(db, 'pesanan', 'isDeleted', 'is_deleted');
 
-    await _renameColumnIfNecessary(db, 'kritik_saran', 'userId', 'user_id');
+      await _renameColumnIfNecessary(db, 'kritik_saran', 'userId', 'user_id');
+    }
 
-    // Pendekatan idempoten: pastikan semua kolom yang diperlukan ada,
-    // tanpa mempedulikan versi lama secara spesifik.
-    // Ini menyelesaikan masalah migrasi yang terjebak atau tidak lengkap.
-    await _addColumnIfNotExists(
-      db,
-      'pelanggan_aktif',
-      'tanggal_berakhir',
-      'TEXT',
-    );
-    await _addColumnIfNotExists(db, 'pelanggan_aktif', 'tanggal_mulai', 'TEXT');
+    // Versi 31: Tambah kolom tanggal_mulai dan tanggal_berakhir ke pelanggan_aktif
+    if (oldVersion < 32) {
+      await _addColumnIfNotExists(
+        db,
+        'pelanggan_aktif',
+        'tanggal_mulai',
+        'TEXT',
+      );
+      await _addColumnIfNotExists(
+        db,
+        'pelanggan_aktif',
+        'tanggal_berakhir',
+        'TEXT',
+      );
+    }
 
-    // Tambahkan pengecekan kolom lain di masa depan di sini jika perlu.
+    // Versi 32-44: (versi kosong - tidak ada perubahan skema, hanya peningkatan versi)
+    // Tambahkan blok if (oldVersion < N) di sini untuk migrasi masa depan.
 
-    L.i('========================================');
-    L.i('PROSES UPGRADE DATABASE SELESAI');
-    L.i(
-      'Database berhasil diupgrade dari versi $oldVersion ke versi $newVersion.',
-    );
-    L.i('========================================');
+    L.i('Upgrade database selesai dari versi $oldVersion ke $newVersion');
   } catch (e, st) {
-    L.e(
-      'Gagal melakukan upgrade database dari versi $oldVersion ke versi $newVersion. Error: $e $st',
-    );
+    L.e('Gagal upgrade database dari versi $oldVersion ke $newVersion: $e $st');
     rethrow;
   }
 }
