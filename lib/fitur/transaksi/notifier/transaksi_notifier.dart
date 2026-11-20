@@ -310,46 +310,6 @@ class TransaksiNotifier extends _$TransaksiNotifier {
     }
   }
 
-  Future<double> getTotalPemasukan() async {
-    final db = await _db;
-    try {
-      final result = await db.rawQuery(
-        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pemasukan' AND is_deleted = 0",
-      );
-      double total = 0.0;
-      if (result.isNotEmpty && result.first['jumlah'] != null) {
-        total = (result.first['jumlah'] as num).toDouble();
-      }
-      return total;
-    } catch (e, s) {
-      L.e('Error hitung total pemasukan: $e $s');
-      return 0.0;
-    }
-  }
-
-  Future<double> getTotalPengeluaran() async {
-    final db = await _db;
-    try {
-      final result = await db.rawQuery(
-        "SELECT SUM(jumlah) as jumlah FROM transaksi WHERE tipe = 'pengeluaran' AND is_deleted = 0",
-      );
-      double total = 0.0;
-      if (result.isNotEmpty && result.first['jumlah'] != null) {
-        total = (result.first['jumlah'] as num).toDouble();
-      }
-      return total;
-    } catch (e, s) {
-      L.e('Error hitung total pengeluaran: $e $s');
-      return 0.0;
-    }
-  }
-
-  Future<double> getNetTotal() async {
-    final pemasukan = await getTotalPemasukan();
-    final pengeluaran = await getTotalPengeluaran();
-    return pemasukan - pengeluaran;
-  }
-
   Future<int> getPoinYangDihasilkan(String idPelanggan) async {
     final db = await _db;
     try {
