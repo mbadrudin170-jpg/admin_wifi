@@ -59,18 +59,27 @@ abstract class TransaksiState with _$TransaksiState {
 
   /// Mengambil transaksi berdasarkan [pelangganId].
   List<TransaksiModel> ambilTransaksiByPelangganId(String pelangganId) =>
-      (listTransaksi.where((t) => t.idPelanggan == pelangganId).toList()
-        ..sort((a, b) => b.tanggal.compareTo(a.tanggal)));
+      listTransaksi
+          .where((t) => t.idPelanggan == pelangganId)
+          .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
+
+  /// Mengambil transaksi poin (ada poin dihasilkan/digunakan) untuk [pelangganId].
+  List<TransaksiModel> ambilTransaksiPoinByPelangganId(String pelangganId) =>
+      listTransaksi
+          .where((t) =>
+              t.idPelanggan == pelangganId &&
+              (t.poinYangDihasilkan > 0 || t.poinYangDigunakan > 0))
+          .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
 
   /// Mengambil transaksi berdasarkan [dompetId] (asal/tujuan).
   List<TransaksiModel> ambilTransaksiByDompetId(String dompetId) =>
-      (listTransaksi
-              .where((t) => t.idDompet == dompetId || t.idDompetTujuan == dompetId)
-              .toList()
-        ..sort((a, b) => b.tanggal.compareTo(a.tanggal)));
+      listTransaksi
+          .where((t) => t.idDompet == dompetId || t.idDompetTujuan == dompetId)
+          .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
 
   /// Mengambil transaksi dengan aktivasi paket.
   List<TransaksiModel> getTransaksiByAktivasiPaket() =>
-      (listTransaksi.where((t) => t.aktivasiPaket).toList()
-        ..sort((a, b) => b.tanggal.compareTo(a.tanggal)));
+      listTransaksi
+          .where((t) => t.aktivasiPaket)
+          .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
 }

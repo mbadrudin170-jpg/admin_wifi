@@ -127,21 +127,17 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
     try {
       L.i('Mengambil riwayat transaksi dari database...');
-      final riwayatTransaksi =
-          ref.read(transaksiProvider).value?.ambilTransaksiByPelangganId(widget.idPelanggan) ??
-              <TransaksiModel>[];
-
-      // Filter transaksi yang berkaitan dengan poin (ada poin yang dihasilkan/digunakan)
-      final transaksiPoin = riwayatTransaksi
-          .where((t) => t.poinYangDihasilkan > 0 || t.poinYangDigunakan > 0)
-          .toList();
+      final transaksiState = await ref.read(transaksiProvider.future);
+      final riwayatTransaksi = transaksiState.ambilTransaksiPoinByPelangganId(
+        widget.idPelanggan,
+      );
 
       if (!mounted) return;
 
       setState(() {
-        _riwayatTransaksi = transaksiPoin;
+        _riwayatTransaksi = riwayatTransaksi;
         _isLoadingRiwayat = false;
-        L.i('Berhasil memuat ${transaksiPoin.length} riwayat transaksi poin.');
+        L.i('Berhasil memuat ${riwayatTransaksi.length} riwayat transaksi poin.');
       });
     } catch (e, stackTrace) {
       L.e('Gagal memuat riwayat transaksi: $e Error: $e $stackTrace');
