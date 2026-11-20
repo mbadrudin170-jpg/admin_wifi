@@ -97,7 +97,7 @@ void main() {
         expect(map['poin_hadiah'], 50);
         expect(map['poin_penukaran'], 20);
         expect(map['isPublic'], 0);
-        expect(map['diperbarui'], now.toIso8601String());
+        expect(map['diperbarui'], now.toUtc().toIso8601String());
         expect(map['isDeleted'], 1);
       },
     );

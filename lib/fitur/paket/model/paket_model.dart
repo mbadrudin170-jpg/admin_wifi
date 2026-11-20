@@ -144,6 +144,69 @@ abstract class PaketModel with _$PaketModel {
     }
     return data;
   }
+
+  // =========================
+  // SUPABASE
+  // =========================
+
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>`.
+  /// Kolom waktu disimpan sebagai ISO-8601 (UTC) dan diurai lewat [_parseTanggal].
+  factory PaketModel.fromSupabase(
+    dynamic idAtauData, [
+    Map<String, dynamic>? data,
+  ]) {
+    final Map<String, dynamic> map;
+    String? id;
+    if (idAtauData is Map<String, dynamic>) {
+      map = idAtauData;
+      id = ParserUtil.parseStringOrNull(map[PaketSkema.id]);
+    } else {
+      id = idAtauData?.toString();
+      map = data ?? const <String, dynamic>{};
+    }
+
+    return PaketModel(
+      id: id ?? ParserUtil.parseString(map[PaketSkema.id]),
+      nama: ParserUtil.parseString(map[PaketSkema.nama]),
+      harga: ParserUtil.parseInt(map[PaketSkema.harga]),
+      durasi: ParserUtil.parseInt(map[PaketSkema.durasi]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeDurasi.values,
+            ParserUtil.parseStringOrNull(map[PaketSkema.tipe]),
+          ) ??
+          TipeDurasi.hari,
+      poinHadiah: ParserUtil.parseInt(map[PaketSkema.poinHadiah]),
+      poinPenukaran: ParserUtil.parseInt(map[PaketSkema.poinPenukaran]),
+      isPublic: ParserUtil.parseBool(map[PaketSkema.isPublic]),
+      isDeleted: ParserUtil.parseBool(map[PaketSkema.isDeleted]),
+      diperbarui: _parseTanggal(map[PaketSkema.diperbarui]),
+      diarsipkan: _parseTanggal(map[PaketSkema.diarsipkan]),
+    );
+  }
+
+  /// Konversi ke `Map<String, dynamic>` untuk Supabase (PostgREST).
+  /// Waktu ditulis dalam ISO-8601 UTC; boolean tetap boolean.
+  Map<String, dynamic> toSupabase() {
+    final Map<String, dynamic> data = {
+      PaketSkema.id: id,
+      PaketSkema.nama: nama,
+      PaketSkema.harga: harga,
+      PaketSkema.durasi: durasi,
+      PaketSkema.tipe: tipe.name,
+      PaketSkema.poinHadiah: poinHadiah,
+      PaketSkema.poinPenukaran: poinPenukaran,
+      PaketSkema.isPublic: isPublic,
+      PaketSkema.isDeleted: isDeleted,
+      PaketSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
+    };
+    if (diarsipkan != null) {
+      data[PaketSkema.diarsipkan] = diarsipkan!.toUtc().toIso8601String();
+    }
+    return data;
+  }
 }
 
 abstract final class PaketSkema {
