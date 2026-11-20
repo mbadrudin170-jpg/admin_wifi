@@ -26,7 +26,7 @@ class PengecekanWaktuSyncService {
     );
   }
 
-  Future<void> jalankanPengecekanDanSinkronisasi() async {
+  Future<bool> jalankanPengecekanDanSinkronisasi() async {
     L.i(
       'Memulai siklus orkestrasi sinkronisasi global. Prosedur ini akan menjalankan dua fase utama secara berurutan: Fase Sinkronisasi Keluar (Upload) untuk memastikan data lokal terkirim ke cloud, kemudian Fase Sinkronisasi Masuk (Download) untuk memastikan data lokal tetap aktual dengan cloud.',
     );
@@ -34,20 +34,22 @@ class PengecekanWaktuSyncService {
     L.i(
       'Memasuki Fase Pertama: Memulai prosedur pemeriksaan data lokal yang perlu diunggah.',
     );
-    await _cekDanJalankanUnggah();
+    final bool unggahOk = await _cekDanJalankanUnggah();
 
     L.i(
       'Fase Pertama (Unggah) telah diselesaikan atau dilewati. Melanjutkan ke Fase Kedua: Memulai prosedur pemeriksaan pembaruan data di server cloud.',
     );
 
-    await _cekDanJalankanUnduh();
+    final bool unduhOk = await _cekDanJalankanUnduh();
 
     L.i(
-      'Seluruh siklus jalankanPengecekanDanSinkronisasi() telah berakhir dengan sukses. Status sinkronisasi lokal dan server kini seharusnya berada dalam kondisi konsisten.',
+      'Seluruh siklus jalankanPengecekanDanSinkronisasi() telah berakhir. Status sinkronisasi lokal dan server kini seharusnya berada dalam kondisi konsisten.',
     );
+
+    return unggahOk && unduhOk;
   }
 
-  Future<void> _cekDanJalankanUnggah() async {
+  Future<bool> _cekDanJalankanUnggah() async {
     L.i(
       'Menjalankan fungsi internal _cekDanJalankanUnggah(). Sistem akan melakukan inspeksi pada database SQLite lokal untuk mendeteksi adanya entri data baru atau perubahan yang belum ditandai sebagai tersinkronisasi.',
     );
@@ -82,17 +84,19 @@ class PengecekanWaktuSyncService {
         );
       } else {
         L.i(
-          'Hasil Pengecekan: Tidak ditemukan record baru atau perubahan data pada database SQLite lokal. Melewati fase pengunggahan untuk menghemat bandwidth dan sumber daya sistem.',
+          'Hasil Pengecekan: Tidak ditemukan record baru atau perubahan data pada database SQLite lokal. Melewati fase pengungahan untuk menghemat bandwidth dan sumber daya sistem.',
         );
       }
+      return true;
     } catch (e, s) {
       L.e(
-        'Kegagalan Operasional: Terjadi kesalahan fatal selama fase pengecekan atau pengunggahan data lokal ke server. Proses sinkronisasi keluar dihentikan secara paksa untuk mencegah korupsi data. Error: $e $s',
+        'Kegagalan Operasional: Terjadi kesalahan fatal selama fase pengecekan atau pengungahan data lokal ke server. Proses sinkronisasi keluar dihentikan secara paksa untuk mencegah korupsi data. Error: $e $s',
       );
+      return false;
     }
   }
 
-  Future<void> _cekDanJalankanUnduh() async {
+  Future<bool> _cekDanJalankanUnduh() async {
     L.i(
       'Menjalankan fungsi internal _cekDanJalankanUnduh(). Sistem akan melakukan handshake dengan Firebase Firestore untuk memeriksa apakah ada pembaruan data dari admin atau user lain yang perlu diterapkan di database lokal.',
     );
@@ -133,10 +137,12 @@ class PengecekanWaktuSyncService {
           'Hasil Pengecekan Server: Cloud tidak memiliki pembaruan data (data lokal sudah up-to-date). Menghentikan fase pengunduhan untuk efisiensi.',
         );
       }
+      return true;
     } catch (e, s) {
       L.e(
         'Kegagalan Operasional: Terjadi error saat mencoba mengambil atau memproses data baru dari server cloud ke penyimpanan lokal. Error: $e $s',
       );
+      return false;
     }
   }
 }

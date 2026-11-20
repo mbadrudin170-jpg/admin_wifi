@@ -1,11 +1,13 @@
 // path: lib/fitur/pengaturan/screens/pengaturan_sreen.dart
 
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/data/services/pengecekan_waktu_sync_services.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:admin_wifi/fitur/pengaturan/screens/form_pengaturan.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 // Halaman untuk menampilkan konfigurasi pengaturan aplikasi.
 class PengaturanScren extends StatefulWidget {
@@ -18,6 +20,7 @@ class PengaturanScren extends StatefulWidget {
 class _PengaturanScrenState extends State<PengaturanScren> {
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
   late Future<PengaturanModel> _futurePengaturan;
+  bool _sedangSinkronisasi = false;
 
   @override
   void initState() {
@@ -66,6 +69,33 @@ class _PengaturanScrenState extends State<PengaturanScren> {
       L.i('Kembali dari Form Edit Pengaturan tanpa melakukan perubahan');
     } else {
       L.i('Kembali dari Form Edit Pengaturan (hasil: $hasil)');
+    }
+  }
+
+  // Menjalankan sinkronisasi manual (unggah + unduh) ke/dari server.
+  Future<void> _jalankanSinkronisasiManual() async {
+    if (_sedangSinkronisasi) return;
+    setState(() => _sedangSinkronisasi = true);
+    L.i('Menjalankan sinkronisasi manual dari halaman Pengaturan.');
+    try {
+      final bool sukses = await PengecekanWaktuSyncService()
+          .jalankanPengecekanDanSinkronisasi();
+      if (mounted) {
+        if (sukses) {
+          AppToast.sukses(context, 'Sinkronisasi selesai.');
+        } else {
+          AppToast.gagal(context, 'Sinkronisasi gagal. Periksa koneksi/Supabase.');
+        }
+      }
+    } catch (e, s) {
+      L.e('Gagal sinkronisasi manual: $e $s');
+      if (mounted) {
+        AppToast.gagal(context, 'Gagal sinkronisasi: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sedangSinkronisasi = false);
+      }
     }
   }
 
@@ -180,6 +210,28 @@ class _PengaturanScrenState extends State<PengaturanScren> {
                       L.i('Tombol Edit Pengaturan ditekan');
                       _editPengaturan(pengaturan);
                     },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    icon: _sedangSinkronisasi
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.sync),
+                    label: Text(
+                      _sedangSinkronisasi
+                          ? 'Menyinkronkan...'
+                          : 'Sinkronisasi Manual',
+                    ),
+                    onPressed: _sedangSinkronisasi
+                        ? null
+                        : _jalankanSinkronisasiManual,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
                       padding: const EdgeInsets.symmetric(vertical: 12),
