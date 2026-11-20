@@ -1,17 +1,13 @@
 // path: lib/data/services/pengecekan_data_baru.dart
 import 'package:admin_wifi/data/operasi/operasi.dart';
-import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class PengecekanDataBaruService {
-  final SyncManager _syncManager;
   final StatusUnggahOperasi _statusUnggahOperasi;
 
   PengecekanDataBaruService({
-    SyncManager? syncManager,
     StatusUnggahOperasi? statusUnggahOperasi,
-  }) : _syncManager = syncManager ?? SyncManager(),
-       _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
+  }) : _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
     L.i(
       'Inisialisasi PengecekanDataBaruService berhasil (Firebase dihapus).',
     );
