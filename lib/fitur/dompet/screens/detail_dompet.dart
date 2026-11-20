@@ -482,7 +482,7 @@ class _DetailDompetState extends State<DetailDompet> {
                 );
                 L.i('========================================');
                 _muatUlangData();
-              }, _transaksiOperasi),
+              }),
             ),
           ],
         );

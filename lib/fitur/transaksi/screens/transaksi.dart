@@ -1,7 +1,7 @@
 // path: lib/halaman/tab/transaksi.dart
 
-import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
@@ -67,7 +67,6 @@ class TransaksiPage extends ConsumerStatefulWidget {
 }
 
 class _TransaksiPageState extends ConsumerState<TransaksiPage> {
-  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
 
   Future<void> _muatUlang() async {
     try {
@@ -186,7 +185,6 @@ class _TransaksiPageState extends ConsumerState<TransaksiPage> {
                 context,
                 transaksi,
                 () => _muatUlang(),
-                _transaksiOperasi,
               ),
             ),
           ],

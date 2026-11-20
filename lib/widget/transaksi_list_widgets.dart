@@ -52,13 +52,11 @@ Widget bangunHeaderSeksi(DateTime tanggal, double total) {
 class TransaksiTile extends ConsumerStatefulWidget {
   final TransaksiModel transaksi;
   final VoidCallback onDataChanged;
-  final TransaksiNotifier transaksiOperasi;
 
   const TransaksiTile({
     super.key,
     required this.transaksi,
     required this.onDataChanged,
-    required this.transaksiOperasi,
   });
 
   @override
@@ -92,7 +90,7 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
   }
 
   void _arsipkanTransaksi() async {
-    await widget.transaksiOperasi.arsipkanTransaksi(widget.transaksi.id);
+    await ref.read(transaksiProvider.notifier).arsipkanTransaksi(widget.transaksi.id);
     widget.onDataChanged();
   }
 
@@ -193,11 +191,9 @@ Widget bangunItemTransaksi(
   BuildContext context,
   TransaksiModel transaksi,
   VoidCallback onDataChanged,
-  TransaksiNotifier transaksiOperasi,
 ) {
   return TransaksiTile(
     transaksi: transaksi,
     onDataChanged: onDataChanged,
-    transaksiOperasi: transaksiOperasi,
   );
 }
