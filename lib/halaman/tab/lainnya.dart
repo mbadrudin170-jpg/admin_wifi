@@ -15,7 +15,6 @@ import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
 import '../../fitur/paket/screens/paket.dart';
 import '../../fitur/pelanggan/screens/pelanggan.dart';
 import '../../fitur/versi_apk_user/screens/versi_apk_user.dart';
-import '../../migrasi/halaman_migrasi.dart'; // ditambahkan: Import halaman migrasi
 import '../lainnya/tentang_aplikasi.dart';
 import 'pesanan.dart';
 
@@ -139,14 +138,6 @@ class _LainnyaTabState extends State<LainnyaPage> {
               'Tentang Aplikasi',
               const TentangAplikasiPage(),
             ),
-          ),
-          // ditambahkan: Navigasi ke halaman migrasi
-          const Divider(height: 32),
-          _buildNavigationButton(
-            title: '[DEBUG] Alat Migrasi Data',
-            icon: Icons.construction,
-            onTap: () =>
-                _handleNavigation('Alat Migrasi Data', const HalamanMigrasi()),
           ),
           _buildNavigationButton(
             title: '[DEBUG] Data Dummy',
