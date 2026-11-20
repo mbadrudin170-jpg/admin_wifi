@@ -1,6 +1,6 @@
 // path: lib/fitur/kritik_saran/screens/kritik_saran.dart
 
-import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
+import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/screens/detail_kritik_saran.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -17,7 +17,6 @@ class KritikSaranPage extends StatefulWidget {
 }
 
 class _KritikSaranPageState extends State<KritikSaranPage> {
-  final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   late Future<List<KritikSaranModel>> _kritikSaranFuture;
 
   @override
@@ -30,7 +29,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
   void _loadKritikSaran() {
     L.i('Memuat data kritik dan saran dari database');
     setState(() {
-      _kritikSaranFuture = _kritikSaranOperasi
+      _kritikSaranFuture = kritikSaranNotifierGlobal
           .getKritikSaran()
           .then((data) {
             L.i('Berhasil memuat ${data.length} data kritik dan saran');
@@ -91,7 +90,7 @@ class _KritikSaranPageState extends State<KritikSaranPage> {
         L.i(
           'Menjalankan operasi hapus kritik/saran ID: ${item.id} dari database',
         );
-        await _kritikSaranOperasi.hapusKritikSaran(item.id);
+        await kritikSaranNotifierGlobal.hapusKritikSaran(item.id);
 
         L.i('Kritik/saran ID: ${item.id} berhasil dihapus dari database');
 

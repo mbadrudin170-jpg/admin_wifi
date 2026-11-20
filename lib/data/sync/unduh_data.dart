@@ -1,6 +1,5 @@
 // path: lib/data/sync/unduh_data.dart
 
-import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
@@ -15,6 +14,7 @@ import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
+import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
@@ -36,7 +36,6 @@ class LayananUnduhData {
   final PaketOperasi _paketOperasi = PaketOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
   final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
-  final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   final PesananOperasi _pesanOperasi = PesananOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
   final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
@@ -207,7 +206,7 @@ class LayananUnduhData {
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => KritikSaranModel.fromSupabase(map),
       operasiBatch: (data) =>
-          _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
+          kritikSaranNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 

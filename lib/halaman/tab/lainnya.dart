@@ -1,8 +1,8 @@
 // path: lib/halaman/tab/lainnya.dart
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/fitur/kategori/screens/kategori.dart';
+import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/screens/kritik_saran.dart';
 import 'package:admin_wifi/fitur/pengaturan/screens/pengaturan_sreen.dart';
 import 'package:admin_wifi/fitur/riwayat_langganan/screens/riwayat_aktivasi_paket.dart';
@@ -81,13 +81,13 @@ class _LainnyaTabState extends State<LainnyaPage> {
 
               L.i('Mengunduh data Kritik & Saran dari Supabase.');
               final dataFromSupabase =
-                  await KritikSaranOperasi.unduhDataDariSupabase();
+                  await KritikSaranNotifier.unduhDataDariSupabase();
               L.i('Berhasil mengunduh ${dataFromSupabase.length} data.');
 
               if (dataFromSupabase.isNotEmpty) {
-                final operasi = KritikSaranOperasi();
                 L.i('Menyimpan/Memperbarui data ke database lokal.');
-                await operasi.sisipkanAtauPerbaruiBatch(dataFromSupabase);
+                await kritikSaranNotifierGlobal
+                    .sisipkanAtauPerbaruiBatch(dataFromSupabase);
                 L.i('Data berhasil disimpan/diperbarui.');
               }
 

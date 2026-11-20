@@ -1,6 +1,6 @@
 // path: test/data/operasi/kritik_saran_operasi_test.dart
-// diubah: Menyesuaikan dengan KritikSaranModel (isi, userId)
-import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
+// diubah: Menggunakan KritikSaranNotifier alih-alih KritikSaranOperasi
+import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,15 +14,13 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('KritikSaranOperasi Tests', () {
-    late KritikSaranOperasi operasi;
+  group('KritikSaranNotifier Tests', () {
     late Database db;
     final uuid = const Uuid();
 
     setUp(() async {
       db = await DatabaseHelper.instance.database;
       await db.delete('kritik_saran');
-      operasi = KritikSaranOperasi();
     });
 
     KritikSaranModel buatModel({
@@ -41,9 +39,9 @@ void main() {
 
     test('1. createKritikSaran harus menyimpan data baru', () async {
       final model = buatModel();
-      await operasi.createKritikSaran(model);
+      await kritikSaranNotifierGlobal.createKritikSaran(model);
 
-      final hasil = await operasi.getKritikSaran();
+      final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
       expect(hasil.length, 1);
       expect(hasil.first.id, model.id);
       expect(hasil.first.isi, 'Ini adalah kritik dan saran.');
@@ -57,10 +55,10 @@ void main() {
         ).copyWith(tanggal: DateTime.now().subtract(const Duration(days: 1)));
         final modelBaru = buatModel(userId: 'user-baru');
 
-        await operasi.createKritikSaran(modelLama);
-        await operasi.createKritikSaran(modelBaru);
+        await kritikSaranNotifierGlobal.createKritikSaran(modelLama);
+        await kritikSaranNotifierGlobal.createKritikSaran(modelBaru);
 
-        final hasil = await operasi.getKritikSaran();
+        final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
         expect(hasil.length, 2);
         expect(hasil.first.userId, 'user-baru'); // Terbaru di atas
         expect(hasil.last.userId, 'user-lama');
@@ -69,11 +67,11 @@ void main() {
 
     test('3. hapusKritikSaran harus menghapus data', () async {
       final model = buatModel();
-      await operasi.createKritikSaran(model);
+      await kritikSaranNotifierGlobal.createKritikSaran(model);
 
-      await operasi.hapusKritikSaran(model.id);
+      await kritikSaranNotifierGlobal.hapusKritikSaran(model.id);
 
-      final hasil = await operasi.getKritikSaran();
+      final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
       expect(hasil.isEmpty, isTrue);
     });
 
@@ -82,9 +80,9 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 20));
 
       final modelBaru = buatModel(userId: 'user-perubahan');
-      await operasi.createKritikSaran(modelBaru);
+      await kritikSaranNotifierGlobal.createKritikSaran(modelBaru);
 
-      final perubahan = await operasi.getPerubahan(waktuAmbil);
+      final perubahan = await kritikSaranNotifierGlobal.getPerubahan(waktuAmbil);
 
       expect(perubahan.length, 1);
       expect(perubahan.first.id, modelBaru.id);
@@ -94,15 +92,15 @@ void main() {
       '5. sisipkanAtauPerbaruiBatch harus melakukan upsert dengan benar',
       () async {
         final modelAwal = buatModel(id: 'id-tetap');
-        await operasi.createKritikSaran(modelAwal);
+        await kritikSaranNotifierGlobal.createKritikSaran(modelAwal);
 
         final batch = [
           modelAwal.copyWith(isi: 'Isi sudah diupdate'), // Update
           buatModel(id: 'id-baru'), // Insert
         ];
 
-        await operasi.sisipkanAtauPerbaruiBatch(batch);
-        final hasil = await operasi.getKritikSaran();
+        await kritikSaranNotifierGlobal.sisipkanAtauPerbaruiBatch(batch);
+        final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
         expect(hasil.length, 2);
 
         final updatedItem = hasil.firstWhere((k) => k.id == 'id-tetap');

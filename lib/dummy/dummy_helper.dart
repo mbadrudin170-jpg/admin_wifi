@@ -1,6 +1,5 @@
 // path: lib/dummy/dummy_helper.dart
 
-import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
@@ -17,6 +16,7 @@ import 'package:admin_wifi/fitur/kategori/dummy/sub_kategori_dummy.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
+import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/dummy/kritik_saran_dummy.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/paket/dummy/paket_dummy.dart';
@@ -46,7 +46,6 @@ import 'package:sqflite/sqflite.dart';
 /// tidak tersentuh. Penyisipan mengikuti urutan referensi; penghapusan
 /// dilakukan kebalikannya dalam satu transaksi.
 abstract final class DummyHelper {
-  static final KritikSaranOperasi _kritikSaranOperasi = KritikSaranOperasi();
   static final PaketOperasi _paketOperasi = PaketOperasi();
   static final PelangganAktifOperasi _pelangganAktifOperasi =
       PelangganAktifOperasi();
@@ -122,7 +121,7 @@ abstract final class DummyHelper {
       L.i(
         'Menambahkan ${KritikSaranDummy.dummyList.length} data dummy kritik saran',
       );
-      await _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(
+      await kritikSaranNotifierGlobal.sisipkanAtauPerbaruiBatch(
         KritikSaranDummy.dummyList,
       );
       L.i('Semua data dummy kritik saran berhasil ditambahkan');
