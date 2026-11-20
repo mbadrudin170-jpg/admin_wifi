@@ -82,6 +82,18 @@ abstract class DompetModel with _$DompetModel {
         DompetSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
     };
   }
+
+  Map<String, dynamic> toSupabase() {
+    return {
+      DompetSkema.id: id,
+      DompetSkema.namaDompet: namaDompet,
+      DompetSkema.saldo: saldo,
+      DompetSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      DompetSkema.isDeleted: isDeleted,
+      if (diarsipkan != null)
+        DompetSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+    };
+  }
 }
 
 abstract final class DompetSkema {

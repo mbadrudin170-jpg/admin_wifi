@@ -105,6 +105,23 @@ abstract class PelangganModel with _$PelangganModel {
     }
     return data;
   }
+
+  Map<String, dynamic> toSupabase() {
+    final Map<String, dynamic> data = {
+      PelangganSkema.id: id,
+      PelangganSkema.nama: nama,
+      PelangganSkema.telepon: telepon,
+      PelangganSkema.alamat: alamat,
+      PelangganSkema.password: password,
+      PelangganSkema.macAddress: macAddress,
+      PelangganSkema.isDeleted: isDeleted,
+      PelangganSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+    };
+    if (diarsipkan != null) {
+      data[PelangganSkema.diarsipkan] = diarsipkan?.toUtc().toIso8601String();
+    }
+    return data;
+  }
 }
 
 abstract final class PelangganSkema {

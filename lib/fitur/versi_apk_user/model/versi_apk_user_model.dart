@@ -111,6 +111,26 @@ abstract class VersiApkUserModel with _$VersiApkUserModel {
     };
   }
 
+  Map<String, dynamic> toSupabase() {
+    return {
+      VersiApkUserSkema.id: id,
+      VersiApkUserSkema.catatanRilis: catatanRilis,
+      VersiApkUserSkema.versiTerbaru: versiTerbaru,
+      VersiApkUserSkema.youtubeTutorial: youtubeTutorial,
+      VersiApkUserSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      if (diarsipkan != null)
+        VersiApkUserSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+      VersiApkUserSkema.nomorBuildTerbaru: nomorBuildTerbaru.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      VersiApkUserSkema.tautanUnduhan: tautanUnduhan.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      VersiApkUserSkema.wajibUpdate: wajibUpdate,
+      VersiApkUserSkema.isDeleted: isDeleted,
+    };
+  }
+
   // =========================
   // HELPERS
   // =========================

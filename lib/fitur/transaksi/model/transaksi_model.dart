@@ -216,6 +216,33 @@ abstract class TransaksiModel with _$TransaksiModel {
       TransaksiSkema.aktivasiPaket: aktivasiPaket,
     };
   }
+
+  Map<String, dynamic> toSupabase() {
+    return {
+      TransaksiSkema.id: id,
+      TransaksiSkema.tanggal: tanggal.toUtc().toIso8601String(),
+      TransaksiSkema.keterangan: keterangan,
+      TransaksiSkema.jumlah: jumlah,
+      TransaksiSkema.tipe: tipe.name,
+      TransaksiSkema.idDompet: idDompet,
+      TransaksiSkema.idKategori: idKategori,
+      TransaksiSkema.idDompetTujuan: idDompetTujuan,
+      TransaksiSkema.idPelanggan: idPelanggan,
+      TransaksiSkema.idPaket: idPaket,
+      TransaksiSkema.idSubKategori: idSubKategori,
+      TransaksiSkema.statusPembayaran: statusPembayaran.name,
+      TransaksiSkema.poinYangDihasilkan: poinYangDihasilkan,
+      TransaksiSkema.poinYangDigunakan: poinYangDigunakan,
+      TransaksiSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      TransaksiSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+      TransaksiSkema.isDeleted: isDeleted,
+      TransaksiSkema.durasiPaket: durasiPaket,
+      TransaksiSkema.tipeDurasiPaket: tipeDurasiPaket?.name,
+      TransaksiSkema.tanggalMulai: tanggalMulai?.toUtc().toIso8601String(),
+      TransaksiSkema.tanggalBerakhir: tanggalBerakhir?.toUtc().toIso8601String(),
+      TransaksiSkema.aktivasiPaket: aktivasiPaket,
+    };
+  }
 }
 
 abstract final class TransaksiSkema {

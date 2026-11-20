@@ -197,4 +197,22 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
     L.api('Firestore/Pelanggan/$id', data, method: 'SET');
     return data;
   }
+
+  Map<String, dynamic> toSupabase() {
+    final Map<String, dynamic> data = {
+      PelangganAktifSkema.id: id,
+      PelangganAktifSkema.idPelanggan: idPelanggan,
+      PelangganAktifSkema.idPaket: idPaket,
+      PelangganAktifSkema.idTransaksi: idTransaksi,
+      PelangganAktifSkema.tanggalMulai: tanggalMulai.toUtc().toIso8601String(),
+      PelangganAktifSkema.tanggalBerakhir: tanggalBerakhir.toUtc().toIso8601String(),
+      PelangganAktifSkema.status: status.name,
+      PelangganAktifSkema.isDeleted: isDeleted,
+      PelangganAktifSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+    };
+    if (diarsipkan != null) {
+      data[PelangganAktifSkema.diarsipkan] = diarsipkan?.toUtc().toIso8601String();
+    }
+    return data;
+  }
 }

@@ -75,6 +75,16 @@ abstract class KritikSaranModel with _$KritikSaranModel {
       KritikSaranSkema.diperbarui: FieldValue.serverTimestamp(),
     };
   }
+
+  Map<String, dynamic> toSupabase() {
+    return {
+      KritikSaranSkema.id: id,
+      KritikSaranSkema.isi: isi,
+      KritikSaranSkema.tanggal: tanggal.toUtc().toIso8601String(),
+      KritikSaranSkema.userId: userId,
+      KritikSaranSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+    };
+  }
 }
 
 abstract final class KritikSaranSkema {

@@ -1,6 +1,7 @@
 // path: lib/data/sync/unggah_data.dart
 
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
+import 'package:admin_wifi/db/supabase/supabase.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
@@ -13,21 +14,25 @@ import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LayananUnggahData {
   final DatabaseHelper _dbHelper;
-  final FirebaseFirestore _firestore;
+  final SupabaseClient? _supabase;
   final SyncManager _syncManager;
+  final Future<void> Function(String tabel, List<Map<String, dynamic>> data)?
+  _upsertFn;
 
   LayananUnggahData({
     DatabaseHelper? dbHelper,
-    FirebaseFirestore? firestore,
+    SupabaseClient? supabaseClient,
     SyncManager? syncManager,
+    Future<void> Function(String tabel, List<Map<String, dynamic>> data)? upsertFn,
   }) : _dbHelper = dbHelper ?? DatabaseHelper.instance,
-       _firestore = firestore ?? FirebaseFirestore.instance,
-       _syncManager = syncManager ?? SyncManager();
+       _supabase = supabaseClient,
+       _syncManager = syncManager ?? SyncManager(),
+       _upsertFn = upsertFn;
 
   Future<void> unggahSemuaData() async {
     final List<Future<void>> daftarUnggah = [
@@ -57,10 +62,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiDompet=${waktu.toIso8601String()}');
       await unggahDataGenerik<DompetModel>(
-        'dompet',
+        DompetSkema.tabel,
         'dompet',
         DompetModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -74,10 +79,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiKategori=${waktu.toIso8601String()}');
       await unggahDataGenerik<KategoriModel>(
-        'kategori',
+        KategoriSkema.tabel,
         'kategori',
         KategoriModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -91,10 +96,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiKritikSaran=${waktu.toIso8601String()}');
       await unggahDataGenerik<KritikSaranModel>(
-        'kritik_saran',
+        KritikSaranSkema.tabel,
         'kritik_saran',
         KritikSaranModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -108,10 +113,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiPaket=${waktu.toIso8601String()}');
       await unggahDataGenerik<PaketModel>(
-        'paket',
+        PaketSkema.tabel,
         'paket',
         PaketModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -125,10 +130,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiPelangganAktif=${waktu.toIso8601String()}');
       await unggahDataGenerik<PelangganAktifModel>(
-        'pelanggan_aktif',
+        PelangganAktifSkema.tabel,
         'pelanggan_aktif',
         PelangganAktifModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -142,10 +147,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiPelanggan=${waktu.toIso8601String()}');
       await unggahDataGenerik<PelangganModel>(
-        'pelanggan',
+        PelangganSkema.tabel,
         'pelanggan',
         PelangganModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -159,10 +164,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiPesanan=${waktu.toIso8601String()}');
       await unggahDataGenerik<PesananModel>(
-        'pesanan',
+        PesananSkema.tabel,
         'pesan',
         PesananModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -176,10 +181,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiTransaksi=${waktu.toIso8601String()}');
       await unggahDataGenerik<TransaksiModel>(
-        'transaksi',
+        TransaksiSkema.tabel,
         'transaksi',
         TransaksiModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -193,10 +198,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiSubKategori=${waktu.toIso8601String()}');
       await unggahDataGenerik<SubKategoriModel>(
-        'sub_kategori',
+        SubKategoriSkema.tabel,
         'sub_kategori',
         SubKategoriModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -210,10 +215,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiPengaturan=${waktu.toIso8601String()}');
       await unggahDataGenerik<PengaturanModel>(
-        'pengaturan',
+        PengaturanSkema.tabel,
         'pengaturan',
         PengaturanModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -227,10 +232,10 @@ class LayananUnggahData {
       final waktu = await _syncManager.getTerakhirUnggah();
       L.i('waktuSinkronisasiVersiApkUser=${waktu.toIso8601String()}');
       await unggahDataGenerik<VersiApkUserModel>(
-        'versi_apk_user',
+        VersiApkUserSkema.tabel,
         'versi_apk_user',
         VersiApkUserModel.fromSqlite,
-        (m) => m.toFirebase(),
+        (m) => m.toSupabase(),
         waktu,
       );
     } catch (e, s) {
@@ -243,7 +248,7 @@ class LayananUnggahData {
     String namaTabel,
     String namaKoleksi,
     T Function(Map<String, dynamic>) fromSqlite,
-    Map<String, dynamic> Function(T) toFirebase,
+    Map<String, dynamic> Function(T) toSupabase,
     DateTime waktuSinkronisasiTerakhir,
   ) async {
     try {
@@ -259,7 +264,7 @@ class LayananUnggahData {
         return;
       }
 
-      final batchFirestore = _firestore.batch();
+      final batchSupabase = <Map<String, dynamic>>[];
 
       int counterSukses = 0;
       int counterError = 0;
@@ -269,13 +274,10 @@ class LayananUnggahData {
 
         try {
           final T data = fromSqlite(map);
-          final model = data as dynamic;
 
-          final docRef = _firestore.collection(namaKoleksi).doc(model.id);
+          final supabaseData = toSupabase(data);
 
-          final firebaseData = toFirebase(data);
-
-          batchFirestore.set(docRef, firebaseData, SetOptions(merge: true));
+          batchSupabase.add(supabaseData);
 
           counterSukses++;
         } catch (e) {
@@ -290,8 +292,13 @@ class LayananUnggahData {
         'unggahDataGenerik $namaTabel: total=${dataUntukDiunggah.length}, sukses=$counterSukses, gagal=$counterError',
       );
 
-      if (counterSukses > 0) {
-        await batchFirestore.commit();
+      if (batchSupabase.isNotEmpty) {
+        if (_upsertFn != null) {
+          await _upsertFn(namaTabel, batchSupabase);
+        } else {
+          final client = _supabase ?? SupabaseKlien.instance.client;
+          await client.from(namaTabel).upsert(batchSupabase);
+        }
       }
     } catch (e, s) {
       L.e(

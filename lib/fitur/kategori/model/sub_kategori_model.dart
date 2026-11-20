@@ -77,6 +77,18 @@ abstract class SubKategoriModel with _$SubKategoriModel {
         SubKategoriSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
     };
   }
+
+  Map<String, dynamic> toSupabase() {
+    return {
+      SubKategoriSkema.id: id,
+      SubKategoriSkema.nama: nama,
+      SubKategoriSkema.idKategori: idKategori,
+      SubKategoriSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      SubKategoriSkema.isDeleted: isDeleted,
+      if (diarsipkan != null)
+        SubKategoriSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+    };
+  }
 }
 
 abstract final class SubKategoriSkema {

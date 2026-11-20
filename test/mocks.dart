@@ -17,6 +17,7 @@ import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Mock untuk plugin notifikasi lokal agar dapat diinjeksikan ke
 // `NotifikasiServis.internal` pada pengujian unit.
@@ -37,4 +38,6 @@ class MockTransaksiOperasi extends Mock implements TransaksiOperasi {}
 
 class MockNotifikasiServis extends Mock implements NotifikasiServis {}
 
+class MockSupabaseClient extends Mock implements SupabaseClient {}
+class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 class MockNavigatorObserver extends Mock implements NavigatorObserver {}

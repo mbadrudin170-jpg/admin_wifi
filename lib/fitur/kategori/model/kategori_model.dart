@@ -139,6 +139,21 @@ abstract class KategoriModel with _$KategoriModel {
         KategoriSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
     };
   }
+
+  Map<String, dynamic> toSupabase() {
+    return {
+      KategoriSkema.id: id,
+      KategoriSkema.nama: nama,
+      KategoriSkema.tipe: tipe.name,
+      KategoriSkema.idSubKategori: subKategori
+          .map((sub) => sub.toSupabase())
+          .toList(),
+      KategoriSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      KategoriSkema.isDeleted: isDeleted,
+      if (diarsipkan != null)
+        KategoriSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+    };
+  }
 }
 
 abstract final class KategoriSkema {

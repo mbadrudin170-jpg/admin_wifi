@@ -98,6 +98,17 @@ abstract class PengaturanModel with _$PengaturanModel {
       PengaturanSkema.diperbarui: FieldValue.serverTimestamp(),
     };
   }
+
+  Map<String, dynamic> toSupabase() {
+    return {
+      PengaturanSkema.intervalSinkronisasiOtomatis:
+          intervalSinkronisasiOtomatis,
+      PengaturanSkema.hapusOtomatisDataArsip: hapusOtomatisDataArsip,
+      PengaturanSkema.modePemeliharaan: modePemeliharaan,
+      PengaturanSkema.infoPemeliharaan: infoPemeliharaan,
+      PengaturanSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+    };
+  }
 }
 
 abstract final class PengaturanSkema {
