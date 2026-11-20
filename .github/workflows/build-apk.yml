@@ -51,6 +51,9 @@ jobs:
       - name: Ambil dependensi
         run: flutter pub get
 
+      - name: Buat file .env dummy untuk analisis statis
+        run: printf 'SUPABASE_URL=https://dummy.supabase.co\nSUPABASE_ANON_KEY=dummy\n' > .env
+
       - name: Analisis statis
         run: flutter analyze
 
