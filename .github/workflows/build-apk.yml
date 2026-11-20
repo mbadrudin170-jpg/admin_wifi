@@ -19,8 +19,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: mbadrudin170-jpg/share_global_saya
-          path: ../share_global_saya
+          path: share_global_saya
           token: ${{ secrets.SHARE_GLOBAL_TOKEN }}
+
+      - name: Buat symlink share_global_saya ke lokasi path dependency
+        run: ln -s "$PWD/share_global_saya" ../share_global_saya
 
       - name: Siapkan Java (JDK 17)
         uses: actions/setup-java@v4
