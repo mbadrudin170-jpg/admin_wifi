@@ -61,7 +61,7 @@ jobs:
         run: flutter build apk --release --flavor dev --split-per-abi --target-platform android-arm64
 
       - name: Ganti nama APK
-        run: mv build/app/outputs/flutter-apk/app-dev-arm64-v8a-release.apk build/app/outputs/flutter-apk/admin_wifi-dev-arm64-v8a-release.apk
+        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-dev-release.apk build/app/outputs/flutter-apk/admin_wifi-dev-arm64-v8a-release.apk
 
       - name: Unggah artefak APK
         uses: actions/upload-artifact@v4
