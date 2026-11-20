@@ -78,7 +78,7 @@ void main() {
           body: any(named: 'body'),
           jadwal: any(named: 'jadwal'),
         ),
-      ).called(3);
+      ).called(notifikasiPelangganAktif.length);
     });
 
     test('arsipkanPelangganAktif harus membatalkan notifikasi', () async {
@@ -89,8 +89,16 @@ void main() {
       // diperbaiki: gunakan ID yang valid, bukan 'any'
       await operasi.arsipkanPelangganAktif(modelDibuat.id);
 
-      // Implementasi membatalkan 3 notifikasi (H-3, H-1, tepat waktu).
-      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(3);
+       // Implementasi membatalkan 3 notifikasi (H-3, H-1, tepat waktu).
+      verify(
+        () => mockNotifikasiServis.batalNotifikasi(modelDibuat.id.hashCode),
+      ).called(1);
+      verify(
+        () => mockNotifikasiServis.batalNotifikasi(modelDibuat.id.hashCode + 1),
+      ).called(1);
+      verify(
+        () => mockNotifikasiServis.batalNotifikasi(modelDibuat.id.hashCode + 2),
+      ).called(1);
     });
 
     test('arsipkanPelangganKadaluarsa harus memproses dengan benar', () async {
@@ -132,7 +140,7 @@ void main() {
         'mac_address': 'm',
       });
 
-      await operasi.createPelangganAktif(
+      final modelKadaluarsa = await operasi.createPelangganAktif(
         buatModel(idPelanggan: 'p1', idPaket: 'paket_1', kadaluarsa: true),
       );
       await operasi.createPelangganAktif(
@@ -147,7 +155,15 @@ void main() {
       expect(result, 1);
 
       // Implementasi membatalkan 3 notifikasi untuk pelanggan kadaluarsa yang diarsip.
-      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(3);
+      verify(
+        () => mockNotifikasiServis.batalNotifikasi(modelKadaluarsa.id.hashCode),
+      ).called(1);
+      verify(
+        () => mockNotifikasiServis.batalNotifikasi(modelKadaluarsa.id.hashCode + 1),
+      ).called(1);
+      verify(
+        () => mockNotifikasiServis.batalNotifikasi(modelKadaluarsa.id.hashCode + 2),
+      ).called(1);
     });
   });
 }

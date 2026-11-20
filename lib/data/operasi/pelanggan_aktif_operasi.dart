@@ -12,6 +12,14 @@ import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 
 const uuid = Uuid();
 
+/// Kontrak jumlah/kunci jadwal notifikasi pelanggan aktif.
+/// Kode dan test WAJIB mengacu pada konstanta ini, bukan angka literal.
+const notifikasiPelangganAktif = <String>[
+  'tepat_waktu',
+  'h_min_1',
+  'h_min_3',
+];
+
 class PelangganAktifOperasi {
   final dbHelper = DatabaseHelper.instance;
   final OperasiDasar _operasiDasar = OperasiDasar();
