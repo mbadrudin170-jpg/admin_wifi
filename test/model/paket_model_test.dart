@@ -173,7 +173,7 @@ void main() {
       );
 
       // Act
-      final hasil = paket.toFirebase();
+       final hasil = paket.toSupabase();
 
       // Assert
       expect(hasil['isDeleted'], isA<bool>());
@@ -193,7 +193,7 @@ void main() {
       );
 
       // Act
-      final hasil = paket.toFirebase();
+       final hasil = paket.toSupabase();
 
       // Assert
       expect(hasil['isDeleted'], isA<bool>());

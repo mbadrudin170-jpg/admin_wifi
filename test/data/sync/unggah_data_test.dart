@@ -117,7 +117,7 @@ void main() {
           'kritik_saran',
           'kritik_saran_col',
           KritikSaranModel.fromSqlite,
-          (m) => m.toFirebase(),
+           (m) => m.toSupabase(),
           lastSyncTime,
         );
 
