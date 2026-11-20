@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/fitur/kategori/screens/kategori.dart';
 import 'package:admin_wifi/fitur/kritik_saran/screens/kritik_saran.dart';
-import 'package:admin_wifi/fitur/pengaturan/screens/pengaturan.dart';
+import 'package:admin_wifi/fitur/pengaturan/screens/pengaturan_sreen.dart';
 import 'package:admin_wifi/fitur/riwayat_langganan/screens/riwayat_aktivasi_paket.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -128,7 +128,7 @@ class _LainnyaTabState extends State<LainnyaPage> {
             icon: Icons.settings,
             onTap: () => _handleNavigation(
               'Pengaturan Aplikasi',
-              const PengaturanPage(),
+              const PengaturanScren(),
             ),
           ),
           _buildNavigationButton(

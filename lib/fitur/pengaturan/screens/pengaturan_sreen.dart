@@ -1,4 +1,4 @@
-// path: lib/halaman/lainnya/pengaturan.dart
+// path: lib/fitur/pengaturan/screens/pengaturan_sreen.dart
 
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
@@ -8,14 +8,14 @@ import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Halaman untuk menampilkan konfigurasi pengaturan aplikasi.
-class PengaturanPage extends StatefulWidget {
-  const PengaturanPage({super.key});
+class PengaturanScren extends StatefulWidget {
+  const PengaturanScren({super.key});
 
   @override
-  State<PengaturanPage> createState() => _PengaturanPageState();
+  State<PengaturanScren> createState() => _PengaturanScrenState();
 }
 
-class _PengaturanPageState extends State<PengaturanPage> {
+class _PengaturanScrenState extends State<PengaturanScren> {
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
   late Future<PengaturanModel> _futurePengaturan;
 
