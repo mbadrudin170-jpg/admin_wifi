@@ -9,22 +9,22 @@ import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
-class DetailLanggananTransaksiPage extends StatefulWidget {
+class DetailLanggananTransaksiPage extends ConsumerStatefulWidget {
   final String idTransaksi;
 
   const DetailLanggananTransaksiPage({super.key, required this.idTransaksi});
 
   @override
-  State<DetailLanggananTransaksiPage> createState() =>
+  ConsumerState<DetailLanggananTransaksiPage> createState() =>
       _DetailLanggananTransaksiPageState();
 }
 
 class _DetailLanggananTransaksiPageState
-    extends State<DetailLanggananTransaksiPage> {
-  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
+    extends ConsumerState<DetailLanggananTransaksiPage> {
   final PaketOperasi _paketOperasi = PaketOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
 
@@ -38,7 +38,9 @@ class _DetailLanggananTransaksiPageState
       'Memulai inisialisasi halaman detail langganan untuk ID transaksi: ${widget.idTransaksi}.',
     );
 
-    _transaksiFuture = _transaksiOperasi.getTransaksiById(widget.idTransaksi);
+    _transaksiFuture = Future.value(
+      ref.read(transaksiProvider).value?.getTransaksiById(widget.idTransaksi),
+    );
 
     L.i(
       'Future transaksi berhasil dibuat untuk proses pengambilan data transaksi.',

@@ -36,30 +36,30 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
   @override
   void initState() {
     super.initState();
-    L.i('========================================');
-    L.i('LIFECYCLE: initState() - Halaman HalamanPoin');
+
+
     L.i('ID Pelanggan: ${widget.idPelanggan}');
     L.i('Menu default: Penukaran');
-    L.i('========================================');
+
     L.i('Memanggil _loadDataPoin() untuk memuat data poin pelanggan.');
     _loadDataPoin();
   }
 
   @override
   void dispose() {
-    L.i('========================================');
-    L.i('LIFECYCLE: dispose() - Halaman HalamanPoin');
+
+
     L.i('ID Pelanggan: ${widget.idPelanggan}');
     L.i('Membersihkan resource halaman poin.');
-    L.i('========================================');
+
     super.dispose();
   }
 
   Future<void> _loadDataPoin() async {
-    L.i('========================================');
-    L.i('MEMUAT DATA POIN PELANGGAN');
+
+
     L.i('ID Pelanggan: ${widget.idPelanggan}');
-    L.i('========================================');
+
 
     if (!mounted) {
       L.w(
@@ -114,10 +114,10 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
   // Method untuk memuat riwayat transaksi
   Future<void> _loadRiwayatTransaksi() async {
-    L.i('========================================');
+
     L.i('MEMUAT RIWAYAT TRANSAKSI PELANGGAN');
     L.i('ID Pelanggan: ${widget.idPelanggan}');
-    L.i('========================================');
+
 
     if (!mounted) return;
 
@@ -127,9 +127,9 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
     try {
       L.i('Mengambil riwayat transaksi dari database...');
-      final riwayatTransaksi = await ref
-          .read(transaksiProvider.notifier)
-          .ambilTransaksiByPelangganId(widget.idPelanggan);
+      final riwayatTransaksi =
+          ref.read(transaksiProvider).value?.ambilTransaksiByPelangganId(widget.idPelanggan) ??
+              <TransaksiModel>[];
 
       // Filter transaksi yang berkaitan dengan poin (ada poin yang dihasilkan/digunakan)
       final transaksiPoin = riwayatTransaksi
@@ -157,14 +157,14 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
   @override
   Widget build(BuildContext context) {
-    L.i('========================================');
+
     L.i('LIFECYCLE: build() - Membangun UI HalamanPoin');
     L.i('ID Pelanggan: ${widget.idPelanggan}');
     L.i(
       'Menu aktif: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
     );
     L.i('Total poin ditampilkan: $_totalPoin');
-    L.i('========================================');
+
 
     return Scaffold(
       appBar: AppBar(

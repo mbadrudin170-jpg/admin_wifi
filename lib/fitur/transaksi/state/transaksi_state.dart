@@ -48,4 +48,29 @@ abstract class TransaksiState with _$TransaksiState {
   /// Saldo poin akhir untuk [idPelanggan].
   int getTotalPoin(String idPelanggan) =>
       getPoinYangDihasilkan(idPelanggan) - getPoinYangDigunakan(idPelanggan);
+
+  /// Mengambil transaksi yang id-nya ada di [ids].
+  List<TransaksiModel> getTransaksiByIds(List<String> ids) =>
+      listTransaksi.where((t) => ids.contains(t.id)).toList();
+
+  /// Mengambil satu transaksi berdasarkan [id].
+  TransaksiModel? getTransaksiById(String id) =>
+      listTransaksi.firstWhereOrNull((t) => t.id == id);
+
+  /// Mengambil transaksi berdasarkan [pelangganId].
+  List<TransaksiModel> ambilTransaksiByPelangganId(String pelangganId) =>
+      (listTransaksi.where((t) => t.idPelanggan == pelangganId).toList()
+        ..sort((a, b) => b.tanggal.compareTo(a.tanggal)));
+
+  /// Mengambil transaksi berdasarkan [dompetId] (asal/tujuan).
+  List<TransaksiModel> ambilTransaksiByDompetId(String dompetId) =>
+      (listTransaksi
+              .where((t) => t.idDompet == dompetId || t.idDompetTujuan == dompetId)
+              .toList()
+        ..sort((a, b) => b.tanggal.compareTo(a.tanggal)));
+
+  /// Mengambil transaksi dengan aktivasi paket.
+  List<TransaksiModel> getTransaksiByAktivasiPaket() =>
+      (listTransaksi.where((t) => t.aktivasiPaket).toList()
+        ..sort((a, b) => b.tanggal.compareTo(a.tanggal)));
 }

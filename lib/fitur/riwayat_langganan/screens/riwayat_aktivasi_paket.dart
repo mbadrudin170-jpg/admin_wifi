@@ -8,21 +8,21 @@ import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
-class RiwayatAktivasiPaketPage extends StatefulWidget {
+class RiwayatAktivasiPaketPage extends ConsumerStatefulWidget {
   const RiwayatAktivasiPaketPage({super.key});
 
   @override
-  State<RiwayatAktivasiPaketPage> createState() =>
+  ConsumerState<RiwayatAktivasiPaketPage> createState() =>
       _RiwayatAktivasiPaketPageState();
 }
 
-class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
-  final TransaksiNotifier _transaksiOperasi = transaksiNotifierGlobal;
+class _RiwayatAktivasiPaketPageState extends ConsumerState<RiwayatAktivasiPaketPage> {
   late Future<List<TransaksiModel>> _listTransaksiFuture;
   OpsiUrutkan _urutanAktif = OpsiUrutkan.terbaru;
 
@@ -36,10 +36,11 @@ class _RiwayatAktivasiPaketPageState extends State<RiwayatAktivasiPaketPage> {
   Future<void> _loadRiwayat() async {
     L.i('Memuat data transaksi aktivasi paket dari database');
     setState(() {
-      _listTransaksiFuture = _transaksiOperasi
-          .getTransaksiByAktivasiPaket()
-          .then((list) {
-            L.i('Berhasil memuat ${list.length} data transaksi aktivasi paket');
+      _listTransaksiFuture = Future.value(
+        ref.read(transaksiProvider).value?.getTransaksiByAktivasiPaket() ??
+            <TransaksiModel>[],
+      ).then((list) {
+        L.i('Berhasil memuat ${list.length} data transaksi aktivasi paket');
 
             // Log ringkasan setiap transaksi
             int jumlahLunas = 0;

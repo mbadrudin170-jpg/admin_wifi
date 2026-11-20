@@ -8,6 +8,7 @@ import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
@@ -25,7 +26,7 @@ class DetailDompetData {
   });
 }
 
-class DetailDompet extends StatefulWidget {
+class DetailDompet extends ConsumerStatefulWidget {
   final DompetModel dompet;
   final DompetOperasi? dompetOperasi;
   final TransaksiNotifier? transaksiOperasi;
@@ -38,13 +39,12 @@ class DetailDompet extends StatefulWidget {
   });
 
   @override
-  State<DetailDompet> createState() => _DetailDompetState();
+  ConsumerState<DetailDompet> createState() => _DetailDompetState();
 }
 
-class _DetailDompetState extends State<DetailDompet> {
+class _DetailDompetState extends ConsumerState<DetailDompet> {
   late Future<DetailDompetData> _futureDetailData;
   late final DompetOperasi _dompetOperasi;
-  late final TransaksiNotifier _transaksiOperasi;
 
   String? _namaDompetTerbaru;
 
@@ -67,14 +67,6 @@ class _DetailDompetState extends State<DetailDompet> {
     _dompetOperasi = widget.dompetOperasi ?? DompetOperasi();
     L.i(
       'DompetOperasi berhasil diinisialisasi. Instance: ${_dompetOperasi.hashCode}',
-    );
-
-    L.i(
-      'Menginisialisasi TransaksiOperasi. Menggunakan instance dari widget jika tersedia, jika tidak membuat instance baru.',
-    );
-    _transaksiOperasi = widget.transaksiOperasi ?? transaksiNotifierGlobal;
-    L.i(
-      'TransaksiOperasi berhasil diinisialisasi. Instance: ${_transaksiOperasi.hashCode}',
     );
 
     L.i(
@@ -104,7 +96,10 @@ class _DetailDompetState extends State<DetailDompet> {
 
       final results = await Future.wait([
         _dompetOperasi.getDompetById(widget.dompet.id),
-        _transaksiOperasi.ambilTransaksiByDompetId(widget.dompet.id),
+        Future.value(
+          ref.read(transaksiProvider).value?.ambilTransaksiByDompetId(widget.dompet.id) ??
+              <TransaksiModel>[],
+        ),
       ]);
 
       L.i('Kedua query selesai dijalankan. Memproses hasil...');

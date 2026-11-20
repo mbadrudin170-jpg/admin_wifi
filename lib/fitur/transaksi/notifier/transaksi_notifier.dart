@@ -150,76 +150,6 @@ class TransaksiNotifier extends _$TransaksiNotifier {
     }
   }
 
-  Future<TransaksiModel?> getTransaksiById(String id) async {
-    final db = await _db;
-    try {
-      final List<Map<String, dynamic>> maps = await db.query(
-        TransaksiSkema.tabel,
-        where: '${TransaksiSkema.id} = ?',
-        whereArgs: [id],
-        limit: 1,
-      );
-      if (maps.isEmpty) return null;
-      return TransaksiModel.fromSqlite(maps.first);
-    } catch (e, s) {
-      L.e('Gagal mengambil transaksi ID: $id. Error: $e $s');
-      return null;
-    }
-  }
-
-  Future<List<TransaksiModel>> ambilTransaksiByPelangganId(
-    String pelangganId,
-  ) async {
-    final db = await _db;
-    try {
-      final List<Map<String, dynamic>> maps = await db.query(
-        TransaksiSkema.tabel,
-        where:
-            '${TransaksiSkema.idPelanggan} = ? AND ${TransaksiSkema.isDeleted} = ?',
-        whereArgs: [pelangganId, 0],
-        orderBy: '${TransaksiSkema.tanggal} DESC',
-      );
-      return maps.map(TransaksiModel.fromSqlite).toList();
-    } catch (e, s) {
-      L.e('Gagal mengambil transaksi pelanggan: $e $s');
-      return [];
-    }
-  }
-
-  Future<List<TransaksiModel>> ambilTransaksiByDompetId(String dompetId) async {
-    final db = await _db;
-    try {
-      final List<Map<String, dynamic>> maps = await db.query(
-        TransaksiSkema.tabel,
-        where:
-            '(${TransaksiSkema.idDompet} = ? OR ${TransaksiSkema.idDompetTujuan} = ?) AND ${TransaksiSkema.isDeleted} = ?',
-        whereArgs: [dompetId, dompetId, 0],
-        orderBy: '${TransaksiSkema.tanggal} DESC',
-      );
-      return maps.map(TransaksiModel.fromSqlite).toList();
-    } catch (e, s) {
-      L.e('Gagal mengambil transaksi dompet: $e $s');
-      return [];
-    }
-  }
-
-  Future<List<TransaksiModel>> getTransaksiByAktivasiPaket() async {
-    final db = await _db;
-    try {
-      final List<Map<String, dynamic>> maps = await db.query(
-        TransaksiSkema.tabel,
-        where:
-            '${TransaksiSkema.aktivasiPaket} = ? AND ${TransaksiSkema.isDeleted} = ?',
-        whereArgs: [1, 0],
-        orderBy: '${TransaksiSkema.tanggal} DESC',
-      );
-      return maps.map(TransaksiModel.fromSqlite).toList();
-    } catch (e, s) {
-      L.e('Gagal mengambil transaksi aktivasi paket: $e $s');
-      return [];
-    }
-  }
-
   Future<void> updateTransaksi(String id, TransaksiModel transaksiBaru) async {
     try {
       await _operasiDasar.jalankanOperasiKompleks((txn) async {
@@ -342,24 +272,7 @@ class TransaksiNotifier extends _$TransaksiNotifier {
       rethrow;
     }
   }
-
-  Future<List<TransaksiModel>> getTransaksiByIds(List<String> ids) async {
-    if (ids.isEmpty) return [];
-    final db = await _db;
-    try {
-      final placeholders = List.filled(ids.length, '?').join(',');
-      final List<Map<String, dynamic>> maps = await db.query(
-        TransaksiSkema.tabel,
-        where: 'id IN ($placeholders)',
-        whereArgs: ids,
-      );
-      return maps.map(TransaksiModel.fromSqlite).toList();
-    } catch (e, s) {
-      L.e('Error saat ambil transaksi by IDs: $e $s');
-      return [];
-    }
   }
-}
 
 /// Kontainer global untuk mengakses [TransaksiNotifier] di luar konteks Riverpod.
 final ProviderContainer _transaksiGlobalContainer = ProviderContainer();
