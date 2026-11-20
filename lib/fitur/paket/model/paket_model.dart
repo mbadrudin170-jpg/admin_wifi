@@ -1,6 +1,4 @@
 // path: lib/fitur/paket/model/paket_model.dart
-// ditambahkan: Import cloud_firestore untuk FieldValue dan Timestamp.
-// diubah: Menghapus field `jumlahPoin` yang tidak lagi digunakan.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
@@ -13,18 +11,12 @@ enum TipeDurasi {
   hari,
   bulan;
 
-  String get label {
-    switch (this) {
-      case TipeDurasi.menit:
-        return 'Menit';
-      case TipeDurasi.jam:
-        return 'Jam';
-      case TipeDurasi.hari:
-        return 'Hari';
-      case TipeDurasi.bulan:
-        return 'Bulan';
-    }
-  }
+  String get label => switch (this) {
+    TipeDurasi.menit => 'Menit',
+    TipeDurasi.jam => 'Jam',
+    TipeDurasi.hari => 'Hari',
+    TipeDurasi.bulan => 'Bulan',
+  };
 }
 
 @freezed
@@ -46,11 +38,11 @@ abstract class PaketModel with _$PaketModel {
   }) = _PaketModel;
 
   // =========================
-  // PARSER UTIL
+  // PARSER
   // =========================
 
-  /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
-  /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
+  /// Firestore menyimpan `Timestamp`; SQLite dan Supabase menyimpan
+  /// ISO-8601 string (UTC). Keduanya dinormalisasi ke waktu lokal.
   static DateTime? _parseTanggal(dynamic value) {
     if (value is Timestamp) {
       return value.toDate().toLocal();
@@ -59,112 +51,16 @@ abstract class PaketModel with _$PaketModel {
     return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
-  // =========================
-  // SQLITE
-  // =========================
-
-  factory PaketModel.fromSqlite(Map<String, dynamic> map) {
-    return PaketModel(
-      id: ParserUtil.parseString(map[PaketSkema.id]),
-      nama: ParserUtil.parseString(map[PaketSkema.nama]),
-      harga: ParserUtil.parseInt(map[PaketSkema.harga]),
-      durasi: ParserUtil.parseInt(map[PaketSkema.durasi]),
-      tipe:
-          ParserUtil.safeParseEnum(
-            TipeDurasi.values,
-            ParserUtil.parseStringOrNull(map[PaketSkema.tipe]),
-          ) ??
-          TipeDurasi.hari,
-      poinHadiah: ParserUtil.parseInt(map[PaketSkema.poinHadiah]),
-      poinPenukaran: ParserUtil.parseInt(map[PaketSkema.poinPenukaran]),
-      isPublic: ParserUtil.parseBool(map[PaketSkema.isPublic]),
-      isDeleted: ParserUtil.parseBool(map[PaketSkema.isDeleted]),
-      diperbarui: _parseTanggal(map[PaketSkema.diperbarui]),
-      diarsipkan: _parseTanggal(map[PaketSkema.diarsipkan]),
-    );
+  /// Nilai kosong (`null`) dianggap `true`, sama dengan `@Default(true)`.
+  static bool _parseIsPublic(dynamic value) {
+    return value == null ? true : ParserUtil.parseBool(value);
   }
 
-  Map<String, dynamic> toSqlite() {
-    return {
-      PaketSkema.id: id,
-      PaketSkema.nama: nama,
-      PaketSkema.harga: harga,
-      PaketSkema.durasi: durasi,
-      PaketSkema.tipe: tipe.name,
-      PaketSkema.poinHadiah: poinHadiah,
-      PaketSkema.poinPenukaran: poinPenukaran,
-      PaketSkema.isPublic: isPublic ? 1 : 0,
-      PaketSkema.isDeleted: isDeleted ? 1 : 0,
-      PaketSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
-      PaketSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
-    };
-  }
-
-  // =========================
-  // FIREBASE
-  // =========================
-
-  factory PaketModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return PaketModel(
-      id: id,
-      nama: ParserUtil.parseString(data[PaketSkema.nama]),
-      harga: ParserUtil.parseInt(data[PaketSkema.harga]),
-      durasi: ParserUtil.parseInt(data[PaketSkema.durasi]),
-      tipe:
-          ParserUtil.safeParseEnum(
-            TipeDurasi.values,
-            ParserUtil.parseStringOrNull(data[PaketSkema.tipe]),
-          ) ??
-          TipeDurasi.hari,
-      poinHadiah: ParserUtil.parseInt(data[PaketSkema.poinHadiah]),
-      poinPenukaran: ParserUtil.parseInt(data[PaketSkema.poinPenukaran]),
-      isPublic: ParserUtil.parseBool(data[PaketSkema.isPublic]),
-      isDeleted: ParserUtil.parseBool(data[PaketSkema.isDeleted]),
-      diperbarui: _parseTanggal(data[PaketSkema.diperbarui]),
-      diarsipkan: _parseTanggal(data[PaketSkema.diarsipkan]),
-    );
-  }
-
-  // diubah: Menggunakan FieldValue.serverTimestamp() dan Timestamp untuk konsistensi.
-  Map<String, dynamic> toFirebase() {
-    final Map<String, dynamic> data = {
-      PaketSkema.id: id,
-      PaketSkema.nama: nama,
-      PaketSkema.harga: harga,
-      PaketSkema.durasi: durasi,
-      PaketSkema.tipe: tipe.name,
-      PaketSkema.poinHadiah: poinHadiah,
-      PaketSkema.poinPenukaran: poinPenukaran,
-      PaketSkema.isPublic: isPublic,
-      PaketSkema.isDeleted: isDeleted,
-      PaketSkema.diperbarui: FieldValue.serverTimestamp(),
-    };
-    if (diarsipkan != null) {
-      data[PaketSkema.diarsipkan] = Timestamp.fromDate(diarsipkan!.toUtc());
-    }
-    return data;
-  }
-
-  // =========================
-  // SUPABASE
-  // =========================
-
-  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>`.
-  /// Kolom waktu disimpan sebagai ISO-8601 (UTC) dan diurai lewat [_parseTanggal].
-  factory PaketModel.fromSupabase(
-    dynamic idAtauData, [
-    Map<String, dynamic>? data,
-  ]) {
-    final Map<String, dynamic> map;
-    String? id;
-    if (idAtauData is Map<String, dynamic>) {
-      map = idAtauData;
-      id = ParserUtil.parseStringOrNull(map[PaketSkema.id]);
-    } else {
-      id = idAtauData?.toString();
-      map = data ?? const <String, dynamic>{};
-    }
-
+  /// Satu pintu untuk SQLite, Firebase, dan Supabase karena ketiganya
+  /// memakai nama kunci yang sama dari [PaketSkema].
+  ///
+  /// [id] diisi bila id berasal dari luar map (mis. id dokumen Firestore).
+  static PaketModel _fromMap(String? id, Map<String, dynamic> map) {
     return PaketModel(
       id: id ?? ParserUtil.parseString(map[PaketSkema.id]),
       nama: ParserUtil.parseString(map[PaketSkema.nama]),
@@ -178,17 +74,83 @@ abstract class PaketModel with _$PaketModel {
           TipeDurasi.hari,
       poinHadiah: ParserUtil.parseInt(map[PaketSkema.poinHadiah]),
       poinPenukaran: ParserUtil.parseInt(map[PaketSkema.poinPenukaran]),
-      isPublic: ParserUtil.parseBool(map[PaketSkema.isPublic]),
+      isPublic: _parseIsPublic(map[PaketSkema.isPublic]),
       isDeleted: ParserUtil.parseBool(map[PaketSkema.isDeleted]),
       diperbarui: _parseTanggal(map[PaketSkema.diperbarui]),
       diarsipkan: _parseTanggal(map[PaketSkema.diarsipkan]),
     );
   }
 
-  /// Konversi ke `Map<String, dynamic>` untuk Supabase (PostgREST).
-  /// Waktu ditulis dalam ISO-8601 UTC; boolean tetap boolean.
+  // =========================
+  // SQLITE
+  // =========================
+
+  factory PaketModel.fromSqlite(Map<String, dynamic> map) {
+    return _fromMap(null, map);
+  }
+
+  Map<String, dynamic> toSqlite() {
+    return {
+      PaketSkema.id: id,
+      PaketSkema.nama: nama,
+      PaketSkema.harga: harga,
+      PaketSkema.durasi: durasi,
+      PaketSkema.tipe: tipe.name,
+      PaketSkema.poinHadiah: poinHadiah,
+      PaketSkema.poinPenukaran: poinPenukaran,
+      PaketSkema.isPublic: isPublic ? 1 : 0,
+      PaketSkema.isDeleted: isDeleted ? 1 : 0,
+      PaketSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
+      PaketSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
+    };
+  }
+
+  // =========================
+  // FIREBASE
+  // =========================
+
+  factory PaketModel.fromFirebase(String id, Map<String, dynamic> data) {
+    return _fromMap(id, data);
+  }
+
+  /// `diperbarui` selalu memakai waktu server. `diarsipkan` ditulis `null`
+  /// bila paket tidak diarsipkan, sehingga nilai lama ikut terhapus saat
+  /// paket dikeluarkan dari arsip (aman untuk `set`, `set(merge)`, `update`).
+  Map<String, dynamic> toFirebase() {
+    final arsip = diarsipkan;
+
+    return {
+      PaketSkema.id: id,
+      PaketSkema.nama: nama,
+      PaketSkema.harga: harga,
+      PaketSkema.durasi: durasi,
+      PaketSkema.tipe: tipe.name,
+      PaketSkema.poinHadiah: poinHadiah,
+      PaketSkema.poinPenukaran: poinPenukaran,
+      PaketSkema.isPublic: isPublic,
+      PaketSkema.isDeleted: isDeleted,
+      PaketSkema.diperbarui: FieldValue.serverTimestamp(),
+      PaketSkema.diarsipkan: arsip == null
+          ? null
+          : Timestamp.fromDate(arsip.toUtc()),
+    };
+  }
+
+  // =========================
+  // SUPABASE
+  // =========================
+
+  /// Supabase (PostgREST) mengembalikan baris sebagai `Map<String, dynamic>`.
+  factory PaketModel.fromSupabase(Map<String, dynamic> map) {
+    return _fromMap(null, map);
+  }
+
+  /// Waktu ditulis dalam ISO-8601 UTC. `diarsipkan` dikirim `null` secara
+  /// eksplisit agar kolom ikut dikosongkan saat upsert.
   Map<String, dynamic> toSupabase() {
-    final Map<String, dynamic> data = {
+    return {
       PaketSkema.id: id,
       PaketSkema.nama: nama,
       PaketSkema.harga: harga,
@@ -201,14 +163,13 @@ abstract class PaketModel with _$PaketModel {
       PaketSkema.diperbarui: (diperbarui ?? DateTime.now())
           .toUtc()
           .toIso8601String(),
+      PaketSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
-    if (diarsipkan != null) {
-      data[PaketSkema.diarsipkan] = diarsipkan!.toUtc().toIso8601String();
-    }
-    return data;
   }
 }
 
+/// Nilai konstanta harus sama persis dengan nama kolom SQLite, field
+/// Firestore, dan kolom Supabase.
 abstract final class PaketSkema {
   static const String tabel = 'paket';
   static const String id = 'id';
