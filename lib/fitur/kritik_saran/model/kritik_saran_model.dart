@@ -58,30 +58,6 @@ abstract class KritikSaranModel with _$KritikSaranModel {
     };
   }
 
-  // ditambahkan: Factory fromFirebase
-  factory KritikSaranModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return KritikSaranModel(
-      id: id,
-      isi: ParserUtil.parseString(data[KritikSaranSkema.isi]),
-      userId: ParserUtil.parseString(data[KritikSaranSkema.userId]),
-      tanggal:
-          _parseTanggal(data[KritikSaranSkema.tanggal]) ??
-          (throw ArgumentError.notNull('tanggal dari Firebase')),
-      diperbarui: _parseTanggal(data[KritikSaranSkema.diperbarui]),
-    );
-  }
-
-  // diubah: Nama metode dan logika diperbarui diubah
-  Map<String, dynamic> toFirebase() {
-    return {
-      KritikSaranSkema.id: id,
-      KritikSaranSkema.isi: isi,
-      KritikSaranSkema.tanggal: Timestamp.fromDate(tanggal.toUtc()),
-      KritikSaranSkema.userId: userId,
-      KritikSaranSkema.diperbarui: FieldValue.serverTimestamp(),
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       KritikSaranSkema.id: id,

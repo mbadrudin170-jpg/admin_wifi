@@ -138,91 +138,6 @@ abstract class TransaksiModel with _$TransaksiModel {
     };
   }
 
-  factory TransaksiModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return TransaksiModel(
-      id: id,
-      tanggal:
-          _parseTanggal(data[TransaksiSkema.tanggal]) ??
-          (throw ArgumentError.notNull('tanggal dari Firebase')),
-      keterangan: ParserUtil.parseString(data[TransaksiSkema.keterangan]),
-      jumlah: ParserUtil.parseDouble(data[TransaksiSkema.jumlah]),
-      tipe:
-          ParserUtil.safeParseEnum(
-            TipeTransaksi.values,
-            ParserUtil.parseStringOrNull(data[TransaksiSkema.tipe]),
-          ) ??
-          TipeTransaksi.pengeluaran,
-      idDompet: ParserUtil.parseString(data[TransaksiSkema.idDompet]),
-      idKategori: ParserUtil.parseString(data[TransaksiSkema.idKategori]),
-      idDompetTujuan: ParserUtil.parseStringOrNull(
-        data[TransaksiSkema.idDompetTujuan],
-      ),
-      idPelanggan: ParserUtil.parseStringOrNull(
-        data[TransaksiSkema.idPelanggan],
-      ),
-      idPaket: ParserUtil.parseStringOrNull(data[TransaksiSkema.idPaket]),
-      idSubKategori: ParserUtil.parseStringOrNull(
-        data[TransaksiSkema.idSubKategori],
-      ),
-      statusPembayaran:
-          ParserUtil.safeParseEnum(
-            StatusPembayaranEnum.values,
-            ParserUtil.parseStringOrNull(data[TransaksiSkema.statusPembayaran]),
-          ) ??
-          StatusPembayaranEnum.belumLunas,
-      poinYangDihasilkan: ParserUtil.parseInt(
-        data[TransaksiSkema.poinYangDihasilkan],
-      ),
-      poinYangDigunakan: ParserUtil.parseInt(
-        data[TransaksiSkema.poinYangDigunakan],
-      ),
-      diperbarui: _parseTanggal(data[TransaksiSkema.diperbarui]),
-      diarsipkan: _parseTanggal(data[TransaksiSkema.diarsipkan]),
-      isDeleted: ParserUtil.parseBool(data[TransaksiSkema.isDeleted]),
-      durasiPaket: ParserUtil.parseIntOrNull(data[TransaksiSkema.durasiPaket]),
-      tipeDurasiPaket: ParserUtil.safeParseEnum(
-        TipeDurasi.values,
-        ParserUtil.parseStringOrNull(data[TransaksiSkema.tipeDurasiPaket]),
-      ),
-      tanggalMulai: _parseTanggal(data[TransaksiSkema.tanggalMulai]),
-      tanggalBerakhir: _parseTanggal(data[TransaksiSkema.tanggalBerakhir]),
-      aktivasiPaket: ParserUtil.parseBool(data[TransaksiSkema.aktivasiPaket]),
-    );
-  }
-
-  Map<String, dynamic> toFirebase() {
-    return {
-      TransaksiSkema.id: id,
-      TransaksiSkema.tanggal: Timestamp.fromDate(tanggal.toUtc()),
-      TransaksiSkema.keterangan: keterangan,
-      TransaksiSkema.jumlah: jumlah,
-      TransaksiSkema.tipe: tipe.name,
-      TransaksiSkema.idDompet: idDompet,
-      TransaksiSkema.idKategori: idKategori,
-      TransaksiSkema.idDompetTujuan: idDompetTujuan,
-      TransaksiSkema.idPelanggan: idPelanggan,
-      TransaksiSkema.idPaket: idPaket,
-      TransaksiSkema.idSubKategori: idSubKategori,
-      TransaksiSkema.statusPembayaran: statusPembayaran.name,
-      TransaksiSkema.poinYangDihasilkan: poinYangDihasilkan,
-      TransaksiSkema.poinYangDigunakan: poinYangDigunakan,
-      TransaksiSkema.diperbarui: FieldValue.serverTimestamp(),
-      TransaksiSkema.diarsipkan: diarsipkan != null
-          ? Timestamp.fromDate(diarsipkan!.toUtc())
-          : null,
-      TransaksiSkema.isDeleted: isDeleted,
-      TransaksiSkema.durasiPaket: durasiPaket,
-      TransaksiSkema.tipeDurasiPaket: tipeDurasiPaket?.name,
-      TransaksiSkema.tanggalMulai: tanggalMulai != null
-          ? Timestamp.fromDate(tanggalMulai!.toUtc())
-          : null,
-      TransaksiSkema.tanggalBerakhir: tanggalBerakhir != null
-          ? Timestamp.fromDate(tanggalBerakhir!.toUtc())
-          : null,
-      TransaksiSkema.aktivasiPaket: aktivasiPaket,
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       TransaksiSkema.id: id,
@@ -239,13 +154,17 @@ abstract class TransaksiModel with _$TransaksiModel {
       TransaksiSkema.statusPembayaran: statusPembayaran.name,
       TransaksiSkema.poinYangDihasilkan: poinYangDihasilkan,
       TransaksiSkema.poinYangDigunakan: poinYangDigunakan,
-      TransaksiSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      TransaksiSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
       TransaksiSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
       TransaksiSkema.isDeleted: isDeleted,
       TransaksiSkema.durasiPaket: durasiPaket,
       TransaksiSkema.tipeDurasiPaket: tipeDurasiPaket?.name,
       TransaksiSkema.tanggalMulai: tanggalMulai?.toUtc().toIso8601String(),
-      TransaksiSkema.tanggalBerakhir: tanggalBerakhir?.toUtc().toIso8601String(),
+      TransaksiSkema.tanggalBerakhir: tanggalBerakhir
+          ?.toUtc()
+          .toIso8601String(),
       TransaksiSkema.aktivasiPaket: aktivasiPaket,
     };
   }

@@ -76,42 +76,6 @@ abstract class PelangganModel with _$PelangganModel {
     };
   }
 
-  // =========================
-  // FIREBASE
-  // =========================
-
-  factory PelangganModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return PelangganModel(
-      id: id,
-      nama: ParserUtil.parseString(data[PelangganSkema.nama]),
-      telepon: ParserUtil.parseString(data[PelangganSkema.telepon]),
-      alamat: ParserUtil.parseString(data[PelangganSkema.alamat]),
-      password: ParserUtil.parseString(data[PelangganSkema.password]),
-      macAddress: ParserUtil.parseString(data[PelangganSkema.macAddress]),
-      isDeleted: ParserUtil.parseBool(data[PelangganSkema.isDeleted]),
-      diperbarui: _parseTanggal(data[PelangganSkema.diperbarui]),
-      diarsipkan: _parseTanggal(data[PelangganSkema.diarsipkan]),
-    );
-  }
-
-  // diubah: Menggunakan FieldValue.serverTimestamp() dan menyertakan ID.
-  Map<String, dynamic> toFirebase() {
-    final Map<String, dynamic> data = {
-      PelangganSkema.id: id,
-      PelangganSkema.nama: nama,
-      PelangganSkema.telepon: telepon,
-      PelangganSkema.alamat: alamat,
-      PelangganSkema.password: password,
-      PelangganSkema.macAddress: macAddress,
-      PelangganSkema.isDeleted: isDeleted,
-      PelangganSkema.diperbarui: FieldValue.serverTimestamp(),
-    };
-    if (diarsipkan != null) {
-      data[PelangganSkema.diarsipkan] = Timestamp.fromDate(diarsipkan!.toUtc());
-    }
-    return data;
-  }
-
   Map<String, dynamic> toSupabase() {
     final Map<String, dynamic> data = {
       PelangganSkema.id: id,

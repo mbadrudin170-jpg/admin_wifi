@@ -111,56 +111,6 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
     return PelangganAktifModel.fromSqlite(map);
   }
 
-  factory PelangganAktifModel.fromFirebase(
-    String id,
-    Map<String, dynamic> data,
-  ) {
-    try {
-      // diubah: Menghapus fallback DateTime.now() yang berbahaya dan menggantinya dengan validasi.
-      // Nama field Firestore disamakan dengan kolom SQLite (snake_case).
-      final tanggalMulai = _parseTanggal(
-        data[PelangganAktifSkema.tanggalMulai],
-      );
-      final tanggalBerakhir = _parseTanggal(
-        data[PelangganAktifSkema.tanggalBerakhir],
-      );
-
-      if (tanggalMulai == null) {
-        throw ArgumentError.notNull('tanggal_mulai dari Firebase');
-      }
-      if (tanggalBerakhir == null) {
-        throw ArgumentError.notNull('tanggal_berakhir dari Firebase');
-      }
-
-      final model = PelangganAktifModel(
-        id: id,
-        idPelanggan: ParserUtil.parseString(
-          data[PelangganAktifSkema.idPelanggan],
-        ),
-        idPaket: ParserUtil.parseString(data[PelangganAktifSkema.idPaket]),
-        idTransaksi: ParserUtil.parseStringOrNull(
-          data[PelangganAktifSkema.idTransaksi],
-        ),
-        tanggalMulai: tanggalMulai,
-        tanggalBerakhir: tanggalBerakhir,
-        status:
-            ParserUtil.safeParseEnum(
-              StatusPembayaranEnum.values,
-              ParserUtil.parseStringOrNull(data[PelangganAktifSkema.status]),
-            ) ??
-            StatusPembayaranEnum.belumLunas,
-        diperbarui: _parseTanggal(data[PelangganAktifSkema.diperbarui]),
-        isDeleted: ParserUtil.parseBool(data[PelangganAktifSkema.isDeleted]),
-        diarsipkan: _parseTanggal(data[PelangganAktifSkema.diarsipkan]),
-      );
-
-      return model;
-    } catch (e, stack) {
-      L.e('Gagal parsing Firebase: $data Error: $e $stack');
-      rethrow;
-    }
-  }
-
   Map<String, dynamic> toSqlite() {
     return {
       PelangganAktifSkema.id: id,
@@ -176,32 +126,6 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
       PelangganAktifSkema.isDeleted: isDeleted ? 1 : 0,
       PelangganAktifSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
-  }
-
-  Map<String, dynamic> toFirebase() {
-    final Map<String, dynamic> data = {
-      PelangganAktifSkema.id: id,
-      PelangganAktifSkema.idPelanggan: idPelanggan,
-      PelangganAktifSkema.idPaket: idPaket,
-      PelangganAktifSkema.idTransaksi: idTransaksi,
-      PelangganAktifSkema.tanggalMulai: Timestamp.fromDate(
-        tanggalMulai.toUtc(),
-      ),
-      PelangganAktifSkema.tanggalBerakhir: Timestamp.fromDate(
-        tanggalBerakhir.toUtc(),
-      ),
-      PelangganAktifSkema.status: status.name,
-      PelangganAktifSkema.isDeleted: isDeleted,
-      PelangganAktifSkema.diperbarui: FieldValue.serverTimestamp(),
-    };
-    if (diarsipkan != null) {
-      data[PelangganAktifSkema.diarsipkan] = Timestamp.fromDate(
-        diarsipkan!.toUtc(),
-      );
-    }
-
-    L.api('Firestore/Pelanggan/$id', data, method: 'SET');
-    return data;
   }
 
   Map<String, dynamic> toSupabase() {

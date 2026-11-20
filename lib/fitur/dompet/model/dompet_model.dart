@@ -56,33 +56,6 @@ abstract class DompetModel with _$DompetModel {
     };
   }
 
-  // --- Interaksi Firestore ---
-  // saya ubah ke fromFirebase
-  // ditambahkan: Factory constructor dari data Firestore
-  factory DompetModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return DompetModel(
-      id: id,
-      namaDompet: ParserUtil.parseString(data[DompetSkema.namaDompet]),
-      saldo: ParserUtil.parseDouble(data[DompetSkema.saldo]),
-      diperbarui: _parseTanggal(data[DompetSkema.diperbarui]),
-      isDeleted: ParserUtil.parseBool(data[DompetSkema.isDeleted]),
-      diarsipkan: _parseTanggal(data[DompetSkema.diarsipkan]),
-    );
-  }
-
-  // ditambahkan: Metode konversi ke format Firestore
-  Map<String, dynamic> toFirebase() {
-    // saya ubah ke toFirebase
-    return {
-      DompetSkema.namaDompet: namaDompet,
-      DompetSkema.saldo: saldo,
-      DompetSkema.diperbarui: FieldValue.serverTimestamp(),
-      DompetSkema.isDeleted: isDeleted,
-      if (diarsipkan != null)
-        DompetSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       DompetSkema.id: id,

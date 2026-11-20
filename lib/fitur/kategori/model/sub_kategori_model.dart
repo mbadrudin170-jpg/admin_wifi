@@ -59,31 +59,6 @@ abstract class SubKategoriModel with _$SubKategoriModel {
     };
   }
 
-  // ditambahkan: Factory fromFirebase
-  factory SubKategoriModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return SubKategoriModel(
-      id: id,
-      nama: ParserUtil.parseString(data[SubKategoriSkema.nama]),
-      idKategori: ParserUtil.parseString(data[SubKategoriSkema.idKategori]),
-      diperbarui: _parseTanggal(data[SubKategoriSkema.diperbarui]),
-      isDeleted: ParserUtil.parseBool(data[SubKategoriSkema.isDeleted]),
-      diarsipkan: _parseTanggal(data[SubKategoriSkema.diarsipkan]),
-    );
-  }
-
-  // diubah: Nama metode diubah dari toMapForFirebase menjadi toFirebase
-  Map<String, dynamic> toFirebase() {
-    return {
-      SubKategoriSkema.id: id,
-      SubKategoriSkema.nama: nama,
-      SubKategoriSkema.idKategori: idKategori,
-      SubKategoriSkema.diperbarui: FieldValue.serverTimestamp(),
-      SubKategoriSkema.isDeleted: isDeleted,
-      if (diarsipkan != null)
-        SubKategoriSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       SubKategoriSkema.id: id,

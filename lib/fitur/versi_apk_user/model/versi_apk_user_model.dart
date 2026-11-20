@@ -75,48 +75,6 @@ abstract class VersiApkUserModel with _$VersiApkUserModel {
     };
   }
 
-  // =========================
-  // FIREBASE
-  // =========================
-  factory VersiApkUserModel.fromFirebase(String id, Map<String, dynamic> map) {
-    return VersiApkUserModel(
-      id: id,
-      catatanRilis: ParserUtil.parseString(map[VersiApkUserSkema.catatanRilis]),
-      versiTerbaru: ParserUtil.parseString(map[VersiApkUserSkema.versiTerbaru]),
-      youtubeTutorial: ParserUtil.parseString(
-        map[VersiApkUserSkema.youtubeTutorial],
-      ),
-      wajibUpdate: ParserUtil.parseBool(map[VersiApkUserSkema.wajibUpdate]),
-      isDeleted: ParserUtil.parseBool(map[VersiApkUserSkema.isDeleted]),
-      nomorBuildTerbaru: _parseNomorBuild(
-        map[VersiApkUserSkema.nomorBuildTerbaru],
-      ),
-      tautanUnduhan: _parseTautanUnduhan(map[VersiApkUserSkema.tautanUnduhan]),
-      diarsipkan: _parseTanggal(map[VersiApkUserSkema.diarsipkan]),
-      diperbarui: _parseTanggal(map[VersiApkUserSkema.diperbarui]),
-    );
-  }
-
-  Map<String, dynamic> toFirebase() {
-    return {
-      VersiApkUserSkema.id: id,
-      VersiApkUserSkema.catatanRilis: catatanRilis,
-      VersiApkUserSkema.versiTerbaru: versiTerbaru,
-      VersiApkUserSkema.youtubeTutorial: youtubeTutorial,
-      VersiApkUserSkema.diperbarui: FieldValue.serverTimestamp(),
-      if (diarsipkan != null)
-        VersiApkUserSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
-      VersiApkUserSkema.nomorBuildTerbaru: nomorBuildTerbaru.map(
-        (key, value) => MapEntry(key.name, value),
-      ),
-      VersiApkUserSkema.tautanUnduhan: tautanUnduhan.map(
-        (key, value) => MapEntry(key.name, value),
-      ),
-      VersiApkUserSkema.wajibUpdate: wajibUpdate,
-      VersiApkUserSkema.isDeleted: isDeleted,
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       VersiApkUserSkema.id: id,

@@ -108,37 +108,6 @@ abstract class PaketModel with _$PaketModel {
   }
 
   // =========================
-  // FIREBASE
-  // =========================
-
-  factory PaketModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return _fromMap(id, data);
-  }
-
-  /// `diperbarui` selalu memakai waktu server. `diarsipkan` ditulis `null`
-  /// bila paket tidak diarsipkan, sehingga nilai lama ikut terhapus saat
-  /// paket dikeluarkan dari arsip (aman untuk `set`, `set(merge)`, `update`).
-  Map<String, dynamic> toFirebase() {
-    final arsip = diarsipkan;
-
-    return {
-      PaketSkema.id: id,
-      PaketSkema.nama: nama,
-      PaketSkema.harga: harga,
-      PaketSkema.durasi: durasi,
-      PaketSkema.tipe: tipe.name,
-      PaketSkema.poinHadiah: poinHadiah,
-      PaketSkema.poinPenukaran: poinPenukaran,
-      PaketSkema.isPublic: isPublic,
-      PaketSkema.isDeleted: isDeleted,
-      PaketSkema.diperbarui: FieldValue.serverTimestamp(),
-      PaketSkema.diarsipkan: arsip == null
-          ? null
-          : Timestamp.fromDate(arsip.toUtc()),
-    };
-  }
-
-  // =========================
   // SUPABASE
   // =========================
 

@@ -70,41 +70,6 @@ abstract class PengaturanModel with _$PengaturanModel {
     };
   }
 
-  // =========================
-  // FIREBASE
-  // =========================
-
-  factory PengaturanModel.fromFirebase(Map<String, dynamic> data) {
-    return PengaturanModel(
-      intervalSinkronisasiOtomatis: ParserUtil.parseInt(
-        data[PengaturanSkema.intervalSinkronisasiOtomatis],
-        defaultValue: 24,
-      ),
-      hapusOtomatisDataArsip: ParserUtil.parseInt(
-        data[PengaturanSkema.hapusOtomatisDataArsip],
-        defaultValue: 30,
-      ),
-      modePemeliharaan: ParserUtil.parseBool(
-        data[PengaturanSkema.modePemeliharaan],
-      ),
-      infoPemeliharaan: ParserUtil.parseString(
-        data[PengaturanSkema.infoPemeliharaan],
-      ),
-      diperbarui: _parseTanggal(data[PengaturanSkema.diperbarui]),
-    );
-  }
-
-  Map<String, dynamic> toFirebase() {
-    return {
-      PengaturanSkema.intervalSinkronisasiOtomatis:
-          intervalSinkronisasiOtomatis,
-      PengaturanSkema.hapusOtomatisDataArsip: hapusOtomatisDataArsip,
-      PengaturanSkema.modePemeliharaan: modePemeliharaan,
-      PengaturanSkema.infoPemeliharaan: infoPemeliharaan,
-      PengaturanSkema.diperbarui: FieldValue.serverTimestamp(),
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       PengaturanSkema.intervalSinkronisasiOtomatis:

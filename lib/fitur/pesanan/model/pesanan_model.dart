@@ -72,42 +72,6 @@ abstract class PesananModel with _$PesananModel {
     };
   }
 
-  // =========================
-  // FIREBASE
-  // =========================
-
-  factory PesananModel.fromFirebase(String id, Map<String, dynamic> data) {
-    return PesananModel(
-      id: id,
-      idPelanggan: ParserUtil.parseString(data[PesananSkema.idPelanggan]),
-      idPaket: ParserUtil.parseString(data[PesananSkema.idPaket]),
-      tanggal:
-          _parseTanggal(data[PesananSkema.tanggal]) ??
-          (throw ArgumentError.notNull('tanggal dari Firebase')),
-      status: ParserUtil.parseString(
-        data[PesananSkema.status],
-        defaultValue: 'baru',
-      ),
-      diperbarui: _parseTanggal(data[PesananSkema.diperbarui]),
-      isDeleted: ParserUtil.parseBool(data[PesananSkema.isDeleted]),
-      diarsipkan: _parseTanggal(data[PesananSkema.diarsipkan]),
-    );
-  }
-
-  Map<String, dynamic> toFirebase() {
-    return {
-      PesananSkema.id: id,
-      PesananSkema.idPelanggan: idPelanggan,
-      PesananSkema.idPaket: idPaket,
-      PesananSkema.tanggal: Timestamp.fromDate(tanggal.toUtc()),
-      PesananSkema.status: status,
-      PesananSkema.diperbarui: FieldValue.serverTimestamp(),
-      PesananSkema.isDeleted: isDeleted,
-      if (diarsipkan != null)
-        PesananSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
-    };
-  }
-
   Map<String, dynamic> toSupabase() {
     return {
       PesananSkema.id: id,

@@ -90,39 +90,6 @@ abstract class KategoriModel with _$KategoriModel {
     };
   }
 
-  // ditambahkan: Factory fromFirebase
-  factory KategoriModel.fromFirebase(String id, Map<String, dynamic> data) {
-    List<SubKategoriModel> parseSubKategori(dynamic subKategoriData) {
-      if (subKategoriData is List) {
-        return subKategoriData
-            .map(
-              (item) => SubKategoriModel.fromFirebase(
-                ParserUtil.parseString(item['id']),
-                item as Map<String, dynamic>,
-              ),
-            )
-            .toList();
-      } else {
-        return [];
-      }
-    }
-
-    return KategoriModel(
-      id: id,
-      nama: ParserUtil.parseString(data[KategoriSkema.nama]),
-      tipe:
-          ParserUtil.safeParseEnum(
-            TipeKategori.values,
-            ParserUtil.parseStringOrNull(data[KategoriSkema.tipe]),
-          ) ??
-          TipeKategori.pemasukan,
-      subKategori: parseSubKategori(data[KategoriSkema.idSubKategori]),
-      diperbarui: _parseTanggal(data[KategoriSkema.diperbarui]),
-      isDeleted: ParserUtil.parseBool(data[KategoriSkema.isDeleted]),
-      diarsipkan: _parseTanggal(data[KategoriSkema.diarsipkan]),
-    );
-  }
-
   /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
   /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
   factory KategoriModel.fromSupabase(Map<String, dynamic> map) {
