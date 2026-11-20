@@ -19,7 +19,6 @@ class TransaksiNotifier extends _$TransaksiNotifier {
 
   @override
   Future<TransaksiState> build() async {
-    L.i('Memuat daftar transaksi dari database');
     return _ambilSemua();
   }
 
