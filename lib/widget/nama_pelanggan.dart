@@ -1,48 +1,44 @@
 // path: lib/widget/nama_pelanggan.dart
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-class NamaPelangganWidget extends StatelessWidget {
+class NamaPelangganWidget extends ConsumerWidget {
   final String idPelanggan;
   final TextStyle? style;
 
   const NamaPelangganWidget({super.key, required this.idPelanggan, this.style});
 
   @override
-  Widget build(BuildContext context) {
-    final PelangganOperasi pelangganOperasi = PelangganOperasi();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncPelanggan = ref.watch(pelangganProvider);
 
-    return FutureBuilder<PelangganModel?>(
-      future: pelangganOperasi.getPelangganById(idPelanggan),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text(
-            '...',
-            style: style ?? const TextStyle(color: Colors.grey),
-          );
-        }
-        if (snapshot.hasError) {
-          return Text(
-            'Error',
-            style:
-                style ??
-                const TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
-          );
-        }
-        if (snapshot.hasData && snapshot.data != null) {
-          return Text(
-            snapshot.data!.nama,
-            style: style ?? const TextStyle(fontWeight: FontWeight.bold),
-          );
-        }
-        return Text(
-          'Pelanggan tidak ditemukan',
-          style:
-              style ??
-              const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-        );
-      },
+    if (asyncPelanggan.isLoading) {
+      return Text('...', style: style ?? const TextStyle(color: Colors.grey));
+    }
+    if (asyncPelanggan.hasError) {
+      return Text(
+        'Error',
+        style:
+            style ??
+            const TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
+      );
+    }
+
+    final state = asyncPelanggan.requireValue;
+    final pelanggan = state.getById(idPelanggan);
+
+    if (pelanggan != null) {
+      return Text(
+        pelanggan.nama,
+        style: style ?? const TextStyle(fontWeight: FontWeight.bold),
+      );
+    }
+    return Text(
+      'Pelanggan tidak ditemukan',
+      style:
+          style ??
+          const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
     );
   }
 }
