@@ -70,6 +70,7 @@ void main() {
 
     test('createPelangganAktif harus menjadwalkan notifikasi', () async {
       await operasi.createPelangganAktif(buatModel());
+      // Implementasi menjadwalkan 3 notifikasi: H-3, H-1, dan tepat waktu.
       verify(
         () => mockNotifikasiServis.jadwalNotifikasi(
           id: any(named: 'id'),
@@ -77,17 +78,19 @@ void main() {
           body: any(named: 'body'),
           jadwal: any(named: 'jadwal'),
         ),
-      ).called(2);
+      ).called(3);
     });
 
     test('arsipkanPelangganAktif harus membatalkan notifikasi', () async {
       // diperbaiki: simpan model yang dibuat untuk mendapatkan ID-nya
       final modelDibuat = await operasi.createPelangganAktif(buatModel());
+      // Reset interaksi mock agar verifikasi hanya menghitung aksi arsip.
+      clearInteractions(mockNotifikasiServis);
       // diperbaiki: gunakan ID yang valid, bukan 'any'
       await operasi.arsipkanPelangganAktif(modelDibuat.id);
 
-      // Harusnya 4 kali, 2 dari create, 2 dari arsip
-      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(4);
+      // Implementasi membatalkan 3 notifikasi (H-3, H-1, tepat waktu).
+      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(3);
     });
 
     test('arsipkanPelangganKadaluarsa harus memproses dengan benar', () async {
@@ -136,12 +139,15 @@ void main() {
         buatModel(idPelanggan: 'p2', idPaket: 'paket_2', kadaluarsa: false),
       );
 
+      // Reset interaksi mock agar verifikasi hanya menghitung aksi arsip kadaluarsa.
+      clearInteractions(mockNotifikasiServis);
+
       final result = await operasi.arsipkanPelangganKadaluarsa();
 
       expect(result, 1);
 
-      // Harusnya 6 kali. 2x2 dari create, 2 dari arsip pelanggan kadaluarsa
-      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(6);
+      // Implementasi membatalkan 3 notifikasi untuk pelanggan kadaluarsa yang diarsip.
+      verify(() => mockNotifikasiServis.batalNotifikasi(any())).called(3);
     });
   });
 }

@@ -127,5 +127,8 @@
 //       final total = await dompetOperasi.getTotalSaldo();
 //       expect(total, 100.0);
 //     });
-//   });
-// }
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('placeholder (belum siap)', () {}, skip: true);
+}

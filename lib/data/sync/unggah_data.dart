@@ -293,12 +293,12 @@ class LayananUnggahData {
       );
 
       if (batchSupabase.isNotEmpty) {
-        if (_upsertFn != null) {
-          await _upsertFn(namaTabel, batchSupabase);
-        } else {
-          final client = _supabase ?? SupabaseKlien.instance.client;
-          await client.from(namaTabel).upsert(batchSupabase);
-        }
+          if (_upsertFn != null) {
+            await _upsertFn(namaKoleksi, batchSupabase);
+          } else {
+            final client = _supabase ?? SupabaseKlien.instance.client;
+            await client.from(namaKoleksi).upsert(batchSupabase);
+          }
       }
     } catch (e, s) {
       L.e(

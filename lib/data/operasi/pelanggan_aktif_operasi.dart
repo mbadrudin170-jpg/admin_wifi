@@ -194,8 +194,13 @@ class PelangganAktifOperasi {
       final pelanggan = await _pelangganOperasi.getPelangganById(
         pelangganAktif.idPelanggan,
       );
-      final namaPelanggan = pelanggan?.nama ?? 'Tanpa Nama';
-      L.i('Nama pelanggan: $namaPelanggan');
+      final namaPelanggan = pelanggan?.nama;
+      if (namaPelanggan == null) {
+        L.w(
+          'Pelanggan dengan ID: ${pelangganAktif.idPelanggan} tidak ditemukan saat menjadwalkan notifikasi; memakai nama "Tanpa Nama".',
+        );
+      }
+      final namaUntukNotifikasi = namaPelanggan ?? 'Tanpa Nama';
 
       // Batalkan notifikasi lama
       L.i(
@@ -211,7 +216,8 @@ class PelangganAktifOperasi {
         await notifikasiServis.jadwalNotifikasi(
           id: (pelangganAktif.id.hashCode + 2),
           title: 'Masa Aktif Habis!',
-          body: 'Paket WiFi untuk $namaPelanggan telah berakhir sekarang.',
+          body:
+              'Paket WiFi untuk $namaUntukNotifikasi telah berakhir sekarang.',
           jadwal: jadwalTepatWaktu,
         );
         L.i(
@@ -231,7 +237,8 @@ class PelangganAktifOperasi {
         await notifikasiServis.jadwalNotifikasi(
           id: pelangganAktif.id.hashCode,
           title: 'Paket Akan Segera Berakhir',
-          body: 'Paket untuk pelanggan $namaPelanggan akan berakhir besok.',
+          body:
+              'Paket untuk pelanggan $namaUntukNotifikasi akan berakhir besok.',
           jadwal: jadwalNotifikasiH1,
         );
         L.i(
@@ -252,7 +259,7 @@ class PelangganAktifOperasi {
           id: (pelangganAktif.id.hashCode + 1),
           title: 'Pengingat Paket',
           body:
-              'Paket untuk pelanggan $namaPelanggan akan berakhir dalam 3 hari.',
+              'Paket untuk pelanggan $namaUntukNotifikasi akan berakhir dalam 3 hari.',
           jadwal: jadwalNotifikasiH3,
         );
         L.i(

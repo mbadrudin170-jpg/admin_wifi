@@ -2,6 +2,10 @@
 -- Kebijakan permissive (dev). `CREATE POLICY` tidak mendukung IF NOT EXISTS,
 -- sehingga policy lama di-drop terlebih dahulu.
 
+-- Hak akses dasar untuk role anon/authenticated (diperlukan selain RLS policy)
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on all tables in schema public to anon, authenticated;
+
 alter table public.dompet enable row level security;
 alter table public.kategori enable row level security;
 alter table public.sub_kategori enable row level security;

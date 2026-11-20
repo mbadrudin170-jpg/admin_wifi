@@ -286,5 +286,8 @@
 //       expect(await getSaldo(dompetA.id), saldoAwal - 50, reason: "Saldo dompet A seharusnya hanya berkurang 50");
 //       expect(await getSaldo(dompetB.id), saldoAwal, reason: "Saldo dompet B seharusnya kembali ke awal");
 //     });
-//   });
-// }
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('placeholder (belum siap)', () {}, skip: true);
+}
