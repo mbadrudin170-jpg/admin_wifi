@@ -15,6 +15,13 @@ jobs:
       - name: Konfigurasi akses repo privat
         run: git config --global url."https://${{ secrets.SHARE_GLOBAL_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
+      - name: Checkout paket bersama share_global_saya
+        uses: actions/checkout@v4
+        with:
+          repository: mbadrudin170-jpg/share_global_saya
+          path: ../share_global_saya
+          token: ${{ secrets.SHARE_GLOBAL_TOKEN }}
+
       - name: Siapkan Java (JDK 17)
         uses: actions/setup-java@v4
         with:
