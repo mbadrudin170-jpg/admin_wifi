@@ -3,7 +3,6 @@ import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/db/supabase/supabase.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class KritikSaranOperasi {
