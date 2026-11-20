@@ -75,7 +75,7 @@ void main() {
             'dompet',
             'dompet_col',
             DompetModel.fromSqlite,
-            (m) => m.toFirebase(),
+            (m) => m.toSupabase(),
             lastSyncTime,
           );
 
@@ -160,7 +160,7 @@ void main() {
             'pengaturan',
             'pengaturan_col',
             PengaturanModel.fromSqlite,
-            (m) => m.toFirebase(),
+            (m) => m.toSupabase(),
             lastSyncTime,
           );
 

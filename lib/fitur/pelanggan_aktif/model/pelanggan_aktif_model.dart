@@ -105,6 +105,12 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
     }
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory PelangganAktifModel.fromSupabase(Map<String, dynamic> map) {
+    return PelangganAktifModel.fromSqlite(map);
+  }
+
   factory PelangganAktifModel.fromFirebase(
     String id,
     Map<String, dynamic> data,

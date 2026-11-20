@@ -94,6 +94,19 @@ abstract class DompetModel with _$DompetModel {
         DompetSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
   }
+
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory DompetModel.fromSupabase(Map<String, dynamic> map) {
+    return DompetModel(
+      id: ParserUtil.parseString(map[DompetSkema.id]),
+      namaDompet: ParserUtil.parseString(map[DompetSkema.namaDompet]),
+      saldo: ParserUtil.parseDouble(map[DompetSkema.saldo]),
+      diperbarui: _parseTanggal(map[DompetSkema.diperbarui]),
+      isDeleted: ParserUtil.parseBool(map[DompetSkema.isDeleted]),
+      diarsipkan: _parseTanggal(map[DompetSkema.diarsipkan]),
+    );
+  }
 }
 
 abstract final class DompetSkema {

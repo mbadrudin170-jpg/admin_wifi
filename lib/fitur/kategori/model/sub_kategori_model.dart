@@ -41,6 +41,12 @@ abstract class SubKategoriModel with _$SubKategoriModel {
     );
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory SubKategoriModel.fromSupabase(Map<String, dynamic> map) {
+    return SubKategoriModel.fromSqlite(map);
+  }
+
   // diubah: Nama metode diubah dari toMapForSqlite menjadi toSqlite
   Map<String, dynamic> toSqlite() {
     return {

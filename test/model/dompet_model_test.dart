@@ -3,7 +3,6 @@
 
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer' as developer;
 
 void main() {
@@ -69,52 +68,48 @@ void main() {
       });
     });
 
-    group('Firestore Mapping', () {
-      test('fromFirebase: Harus membuat model dari map Firestore', () {
-        developer.log('Menjalankan test: fromFirebase');
+    group('Supabase Mapping', () {
+      test('fromSupabase: Harus membuat model dari map Supabase', () {
+        developer.log('Menjalankan test: fromSupabase');
 
-        final timestamp = Timestamp.now();
-        final Map<String, dynamic> dataFirestore = {
+        final Map<String, dynamic> dataSupabase = {
+          'id': 'supabase-id-123',
           'namaDompet': 'Investasi',
           'saldo': 2500.75,
-          'diperbarui': timestamp,
+          'diperbarui': DateTime.now().toUtc().toIso8601String(),
           'isDeleted': false,
         };
 
-        final model = DompetModel.fromFirebase(
-          'firestore-id-123',
-          dataFirestore,
-        );
+        final model = DompetModel.fromSupabase(dataSupabase);
 
-        expect(model.id, 'firestore-id-123');
+        expect(model.id, 'supabase-id-123');
         expect(model.namaDompet, 'Investasi');
         expect(model.saldo, 2500.75);
         expect(model.isDeleted, false);
-        expect(model.diperbarui, timestamp.toDate());
 
         developer.log(
-          'Berhasil: Data Firestore terkonversi sempurna ke model.',
+          'Berhasil: Data Supabase terkonversi sempurna ke model.',
         );
       });
 
-      test('toFirebase: Harus mengonversi model ke map untuk Firestore', () {
-        developer.log('Menjalankan test: toFirebase');
+      test('toSupabase: Harus mengonversi model ke map untuk Supabase', () {
+        developer.log('Menjalankan test: toSupabase');
 
         final model = DompetModel(
-          id: 'test-id-untuk-firebase',
+          id: 'test-id-untuk-supabase',
           namaDompet: 'Dana Darurat',
           saldo: 10000,
           isDeleted: false,
         );
 
-        final map = model.toFirebase();
+        final map = model.toSupabase();
 
         expect(map['namaDompet'], 'Dana Darurat');
         expect(map['saldo'], 10000);
         expect(map['isDeleted'], false);
-        expect(map['diperbarui'], isA<FieldValue>());
+        expect(map['diperbarui'], isA<String>());
 
-        developer.log('Berhasil: Model terkonversi ke map untuk Firestore.');
+        developer.log('Berhasil: Model terkonversi ke map untuk Supabase.');
       });
     });
 

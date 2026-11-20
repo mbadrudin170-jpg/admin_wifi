@@ -50,6 +50,12 @@ abstract class VersiApkUserModel with _$VersiApkUserModel {
     );
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory VersiApkUserModel.fromSupabase(Map<String, dynamic> map) {
+    return VersiApkUserModel.fromSqlite(map);
+  }
+
   Map<String, dynamic> toSqlite() {
     return {
       VersiApkUserSkema.id: id,

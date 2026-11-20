@@ -11,6 +11,8 @@ import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/transaksi_operasi.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/db/supabase/supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
@@ -23,11 +25,11 @@ import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/src/utils/parser_util.dart';
 
 class LayananUnduhData {
-  final FirebaseFirestore _firestore;
+  final SupabaseClient _supabase;
   final SyncManager _syncManager;
 
   // Operasi
@@ -43,11 +45,11 @@ class LayananUnduhData {
   final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
-  LayananUnduhData({FirebaseFirestore? firestore, SyncManager? syncManager})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _syncManager = syncManager ?? SyncManager() {
+  LayananUnduhData({SupabaseClient? supabase, SyncManager? syncManager})
+      : _supabase = supabase ?? SupabaseKlien.instance.client,
+        _syncManager = syncManager ?? SyncManager() {
     L.i(
-      'LayananUnduhData berhasil diinisialisasi. Seluruh operasi database lokal dan referensi FirebaseFirestore telah siap digunakan untuk sinkronisasi masuk.',
+      'LayananUnduhData berhasil diinisialisasi. Seluruh operasi database lokal dan referensi Supabase telah siap digunakan untuk sinkronisasi masuk.',
     );
   }
 
@@ -90,32 +92,31 @@ class LayananUnduhData {
       final waktuUnduhTerakhir = await _syncManager.getTerakhirUnduh();
       L.i('Timestamp sinkronisasi lokal terakhir: $waktuUnduhTerakhir');
 
-      final docRef = _firestore.collection('pengaturan').doc('default');
-      final doc = await docRef.get(const GetOptions(source: Source.server));
+      final rows = await _supabase.from('pengaturan').select().limit(1);
 
-      if (doc.exists && doc.data() != null) {
-        final data = doc.data()!;
+      if (rows.isNotEmpty) {
+        final data = Map<String, dynamic>.from(rows.first as Map);
         if (data.containsKey('diperbarui')) {
-          final dynamic fieldValue = data['diperbarui'];
+          final fieldValue = data['diperbarui'];
           L.i(
             'Mendapatkan metadata "diperbarui" dari server. Tipe data terdeteksi: ${fieldValue.runtimeType}',
           );
 
-          if (fieldValue is! Timestamp) {
+          final waktuPembaruanServer = ParserUtil.parseDateTime(fieldValue)?.toLocal();
+          if (waktuPembaruanServer == null) {
             L.e(
-              'Inkompatibilitas Tipe Data: Field "diperbarui" di Firestore adalah ${fieldValue.runtimeType}, namun sistem mengharapkan Timestamp. Sinkronisasi dibatalkan untuk mencegah crash.',
+              'Inkompatibilitas Tipe Data: Field "diperbarui" di Supabase adalah ${fieldValue.runtimeType}, namun sistem mengharapkan ISO-8601 string. Sinkronisasi dibatalkan untuk mencegah crash.',
             );
             return;
           }
 
-          final waktuPembaruanServer = (fieldValue).toDate();
           L.i('Waktu modifikasi server: $waktuPembaruanServer');
 
           if (waktuPembaruanServer.isAfter(waktuUnduhTerakhir)) {
             L.i(
               'Data server lebih baru. Memulai pembaruan database SQLite untuk model PengaturanModel.',
             );
-            final pengaturan = PengaturanModel.fromFirebase(data);
+            final pengaturan = PengaturanModel.fromSupabase(data);
             await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
             L.i('Update Pengaturan lokal berhasil disimpan.');
           } else {
@@ -130,7 +131,7 @@ class LayananUnduhData {
         }
       } else {
         L.w(
-          'Dokumen "pengaturan/default" tidak ditemukan di server Firestore.',
+          'Dokumen "pengaturan" tidak ditemukan di server Supabase.',
         );
       }
     } catch (e, s) {
@@ -144,7 +145,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<DompetModel>(
       namaKoleksi: 'dompet',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => DompetModel.fromFirebase(id, map),
+      fromSupabase: (map) => DompetModel.fromSupabase(map),
       operasiBatch: (data) => _dompetOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -154,7 +155,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<KategoriModel>(
       namaKoleksi: 'kategori',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => KategoriModel.fromFirebase(id, map),
+      fromSupabase: (map) => KategoriModel.fromSupabase(map),
       operasiBatch: (data) => _kategoriOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -164,7 +165,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<PaketModel>(
       namaKoleksi: 'paket',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => PaketModel.fromFirebase(id, map),
+      fromSupabase: (map) => PaketModel.fromSupabase(map),
       operasiBatch: (data) => _paketOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -174,7 +175,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<PelangganModel>(
       namaKoleksi: 'pelanggan',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => PelangganModel.fromFirebase(id, map),
+      fromSupabase: (map) => PelangganModel.fromSupabase(map),
       operasiBatch: (data) => _pelangganOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -184,7 +185,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<PelangganAktifModel>(
       namaKoleksi: 'pelanggan_aktif',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => PelangganAktifModel.fromFirebase(id, map),
+      fromSupabase: (map) => PelangganAktifModel.fromSupabase(map),
       operasiBatch: (data) =>
           _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -195,7 +196,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<TransaksiModel>(
       namaKoleksi: 'transaksi',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => TransaksiModel.fromFirebase(id, map),
+      fromSupabase: (map) => TransaksiModel.fromSupabase(map),
       operasiBatch: (data) => _transaksiOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -205,7 +206,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<KritikSaranModel>(
       namaKoleksi: 'kritik_saran',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => KritikSaranModel.fromFirebase(id, map),
+      fromSupabase: (map) => KritikSaranModel.fromSupabase(map),
       operasiBatch: (data) =>
           _kritikSaranOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -216,7 +217,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<PesananModel>(
       namaKoleksi: 'pesan',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => PesananModel.fromFirebase(id, map),
+      fromSupabase: (map) => PesananModel.fromSupabase(map),
       operasiBatch: (data) => _pesanOperasi.sisipkanAtauPerbaruiBatch(data),
     );
   }
@@ -226,7 +227,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<SubKategoriModel>(
       namaKoleksi: 'sub_kategori',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => SubKategoriModel.fromFirebase(id, map),
+      fromSupabase: (map) => SubKategoriModel.fromSupabase(map),
       operasiBatch: (data) =>
           _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -237,7 +238,7 @@ class LayananUnduhData {
     await sinkronisasiKoleksi<VersiApkUserModel>(
       namaKoleksi: 'versi_apk_user',
       waktuUnduhTerakhir: waktu,
-      fromFirebase: (id, map) => VersiApkUserModel.fromFirebase(id, map),
+      fromSupabase: (map) => VersiApkUserModel.fromSupabase(map),
       operasiBatch: (data) =>
           _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
     );
@@ -246,44 +247,32 @@ class LayananUnduhData {
   Future<void> sinkronisasiKoleksi<T>({
     required String namaKoleksi,
     required DateTime waktuUnduhTerakhir,
-    required T Function(String id, Map<String, dynamic> data) fromFirebase,
+    required T Function(Map<String, dynamic> data) fromSupabase,
     required Future<void> Function(List<T>) operasiBatch,
   }) async {
     L.i(
       'Sinkronisasi Koleksi: Memeriksa [$namaKoleksi] untuk data baru sejak $waktuUnduhTerakhir.',
     );
     try {
-      final snapshot = await _firestore
-          .collection(namaKoleksi)
-          .where('diperbarui', isGreaterThan: waktuUnduhTerakhir)
-          .get(const GetOptions(source: Source.server));
+      final rows = await _supabase
+          .from(namaKoleksi)
+          .select()
+          .gt('diperbarui', waktuUnduhTerakhir.toUtc().toIso8601String());
 
-      if (snapshot.docs.isNotEmpty) {
+      if (rows.isNotEmpty) {
         L.i(
-          'Ditemukan ${snapshot.docs.length} dokumen baru/diperbarui di koleksi [$namaKoleksi]. Memulai parsing data.',
+          'Ditemukan ${rows.length} dokumen baru/diperbarui di koleksi [$namaKoleksi]. Memulai parsing data.',
         );
 
         final List<T> dataList = [];
-        for (final doc in snapshot.docs) {
+        for (final row in rows) {
           try {
-            final diperbaruiField = doc.data()['diperbarui'];
-
-            // Diagnosis Tipe Data Per Dokumen
-            L.i(
-              'Analisis Dokumen: ID: ${doc.id} | Tipe Field "diperbarui": ${diperbaruiField?.runtimeType ?? "NULL"}',
-            );
-
-            dataList.add(fromFirebase(doc.id, doc.data()));
+            final data = Map<String, dynamic>.from(row as Map);
+            dataList.add(fromSupabase(data));
           } catch (e, s) {
-            if (e.toString().contains('_CastError') || e is TypeError) {
-              L.e(
-                'KESALAHAN KONVERSI: Field "diperbarui" pada dokumen ${doc.id} bukan tipe Timestamp. Mohon jalankan MigrasiTimestamp untuk koleksi ini. Error: Data RAW: ${doc.data()} $s',
-              );
-            } else {
-              L.e(
-                'Gagal memproses dokumen individual dengan ID: ${doc.id} Error: $e $s',
-              );
-            }
+            L.e(
+              'Gagal memproses dokumen individual pada koleksi $namaKoleksi. Error: $e $s',
+            );
           }
         }
 

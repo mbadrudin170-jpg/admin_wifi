@@ -41,6 +41,12 @@ abstract class KritikSaranModel with _$KritikSaranModel {
     );
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory KritikSaranModel.fromSupabase(Map<String, dynamic> map) {
+    return KritikSaranModel.fromSqlite(map);
+  }
+
   // diubah: Nama metode dari toMapForSqlite menjadi toSqlite
   Map<String, dynamic> toSqlite() {
     return {

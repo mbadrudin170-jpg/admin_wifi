@@ -80,12 +80,12 @@ class _LainnyaTabState extends State<LainnyaPage> {
             onTap: () async {
               L.i('Memulai proses untuk membuka halaman Kritik & Saran.');
 
-              L.i('Mengunduh data Kritik & Saran dari Firebase.');
-              final dataFromFirebase =
-                  await KritikSaranOperasi.unduhDataDariFirebase();
+               L.i('Mengunduh data Kritik & Saran dari Supabase.');
+               final dataFromSupabase =
+                   await KritikSaranOperasi.unduhDataDariSupabase();
               L.i('Berhasil mengunduh ${dataFromFirebase.length} data.');
 
-              if (dataFromFirebase.isNotEmpty) {
+               if (dataFromSupabase.isNotEmpty) {
                 final operasi = KritikSaranOperasi();
                 L.i('Menyimpan/Memperbarui data ke database lokal.');
                 await operasi.sisipkanAtauPerbaruiBatch(dataFromFirebase);

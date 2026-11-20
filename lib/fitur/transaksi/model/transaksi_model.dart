@@ -103,6 +103,12 @@ abstract class TransaksiModel with _$TransaksiModel {
     );
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory TransaksiModel.fromSupabase(Map<String, dynamic> map) {
+    return TransaksiModel.fromSqlite(map);
+  }
+
   Map<String, dynamic> toSqlite() {
     return {
       TransaksiSkema.id: id,

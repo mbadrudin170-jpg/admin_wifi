@@ -53,6 +53,12 @@ abstract class PengaturanModel with _$PengaturanModel {
     );
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory PengaturanModel.fromSupabase(Map<String, dynamic> map) {
+    return PengaturanModel.fromSqlite(map);
+  }
+
   Map<String, dynamic> toSqlite() {
     return {
       PengaturanSkema.intervalSinkronisasiOtomatis:

@@ -2,7 +2,8 @@
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:admin_wifi/db/supabase/supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class KritikSaranOperasi {
@@ -170,27 +171,26 @@ class KritikSaranOperasi {
     }
   }
 
-  static Future<List<KritikSaranModel>> unduhDataDariFirebase() async {
-    L.i('Memulai pengunduhan data dari Firestore koleksi: kritik_saran.');
+  static Future<List<KritikSaranModel>> unduhDataDariSupabase() async {
+    L.i('Memulai pengunduhan data dari Supabase tabel: kritik_saran.');
     try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('kritik_saran')
-          .get();
-      final List<KritikSaranModel> data = snapshot.docs
+      final rows = await SupabaseKlien.instance.client
+          .from('kritik_saran')
+          .select();
+      final List<KritikSaranModel> data = rows
           .map(
-            (doc) => KritikSaranModel.fromFirebase(
-              doc.id,
-              doc.data() as Map<String, dynamic>,
+            (row) => KritikSaranModel.fromSupabase(
+              Map<String, dynamic>.from(row as Map),
             ),
           )
           .toList();
 
       L.i(
-        'Berhasil mengunduh ${data.length} data kritik dan saran dari Firebase.',
+        'Berhasil mengunduh ${data.length} data kritik dan saran dari Supabase.',
       );
       return data;
     } catch (e, st) {
-      L.e('Gagal mengunduh data kritik dan saran dari Firebase Error: $e $st');
+      L.e('Gagal mengunduh data kritik dan saran dari Supabase Error: $e $st');
       return [];
     }
   }

@@ -53,6 +53,12 @@ abstract class PesananModel with _$PesananModel {
     );
   }
 
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory PesananModel.fromSupabase(Map<String, dynamic> map) {
+    return PesananModel.fromSqlite(map);
+  }
+
   Map<String, dynamic> toSqlite() {
     return {
       PesananSkema.id: id,

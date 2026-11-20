@@ -123,21 +123,45 @@ abstract class KategoriModel with _$KategoriModel {
     );
   }
 
-  // diubah: Nama metode dan logika penyimpanan subkategori diubah
-  Map<String, dynamic> toFirebase() {
-    return {
-      KategoriSkema.id: id,
-      KategoriSkema.nama: nama,
-      KategoriSkema.tipe: tipe.name,
-      // diubah: Menyimpan subkategori sebagai List<Map> asli
-      KategoriSkema.idSubKategori: subKategori
-          .map((sub) => sub.toFirebase())
-          .toList(),
-      KategoriSkema.diperbarui: FieldValue.serverTimestamp(),
-      KategoriSkema.isDeleted: isDeleted,
-      if (diarsipkan != null)
-        KategoriSkema.diarsipkan: Timestamp.fromDate(diarsipkan!.toUtc()),
-    };
+  /// Supabase mengembalikan baris sebagai `Map<String, dynamic>` dengan
+  /// kunci yang sama dengan SQLite, jadi parsing sama dengan fromSqlite.
+  factory KategoriModel.fromSupabase(Map<String, dynamic> map) {
+    List<SubKategoriModel> parseSubKategori(dynamic data) {
+      if (data == null) return [];
+      try {
+        List<dynamic> list;
+        if (data is String && data.isNotEmpty) {
+          list = jsonDecode(data);
+        } else if (data is List) {
+          list = data;
+        } else {
+          return [];
+        }
+        return list
+            .map(
+              (item) =>
+                  SubKategoriModel.fromSupabase(item as Map<String, dynamic>),
+            )
+            .toList();
+      } catch (e) {
+        return [];
+      }
+    }
+
+    return KategoriModel(
+      id: ParserUtil.parseString(map[KategoriSkema.id]),
+      nama: ParserUtil.parseString(map[KategoriSkema.nama]),
+      tipe:
+          ParserUtil.safeParseEnum(
+            TipeKategori.values,
+            ParserUtil.parseStringOrNull(map[KategoriSkema.tipe]),
+          ) ??
+          TipeKategori.pemasukan,
+      subKategori: parseSubKategori(map[KategoriSkema.idSubKategori]),
+      diperbarui: _parseTanggal(map[KategoriSkema.diperbarui]),
+      isDeleted: ParserUtil.parseBool(map[KategoriSkema.isDeleted]),
+      diarsipkan: _parseTanggal(map[KategoriSkema.diarsipkan]),
+    );
   }
 
   Map<String, dynamic> toSupabase() {
