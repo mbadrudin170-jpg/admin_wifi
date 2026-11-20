@@ -1,11 +1,11 @@
 // path: lib/widget/transaksi_list_widgets.dart
 // diubah: Menghapus operator null-aware yang tidak perlu dan memperbaiki penanganan error.
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -65,7 +65,6 @@ class TransaksiTile extends ConsumerStatefulWidget {
 
 class _TransaksiTileState extends ConsumerState<TransaksiTile> {
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
-  final DompetOperasi _dompetOperasi = DompetOperasi();
 
   Future<String> _getNamaKategori() async {
     try {
@@ -80,7 +79,7 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
 
   Future<String> _getNamaDompet() async {
     try {
-      final dompet = await _dompetOperasi.getDompetById(
+      final dompet = await dompetNotifierGlobal.getDompetById(
         widget.transaksi.idDompet,
       );
       return dompet!.namaDompet;
@@ -90,7 +89,9 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
   }
 
   void _arsipkanTransaksi() async {
-    await ref.read(transaksiProvider.notifier).arsipkanTransaksi(widget.transaksi.id);
+    await ref
+        .read(transaksiProvider.notifier)
+        .arsipkanTransaksi(widget.transaksi.id);
     widget.onDataChanged();
   }
 
@@ -192,8 +193,5 @@ Widget bangunItemTransaksi(
   TransaksiModel transaksi,
   VoidCallback onDataChanged,
 ) {
-  return TransaksiTile(
-    transaksi: transaksi,
-    onDataChanged: onDataChanged,
-  );
+  return TransaksiTile(transaksi: transaksi, onDataChanged: onDataChanged);
 }

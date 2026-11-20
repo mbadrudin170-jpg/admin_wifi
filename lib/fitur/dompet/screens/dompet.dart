@@ -3,7 +3,7 @@
 // dan daftar semua dompet yang tersedia. Pengguna dapat menambahkan dompet baru melalui
 // tombol floating action.
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/dompet/screens/detail_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/screens/form_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
@@ -21,7 +21,7 @@ class DompetPage extends StatefulWidget {
 }
 
 class _DompetPageState extends State<DompetPage> {
-  final DompetOperasi _dompetOperasi = DompetOperasi();
+  final DompetNotifier _dompetOperasi = dompetNotifierGlobal;
   final GlobalKey<_RingkasanKeuanganState> _ringkasanKey = GlobalKey();
   late Future<List<DompetModel>> _listaDompetFuture;
 
@@ -256,7 +256,7 @@ class RingkasanKeuangan extends StatefulWidget {
 }
 
 class _RingkasanKeuanganState extends State<RingkasanKeuangan> {
-  final DompetOperasi _dompetOperasi = DompetOperasi();
+  final DompetNotifier _dompetOperasi = dompetNotifierGlobal;
   late Future<List<double>> _summaryFuture;
 
   @override

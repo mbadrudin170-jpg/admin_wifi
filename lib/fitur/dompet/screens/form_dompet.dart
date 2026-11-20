@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
@@ -25,7 +25,6 @@ class FormDompet extends ConsumerStatefulWidget {
 class _FormDompetState extends ConsumerState<FormDompet> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
-  final DompetOperasi _dompetOperasi = DompetOperasi();
 
   late FocusNode _namaFocusNode;
 
@@ -54,7 +53,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
     super.dispose();
   }
 
-void _simpanForm() async {
+  void _simpanForm() async {
     _namaFocusNode.unfocus();
 
     if (!_formKey.currentState!.validate()) {
@@ -94,7 +93,7 @@ void _simpanForm() async {
           diperbarui: DateTime.now(),
         );
 
-        await _dompetOperasi.updateDompet(updatedDompet);
+        await ref.read(dompetProvider.notifier).updateDompet(updatedDompet);
 
         if (!mounted) return;
 
@@ -110,7 +109,7 @@ void _simpanForm() async {
           diperbarui: DateTime.now(),
         );
 
-        await _dompetOperasi.createDompet(nuevoDompet);
+        await ref.read(dompetProvider.notifier).createDompet(nuevoDompet);
 
         if (!mounted) return;
 

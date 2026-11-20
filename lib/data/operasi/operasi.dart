@@ -1,6 +1,5 @@
 // path: lib/data/operasi/operasi.dart
 
-export 'dompet_operasi.dart';
 export 'kategori_operasi.dart';
 export 'kritik_saran_operasi.dart';
 export 'paket_operasi.dart';

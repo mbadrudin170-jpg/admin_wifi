@@ -1,6 +1,5 @@
 // path: lib/data/sync/unduh_data.dart
 
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
 import 'package:admin_wifi/data/operasi/kategori_operasi.dart';
 import 'package:admin_wifi/data/operasi/kritik_saran_operasi.dart';
 import 'package:admin_wifi/data/operasi/paket_operasi.dart';
@@ -21,6 +20,7 @@ import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
@@ -33,7 +33,6 @@ class LayananUnduhData {
   final SyncManager _syncManager;
 
   // Operasi
-  final DompetOperasi _dompetOperasi = DompetOperasi();
   final KategoriOperasi _kategoriOperasi = KategoriOperasi();
   final PaketOperasi _paketOperasi = PaketOperasi();
   final PelangganOperasi _pelangganOperasi = PelangganOperasi();
@@ -45,8 +44,8 @@ class LayananUnduhData {
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
   LayananUnduhData({SupabaseClient? supabase, SyncManager? syncManager})
-      : _supabase = supabase ?? SupabaseKlien.instance.client,
-        _syncManager = syncManager ?? SyncManager() {
+    : _supabase = supabase ?? SupabaseKlien.instance.client,
+      _syncManager = syncManager ?? SyncManager() {
     L.i(
       'LayananUnduhData berhasil diinisialisasi. Seluruh operasi database lokal dan referensi Supabase telah siap digunakan untuk sinkronisasi masuk.',
     );
@@ -101,7 +100,9 @@ class LayananUnduhData {
             'Mendapatkan metadata "diperbarui" dari server. Tipe data terdeteksi: ${fieldValue.runtimeType}',
           );
 
-          final waktuPembaruanServer = ParserUtil.parseDateTime(fieldValue)?.toLocal();
+          final waktuPembaruanServer = ParserUtil.parseDateTime(
+            fieldValue,
+          )?.toLocal();
           if (waktuPembaruanServer == null) {
             L.e(
               'Inkompatibilitas Tipe Data: Field "diperbarui" di Supabase adalah ${fieldValue.runtimeType}, namun sistem mengharapkan ISO-8601 string. Sinkronisasi dibatalkan untuk mencegah crash.',
@@ -129,9 +130,7 @@ class LayananUnduhData {
           );
         }
       } else {
-        L.w(
-          'Dokumen "pengaturan" tidak ditemukan di server Supabase.',
-        );
+        L.w('Dokumen "pengaturan" tidak ditemukan di server Supabase.');
       }
     } catch (e, s) {
       L.e('Terjadi kesalahan saat sinkronisasi data Pengaturan. Error: $e $s');
@@ -145,7 +144,8 @@ class LayananUnduhData {
       namaKoleksi: 'dompet',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => DompetModel.fromSupabase(map),
-      operasiBatch: (data) => _dompetOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          dompetNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -196,7 +196,8 @@ class LayananUnduhData {
       namaKoleksi: 'transaksi',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => TransaksiModel.fromSupabase(map),
-      operasiBatch: (data) => transaksiNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          transaksiNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 

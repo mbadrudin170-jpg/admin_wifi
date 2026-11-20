@@ -1,5 +1,5 @@
 // path: lib/fitur/dompet/screens/detail_dompet.dart
-import 'package:admin_wifi/data/operasi/dompet_operasi.dart';
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/screens/form_dompet.dart';
@@ -28,7 +28,7 @@ class DetailDompetData {
 
 class DetailDompet extends ConsumerStatefulWidget {
   final DompetModel dompet;
-  final DompetOperasi? dompetOperasi;
+  final DompetNotifier? dompetOperasi;
   final TransaksiNotifier? transaksiOperasi;
 
   const DetailDompet({
@@ -44,7 +44,7 @@ class DetailDompet extends ConsumerStatefulWidget {
 
 class _DetailDompetState extends ConsumerState<DetailDompet> {
   late Future<DetailDompetData> _futureDetailData;
-  late final DompetOperasi _dompetOperasi;
+  late final DompetNotifier _dompetOperasi;
 
   String? _namaDompetTerbaru;
 
@@ -55,7 +55,7 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
       'Membuat state untuk DetailDompet. ID Dompet: ${widget.dompet.id}, Nama Dompet: ${widget.dompet.namaDompet}',
     );
 
-    _dompetOperasi = widget.dompetOperasi ?? DompetOperasi();
+    _dompetOperasi = widget.dompetOperasi ?? dompetNotifierGlobal;
     _futureDetailData = _loadData();
   }
 
@@ -64,7 +64,10 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
       final results = await Future.wait([
         _dompetOperasi.getDompetById(widget.dompet.id),
         Future.value(
-          ref.read(transaksiProvider).value?.ambilTransaksiByDompetId(widget.dompet.id) ??
+          ref
+                  .read(transaksiProvider)
+                  .value
+                  ?.ambilTransaksiByDompetId(widget.dompet.id) ??
               <TransaksiModel>[],
         ),
       ]);
@@ -162,9 +165,7 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
           }
 
           if (snapshot.hasError) {
-            L.e(
-              'FutureBuilder error: $snapshot.error $snapshot.stackTrace',
-            );
+            L.e('FutureBuilder error: $snapshot.error $snapshot.stackTrace');
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
