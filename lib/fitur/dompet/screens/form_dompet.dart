@@ -97,7 +97,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
 
         if (!mounted) return;
 
-        Nav.pop(context, true);
+        Nav.pop(context);
         AppToast.sukses(context, 'Nama dompet berhasil diperbarui!');
       } else {
         final newId = const Uuid().v4();
@@ -113,7 +113,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
 
         if (!mounted) return;
 
-        Nav.pop(context, true);
+        Nav.pop(context);
         AppToast.sukses(context, 'Dompet baru berhasil ditambahkan!');
       }
     } catch (e, s) {
