@@ -31,9 +31,7 @@ dependencies:
   riverpod_annotation: ^4.0.8
   # ditambahkan: logger L + infra debug (overlay log) dari paket bersama
   share_global_saya:
-    git:
-      url: https://github.com/mbadrudin170-jpg/share_global_saya.git
-      ref: main
+    path: ../share_global_saya
   shared_preferences: ^2.5.5
   sqflite: ^2.4.2
   sqflite_common_ffi: ^2.4.0+3
@@ -42,6 +40,8 @@ dependencies:
   url_launcher: ^6.3.2
   uuid: ^4.5.3
   supabase_flutter: ^2.18.3
+  adaptive_dialog: ^3.0.1
+  flutter_easyloading: ^4.0.2
 
 dev_dependencies:
   flutter_test:

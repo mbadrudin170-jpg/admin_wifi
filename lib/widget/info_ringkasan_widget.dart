@@ -12,10 +12,10 @@ Widget bangunInfoRingkasan({
   Key? textKey, // ditambahkan: Parameter `textKey` opsional.
 }) {
   return Column(
+    spacing: 4,
     crossAxisAlignment: alignment,
     children: [
       Text(label, style: Theme.of(context).textTheme.bodySmall),
-      const SizedBox(height: 4),
       Text(
         FormatUang.formatMataUang(jumlah),
         // diubah: Menggunakan `textKey` jika tersedia.

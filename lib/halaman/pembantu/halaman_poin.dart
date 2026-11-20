@@ -13,6 +13,17 @@ import 'package:share_global_saya/src/utils/navigator_helper.dart';
 // Enum untuk mengontrol tab yang aktif
 enum MenuPoin { penukaran, riwayat }
 
+extension MenuPoinLabel on MenuPoin {
+  String get label {
+    switch (this) {
+      case MenuPoin.penukaran:
+        return 'Penukaran Hadiah';
+      case MenuPoin.riwayat:
+        return 'Riwayat Poin';
+    }
+  }
+}
+
 class HalamanPoin extends ConsumerStatefulWidget {
   final String idPelanggan;
 
@@ -36,37 +47,16 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
   @override
   void initState() {
     super.initState();
-
-
-    L.i('ID Pelanggan: ${widget.idPelanggan}');
-    L.i('Menu default: Penukaran');
-
-    L.i('Memanggil _loadDataPoin() untuk memuat data poin pelanggan.');
     _loadDataPoin();
   }
 
   @override
   void dispose() {
-
-
-    L.i('ID Pelanggan: ${widget.idPelanggan}');
-    L.i('Membersihkan resource halaman poin.');
-
     super.dispose();
   }
 
   Future<void> _loadDataPoin() async {
-
-
-    L.i('ID Pelanggan: ${widget.idPelanggan}');
-
-
-    if (!mounted) {
-      L.w(
-        'Widget sudah tidak mounted saat _loadDataPoin() dipanggil. Membatalkan proses.',
-      );
-      return;
-    }
+    if (!mounted) return;
 
     setState(() {
       _isLoading = true;
@@ -74,14 +64,10 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
     });
 
     try {
-      // Load total poin dari database
-      L.i('Menghitung total poin pelanggan dari transaksi...');
       final totalPoin = await ref
           .read(transaksiProvider.notifier)
           .hitungTotalPoin(widget.idPelanggan);
 
-      // Load daftar hadiah (paket aktif)
-      L.i('Memuat daftar hadiah (paket aktif) dari database...');
       final daftarHadiah = await _paketOperasi.getPaketByIsPublic();
 
       if (!mounted) return;
@@ -90,35 +76,25 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
         _totalPoin = totalPoin;
         _daftarHadiah = daftarHadiah;
         _isLoading = false;
-        L.i(
-          'Berhasil memuat data. Total poin: $totalPoin, Hadiah: ${daftarHadiah.length}',
-        );
       });
 
-      // Load riwayat transaksi jika tab riwayat yang aktif
       if (_menuPilihan == MenuPoin.riwayat) {
         await _loadRiwayatTransaksi();
       }
     } catch (e, stackTrace) {
-      L.e('Gagal memuat data poin: $e Error: $e $stackTrace');
+      L.e('Gagal memuat data poin: $e $stackTrace');
 
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
         _errorMessage = 'Gagal memuat data: $e';
-        L.w('Gagal memuat data poin.');
       });
     }
   }
 
   // Method untuk memuat riwayat transaksi
-  Future<void> _loadRiwayatTransaksi() async {
-
-    L.i('MEMUAT RIWAYAT TRANSAKSI PELANGGAN');
-    L.i('ID Pelanggan: ${widget.idPelanggan}');
-
-
+Future<void> _loadRiwayatTransaksi() async {
     if (!mounted) return;
 
     setState(() {
@@ -126,7 +102,6 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
     });
 
     try {
-      L.i('Mengambil riwayat transaksi dari database...');
       final transaksiState = await ref.read(transaksiProvider.future);
       final riwayatTransaksi = transaksiState.ambilTransaksiPoinByPelangganId(
         widget.idPelanggan,
@@ -137,10 +112,9 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
       setState(() {
         _riwayatTransaksi = riwayatTransaksi;
         _isLoadingRiwayat = false;
-        L.i('Berhasil memuat ${riwayatTransaksi.length} riwayat transaksi poin.');
       });
     } catch (e, stackTrace) {
-      L.e('Gagal memuat riwayat transaksi: $e Error: $e $stackTrace');
+      L.e('Gagal memuat riwayat transaksi: $e $stackTrace');
 
       if (!mounted) return;
 
@@ -153,15 +127,6 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
   @override
   Widget build(BuildContext context) {
-
-    L.i('LIFECYCLE: build() - Membangun UI HalamanPoin');
-    L.i('ID Pelanggan: ${widget.idPelanggan}');
-    L.i(
-      'Menu aktif: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
-    );
-    L.i('Total poin ditampilkan: $_totalPoin');
-
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -173,12 +138,7 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
         elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            L.i(
-              'NAVIGASI: Tombol Kembali ditekan. Kembali ke halaman sebelumnya.',
-            );
-            Nav.pop(context);
-          },
+          onPressed: () => Nav.pop(context),
         ),
       ),
       body: Column(
@@ -193,20 +153,18 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
   // Widget untuk menampilkan informasi total poin
   Widget _buildInfoPoinHeader() {
-    L.i('Membangun header informasi total poin. Total: $_totalPoin');
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      color: Theme.of(context).primaryColor.withAlpha(26),
+      color: Theme.of(context).colorScheme.primaryContainer,
       child: Column(
+        spacing: 8,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
             'Total Poin Anda',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(height: 8),
           Text(
             '$_totalPoin',
             style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
@@ -221,40 +179,28 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       child: SegmentedButton<MenuPoin>(
-        segments: const [
+        segments: [
           ButtonSegment<MenuPoin>(
             value: MenuPoin.penukaran,
-            label: Text('Tukar Hadiah'),
-            icon: Icon(Icons.card_giftcard),
+            label: Text(MenuPoin.penukaran.label),
+            icon: const Icon(Icons.card_giftcard),
           ),
           ButtonSegment<MenuPoin>(
             value: MenuPoin.riwayat,
-            label: Text('Riwayat Poin'),
-            icon: Icon(Icons.history),
+            label: Text(MenuPoin.riwayat.label),
+            icon: const Icon(Icons.history),
           ),
         ],
         selected: {_menuPilihan},
         onSelectionChanged: (Set<MenuPoin> newSelection) async {
           final selection = newSelection.first;
-          L.i('SEGMENTED CONTROL: Tab dipilih berubah.');
-          L.i(
-            '  - Tab sebelumnya: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
-          );
-          L.i(
-            '  - Tab baru: ${selection == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
-          );
           setState(() {
             _menuPilihan = selection;
           });
 
-          // Load riwayat transaksi jika pindah ke tab riwayat
           if (selection == MenuPoin.riwayat && _riwayatTransaksi.isEmpty) {
             await _loadRiwayatTransaksi();
           }
-
-          L.i(
-            'State _menuPilihan berhasil diperbarui. UI akan menampilkan konten tab yang dipilih.',
-          );
         },
       ),
     );
@@ -262,10 +208,6 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
   // Widget untuk menampilkan konten berdasarkan tab yang dipilih
   Widget _buildContentView() {
-    L.i(
-      'Membangun konten untuk tab: ${_menuPilihan == MenuPoin.penukaran ? "Penukaran Hadiah" : "Riwayat Poin"}',
-    );
-
     switch (_menuPilihan) {
       case MenuPoin.penukaran:
         return _buildDaftarHadiah();
@@ -276,36 +218,35 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
   // Widget daftar hadiah yang terhubung dengan database
   Widget _buildDaftarHadiah() {
-    L.i('Membangun daftar hadiah yang tersedia untuk ditukar.');
-
-    // Tampilkan loading indicator saat memuat data
     if (_isLoading) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
             CircularProgressIndicator(),
-            SizedBox(height: 16),
             Text('Memuat daftar hadiah...'),
           ],
         ),
       );
     }
 
-    // Tampilkan pesan error jika ada
     if (_errorMessage != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             Text(
               _errorMessage!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
-            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadDataPoin,
               child: const Text('Coba Lagi'),
@@ -315,28 +256,19 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
       );
     }
 
-    // Tampilkan pesan jika tidak ada hadiah
     if (_daftarHadiah.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
             Icon(Icons.card_giftcard, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
             Text(
               'Belum ada hadiah tersedia',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
-      );
-    }
-
-    L.i('Jumlah hadiah tersedia: ${_daftarHadiah.length}');
-    for (var hadiah in _daftarHadiah) {
-      final cukupPoin = _totalPoin >= hadiah.poinPenukaran;
-      L.i(
-        '  - ${hadiah.nama}: ${hadiah.poinPenukaran} poin (Status: ${cukupPoin ? "DAPAT DITUKAR" : "POIN KURANG (butuh ${hadiah.poinPenukaran - _totalPoin} poin lagi)"})',
       );
     }
 
@@ -353,23 +285,23 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
           child: ListTile(
             title: Text(hadiah.nama),
             subtitle: Column(
+              spacing: 4,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${hadiah.poinPenukaran} Poin'),
                 LinearProgressIndicator(
                   value: progresPoin,
-                  backgroundColor: Colors.grey[300],
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     cukupPoin ? Colors.green : Colors.orange,
                   ),
                   minHeight: 8,
                 ),
-                const SizedBox(height: 4),
                 Text(
                   'Poin Anda: $_totalPoin / ${hadiah.poinPenukaran}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: cukupPoin ? Colors.green : Colors.grey[600],
+                    color: cukupPoin ? Colors.green : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -379,51 +311,34 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
       },
     );
   }
-
-  // Widget riwayat poin yang terhubung dengan database
+// Widget riwayat poin yang terhubung dengan database
   Widget _buildRiwayatPoin() {
-    L.i('Membangun daftar riwayat poin pelanggan.');
-
-    // Tampilkan loading indicator saat memuat data
     if (_isLoadingRiwayat) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
             CircularProgressIndicator(),
-            SizedBox(height: 16),
             Text('Memuat riwayat poin...'),
           ],
         ),
       );
     }
 
-    // Tampilkan pesan jika tidak ada riwayat
     if (_riwayatTransaksi.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
             Icon(Icons.history, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
             Text(
               'Belum ada riwayat poin',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
-      );
-    }
-
-    L.i('Jumlah riwayat transaksi poin: ${_riwayatTransaksi.length}');
-    for (var transaksi in _riwayatTransaksi) {
-      final isPenambahan = transaksi.poinYangDihasilkan > 0;
-      final poinValue = isPenambahan
-          ? transaksi.poinYangDihasilkan
-          : transaksi.poinYangDigunakan;
-      L.i(
-        '  - ${FormatTanggal.formatTanggalBasic(transaksi.tanggal)}: ${transaksi.keterangan} '
-        '(${isPenambahan ? "PENAMBAHAN +$poinValue" : "PENGURANGAN -$poinValue"} poin)',
       );
     }
 

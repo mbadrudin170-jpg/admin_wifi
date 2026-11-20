@@ -14,14 +14,19 @@ class NamaPelangganWidget extends ConsumerWidget {
     final asyncPelanggan = ref.watch(pelangganProvider);
 
     if (asyncPelanggan.isLoading) {
-      return Text('...', style: style ?? const TextStyle(color: Colors.grey));
+      return Text(
+        '...',
+        style: style ?? TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      );
     }
     if (asyncPelanggan.hasError) {
       return Text(
         'Error',
-        style:
-            style ??
-            const TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
+        style: style ??
+            TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontStyle: FontStyle.italic,
+            ),
       );
     }
 
@@ -36,9 +41,11 @@ class NamaPelangganWidget extends ConsumerWidget {
     }
     return Text(
       'Pelanggan tidak ditemukan',
-      style:
-          style ??
-          const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+      style: style ??
+          TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontStyle: FontStyle.italic,
+          ),
     );
   }
 }

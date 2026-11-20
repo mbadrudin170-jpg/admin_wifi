@@ -55,45 +55,12 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
       'Membuat state untuk DetailDompet. ID Dompet: ${widget.dompet.id}, Nama Dompet: ${widget.dompet.namaDompet}',
     );
 
-    L.i('========================================');
-    L.i('LIFECYCLE: initState() - Halaman DetailDompet');
-    L.i('ID Dompet yang akan ditampilkan: ${widget.dompet.id}');
-    L.i('Nama Dompet awal: ${widget.dompet.namaDompet}');
-    L.i('========================================');
-
-    L.i(
-      'Menginisialisasi DompetOperasi. Menggunakan instance dari widget jika tersedia, jika tidak membuat instance baru.',
-    );
     _dompetOperasi = widget.dompetOperasi ?? DompetOperasi();
-    L.i(
-      'DompetOperasi berhasil diinisialisasi. Instance: ${_dompetOperasi.hashCode}',
-    );
-
-    L.i(
-      'Memulai pemuatan data awal dengan memanggil _loadData() untuk pertama kali.',
-    );
     _futureDetailData = _loadData();
-    L.i(
-      'Future _futureDetailData telah diset. UI akan menunggu future ini selesai melalui FutureBuilder.',
-    );
   }
 
   Future<DetailDompetData> _loadData() async {
-    L.i('========================================');
-    L.i('MEMULAI PROSES PEMUATAN DATA DETAIL DOMPET');
-    L.i('ID Dompet: ${widget.dompet.id}');
-    L.i('Nama Dompet (widget): ${widget.dompet.namaDompet}');
-    L.i('========================================');
-
     try {
-      L.i('Menjalankan 2 query secara paralel menggunakan Future.wait:');
-      L.i(
-        '  1. getDompetById(${widget.dompet.id}) - Mengambil data dompet terbaru dari database.',
-      );
-      L.i(
-        '  2. ambilTransaksiByDompetId(${widget.dompet.id}) - Mengambil semua transaksi untuk dompet ini.',
-      );
-
       final results = await Future.wait([
         _dompetOperasi.getDompetById(widget.dompet.id),
         Future.value(
@@ -102,50 +69,22 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
         ),
       ]);
 
-      L.i('Kedua query selesai dijalankan. Memproses hasil...');
-
       final dompetTerbaru = results[0] as DompetModel?;
       final daftarTransaksi = results[1] as List<TransaksiModel>;
 
-      L.i(
-        'Hasil query 1 (Dompet): ${dompetTerbaru != null ? "Ditemukan (Nama: ${dompetTerbaru.namaDompet}, Saldo: ${dompetTerbaru.saldo})" : "NULL - Dompet tidak ditemukan"}',
-      );
-      L.i(
-        'Hasil query 2 (Transaksi): ${daftarTransaksi.length} transaksi ditemukan',
-      );
-
       if (dompetTerbaru == null) {
         L.w(
-          'Dompet dengan ID ${widget.dompet.id} tidak ditemukan di database. '
-          'Kemungkinan data telah dihapus oleh proses lain. '
-          'Akan melempar Exception untuk ditangani oleh FutureBuilder.',
+          'Dompet dengan ID ${widget.dompet.id} tidak ditemukan di database.',
         );
         throw Exception('Dompet tidak ditemukan.');
       }
 
-      L.i(
-        'Dompet ditemukan. Memperbarui variabel lokal _namaDompetTerbaru agar AppBar menampilkan nama terkini.',
-      );
       if (mounted) {
-        L.i(
-          'Widget masih mounted. Melakukan setState untuk memperbarui _namaDompetTerbaru dari "${_namaDompetTerbaru ?? "null"}" menjadi "${dompetTerbaru.namaDompet}".',
-        );
         setState(() {
           _namaDompetTerbaru = dompetTerbaru.namaDompet;
         });
-        L.i(
-          'setState berhasil dijalankan. _namaDompetTerbaru sekarang: $_namaDompetTerbaru',
-        );
-      } else {
-        L.w(
-          'Widget sudah tidak mounted saat ingin memperbarui _namaDompetTerbaru. '
-          'Ini bisa terjadi jika user sudah navigasi keluar dari halaman sebelum data selesai dimuat.',
-        );
       }
 
-      L.i(
-        'Menghitung total pemasukan dan pengeluaran dari ${daftarTransaksi.length} transaksi.',
-      );
       double pemasukan = 0;
       double pengeluaran = 0;
 
@@ -153,31 +92,10 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
         var trx = daftarTransaksi[i];
         if (trx.tipe == TipeTransaksi.pemasukan) {
           pemasukan += trx.jumlah;
-          L.i(
-            '  Transaksi ke-${i + 1}: PEMASUKAN +${trx.jumlah} (Total pemasukan sementara: $pemasukan)',
-          );
         } else if (trx.tipe == TipeTransaksi.pengeluaran) {
           pengeluaran += trx.jumlah;
-          L.i(
-            '  Transaksi ke-${i + 1}: PENGELUARAN -${trx.jumlah} (Total pengeluaran sementara: $pengeluaran)',
-          );
         }
       }
-
-      L.i('Perhitungan selesai. Ringkasan keuangan dompet:');
-      L.i('  - Nama Dompet: ${dompetTerbaru.namaDompet}');
-      L.i('  - Saldo Saat Ini: ${dompetTerbaru.saldo}');
-      L.i('  - Total Pemasukan: $pemasukan');
-      L.i('  - Total Pengeluaran: $pengeluaran');
-      L.i('  - Selisih (Pemasukan - Pengeluaran): ${pemasukan - pengeluaran}');
-      L.i('  - Jumlah Transaksi: ${daftarTransaksi.length}');
-
-      L.i('========================================');
-      L.i('PEMUATAN DATA DETAIL DOMPET BERHASIL');
-      L.i(
-        'Mengembalikan DetailDompetData dengan semua informasi yang telah dihitung.',
-      );
-      L.i('========================================');
 
       return DetailDompetData(
         dompet: dompetTerbaru,
@@ -187,81 +105,31 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
       );
     } catch (e, s) {
       L.e(
-        'Gagal memuat data detail dompet untuk ID: ${widget.dompet.id}. '
-        'Proses _loadData() mengalami kegagalan. '
-        'Kemungkinan penyebab: koneksi database gagal, data dompet tidak ditemukan, '
-        'query transaksi gagal, atau terjadi error saat perhitungan total. '
-        'Error ini akan dilempar ulang dan ditangkap oleh FutureBuilder untuk ditampilkan ke UI. Error: $e $s',
+        'Gagal memuat data detail dompet untuk ID: ${widget.dompet.id}. Error: $e $s',
       );
       rethrow;
     }
   }
 
   void _muatUlangData() {
-    L.i('========================================');
-    L.i('MEMICU RELOAD DATA (REFRESH)');
-    L.i('========================================');
-    L.i(
-      'Pengguna atau sistem memicu pemuatan ulang data. '
-      'Ini biasanya terjadi setelah:',
-    );
-    L.i('  1. Kembali dari halaman FormDompet (edit data).');
-    L.i('  2. Ada perubahan pada transaksi (tambah/edit/hapus).');
-    L.i('  3. Refresh manual dari UI.');
-    L.i('');
-    L.i(
-      'Menjalankan setState untuk mengganti _futureDetailData dengan future baru dari _loadData().',
-    );
-    L.i(
-      'UI akan otomatis memperbarui tampilan karena FutureBuilder akan mendeteksi future baru.',
-    );
-
     setState(() {
       _futureDetailData = _loadData();
     });
-
-    L.i(
-      'setState selesai dijalankan. _futureDetailData telah diganti dengan instance Future baru. '
-      'FutureBuilder akan memulai proses pembangunan ulang UI dengan data terbaru.',
-    );
   }
 
   @override
   void dispose() {
-    L.i('========================================');
-    L.i('LIFECYCLE: dispose() - Halaman DetailDompet');
-    L.i('ID Dompet: ${widget.dompet.id}');
-    L.i('Membersihkan resource dan state halaman DetailDompet.');
-    L.i('========================================');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    L.i('========================================');
-    L.i('LIFECYCLE: build() - Membangun UI DetailDompet');
-    L.i(
-      'Nama Dompet di AppBar: ${_namaDompetTerbaru ?? widget.dompet.namaDompet}',
-    );
-    L.i('========================================');
-
     return Scaffold(
       appBar: AppBar(
         title: Text(_namaDompetTerbaru ?? widget.dompet.namaDompet),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            L.i('========================================');
-            L.i('NAVIGASI: Tombol Kembali Ditekan');
-            L.i('User menekan tombol back di AppBar halaman DetailDompet.');
-            L.i('ID Dompet saat ini: ${widget.dompet.id}');
-            L.i(
-              'Melakukan Nav.pop(context, true) untuk kembali ke halaman sebelumnya.',
-            );
-            L.i(
-              'Nilai result true dikirim agar halaman sebelumnya tahu bahwa mungkin ada perubahan data.',
-            );
-            L.i('========================================');
             Nav.pop(context, true);
           },
         ),
@@ -269,67 +137,18 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              L.i('========================================');
-              L.i('NAVIGASI: Tombol Edit Ditekan');
-              L.i(
-                'User ingin mengedit data dompet dengan ID: ${widget.dompet.id}',
-              );
-              L.i('========================================');
-
-              L.i('Menyiapkan data dompet yang akan dikirim ke FormDompet.');
-              L.i(
-                '_namaDompetTerbaru saat ini: ${_namaDompetTerbaru ?? "null"}',
-              );
-              L.i('Nama dompet dari widget: ${widget.dompet.namaDompet}');
-
               final namaDompetTerbaru = _namaDompetTerbaru;
               final dompetUntukEdit = namaDompetTerbaru != null
                   ? widget.dompet.copyWith(namaDompet: namaDompetTerbaru)
                   : widget.dompet;
-
-              L.i('Data dompet yang akan dikirim ke FormDompet:');
-              L.i('  - ID: ${dompetUntukEdit.id}');
-              L.i('  - Nama: ${dompetUntukEdit.namaDompet}');
-              L.i('  - Saldo: ${dompetUntukEdit.saldo}');
-
-              L.i(
-                'Membuka halaman FormDompet dengan Nav.to. '
-                'Menunggu hasil kembalian dari FormDompet setelah user selesai mengedit.',
-              );
 
               final result = await Nav.to(
                 context,
                 FormDompet(dompet: dompetUntukEdit),
               );
 
-              L.i('========================================');
-              L.i('KEMBALI DARI FORM DOMPET');
-              L.i('Nilai result yang diterima: $result');
-              L.i('========================================');
-
               if (result == true) {
-                L.i(
-                  'Result bernilai TRUE. Ini berarti user melakukan perubahan data di FormDompet.',
-                );
-                L.i(
-                  'Memanggil _muatUlangData() untuk me-refresh data dompet dan transaksi.',
-                );
-                L.i('UI akan diperbarui dengan data terbaru dari database.');
                 _muatUlangData();
-              } else if (result == false) {
-                L.i(
-                  'Result bernilai FALSE. User tidak melakukan perubahan data di FormDompet. '
-                  'Tidak perlu me-refresh data.',
-                );
-              } else if (result == null) {
-                L.i(
-                  'Result bernilai NULL. User menekan tombol back di FormDompet tanpa menyimpan perubahan. '
-                  'Tidak perlu me-refresh data.',
-                );
-              } else {
-                L.i(
-                  'Result bernilai: $result. Tidak ada tindakan refresh yang diperlukan.',
-                );
               }
             },
           ),
@@ -338,53 +157,27 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
       body: FutureBuilder<DetailDompetData>(
         future: _futureDetailData,
         builder: (context, snapshot) {
-          L.i(
-            'FutureBuilder builder dipanggil. ConnectionState: ${snapshot.connectionState}',
-          );
-
           if (snapshot.connectionState == ConnectionState.waiting) {
-            L.i(
-              'FutureBuilder: Status WAITING. Data masih dalam proses pemuatan dari database.',
-            );
-            L.i(
-              'Menampilkan CircularProgressIndicator sebagai indikator loading.',
-            );
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
             L.e(
-              'FutureBuilder: Status ERROR. Terjadi kesalahan saat memuat data detail dompet. Error: $snapshot.error $snapshot.stackTrace',
+              'FutureBuilder error: $snapshot.error $snapshot.stackTrace',
             );
-            L.i('Menampilkan pesan error ke UI: ${snapshot.error}');
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (!snapshot.hasData) {
-            L.w(
-              'FutureBuilder: Status NO DATA. Snapshot berhasil tetapi tidak mengandung data. '
-              'Ini mungkin terjadi jika data dompet bernilai null atau query mengembalikan hasil kosong.',
-            );
-            L.i('Menampilkan pesan "Data Kosong" ke UI.');
             return const Center(child: Text('Data Kosong'));
           }
 
           final data = snapshot.data!;
-          L.i('========================================');
-          L.i('MEMBANGUN UI DENGAN DATA TERBARU');
-          L.i('FutureBuilder: Status SUCCESS. Data berhasil dimuat.');
-          L.i('Detail data yang akan ditampilkan:');
-          L.i('  - Nama Dompet: ${data.dompet.namaDompet}');
-          L.i('  - Saldo: ${data.dompet.saldo}');
-          L.i('  - Total Pemasukan: ${data.totalPemasukan}');
-          L.i('  - Total Pengeluaran: ${data.totalPengeluaran}');
-          L.i('  - Jumlah Transaksi: ${data.transaksi.length}');
-          L.i('========================================');
 
           return Column(
             children: [
               Container(
-                color: Theme.of(context).primaryColor.withAlpha(13),
+                color: Theme.of(context).colorScheme.primaryContainer,
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -405,7 +198,9 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
                       context: context,
                       label: 'Saldo',
                       jumlah: data.dompet.saldo,
-                      warna: data.dompet.saldo >= 0 ? Colors.blue : Colors.red,
+                      warna: data.dompet.saldo >= 0
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.red,
                     ),
                   ],
                 ),
@@ -424,30 +219,13 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
   }
 
   Widget _buildTransaksiList(List<TransaksiModel> transaksiData) {
-    L.i('Membangun daftar transaksi yang dikelompokkan berdasarkan tanggal.');
-    L.i(
-      'Jumlah total transaksi yang akan ditampilkan: ${transaksiData.length}',
-    );
-
-    L.i(
-      'Mengelompokkan transaksi berdasarkan tanggal menggunakan fungsi groupTransaksiByDate.',
-    );
     final groupedTransaksi = groupTransaksiByDate(transaksiData);
-
-    L.i('Hasil pengelompokan: ${groupedTransaksi.length} grup tanggal.');
-    groupedTransaksi.forEach((tanggal, transaksiList) {
-      L.i('  - Tanggal $tanggal: ${transaksiList.length} transaksi');
-    });
 
     return ListView.builder(
       itemCount: groupedTransaksi.length,
       itemBuilder: (context, index) {
         final tanggal = groupedTransaksi.keys.elementAt(index);
         final transaksiPadaTanggal = groupedTransaksi[tanggal]!;
-
-        L.i(
-          'Membangun UI untuk grup tanggal: $tanggal (${transaksiPadaTanggal.length} transaksi)',
-        );
 
         final totalHarian = transaksiPadaTanggal.fold(
           0.0,
@@ -458,24 +236,12 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
                   : -item.jumlah),
         );
 
-        L.i('  Total harian untuk $tanggal: $totalHarian');
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             bangunHeaderSeksi(tanggal, totalHarian),
             ...transaksiPadaTanggal.map(
               (transaksi) => bangunItemTransaksi(context, transaksi, () {
-                L.i('========================================');
-                L.i('TRANSAKSI: Refresh dipicu dari ItemTransaksi');
-                L.i('ID Transaksi: ${transaksi.id}');
-                L.i(
-                  'User melakukan aksi pada transaksi (edit/hapus) yang memerlukan refresh data.',
-                );
-                L.i(
-                  'Memanggil _muatUlangData() untuk memperbarui seluruh data halaman.',
-                );
-                L.i('========================================');
                 _muatUlangData();
               }),
             ),

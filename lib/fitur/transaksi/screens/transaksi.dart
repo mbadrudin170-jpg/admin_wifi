@@ -1,5 +1,6 @@
-// path: lib/halaman/tab/transaksi.dart
+// path: lib/fitur/transaksi/screens/transaksi.dart
 
+import 'package:flutter/cupertino.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
@@ -8,9 +9,7 @@ import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
-import 'package:share_global_saya/src/widget/toast_widget.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 class RingkasanTransaksi extends StatelessWidget {
   final double pemasukan;
@@ -50,7 +49,9 @@ class RingkasanTransaksi extends StatelessWidget {
               context: context,
               label: 'Total',
               jumlah: total,
-              warna: total >= 0 ? Colors.blue : Colors.red,
+              warna: total >= 0
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.red,
             ),
           ],
         ),
@@ -147,7 +148,13 @@ class _TransaksiPageState extends ConsumerState<TransaksiPage> {
           ),
           Expanded(
             child: transaksiData.isEmpty
-                ? const Center(child: Text('Tidak ada transaksi ditemukan.'))
+                ? EmptyStateView(
+                    ikon: CupertinoIcons.list_bullet,
+                    judul: 'Belum ada transaksi',
+                    deskripsi: 'Catat transaksi pertama Anda untuk memulai.',
+                    ctaLabel: 'Tambah Transaksi',
+                    onCta: _tambahTransaksi,
+                  )
                 : _buildTransaksiList(transaksiData),
           ),
         ],
