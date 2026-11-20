@@ -1,7 +1,7 @@
 // path: lib/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart
 
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
@@ -53,10 +53,6 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
   /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string.
   /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
   static DateTime? _parseTanggal(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate().toLocal();
-    }
-
     return ParserUtil.parseDateTime(value)?.toLocal();
   }
 

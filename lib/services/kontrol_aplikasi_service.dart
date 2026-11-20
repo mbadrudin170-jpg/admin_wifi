@@ -1,74 +1,15 @@
 // path: lib/services/kontrol_aplikasi_service.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 // untuk mengontrol status aplikasi pengguna dari jarak jauh
 class KontrolAplikasiService {
-  // Mendapatkan referensi ke koleksi 'pengaturan' di Firestore.
-  final CollectionReference _pengaturanRef = FirebaseFirestore.instance
-      .collection('pengaturan');
-
-  // untuk mendapatkan status maintenance dari firestore
+  // Firebase dihapus; status maintenance default false (offline).
   Future<bool> dapatkanStatusMaintenance() async {
-    L.i('Memulai pengambilan status maintenance dari Firestore...');
-
-    try {
-      // Mendapatkan dokumen 'status_aplikasi' dari koleksi.
-      final doc = await _pengaturanRef.doc('status_aplikasi').get();
-
-      L.i('Dokumen "status_aplikasi" berhasil ditarik dari server');
-
-      // Jika dokumen ada dan berisi field 'sedang_maintenance', kembalikan nilainya.
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-
-        if (data.containsKey('sedang_maintenance')) {
-          final bool status = data['sedang_maintenance'] as bool;
-          L.i('Data ditemukan. Status maintenance saat ini: $status');
-          return status;
-        } else {
-          L.w(
-            'Dokumen ada, tetapi field "sedang_maintenance" tidak ditemukan. Data: $data',
-          );
-        }
-      } else {
-        L.w(
-          'Dokumen "status_aplikasi" belum dibuat di Firestore. Menggunakan default false.',
-        );
-      }
-
-      // Jika dokumen tidak ada atau field tidak ada, default ke false (tidak maintenance).
-      L.i('Menggunakan nilai default (false)');
-      return false;
-    } catch (e, s) {
-      // Mencatat error jika gagal mengambil data.
-      L.e('Gagal mengambil status maintenance dari database Error: $e $s');
-      // Mengembalikan false sebagai fallback jika terjadi error.
-      return false;
-    }
+    L.i('Firebase tidak tersedia; status maintenance default false.');
+    return false;
   }
 
-  // untuk mengubah status maintenance di firestore
   Future<void> aturStatusMaintenance(bool status) async {
-    L.i('Memproses perubahan status maintenance menjadi: $status');
-
-    try {
-      // Mengatur (atau membuat jika belum ada) dokumen 'status_aplikasi'
-      // dengan field 'sedang_maintenance'.
-      await _pengaturanRef.doc('status_aplikasi').set({
-        'sedang_maintenance': status,
-      });
-
-      L.i(
-        '✨ Berhasil memperbarui status maintenance di Firestore menjadi: $status',
-      );
-    } catch (e, s) {
-      // Mencatat error jika gagal menyimpan data.
-      L.e(
-        'Gagal mengatur status maintenance ke database: $status Error: $e $s',
-      );
-      // Melempar kembali error agar bisa ditangani di UI jika perlu.
-      rethrow;
-    }
+    L.i('Firebase tidak tersedia; perubahan status maintenance diabaikan: $status');
   }
 }

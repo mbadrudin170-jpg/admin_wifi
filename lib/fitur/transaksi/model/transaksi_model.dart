@@ -3,7 +3,7 @@
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart'; // Impor untuk TipeDurasi
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
 
@@ -44,10 +44,6 @@ abstract class TransaksiModel with _$TransaksiModel {
   /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
   /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
   static DateTime? _parseTanggal(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate().toLocal();
-    }
-
     return ParserUtil.parseDateTime(value)?.toLocal();
   }
 

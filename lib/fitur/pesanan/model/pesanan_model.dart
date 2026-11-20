@@ -1,6 +1,5 @@
 // path: lib/fitur/pesanan/model/pesanan_model.dart
 // diubah: Penamaan metode diseragamkan dan logika Firebase disesuaikan.
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
 
@@ -24,10 +23,6 @@ abstract class PesananModel with _$PesananModel {
   /// Firestore menyimpan `Timestamp`; SQLite menyimpan ISO-8601 string (UTC).
   /// Keduanya dinormalisasi lewat [ParserUtil.parseDateTime].
   static DateTime? _parseTanggal(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate().toLocal();
-    }
-
     return ParserUtil.parseDateTime(value)?.toLocal();
   }
 
