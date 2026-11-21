@@ -32,8 +32,8 @@ class _FormKategoriPageState extends ConsumerState<FormKategoriPage> {
   final _formKey = GlobalKey<FormState>();
   final LayananUnggahData _layananUnggahData = LayananUnggahData();
 
-  late TipeKategori _tipe;
-  late TextEditingController _namaController;
+  TipeKategori _tipe = TipeKategori.pemasukan;
+  final TextEditingController _namaController = TextEditingController();
   final _namaFocusNode = FocusNode();
 
   final List<TextEditingController> _subKategoriControllers = [];
@@ -65,7 +65,6 @@ class _FormKategoriPageState extends ConsumerState<FormKategoriPage> {
     L.i('========================================');
 
     L.i('Membuat TextEditingController untuk input nama.');
-    _namaController = TextEditingController();
     L.i('TextEditingController berhasil dibuat.');
 
     L.i('Membuat FocusNode untuk input nama.');
