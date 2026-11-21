@@ -100,9 +100,9 @@ class _DetailLanggananTransaksiPageState
                 if (transaksi.idPaket != null)
                   _buildFutureInfoCard<PaketModel>(
                     'Informasi Paket',
-                    ref
-                        .read(paketProvider.notifier)
-                        .getPaketById(transaksi.idPaket!),
+                    ref.read(paketProvider.future).then(
+                      (state) => state.getPaketById(transaksi.idPaket!),
+                    ),
                     'Paket',
                     (paket) => [
                       _buildDetailRow(

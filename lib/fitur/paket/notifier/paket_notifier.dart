@@ -186,31 +186,6 @@ class PaketNotifier extends _$PaketNotifier {
     }
   }
 
-  /// Mengambil paket berdasarkan ID.
-  Future<PaketModel?> getPaketById(String id) async {
-    L.i('Memulai pencarian paket berdasarkan ID, id: $id');
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        PaketSkema.tabel,
-        where: '${PaketSkema.id} = ?',
-        whereArgs: [id],
-      );
-
-      if (maps.isNotEmpty) {
-        L.i('Paket ditemukan, id: $id');
-        return PaketModel.fromSqlite(maps.first);
-      } else {
-        L.w('Paket dengan ID $id tidak ditemukan');
-        return null;
-      }
-    } catch (e, s) {
-      L.e('Gagal mencari paket berdasarkan ID, id: $id, error: $e $s');
-      rethrow;
-    }
-  }
-
-  /// Menghapus semua paket.
   Future<void> hapusSemuaPaket() async {
     L.i('Memulai proses penghapusan semua data paket');
     try {
@@ -252,32 +227,6 @@ class PaketNotifier extends _$PaketNotifier {
     }
   }
 
-  /// Mengambil paket berdasarkan daftar ID.
-  Future<List<PaketModel>> getPaketByIds(List<String> ids) async {
-    L.i('Memulai pengambilan paket berdasarkan list ID, ids: $ids');
-    try {
-      if (ids.isEmpty) {
-        L.w('List ID kosong, mengembalikan list kosong');
-        return [];
-      }
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final placeholders = List.filled(ids.length, '?').join(',');
-      final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
-        PaketSkema.tabel,
-        where: 'id IN ($placeholders)',
-        whereArgs: ids,
-      );
-      L.i(
-        'Berhasil mengambil ${maps.length} paket dari ${ids.length} ID yang diminta',
-      );
-      return List.generate(maps.length, (i) {
-        return PaketModel.fromSqlite(maps[i]);
-      });
-    } catch (e, s) {
-      L.e('Gagal mengambil paket berdasarkan list ID, error: $e $s');
-      rethrow;
-    }
-  }
 }
 
 /// Kontainer global untuk mengakses [PaketNotifier] di luar konteks Riverpod.
@@ -285,3 +234,6 @@ final ProviderContainer _paketGlobalContainer = ProviderContainer();
 
 PaketNotifier get paketNotifierGlobal =>
     _paketGlobalContainer.read(paketProvider.notifier);
+
+/// Akses state paket global (sinkron) dari luar konteks Riverpod.
+PaketState? get paketStateGlobal => _paketGlobalContainer.read(paketProvider).value;

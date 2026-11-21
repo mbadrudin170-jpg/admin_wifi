@@ -80,7 +80,7 @@ void main() {
       final model = buatModel('Cari Saya', 1, TipeDurasi.hari, 1);
       await paketNotifierGlobal.tambah(model);
 
-      final hasil = await paketNotifierGlobal.getPaketById(model.id);
+      final hasil = paketStateGlobal?.getPaketById(model.id);
       expect(hasil, isNotNull);
       expect(hasil!.nama, 'Cari Saya');
     });
@@ -92,7 +92,7 @@ void main() {
       final modelUpdate = modelAwal.copyWith(nama: 'Nama Baru', harga: 200);
       await paketNotifierGlobal.ubah(modelUpdate);
 
-      final hasil = await paketNotifierGlobal.getPaketById(modelAwal.id);
+      final hasil = paketStateGlobal?.getPaketById(modelAwal.id);
       expect(hasil!.nama, 'Nama Baru');
       expect(hasil.harga, 200);
       expect(hasil.diperbarui, isNot(modelAwal.diperbarui));

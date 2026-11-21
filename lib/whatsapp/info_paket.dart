@@ -27,7 +27,7 @@ class PesanInfoPaket {
       final PelangganModel? pelanggan = await pelangganNotifierGlobal
           .getPelangganById(pelangganAktif.idPelanggan);
       L.i('Mengambil data paket dengan ID: ${pelangganAktif.idPaket}');
-      final PaketModel? paket = await paketNotifierGlobal.getPaketById(
+      final PaketModel? paket = paketStateGlobal?.getPaketById(
         pelangganAktif.idPaket,
       );
 
