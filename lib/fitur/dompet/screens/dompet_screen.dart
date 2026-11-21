@@ -150,6 +150,17 @@ class _DompetPageState extends ConsumerState<DompetPage> {
   Widget build(BuildContext context) {
     final asyncDompet = ref.watch(dompetProvider);
 
+    if (asyncDompet.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (asyncDompet.hasError) {
+      return Scaffold(
+        body: Center(child: Text('Error: ${asyncDompet.error}')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dompet'),
@@ -165,13 +176,9 @@ class _DompetPageState extends ConsumerState<DompetPage> {
         children: [
           RingkasanKeuangan(key: _ringkasanKey),
           Expanded(
-            child: asyncDompet.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : asyncDompet.hasError
-                ? Center(child: Text('Error: ${asyncDompet.error}'))
-                : (asyncDompet.requireValue.listDompet.isEmpty
-                      ? const Center(child: Text('Tidak ada dompet ditemukan.'))
-                      : ListView.builder(
+            child: asyncDompet.requireValue.listDompet.isEmpty
+                ? const Center(child: Text('Tidak ada dompet ditemukan.'))
+                : ListView.builder(
                           padding: const EdgeInsets.only(top: 8),
                           itemCount: asyncDompet.requireValue.listDompet.length,
                           itemBuilder: (context, index) {
@@ -190,7 +197,7 @@ class _DompetPageState extends ConsumerState<DompetPage> {
                               onLongPress: () => _showDialogHapusSatu(dompet),
                             );
                           },
-                        )),
+                        ),
           ),
         ],
       ),
@@ -218,16 +225,34 @@ class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
   @override
   Widget build(BuildContext context) {
     final dompetState = ref.watch(dompetProvider);
+
+    if (dompetState.isLoading) {
+      return const Card(
+        margin: EdgeInsets.all(12.0),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20.0),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+    if (dompetState.hasError) {
+      return Card(
+        margin: const EdgeInsets.all(12.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Center(child: Text('Error: ${dompetState.error}')),
+        ),
+      );
+    }
+
     double pemasukan = 0.0;
     double pengeluaran = 0.0;
     double total = 0.0;
 
-    if (dompetState.hasValue) {
-      final state = dompetState.requireValue;
-      pemasukan = state.getTotalSaldoPositif();
-      pengeluaran = state.getTotalSaldoNegatif().abs();
-      total = state.getTotalSaldo();
-    }
+    final state = dompetState.requireValue;
+    pemasukan = state.getTotalSaldoPositif();
+    pengeluaran = state.getTotalSaldoNegatif().abs();
+    total = state.getTotalSaldo();
 
     return Card(
           margin: const EdgeInsets.all(12.0),
@@ -237,9 +262,7 @@ class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: dompetState.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Row(
+            child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       bangunInfoRingkasan(

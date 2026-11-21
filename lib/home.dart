@@ -1,6 +1,6 @@
 // path: lib/halaman_utama.dart
 
-import 'package:admin_wifi/fitur/dompet/screens/dompet.dart';
+import 'package:admin_wifi/fitur/dompet/screens/dompet_screen.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/pelanggan_aktif_screen.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/transaksi.dart';
 import 'package:admin_wifi/halaman/tab/lainnya.dart';
