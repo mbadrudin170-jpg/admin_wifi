@@ -45,9 +45,11 @@ abstract class KategoriModel with _$KategoriModel {
           return [];
         }
         return list
+            .whereType<Map<String, dynamic>>()
             .map(
-              (item) =>
-                  SubKategoriModel.fromSqlite(item as Map<String, dynamic>),
+              (item) => SubKategoriModel.fromSqlite(
+                Map<String, dynamic>.from(item),
+              ),
             )
             .toList();
       } catch (e) {
@@ -101,9 +103,11 @@ abstract class KategoriModel with _$KategoriModel {
           return [];
         }
         return list
+            .whereType<Map<String, dynamic>>()
             .map(
-              (item) =>
-                  SubKategoriModel.fromSupabase(item as Map<String, dynamic>),
+              (item) => SubKategoriModel.fromSupabase(
+                Map<String, dynamic>.from(item),
+              ),
             )
             .toList();
       } catch (e) {

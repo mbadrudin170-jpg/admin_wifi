@@ -163,13 +163,11 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       final rows = await SupabaseKlien.instance.client
           .from('kritik_saran')
           .select();
-      final List<KritikSaranModel> data = rows
-          .map(
-            (row) => KritikSaranModel.fromSupabase(
-              Map<String, dynamic>.from(row as Map),
-            ),
-          )
-          .toList();
+      final List<KritikSaranModel> data = rows.map((row) {
+        return KritikSaranModel.fromSupabase(
+          Map<String, dynamic>.from(row),
+        );
+      }).toList();
 
       L.i(
         'Berhasil mengunduh ${data.length} data kritik dan saran dari Supabase.',

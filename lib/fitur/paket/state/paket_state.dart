@@ -38,9 +38,10 @@ abstract class PaketState with _$PaketState {
   ///
   /// Hanya memakai field `diperbarui` yang non-null dan sudah lewat sejak [since].
   List<PaketModel> getPerubahan(DateTime since) => listPaket
-      .where(
-        (item) => item.diperbarui != null && item.diperbarui!.isAfter(since),
-      )
+      .where((item) {
+        final diperbarui = item.diperbarui;
+        return diperbarui != null && diperbarui.isAfter(since);
+      })
       .toList();
 
   /// Mengambil paket berdasarkan daftar ID dari daftar paket yang sudah dimuat.

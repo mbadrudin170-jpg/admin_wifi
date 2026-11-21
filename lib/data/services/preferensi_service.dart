@@ -1,11 +1,8 @@
 // path: lib/data/services/preferensi_service.dart
 import 'package:share_global_saya/src/utils/l.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_global_saya/src/utils/shared_pref_service.dart';
 
 class PreferensiService {
-  static final Future<SharedPreferences> _prefs =
-      SharedPreferences.getInstance();
-
   static const String _keyTerakhirUnduh = 'terakhir_unduh';
   static const String _keyTerakhirUnggah = 'terakhir_unggah';
 
@@ -40,9 +37,8 @@ class PreferensiService {
   }
 
   static Future<DateTime?> _getTimestamp(String key, String label) async {
-    L.i('Membaca timestamp $label dari SharedPreferences | Key: $key');
-    final prefs = await _prefs;
-    final timestamp = prefs.getInt(key);
+    L.i('Membaca timestamp $label dari SharedPrefService | Key: $key');
+    final timestamp = await SharedPrefService.getInt(key);
 
     if (timestamp == null || timestamp == 0) {
       L.i('Timestamp $label kosong atau belum di-set. Mengembalikan null.');
@@ -60,12 +56,11 @@ class PreferensiService {
     String label,
   ) async {
     L.i(
-      'Menyimpan timestamp $label ke SharedPreferences | Value: $time | Key: $key',
+      'Menyimpan timestamp $label ke SharedPrefService | Value: $time | Key: $key',
     );
     try {
-      final prefs = await _prefs;
       final int millis = time.toUtc().millisecondsSinceEpoch;
-      await prefs.setInt(key, millis);
+      await SharedPrefService.setInt(key, millis);
       L.i('✨ Timestamp $label berhasil disimpan | UTC: $time');
     } catch (e, s) {
       L.e('Error saat menyimpan timestamp $label: $e Error: $e $s');

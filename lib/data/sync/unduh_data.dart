@@ -84,8 +84,8 @@ class LayananUnduhData {
 
       final rows = await _supabase.from('pengaturan').select().limit(1);
 
-      if (rows.isNotEmpty) {
-        final data = Map<String, dynamic>.from(rows.first as Map);
+       if (rows.isNotEmpty) {
+         final data = Map<String, dynamic>.from(rows.first);
         if (data.containsKey('diperbarui')) {
           final fieldValue = data['diperbarui'];
           L.i(
@@ -257,10 +257,10 @@ class LayananUnduhData {
         );
 
         final List<T> dataList = [];
-        for (final row in rows) {
-          try {
-            final data = Map<String, dynamic>.from(row as Map);
-            dataList.add(fromSupabase(data));
+         for (final row in rows) {
+           try {
+             final data = Map<String, dynamic>.from(row);
+             dataList.add(fromSupabase(data));
           } catch (e, s) {
             L.e(
               'Gagal memproses dokumen individual pada koleksi $namaKoleksi. Error: $e $s',

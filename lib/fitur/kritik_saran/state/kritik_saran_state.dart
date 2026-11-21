@@ -29,9 +29,10 @@ abstract class KritikSaranState with _$KritikSaranState {
   ///
   /// Hanya memakai field `diperbarui` yang non-null dan sudah lewat sejak [since].
   List<KritikSaranModel> getPerubahan(DateTime since) => listKritikSaran
-      .where(
-        (item) => item.diperbarui != null && item.diperbarui!.isAfter(since),
-      )
+      .where((item) {
+        final diperbarui = item.diperbarui;
+        return diperbarui != null && diperbarui.isAfter(since);
+      })
       .toList();
 
   /// Mengambil kritik dan saran berdasarkan daftar ID dari daftar yang sudah
