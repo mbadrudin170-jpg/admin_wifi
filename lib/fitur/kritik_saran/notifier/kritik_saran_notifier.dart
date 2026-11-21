@@ -65,56 +65,6 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
     }
   }
 
-  /// Mengambil kritik dan saran berdasarkan ID.
-  Future<KritikSaranModel> getKritikSaranById(String id) async {
-    L.i('Memulai getKritikSaranById untuk ID: $id');
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'kritik_saran',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-
-      if (maps.isNotEmpty) {
-        final data = KritikSaranModel.fromSqlite(maps.first);
-        L.i(
-          'Kritik & saran dengan ID: $id ditemukan. Data: ${data.toSqlite()}',
-        );
-        return data;
-      } else {
-        L.e('Kritik & saran dengan ID $id tidak ditemukan.');
-        throw Exception('ID $id tidak ditemukan');
-      }
-    } catch (e, st) {
-      L.e('Gagal saat getKritikSaranById untuk ID: $id Error: $e $st');
-      rethrow;
-    }
-  }
-
-  /// Mengambil perubahan kritik dan saran sejak timestamp terakhir.
-  Future<List<KritikSaranModel>> getPerubahan(DateTime lastSync) async {
-    L.i(
-      'Memulai getPerubahan kritik_saran sejak: ${lastSync.toIso8601String()}',
-    );
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'kritik_saran',
-        where: 'diperbarui > ?',
-        whereArgs: [lastSync.toIso8601String()],
-      );
-      final listKritik = maps.map(KritikSaranModel.fromSqlite).toList();
-      L.i(
-        'Ditemukan ${listKritik.length} perubahan kritik_saran sejak ${lastSync.toIso8601String()}.',
-      );
-      return listKritik;
-    } catch (e, st) {
-      L.e('Gagal saat getPerubahan kritik_saran Error: $e $st');
-      rethrow;
-    }
-  }
-
   /// Menyisipkan atau memperbarui batch kritik dan saran.
   Future<void> sisipkanAtauPerbaruiBatch(
     List<KritikSaranModel> daftarKritikSaran,
@@ -227,34 +177,6 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       return data;
     } catch (e, st) {
       L.e('Gagal mengunduh data kritik dan saran dari Supabase Error: $e $st');
-      rethrow;
-    }
-  }
-
-  /// Mengambil kritik dan saran berdasarkan daftar ID.
-  Future<List<KritikSaranModel>> getKritikSaranByIds(List<String> ids) async {
-    L.i('Memulai getKritikSaranByIds untuk ${ids.length} ID.');
-    if (ids.isEmpty) {
-      L.w(
-        'List ID untuk getKritikSaranByIds kosong, mengembalikan list kosong.',
-      );
-      return [];
-    }
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final placeholders = List.filled(ids.length, '?').join(',');
-      final maps = await operasiSqlite.ambil(
-        'kritik_saran',
-        where: 'id IN ($placeholders)',
-        whereArgs: ids,
-      );
-      final listKritik = maps.map(KritikSaranModel.fromSqlite).toList();
-      L.i(
-        'Berhasil mengambil ${listKritik.length} data kritik_saran dari ${ids.length} ID yang diminta.',
-      );
-      return listKritik;
-    } catch (e, st) {
-      L.e('Gagal saat getKritikSaranByIds Error: $e $st');
       rethrow;
     }
   }

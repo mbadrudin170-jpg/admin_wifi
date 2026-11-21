@@ -85,9 +85,8 @@ void main() {
       final modelBaru = buatModel(userId: 'user-perubahan');
       await kritikSaranNotifierGlobal.createKritikSaran(modelBaru);
 
-      final perubahan = await kritikSaranNotifierGlobal.getPerubahan(
-        waktuAmbil,
-      );
+      final perubahan = (await kritikSaranNotifierGlobal.build())
+          .getPerubahan(waktuAmbil);
 
       expect(perubahan.length, 1);
       expect(perubahan.first.id, modelBaru.id);
