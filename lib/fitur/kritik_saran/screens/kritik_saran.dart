@@ -1,5 +1,6 @@
 // path: lib/fitur/kritik_saran/screens/kritik_saran.dart
 
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/screens/detail_kritik_saran.dart';
@@ -29,39 +30,25 @@ class _KritikSaranPageState extends ConsumerState<KritikSaranPage> {
       'Menampilkan konfirmasi hapus untuk kritik/saran ID: ${item.id}, User ID: ${item.userId}',
     );
 
-    final konfirmasi = await showDialog<bool>(
+    final konfirmasi = await showOkCancelAlertDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: const Text(
-          'Apakah Anda yakin ingin menghapus kritik dan saran ini?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              L.i(
-                'Dialog hapus kritik/saran ID: ${item.id} - User memilih Batal',
-              );
-              Nav.pop(context, false);
-            },
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              L.i(
-                'Dialog hapus kritik/saran ID: ${item.id} - User memilih Hapus',
-              );
-              Nav.pop(context, true);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus kritik dan saran ini?',
+      okLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructiveAction: true,
     );
 
-    if (konfirmasi == true && mounted) {
-      try {
+    if (konfirmasi != OkCancelResult.ok) {
+      L.w('Pengguna membatalkan proses penghapusan kritik dan saran.');
+      return;
+    }
+
+    L.i('Pengguna mengonfirmasi penghapusan kritik dan saran.');
+
+    if (!mounted) return;
+
+    try {
         L.i(
           'Menjalankan operasi hapus kritik/saran ID: ${item.id} dari database',
         );
@@ -80,7 +67,6 @@ class _KritikSaranPageState extends ConsumerState<KritikSaranPage> {
           AppToast.gagal(context, 'Gagal menghapus: $e');
         }
       }
-    }
   }
 
   @override
