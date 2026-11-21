@@ -21,7 +21,6 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
 
   @override
   Future<PelangganAktifState> build() async {
-    L.i('Memuat daftar pelanggan aktif dari database');
     return _ambilSemua();
   }
 
@@ -29,7 +28,7 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
     try {
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal memuat ulang pelanggan aktif: $e\n$s');
+      L.e('Gagal memuat ulang pelanggan aktif: $e $s');
       rethrow;
     }
   }
@@ -77,7 +76,7 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
       state = AsyncValue.data(await _ambilSemua());
       return pelangganUntukDisimpan;
     } catch (e, s) {
-      L.e('Gagal menambahkan pelanggan aktif: $e\n$s');
+      L.e('Gagal menambahkan pelanggan aktif: $e $s');
       rethrow;
     }
   }
@@ -275,7 +274,6 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         id: id,
       );
 
-      L.i('Membatalkan notifikasi terkait...');
       await _notifikasiServis.batalNotifikasi(id.hashCode);
       await _notifikasiServis.batalNotifikasi((id.hashCode + 1));
       await _notifikasiServis.batalNotifikasi((id.hashCode + 2));
@@ -313,7 +311,6 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         );
 
         if (pelangganKadaluarsa.isEmpty) {
-          L.i('Tidak ada pelanggan aktif diarsipkan lebih dari 30 hari');
           return;
         }
 
@@ -429,11 +426,9 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
   /// Mengarsipkan semua pelanggan aktif.
   Future<int> arsipkanSemuaPelangganAktif() async {
     try {
-      L.i('Mengarsipkan SEMUA pelanggan aktif');
       final semuaPelanggan = await ambilSemuaPelangganAktif();
 
       if (semuaPelanggan.isEmpty) {
-        L.i('Tidak ada pelanggan aktif untuk diarsipkan');
         return 0;
       }
 
@@ -476,9 +471,6 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
   ) async {
     try {
       if (ids.isEmpty) {
-        L.i(
-          'getPelangganAktifByIds dipanggil dengan list ID kosong, mengembalikan list kosong',
-        );
         return [];
       }
 

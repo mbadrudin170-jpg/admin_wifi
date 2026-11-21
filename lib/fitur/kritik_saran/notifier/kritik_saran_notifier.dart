@@ -21,7 +21,6 @@ final databaseHelperProvider = Provider<DatabaseHelper>((ref) {
 class KritikSaranNotifier extends _$KritikSaranNotifier {
   @override
   Future<KritikSaranState> build() async {
-    L.i('Memuat daftar kritik dan saran dari database');
     return _ambilSemua();
   }
 
@@ -68,9 +67,6 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
 
   /// Mengambil semua kritik dan saran, diurutkan berdasarkan tanggal terbaru.
   Future<List<KritikSaranModel>> getKritikSaran() async {
-    L.i(
-      'Memulai getKritikSaran (mengambil semua, diurutkan berdasarkan tanggal terbaru).',
-    );
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -248,7 +244,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       return data;
     } catch (e, st) {
       L.e('Gagal mengunduh data kritik dan saran dari Supabase Error: $e $st');
-      return [];
+      rethrow;
     }
   }
 

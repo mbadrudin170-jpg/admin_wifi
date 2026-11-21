@@ -13,7 +13,6 @@ part 'versi_apk_user_notifier.g.dart';
 class VersiApkUserNotifier extends _$VersiApkUserNotifier {
   @override
   Future<VersiApkUserState> build() async {
-    L.i('Memuat daftar versi APK user dari database');
     return _ambilSemua();
   }
 
@@ -102,7 +101,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
       return maps.map(VersiApkUserModel.fromSqlite).toList();
     } catch (e, s) {
       L.e('Gagal mengambil semua data versi APK Error: $e $s');
-      return [];
+      rethrow;
     }
   }
 
@@ -118,7 +117,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
       return maps.map(VersiApkUserModel.fromSqlite).toList();
     } catch (e, s) {
       L.e('Gagal mengambil versi APK aktif Error: $e $s');
-      return [];
+      rethrow;
     }
   }
 
@@ -136,7 +135,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
       return null;
     } catch (e, s) {
       L.e('Gagal mengambil versi APK terbaru Error: $e $s');
-      return null;
+      rethrow;
     }
   }
 
@@ -152,7 +151,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
       return null;
     } catch (e, s) {
       L.e('Gagal mengambil versi APK by ID Error: $e $s');
-      return null;
+      rethrow;
     }
   }
 }

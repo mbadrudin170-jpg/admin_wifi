@@ -20,7 +20,6 @@ final databaseHelperProvider = Provider<DatabaseHelper>((ref) {
 class PengaturanNotifier extends _$PengaturanNotifier {
   @override
   Future<PengaturanState> build() async {
-    L.i('Memuat data pengaturan dari database');
     return _ambilSemua();
   }
 
@@ -57,7 +56,7 @@ class PengaturanNotifier extends _$PengaturanNotifier {
       return pengaturanDefault;
     } catch (e, s) {
       L.e('Gagal mengambil data pengaturan: $e $s');
-      return PengaturanModel();
+      rethrow;
     }
   }
 

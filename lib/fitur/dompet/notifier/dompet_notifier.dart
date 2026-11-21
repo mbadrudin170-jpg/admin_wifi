@@ -15,7 +15,6 @@ class DompetNotifier extends _$DompetNotifier {
 
   @override
   Future<DompetState> build() async {
-    L.i('Memuat daftar dompet dari database');
     return _ambilSemua();
   }
 
@@ -23,7 +22,7 @@ class DompetNotifier extends _$DompetNotifier {
     try {
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal memuat ulang dompet: $e\n$s');
+      L.e('Gagal memuat ulang dompet: $e $s');
       rethrow;
     }
   }
@@ -59,7 +58,7 @@ class DompetNotifier extends _$DompetNotifier {
       await operasiSqlite.tambahBatch(DompetSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal menambahkan batch dompet: $e\n$s');
+      L.e('Gagal menambahkan batch dompet: $e $s');
       rethrow;
     }
   }
@@ -82,13 +81,12 @@ class DompetNotifier extends _$DompetNotifier {
       await arsipkanSatuDompet(id);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal menghapus dompet: $e\n$s');
+      L.e('Gagal menghapus dompet: $e $s');
       rethrow;
     }
   }
 
   Future<void> arsipSemuaDompet() async {
-    L.i('Memulai proses pengarsipan untuk semua dompet.');
     try {
       final stateData = state.value ?? await _ambilSemua();
       final daftarDompetAktif = stateData.listDompet;
@@ -100,7 +98,6 @@ class DompetNotifier extends _$DompetNotifier {
         await ubah(dompet.copyWith(diarsipkan: DateTime.now()));
       }
 
-      L.i('Proses pengarsipan semua dompet telah selesai.');
     } catch (e, s) {
       L.e('Gagal saat proses pengarsipan massal dompet. Error: $e $s');
       rethrow;
@@ -147,7 +144,6 @@ class DompetNotifier extends _$DompetNotifier {
   Future<void> sisipkanAtauPerbaruiBatch(List<DompetModel> items) async {
     L.i('Memulai sisipkanAtauPerbaruiBatch untuk ${items.length} item dompet.');
     if (items.isEmpty) {
-      L.w('List item untuk batch kosong, tidak ada operasi yang dilakukan.');
       return;
     }
     try {

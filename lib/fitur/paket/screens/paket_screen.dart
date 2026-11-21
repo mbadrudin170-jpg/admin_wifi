@@ -12,14 +12,14 @@ import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
 
-class PaketPage extends ConsumerStatefulWidget {
-  const PaketPage({super.key});
+class PaketScreen extends ConsumerStatefulWidget {
+  const PaketScreen({super.key});
 
   @override
-  ConsumerState<PaketPage> createState() => _PaketPageState();
+  ConsumerState<PaketScreen> createState() => _PaketScreenState();
 }
 
-class _PaketPageState extends ConsumerState<PaketPage> {
+class _PaketScreenState extends ConsumerState<PaketScreen> {
   Future<void> _muatUlang() async {
     try {
       await ref.read(paketProvider.notifier).muatUlang();

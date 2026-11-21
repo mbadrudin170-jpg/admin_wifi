@@ -13,7 +13,6 @@ part 'pesanan_notifier.g.dart';
 class PesananNotifier extends _$PesananNotifier {
   @override
   Future<PesananState> build() async {
-    L.i('Memuat daftar pesanan dari database');
     return _ambilSemua();
   }
 

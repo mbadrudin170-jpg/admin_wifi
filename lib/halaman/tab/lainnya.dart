@@ -12,7 +12,7 @@ import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // import '../../data/services/notifikasi_servis.dart';
 import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
-import '../../fitur/paket/screens/paket.dart';
+import '../../fitur/paket/screens/paket_screen.dart';
 import '../../fitur/pelanggan/screens/pelanggan.dart';
 import '../../fitur/versi_apk_user/screens/versi_apk_user.dart';
 import '../lainnya/tentang_aplikasi.dart';
@@ -100,7 +100,7 @@ class _LainnyaTabState extends State<LainnyaPage> {
             title: 'Kelola Paket WiFi',
             icon: Icons.wifi,
             onTap: () =>
-                _handleNavigation('Kelola Paket WiFi', const PaketPage()),
+                _handleNavigation('Kelola Paket WiFi', const PaketScreen()),
           ),
           _buildNavigationButton(
             title: 'Daftar Pelanggan',

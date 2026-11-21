@@ -13,7 +13,6 @@ part 'sub_kategori_notifier.g.dart';
 class SubKategoriNotifier extends _$SubKategoriNotifier {
   @override
   Future<SubKategoriState> build() async {
-    L.i('Memuat daftar sub kategori dari database');
     return _ambilSemua();
   }
 
@@ -56,7 +55,6 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
   }
 
   Future<List<SubKategoriModel>> getAllSubKategori() async {
-    L.i('Memulai getAllSubKategori');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -113,7 +111,6 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       'Memulai sisipkanAtauPerbaruiBatch untuk ${items.length} item sub kategori.',
     );
     if (items.isEmpty) {
-      L.w('List item untuk batch kosong, tidak ada operasi yang dilakukan.');
       return;
     }
     try {
@@ -125,27 +122,6 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal saat sisipkanAtauPerbaruiBatch sub kategori Error: $e $s');
-      rethrow;
-    }
-  }
-
-  Future<List<SubKategoriModel>> getSubKategoriByIds(List<String> ids) async {
-    L.i('Memulai getSubKategoriByIds untuk ${ids.length} ID.');
-    if (ids.isEmpty) {
-      L.w('List ID untuk getSubKategoriByIds kosong, mengembalikan list kosong.');
-      return [];
-    }
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final placeholders = List.filled(ids.length, '?').join(',');
-      final maps = await operasiSqlite.ambil(
-        'sub_kategori',
-        where: 'id IN ($placeholders)',
-        whereArgs: ids,
-      );
-      return maps.map(SubKategoriModel.fromSqlite).toList();
-    } catch (e, s) {
-      L.e('Gagal saat getSubKategoriByIds Error: $e $s');
       rethrow;
     }
   }

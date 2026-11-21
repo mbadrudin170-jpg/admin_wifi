@@ -14,7 +14,6 @@ part 'paket_notifier.g.dart';
 class PaketNotifier extends _$PaketNotifier {
   @override
   Future<PaketState> build() async {
-    L.i('Memuat daftar paket dari database');
     return _ambilSemua();
   }
 
@@ -22,7 +21,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal memuat ulang paket: $e\n$s');
+      L.e('Gagal memuat ulang paket: $e $s');
       rethrow;
     }
   }
@@ -109,7 +108,6 @@ class PaketNotifier extends _$PaketNotifier {
 
   /// Mengambil semua paket (tanpa filter is_deleted).
   Future<List<PaketModel>> getAllPaket() async {
-    L.i('Memulai proses pengambilan semua data paket');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -120,8 +118,6 @@ class PaketNotifier extends _$PaketNotifier {
 
       if (maps.isNotEmpty) {
         L.i('Berhasil mengambil ${maps.length} data paket');
-      } else {
-        L.w('Tidak ada data paket yang ditemukan');
       }
       return List.generate(maps.length, (i) {
         return PaketModel.fromSqlite(maps[i]);
@@ -134,7 +130,6 @@ class PaketNotifier extends _$PaketNotifier {
 
   /// Mengambil semua paket aktif (is_deleted = 0).
   Future<List<PaketModel>> getPaket() async {
-    L.i('Memulai proses pengambilan semua data paket aktif');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -147,8 +142,6 @@ class PaketNotifier extends _$PaketNotifier {
 
       if (maps.isNotEmpty) {
         L.i('Berhasil mengambil ${maps.length} data paket aktif');
-      } else {
-        L.w('Tidak ada data paket aktif yang ditemukan');
       }
       return List.generate(maps.length, (i) {
         return PaketModel.fromSqlite(maps[i]);
@@ -161,7 +154,6 @@ class PaketNotifier extends _$PaketNotifier {
 
   /// Mengambil semua paket publik (is_deleted = 0 dan is_public = 1).
   Future<List<PaketModel>> getPaketByIsPublic() async {
-    L.i('Memulai proses pengambilan semua data paket publik');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -174,8 +166,6 @@ class PaketNotifier extends _$PaketNotifier {
 
       if (maps.isNotEmpty) {
         L.i('Berhasil mengambil ${maps.length} data paket publik');
-      } else {
-        L.w('Tidak ada data paket publik yang ditemukan');
       }
       return List.generate(maps.length, (i) {
         return PaketModel.fromSqlite(maps[i]);
@@ -187,7 +177,6 @@ class PaketNotifier extends _$PaketNotifier {
   }
 
   Future<void> hapusSemuaPaket() async {
-    L.i('Memulai proses penghapusan semua data paket');
     try {
       final dbHelper = ref.read(databaseHelperProvider);
       final db = await dbHelper.database;

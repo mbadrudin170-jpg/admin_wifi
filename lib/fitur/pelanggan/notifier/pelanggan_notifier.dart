@@ -13,7 +13,6 @@ part 'pelanggan_notifier.g.dart';
 class PelangganNotifier extends _$PelangganNotifier {
   @override
   Future<PelangganState> build() async {
-    L.i('Memuat daftar pelanggan dari database');
     return _ambilSemua();
   }
 
@@ -21,7 +20,7 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal memuat ulang pelanggan: $e\n$s');
+      L.e('Gagal memuat ulang pelanggan: $e $s');
       rethrow;
     }
   }
@@ -63,9 +62,6 @@ class PelangganNotifier extends _$PelangganNotifier {
 
   /// Mengambil semua pelanggan yang aktif (tidak diarsipkan dan tidak dihapus).
   Future<List<PelangganModel>> getPelanggan() async {
-    L.i(
-      'Mengambil semua pelanggan yang aktif (tidak diarsipkan dan tidak dihapus).',
-    );
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
@@ -87,7 +83,6 @@ class PelangganNotifier extends _$PelangganNotifier {
 
   /// Mengambil SEMUA data pelanggan dari database lokal.
   Future<List<PelangganModel>> getAllPelanggan() async {
-    L.i('Mengambil SEMUA data pelanggan dari database lokal.');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
@@ -215,7 +210,6 @@ class PelangganNotifier extends _$PelangganNotifier {
   /// Menyisipkan atau memperbarui batch pelanggan.
   Future<void> tambahBatch(List<PelangganModel> models) async {
     if (models.isEmpty) {
-      L.i('Tidak ada item untuk diproses dalam batch.');
       return;
     }
     L.i('Memulai batch insert/update untuk ${models.length} pelanggan.');
@@ -240,7 +234,6 @@ class PelangganNotifier extends _$PelangganNotifier {
   /// Mengambil data pelanggan untuk list ID.
   Future<List<PelangganModel>> getPelangganByIds(List<String> ids) async {
     if (ids.isEmpty) {
-      L.i('List ID kosong, tidak ada pelanggan yang diambil.');
       return [];
     }
     L.i('Mengambil data pelanggan untuk ${ids.length} ID.');

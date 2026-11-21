@@ -20,7 +20,6 @@ final databaseHelperProvider = Provider<DatabaseHelper>((ref) {
 class KategoriNotifier extends _$KategoriNotifier {
   @override
   Future<KategoriState> build() async {
-    L.i('Memuat daftar kategori dari database');
     return _ambilSemua();
   }
 
@@ -64,9 +63,6 @@ class KategoriNotifier extends _$KategoriNotifier {
 
   /// Mengambil semua kategori yang tidak diarsipkan.
   Future<List<KategoriModel>> getKategori() async {
-    L.i(
-      'Memulai getKategori (mengambil semua kategori yang tidak diarsipkan).',
-    );
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -191,9 +187,7 @@ class KategoriNotifier extends _$KategoriNotifier {
       'PERINGATAN: Memulai bersihkanDanSisipkanSemua. Ini akan menghapus semua kategori dan menggantinya dengan ${items.length} item baru.',
     );
     if (items.isEmpty) {
-      L.w(
-        'List item untuk bersihkanDanSisipkanSemua kosong, hanya operasi pembersihan yang akan dilakukan.',
-      );
+      return;
     }
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
@@ -208,7 +202,6 @@ class KategoriNotifier extends _$KategoriNotifier {
       final db = await dbHelper.database;
       await db.transaction((txn) async {
         await txn.delete('kategori');
-        L.i('Tabel kategori berhasil dibersihkan.');
         for (var item in items) {
           await txn.insert('kategori', item.toSqlite());
         }
@@ -253,7 +246,6 @@ class KategoriNotifier extends _$KategoriNotifier {
       'Memulai sisipkanAtauPerbaruiBatch untuk ${items.length} item kategori.',
     );
     if (items.isEmpty) {
-      L.w('List item untuk batch kosong, tidak ada operasi yang dilakukan.');
       return;
     }
     try {
@@ -275,9 +267,7 @@ class KategoriNotifier extends _$KategoriNotifier {
 
   /// Mengambil kategori berdasarkan daftar ID.
   Future<List<KategoriModel>> getKategoriByIds(List<String> ids) async {
-    L.i('Memulai getKategoriByIds untuk ${ids.length} ID.');
     if (ids.isEmpty) {
-      L.w('List ID untuk getKategoriByIds kosong, mengembalikan list kosong.');
       return [];
     }
     try {
