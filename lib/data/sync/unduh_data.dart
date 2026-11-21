@@ -2,7 +2,8 @@
 
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
-import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/sub_kategori_notifier.dart';
+
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -34,7 +35,6 @@ class LayananUnduhData {
 
   // Global notifier (diakses lewat ProviderContainer terpisah, tanpa instance operasi)
   final PesananOperasi _pesanOperasi = PesananOperasi();
-  final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
   final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
   final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
@@ -224,7 +224,7 @@ class LayananUnduhData {
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => SubKategoriModel.fromSupabase(map),
       operasiBatch: (data) =>
-          _subKategoriOperasi.sisipkanAtauPerbaruiBatch(data),
+          subKategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 

@@ -3,7 +3,7 @@
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
-import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/sub_kategori_notifier.dart';
 import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/fitur/dompet/dummy/dompet_dummy.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
@@ -49,7 +49,6 @@ abstract final class DummyHelper {
   // Global notifier (diakses lewat ProviderContainer terpisah)
   static final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
   static final PesananOperasi _pesananOperasi = PesananOperasi();
-  static final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
   static final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
   static final OperasiDasar _operasiDasar = OperasiDasar();
 
@@ -81,7 +80,7 @@ abstract final class DummyHelper {
       L.i(
         'Menambahkan ${SubKategoriDummy.dummyList.length} data dummy sub kategori',
       );
-      await _subKategoriOperasi.sisipkanAtauPerbaruiBatch(
+      await subKategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(
         SubKategoriDummy.dummyList,
       );
       L.i('Semua data dummy sub kategori berhasil ditambahkan');

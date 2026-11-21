@@ -33,7 +33,7 @@ final class PaketNotifierProvider
   PaketNotifier create() => PaketNotifier();
 }
 
-String _$paketNotifierHash() => r'83ba36c0593575b0b93ea506f92bb2aa902af9eb';
+String _$paketNotifierHash() => r'0178f2d94cf5e2ed6189014bc9aed2f39e8d4395';
 
 abstract class _$PaketNotifier extends $AsyncNotifier<PaketState> {
   FutureOr<PaketState> build();
