@@ -24,7 +24,7 @@ void main() async {
   await SharedPrefService.init();
 
   // Inisialisasi klien Supabase (idempoten) sebelum runApp; konfigurasi
-  // diambil dari .env, bukan hardcode (skill supabase-crud).
+  // diambil dari .env, bukan hardcode (skill supabase).
   await SupabaseKlien.instance.inisialisasi(
     url: dotenv.get('SUPABASE_URL'),
     publishableKey: dotenv.get('SUPABASE_PUBLISHABLE_KEY'),
