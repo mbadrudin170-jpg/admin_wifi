@@ -2,7 +2,7 @@
 
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:share_global_saya/src/utils/l.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_global_saya/src/utils/shared_pref_service.dart';
 // ditambahkan: Import untuk mengakses operasi dan model pengaturan.
 import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
@@ -31,10 +31,8 @@ class PembersihanDataService {
       L.i(
         'Mengakses SharedPreferences untuk mengambil timestamp pembersihan terakhir...',
       );
-      final prefs = await SharedPreferences.getInstance();
-
       final now = DateTime.now();
-      final lastCleanupMillis = prefs.getInt(_keyLastCleanup);
+      final lastCleanupMillis = await SharedPrefService.getInt(_keyLastCleanup);
 
       if (lastCleanupMillis != null) {
         final lastCleanup = DateTime.fromMillisecondsSinceEpoch(
@@ -73,7 +71,7 @@ class PembersihanDataService {
 
       // ✅ Simpan dulu timestamp (anti loop kalau crash)
       L.i('Memperbarui timestamp pembersihan terakhir ke sistem storage.');
-      await prefs.setInt(_keyLastCleanup, now.millisecondsSinceEpoch);
+       await SharedPrefService.setInt(_keyLastCleanup, now.millisecondsSinceEpoch);
 
        // diubah: Membersihkan data arsip langsung via DatabaseHelper.
        L.i('Menjalankan query penghapusan data masal pada DB...');
