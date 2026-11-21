@@ -25,131 +25,117 @@ class DetailLanggananTransaksiPage extends ConsumerStatefulWidget {
 
 class _DetailLanggananTransaksiPageState
     extends ConsumerState<DetailLanggananTransaksiPage> {
-  late Future<TransaksiModel?> _transaksiFuture;
-
   @override
   void initState() {
     super.initState();
-
     L.i(
       'Memulai inisialisasi halaman detail langganan untuk ID transaksi: ${widget.idTransaksi}.',
-    );
-
-    _transaksiFuture = Future.value(
-      ref.read(transaksiProvider).value?.getTransaksiById(widget.idTransaksi),
-    );
-
-    L.i(
-      'Future transaksi berhasil dibuat untuk proses pengambilan data transaksi.',
     );
   }
 
   @override
   Widget build(BuildContext context) {
     L.i('Membangun UI halaman detail langganan transaksi.');
+    final transaksiAsync = ref.watch(transaksiProvider);
+
+    if (transaksiAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detail Langganan')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (transaksiAsync.hasError) {
+      L.e('Gagal memuat transaksi: ${transaksiAsync.error}');
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detail Langganan')),
+        body: Center(child: Text('Error: ${transaksiAsync.error}')),
+      );
+    }
+
+    final transaksi = transaksiAsync.requireValue.getTransaksiById(
+      widget.idTransaksi,
+    );
+
+    if (transaksi == null) {
+      L.w('Data transaksi tidak ditemukan di database.');
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detail Langganan')),
+        body: const Center(child: Text('Transaksi tidak ditemukan')),
+      );
+    }
+    L.i('Berhasil memuat data transaksi dengan ID: ${transaksi.id}.');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Langganan')),
-      body: FutureBuilder<TransaksiModel?>(
-        future: _transaksiFuture,
-        builder: (context, snapshot) {
-          L.i(
-            'FutureBuilder transaksi dijalankan dengan state: ${snapshot.connectionState}.',
-          );
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            L.i('Data transaksi masih dalam proses loading.');
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            L.e(
-              'Terjadi kesalahan saat mengambil data transaksi. Error: $snapshot.error',
-            );
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final transaksi = snapshot.data;
-
-          if (transaksi == null) {
-            L.w('Data transaksi tidak ditemukan di database.');
-            return const Center(child: Text('Transaksi tidak ditemukan'));
-          }
-
-          L.i('Berhasil memuat data transaksi dengan ID: ${transaksi.id}.');
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ListView(
-              children: <Widget>[
-                if (transaksi.idPelanggan != null)
-                  _buildFutureInfoCard<PelangganModel>(
-                    'Informasi Pelanggan',
-                    ref
-                        .read(pelangganProvider.notifier)
-                        .getPelangganById(transaksi.idPelanggan!),
-                    'Pelanggan',
-                    (pelanggan) => [
-                      _buildDetailRow(
-                        'Nama Pelanggan',
-                        pelanggan?.nama ?? 'Tidak Diketahui',
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 16),
-                if (transaksi.idPaket != null)
-                  _buildFutureInfoCard<PaketModel>(
-                    'Informasi Paket',
-                    ref.read(paketProvider.future).then(
-                      (state) => state.getPaketById(transaksi.idPaket!),
-                    ),
-                    'Paket',
-                    (paket) => [
-                      _buildDetailRow(
-                        'Nama Paket',
-                        paket?.nama ?? 'Tidak Diketahui',
-                      ),
-                      _buildDetailRow(
-                        'Harga',
-                        FormatUang.formatMataUang(paket?.harga.toDouble() ?? 0),
-                      ),
-                      _buildDetailRow(
-                        'Durasi',
-                        '${paket?.durasi ?? 0} ${paket?.tipe.name ?? ""}',
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 16),
-                // ditambahkan: Widget informasi poin
-                _buildInfoPoin(transaksi),
-                const SizedBox(height: 16),
-                if (transaksi.tanggalMulai != null &&
-                    transaksi.tanggalBerakhir != null)
-                  _buildInfoCard('Waktu Langganan', [
-                    _buildDetailRow(
-                      'Tanggal Mulai',
-                      FormatTanggal.formatTanggalDanJam(
-                        transaksi.tanggalMulai!,
-                      ),
-                    ),
-                    _buildDetailRow(
-                      'Tanggal Berakhir',
-                      FormatTanggal.formatTanggalDanJam(
-                        transaksi.tanggalBerakhir!,
-                      ),
-                    ),
-                  ]),
-                const SizedBox(height: 16),
-                _buildInfoCard('Status', [
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: <Widget>[
+            if (transaksi.idPelanggan != null)
+              _buildFutureInfoCard<PelangganModel>(
+                'Informasi Pelanggan',
+                ref
+                    .read(pelangganProvider.notifier)
+                    .getPelangganById(transaksi.idPelanggan!),
+                'Pelanggan',
+                (pelanggan) => [
                   _buildDetailRow(
-                    'Status Pembayaran',
-                    transaksi.statusPembayaran.name.toUpperCase(),
+                    'Nama Pelanggan',
+                    pelanggan?.nama ?? 'Tidak Diketahui',
                   ),
-                ]),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            const SizedBox(height: 16),
+            if (transaksi.idPaket != null)
+              _buildFutureInfoCard<PaketModel>(
+                'Informasi Paket',
+                ref.read(paketProvider.future).then(
+                  (state) => state.getPaketById(transaksi.idPaket!),
+                ),
+                'Paket',
+                (paket) => [
+                  _buildDetailRow(
+                    'Nama Paket',
+                    paket?.nama ?? 'Tidak Diketahui',
+                  ),
+                  _buildDetailRow(
+                    'Harga',
+                    FormatUang.formatMataUang(paket?.harga.toDouble() ?? 0),
+                  ),
+                  _buildDetailRow(
+                    'Durasi',
+                    '${paket?.durasi ?? 0} ${paket?.tipe.name ?? ""}',
+                  ),
+                ],
+              ),
+            const SizedBox(height: 16),
+            _buildInfoPoin(transaksi),
+            const SizedBox(height: 16),
+            if (transaksi.tanggalMulai != null &&
+                transaksi.tanggalBerakhir != null)
+              _buildInfoCard('Waktu Langganan', [
+                _buildDetailRow(
+                  'Tanggal Mulai',
+                  FormatTanggal.formatTanggalDanJam(
+                    transaksi.tanggalMulai!,
+                  ),
+                ),
+                _buildDetailRow(
+                  'Tanggal Berakhir',
+                  FormatTanggal.formatTanggalDanJam(
+                    transaksi.tanggalBerakhir!,
+                  ),
+                ),
+              ]),
+            const SizedBox(height: 16),
+            _buildInfoCard('Status', [
+              _buildDetailRow(
+                'Status Pembayaran',
+                transaksi.statusPembayaran.name.toUpperCase(),
+              ),
+            ]),
+          ],
+        ),
       ),
     );
   }
