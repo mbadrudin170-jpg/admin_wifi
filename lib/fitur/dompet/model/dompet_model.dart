@@ -2,7 +2,6 @@
 // diubah: Menggunakan UUID untuk ID dan memastikan non-nullable.
 // diubah: Direfactor menggunakan Freezed (abstract class + const factory).
 
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
 
@@ -57,7 +56,9 @@ abstract class DompetModel with _$DompetModel {
       DompetSkema.id: id,
       DompetSkema.namaDompet: namaDompet,
       DompetSkema.saldo: saldo,
-      DompetSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      DompetSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
       DompetSkema.isDeleted: isDeleted,
       if (diarsipkan != null)
         DompetSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),

@@ -10,6 +10,8 @@ class KontrolAplikasiService {
   }
 
   Future<void> aturStatusMaintenance(bool status) async {
-    L.i('Firebase tidak tersedia; perubahan status maintenance diabaikan: $status');
+    L.i(
+      'Firebase tidak tersedia; perubahan status maintenance diabaikan: $status',
+    );
   }
 }

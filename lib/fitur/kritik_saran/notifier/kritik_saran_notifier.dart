@@ -49,9 +49,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
 
   /// Membuat kritik dan saran baru.
   Future<void> createKritikSaran(KritikSaranModel kritikSaran) async {
-    L.i(
-      'Memulai createKritikSaran untuk data: ${kritikSaran.toSqlite()}',
-    );
+    L.i('Memulai createKritikSaran untuk data: ${kritikSaran.toSqlite()}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
@@ -249,9 +247,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       );
       return data;
     } catch (e, st) {
-      L.e(
-        'Gagal mengunduh data kritik dan saran dari Supabase Error: $e $st',
-      );
+      L.e('Gagal mengunduh data kritik dan saran dari Supabase Error: $e $st');
       return [];
     }
   }

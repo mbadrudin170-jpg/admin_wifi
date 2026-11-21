@@ -46,9 +46,7 @@ class PelangganNotifier extends _$PelangganNotifier {
     L.i('Memulai pembuatan pelanggan dengan ID: ${model.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      final pelangganUntukDisimpan = model.copyWith(
-        diperbarui: DateTime.now(),
-      );
+      final pelangganUntukDisimpan = model.copyWith(diperbarui: DateTime.now());
       final data = pelangganUntukDisimpan.toSqlite();
 
       await operasiSqlite.tambah(PelangganSkema.tabel, data);
@@ -72,7 +70,8 @@ class PelangganNotifier extends _$PelangganNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
         PelangganSkema.tabel,
-        where: '${PelangganSkema.diarsipkan} IS NULL AND ${PelangganSkema.isDeleted} = ?',
+        where:
+            '${PelangganSkema.diarsipkan} IS NULL AND ${PelangganSkema.isDeleted} = ?',
         whereArgs: [0],
       );
 

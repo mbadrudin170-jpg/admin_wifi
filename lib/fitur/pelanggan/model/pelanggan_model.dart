@@ -2,7 +2,6 @@
 // diubah: Logika Firebase disesuaikan dengan standar Timestamp.
 // diubah: Direfactor menggunakan Freezed (abstract class + const factory).
 
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
 
@@ -81,7 +80,9 @@ abstract class PelangganModel with _$PelangganModel {
       PelangganSkema.password: password,
       PelangganSkema.macAddress: macAddress,
       PelangganSkema.isDeleted: isDeleted,
-      PelangganSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      PelangganSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
     };
     if (diarsipkan != null) {
       data[PelangganSkema.diarsipkan] = diarsipkan?.toUtc().toIso8601String();

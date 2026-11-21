@@ -84,7 +84,10 @@ class _PengaturanScrenState extends State<PengaturanScren> {
         if (sukses) {
           AppToast.sukses(context, 'Sinkronisasi selesai.');
         } else {
-          AppToast.gagal(context, 'Sinkronisasi gagal. Periksa koneksi/Supabase.');
+          AppToast.gagal(
+            context,
+            'Sinkronisasi gagal. Periksa koneksi/Supabase.',
+          );
         }
       }
     } catch (e, s) {

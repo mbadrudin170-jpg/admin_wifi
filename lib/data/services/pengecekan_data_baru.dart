@@ -5,18 +5,13 @@ import 'package:share_global_saya/src/utils/l.dart';
 class PengecekanDataBaruService {
   final StatusUnggahOperasi _statusUnggahOperasi;
 
-  PengecekanDataBaruService({
-    StatusUnggahOperasi? statusUnggahOperasi,
-  }) : _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
-    L.i(
-      'Inisialisasi PengecekanDataBaruService berhasil (Firebase dihapus).',
-    );
+  PengecekanDataBaruService({StatusUnggahOperasi? statusUnggahOperasi})
+    : _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
+    L.i('Inisialisasi PengecekanDataBaruService berhasil (Firebase dihapus).');
   }
 
   Future<bool> apakahSqliteAdaDataBaru() async {
-    L.i(
-      'Memulai prosedur pengecekan data lokal di SQLite.',
-    );
+    L.i('Memulai prosedur pengecekan data lokal di SQLite.');
 
     try {
       final bool hasil = await _statusUnggahOperasi.getPerluUnggah();

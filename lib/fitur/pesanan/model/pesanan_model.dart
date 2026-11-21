@@ -74,7 +74,9 @@ abstract class PesananModel with _$PesananModel {
       PesananSkema.idPaket: idPaket,
       PesananSkema.tanggal: tanggal.toUtc().toIso8601String(),
       PesananSkema.status: status,
-      PesananSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      PesananSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
       PesananSkema.isDeleted: isDeleted,
       if (diarsipkan != null)
         PesananSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),

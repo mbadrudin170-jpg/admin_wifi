@@ -87,9 +87,7 @@ void main() {
         expect(model.saldo, 2500.75);
         expect(model.isDeleted, false);
 
-        developer.log(
-          'Berhasil: Data Supabase terkonversi sempurna ke model.',
-        );
+        developer.log('Berhasil: Data Supabase terkonversi sempurna ke model.');
       });
 
       test('toSupabase: Harus mengonversi model ke map untuk Supabase', () {

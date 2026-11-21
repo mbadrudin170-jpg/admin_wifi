@@ -270,7 +270,7 @@ class TransaksiNotifier extends _$TransaksiNotifier {
       rethrow;
     }
   }
-  }
+}
 
 /// Kontainer global untuk mengakses [TransaksiNotifier] di luar konteks Riverpod.
 final ProviderContainer _transaksiGlobalContainer = ProviderContainer();

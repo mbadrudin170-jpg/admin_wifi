@@ -60,7 +60,9 @@ abstract class TransaksiModel with _$TransaksiModel {
             TipeTransaksi.values,
             ParserUtil.parseStringOrNull(map[TransaksiSkema.tipe]),
           ) ??
-          (throw ArgumentError('TipeTransaksi tidak valid: ${map[TransaksiSkema.tipe]}')),
+          (throw ArgumentError(
+            'TipeTransaksi tidak valid: ${map[TransaksiSkema.tipe]}',
+          )),
       idDompet: ParserUtil.parseString(map[TransaksiSkema.idDompet]),
       idKategori: ParserUtil.parseString(map[TransaksiSkema.idKategori]),
       idDompetTujuan: ParserUtil.parseStringOrNull(

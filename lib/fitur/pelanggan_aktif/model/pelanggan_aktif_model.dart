@@ -130,13 +130,19 @@ abstract class PelangganAktifModel with _$PelangganAktifModel {
       PelangganAktifSkema.idPaket: idPaket,
       PelangganAktifSkema.idTransaksi: idTransaksi,
       PelangganAktifSkema.tanggalMulai: tanggalMulai.toUtc().toIso8601String(),
-      PelangganAktifSkema.tanggalBerakhir: tanggalBerakhir.toUtc().toIso8601String(),
+      PelangganAktifSkema.tanggalBerakhir: tanggalBerakhir
+          .toUtc()
+          .toIso8601String(),
       PelangganAktifSkema.status: status.name,
       PelangganAktifSkema.isDeleted: isDeleted,
-      PelangganAktifSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      PelangganAktifSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
     };
     if (diarsipkan != null) {
-      data[PelangganAktifSkema.diarsipkan] = diarsipkan?.toUtc().toIso8601String();
+      data[PelangganAktifSkema.diarsipkan] = diarsipkan
+          ?.toUtc()
+          .toIso8601String();
     }
     return data;
   }

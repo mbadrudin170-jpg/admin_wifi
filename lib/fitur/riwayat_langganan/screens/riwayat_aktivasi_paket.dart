@@ -22,7 +22,8 @@ class RiwayatAktivasiPaketPage extends ConsumerStatefulWidget {
       _RiwayatAktivasiPaketPageState();
 }
 
-class _RiwayatAktivasiPaketPageState extends ConsumerState<RiwayatAktivasiPaketPage> {
+class _RiwayatAktivasiPaketPageState
+    extends ConsumerState<RiwayatAktivasiPaketPage> {
   OpsiUrutkan _urutanAktif = OpsiUrutkan.terbaru;
 
   @override
@@ -216,9 +217,7 @@ class _RiwayatAktivasiPaketPageState extends ConsumerState<RiwayatAktivasiPaketP
     }
 
     final state = asyncTransaksi.requireValue;
-    final list = List<TransaksiModel>.from(
-      state.getTransaksiByAktivasiPaket(),
-    );
+    final list = List<TransaksiModel>.from(state.getTransaksiByAktivasiPaket());
     _urutkanList(list, _urutanAktif);
 
     return Scaffold(
@@ -240,9 +239,7 @@ class _RiwayatAktivasiPaketPageState extends ConsumerState<RiwayatAktivasiPaketP
         ],
       ),
       body: list.isEmpty
-          ? const Center(
-              child: Text('Tidak ada riwayat langganan ditemukan.'),
-            )
+          ? const Center(child: Text('Tidak ada riwayat langganan ditemukan.'))
           : ListView.builder(
               itemCount: list.length,
               itemBuilder: (context, index) {

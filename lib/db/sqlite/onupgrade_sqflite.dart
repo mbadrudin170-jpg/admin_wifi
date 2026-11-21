@@ -21,13 +21,9 @@ Future<void> _addColumnIfNotExists(
     await dbClient.execute(
       'ALTER TABLE $tableName ADD COLUMN $columnName $columnType',
     );
-    L.i(
-      'Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.',
-    );
+    L.i('Berhasil menambahkan kolom `$columnName` ke tabel `$tableName`.');
   } else {
-    L.i(
-      'Kolom `$columnName` sudah ada di tabel `$tableName`, dilewati.',
-    );
+    L.i('Kolom `$columnName` sudah ada di tabel `$tableName`, dilewati.');
   }
 }
 
@@ -80,17 +76,42 @@ Future<void> onUpgradeSqflite(
       await _renameColumnIfNecessary(db, 'paket', 'isDeleted', 'is_deleted');
       await _renameColumnIfNecessary(db, 'paket', 'isPublic', 'is_public');
 
-      await _renameColumnIfNecessary(db, 'pelanggan', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(
+        db,
+        'pelanggan',
+        'isDeleted',
+        'is_deleted',
+      );
 
-      await _renameColumnIfNecessary(db, 'pelanggan_aktif', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(
+        db,
+        'pelanggan_aktif',
+        'isDeleted',
+        'is_deleted',
+      );
 
-      await _renameColumnIfNecessary(db, 'transaksi', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(
+        db,
+        'transaksi',
+        'isDeleted',
+        'is_deleted',
+      );
 
       await _renameColumnIfNecessary(db, 'kategori', 'isDeleted', 'is_deleted');
 
-      await _renameColumnIfNecessary(db, 'sub_kategori', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(
+        db,
+        'sub_kategori',
+        'isDeleted',
+        'is_deleted',
+      );
 
-      await _renameColumnIfNecessary(db, 'versi_apk_user', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(
+        db,
+        'versi_apk_user',
+        'isDeleted',
+        'is_deleted',
+      );
 
       await _renameColumnIfNecessary(db, 'pesanan', 'isDeleted', 'is_deleted');
 

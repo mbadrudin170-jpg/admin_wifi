@@ -1,7 +1,6 @@
 // path: lib/fitur/pengaturan/model/pengaturan_model.dart
 // diubah: Menghapus properti 'id' yang tidak diperlukan karena tabel pengaturan tidak memilikinya.
 
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/parser_util.dart';
 
@@ -73,7 +72,9 @@ abstract class PengaturanModel with _$PengaturanModel {
       PengaturanSkema.hapusOtomatisDataArsip: hapusOtomatisDataArsip,
       PengaturanSkema.modePemeliharaan: modePemeliharaan,
       PengaturanSkema.infoPemeliharaan: infoPemeliharaan,
-      PengaturanSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      PengaturanSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
     };
   }
 }

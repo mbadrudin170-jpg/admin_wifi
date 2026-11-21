@@ -18,7 +18,6 @@ class DetailKritikSaranPage extends StatefulWidget {
 }
 
 class _DetailKritikSaranPageState extends State<DetailKritikSaranPage> {
-
   late Future<KritikSaranModel> _kritikSaranFuture;
 
   @override

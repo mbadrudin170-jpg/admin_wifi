@@ -16,13 +16,16 @@ class NamaPelangganWidget extends ConsumerWidget {
     if (asyncPelanggan.isLoading) {
       return Text(
         '...',
-        style: style ?? TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        style:
+            style ??
+            TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       );
     }
     if (asyncPelanggan.hasError) {
       return Text(
         'Error',
-        style: style ??
+        style:
+            style ??
             TextStyle(
               color: Theme.of(context).colorScheme.error,
               fontStyle: FontStyle.italic,
@@ -41,7 +44,8 @@ class NamaPelangganWidget extends ConsumerWidget {
     }
     return Text(
       'Pelanggan tidak ditemukan',
-      style: style ??
+      style:
+          style ??
           TextStyle(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontStyle: FontStyle.italic,

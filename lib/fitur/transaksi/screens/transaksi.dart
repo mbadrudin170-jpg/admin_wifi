@@ -68,7 +68,6 @@ class TransaksiPage extends ConsumerStatefulWidget {
 }
 
 class _TransaksiPageState extends ConsumerState<TransaksiPage> {
-
   Future<void> _muatUlang() async {
     try {
       await ref.read(transaksiProvider.notifier).muatUlang();
@@ -188,11 +187,8 @@ class _TransaksiPageState extends ConsumerState<TransaksiPage> {
           children: [
             bangunHeaderSeksi(tanggal, totalPadaTanggal),
             ...transaksiPadaTanggal.map(
-              (transaksi) => bangunItemTransaksi(
-                context,
-                transaksi,
-                () => _muatUlang(),
-              ),
+              (transaksi) =>
+                  bangunItemTransaksi(context, transaksi, () => _muatUlang()),
             ),
           ],
         );

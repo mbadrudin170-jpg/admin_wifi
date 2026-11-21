@@ -81,7 +81,9 @@ abstract class VersiApkUserModel with _$VersiApkUserModel {
       VersiApkUserSkema.catatanRilis: catatanRilis,
       VersiApkUserSkema.versiTerbaru: versiTerbaru,
       VersiApkUserSkema.youtubeTutorial: youtubeTutorial,
-      VersiApkUserSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      VersiApkUserSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
       if (diarsipkan != null)
         VersiApkUserSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
       VersiApkUserSkema.nomorBuildTerbaru: nomorBuildTerbaru.map(

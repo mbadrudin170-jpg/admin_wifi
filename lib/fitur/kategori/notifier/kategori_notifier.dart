@@ -64,7 +64,9 @@ class KategoriNotifier extends _$KategoriNotifier {
 
   /// Mengambil semua kategori yang tidak diarsipkan.
   Future<List<KategoriModel>> getKategori() async {
-    L.i('Memulai getKategori (mengambil semua kategori yang tidak diarsipkan).');
+    L.i(
+      'Memulai getKategori (mengambil semua kategori yang tidak diarsipkan).',
+    );
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
@@ -210,7 +212,9 @@ class KategoriNotifier extends _$KategoriNotifier {
         for (var item in items) {
           await txn.insert('kategori', item.toSqlite());
         }
-        L.i('Berhasil menyisipkan ${items.length} item baru ke tabel kategori.');
+        L.i(
+          'Berhasil menyisipkan ${items.length} item baru ke tabel kategori.',
+        );
       });
       // Refresh state after operation
       await muatUlang();

@@ -66,9 +66,11 @@ abstract class TransaksiState with _$TransaksiState {
   /// Mengambil transaksi poin (ada poin dihasilkan/digunakan) untuk [pelangganId].
   List<TransaksiModel> ambilTransaksiPoinByPelangganId(String pelangganId) =>
       listTransaksi
-          .where((t) =>
-              t.idPelanggan == pelangganId &&
-              (t.poinYangDihasilkan > 0 || t.poinYangDigunakan > 0))
+          .where(
+            (t) =>
+                t.idPelanggan == pelangganId &&
+                (t.poinYangDihasilkan > 0 || t.poinYangDigunakan > 0),
+          )
           .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
 
   /// Mengambil transaksi berdasarkan [dompetId] (asal/tujuan).
@@ -78,8 +80,7 @@ abstract class TransaksiState with _$TransaksiState {
           .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
 
   /// Mengambil transaksi dengan aktivasi paket.
-  List<TransaksiModel> getTransaksiByAktivasiPaket() =>
-      listTransaksi
-          .where((t) => t.aktivasiPaket)
-          .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
+  List<TransaksiModel> getTransaksiByAktivasiPaket() => listTransaksi
+      .where((t) => t.aktivasiPaket)
+      .sorted((a, b) => b.tanggal.compareTo(a.tanggal));
 }

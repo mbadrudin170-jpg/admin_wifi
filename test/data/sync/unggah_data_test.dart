@@ -117,11 +117,11 @@ void main() {
           'kritik_saran',
           'kritik_saran_col',
           KritikSaranModel.fromSqlite,
-           (m) => m.toSupabase(),
+          (m) => m.toSupabase(),
           lastSyncTime,
         );
 
-          // upsert dipanggil melalui upsertFn (no-op pada test).
+        // upsert dipanggil melalui upsertFn (no-op pada test).
       });
     });
 

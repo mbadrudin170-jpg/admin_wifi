@@ -135,7 +135,9 @@ abstract class KategoriModel with _$KategoriModel {
       KategoriSkema.idSubKategori: subKategori
           .map((sub) => sub.toSupabase())
           .toList(),
-      KategoriSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      KategoriSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
       KategoriSkema.isDeleted: isDeleted,
       if (diarsipkan != null)
         KategoriSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),

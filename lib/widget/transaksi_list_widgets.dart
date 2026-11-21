@@ -77,9 +77,10 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
 
   Future<String> _getNamaDompet() async {
     try {
-      final dompet = ref.read(dompetProvider).requireValue.getDompetById(
-        widget.transaksi.idDompet,
-      );
+      final dompet = ref
+          .read(dompetProvider)
+          .requireValue
+          .getDompetById(widget.transaksi.idDompet);
       return dompet!.namaDompet;
     } catch (e) {
       return 'Tidak ada dompet';

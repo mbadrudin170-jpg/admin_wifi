@@ -9,7 +9,6 @@ part 'pengaturan_state.freezed.dart';
 abstract class PengaturanState with _$PengaturanState {
   const PengaturanState._();
 
-  const factory PengaturanState({
-    PengaturanModel? pengaturan,
-  }) = _PengaturanState;
+  const factory PengaturanState({PengaturanModel? pengaturan}) =
+      _PengaturanState;
 }

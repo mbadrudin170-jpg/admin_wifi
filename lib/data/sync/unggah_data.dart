@@ -28,7 +28,8 @@ class LayananUnggahData {
     DatabaseHelper? dbHelper,
     SupabaseClient? supabaseClient,
     SyncManager? syncManager,
-    Future<void> Function(String tabel, List<Map<String, dynamic>> data)? upsertFn,
+    Future<void> Function(String tabel, List<Map<String, dynamic>> data)?
+    upsertFn,
   }) : _dbHelper = dbHelper ?? DatabaseHelper.instance,
        _supabase = supabaseClient,
        _syncManager = syncManager ?? SyncManager(),
@@ -293,12 +294,12 @@ class LayananUnggahData {
       );
 
       if (batchSupabase.isNotEmpty) {
-          if (_upsertFn != null) {
-            await _upsertFn(namaKoleksi, batchSupabase);
-          } else {
-            final client = _supabase ?? SupabaseKlien.instance.client;
-            await client.from(namaKoleksi).upsert(batchSupabase);
-          }
+        if (_upsertFn != null) {
+          await _upsertFn(namaKoleksi, batchSupabase);
+        } else {
+          final client = _supabase ?? SupabaseKlien.instance.client;
+          await client.from(namaKoleksi).upsert(batchSupabase);
+        }
       }
     } catch (e, s) {
       L.e(

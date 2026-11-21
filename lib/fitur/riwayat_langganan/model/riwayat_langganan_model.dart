@@ -124,5 +124,3 @@
 //       'isDeleted': isDeleted ? 1 : 0,
 //     };
 //   }
-
-

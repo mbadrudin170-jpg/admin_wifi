@@ -173,7 +173,7 @@ void main() {
       );
 
       // Act
-       final hasil = paket.toSupabase();
+      final hasil = paket.toSupabase();
 
       // Assert
       expect(hasil['is_deleted'], isA<bool>());
@@ -193,7 +193,7 @@ void main() {
       );
 
       // Act
-       final hasil = paket.toSupabase();
+      final hasil = paket.toSupabase();
 
       // Assert
       expect(hasil['is_deleted'], isA<bool>());

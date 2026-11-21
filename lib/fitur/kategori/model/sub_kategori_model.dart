@@ -60,7 +60,9 @@ abstract class SubKategoriModel with _$SubKategoriModel {
       SubKategoriSkema.id: id,
       SubKategoriSkema.nama: nama,
       SubKategoriSkema.idKategori: idKategori,
-      SubKategoriSkema.diperbarui: (diperbarui ?? DateTime.now()).toUtc().toIso8601String(),
+      SubKategoriSkema.diperbarui: (diperbarui ?? DateTime.now())
+          .toUtc()
+          .toIso8601String(),
       SubKategoriSkema.isDeleted: isDeleted,
       if (diarsipkan != null)
         SubKategoriSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),

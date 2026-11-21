@@ -86,8 +86,9 @@ class _LainnyaTabState extends State<LainnyaPage> {
 
               if (dataFromSupabase.isNotEmpty) {
                 L.i('Menyimpan/Memperbarui data ke database lokal.');
-                await kritikSaranNotifierGlobal
-                    .sisipkanAtauPerbaruiBatch(dataFromSupabase);
+                await kritikSaranNotifierGlobal.sisipkanAtauPerbaruiBatch(
+                  dataFromSupabase,
+                );
                 L.i('Data berhasil disimpan/diperbarui.');
               }
 

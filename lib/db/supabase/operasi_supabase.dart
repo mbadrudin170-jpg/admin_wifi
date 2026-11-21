@@ -81,10 +81,15 @@ class OperasiSupabase {
     required Map<String, dynamic> filter,
     bool kembalikan = false,
   }) async {
-    L.i('Memulai ubah data di Supabase tabel: $tabel Data: $data Filter: $filter');
+    L.i(
+      'Memulai ubah data di Supabase tabel: $tabel Data: $data Filter: $filter',
+    );
     try {
       final client = SupabaseKlien.instance.client;
-      var query = client.from(tabel).update(data).match(Map<String, Object>.from(filter));
+      var query = client
+          .from(tabel)
+          .update(data)
+          .match(Map<String, Object>.from(filter));
       if (kembalikan) {
         final hasil = await query.select();
         final list = (hasil as List).cast<Map<String, dynamic>>();
@@ -125,7 +130,9 @@ class OperasiSupabase {
       L.w('Daftar data batch kosong, operasi dibatalkan: $tabel');
       return;
     }
-    L.i('Memulai tambahBatch ke Supabase tabel: $tabel total: ${daftarData.length}');
+    L.i(
+      'Memulai tambahBatch ke Supabase tabel: $tabel total: ${daftarData.length}',
+    );
     try {
       final client = SupabaseKlien.instance.client;
       await client.from(tabel).insert(daftarData);

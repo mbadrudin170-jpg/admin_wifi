@@ -151,9 +151,7 @@ void main() {
   });
 
   group('FormPaket - Simpan Data', () {
-    testWidgets('Panggil tambah saat mode tambah', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('Panggil tambah saat mode tambah', (WidgetTester tester) async {
       await tester.pumpWidget(buildFormPaket());
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Paket Baru');
@@ -178,9 +176,7 @@ void main() {
       expect(fakePaketNotifier.tambahCalled, isTrue);
     });
 
-    testWidgets('Panggil ubah saat mode edit', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('Panggil ubah saat mode edit', (WidgetTester tester) async {
       await tester.pumpWidget(buildFormPaket(paket: paketDummy));
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');

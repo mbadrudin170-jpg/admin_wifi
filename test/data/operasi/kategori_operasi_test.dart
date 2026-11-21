@@ -35,7 +35,9 @@ void main() {
           tipe: TipeKategori.pemasukan,
         );
 
-        final kategoriBaru = await kategoriNotifierGlobal.createKategori(kategori);
+        final kategoriBaru = await kategoriNotifierGlobal.createKategori(
+          kategori,
+        );
 
         // Verifikasi
         final hasil = await kategoriNotifierGlobal.getKategori();
