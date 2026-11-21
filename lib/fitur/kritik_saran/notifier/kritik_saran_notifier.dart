@@ -65,23 +65,6 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
     }
   }
 
-  /// Mengambil semua kritik dan saran, diurutkan berdasarkan tanggal terbaru.
-  Future<List<KritikSaranModel>> getKritikSaran() async {
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'kritik_saran',
-        orderBy: 'tanggal DESC',
-      );
-      final listKritik = maps.map(KritikSaranModel.fromSqlite).toList();
-      L.i('Berhasil mengambil ${listKritik.length} data kritik_saran.');
-      return listKritik;
-    } catch (e, st) {
-      L.e('Gagal saat getKritikSaran Error: $e $st');
-      rethrow;
-    }
-  }
-
   /// Mengambil kritik dan saran berdasarkan ID.
   Future<KritikSaranModel> getKritikSaranById(String id) async {
     L.i('Memulai getKritikSaranById untuk ID: $id');

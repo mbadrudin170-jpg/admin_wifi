@@ -41,14 +41,15 @@ void main() {
       final model = buatModel();
       await kritikSaranNotifierGlobal.createKritikSaran(model);
 
-      final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
+      final state = await kritikSaranNotifierGlobal.build();
+      final hasil = state.listKritikSaran;
       expect(hasil.length, 1);
       expect(hasil.first.id, model.id);
       expect(hasil.first.isi, 'Ini adalah kritik dan saran.');
     });
 
     test(
-      '2. getKritikSaran harus mengembalikan data terurut tanggal DESC',
+      '2. KritikSaranNotifier.build harus mengembalikan data terurut tanggal DESC',
       () async {
         final modelLama = buatModel(
           userId: 'user-lama',
@@ -58,7 +59,8 @@ void main() {
         await kritikSaranNotifierGlobal.createKritikSaran(modelLama);
         await kritikSaranNotifierGlobal.createKritikSaran(modelBaru);
 
-        final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
+        final state = await kritikSaranNotifierGlobal.build();
+        final hasil = state.listKritikSaran;
         expect(hasil.length, 2);
         expect(hasil.first.userId, 'user-baru'); // Terbaru di atas
         expect(hasil.last.userId, 'user-lama');
@@ -71,7 +73,8 @@ void main() {
 
       await kritikSaranNotifierGlobal.hapusKritikSaran(model.id);
 
-      final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
+      final state = await kritikSaranNotifierGlobal.build();
+      final hasil = state.listKritikSaran;
       expect(hasil.isEmpty, isTrue);
     });
 
@@ -102,7 +105,8 @@ void main() {
         ];
 
         await kritikSaranNotifierGlobal.sisipkanAtauPerbaruiBatch(batch);
-        final hasil = await kritikSaranNotifierGlobal.getKritikSaran();
+        final state = await kritikSaranNotifierGlobal.build();
+        final hasil = state.listKritikSaran;
         expect(hasil.length, 2);
 
         final updatedItem = hasil.firstWhere((k) => k.id == 'id-tetap');
