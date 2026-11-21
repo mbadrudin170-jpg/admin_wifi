@@ -1,7 +1,7 @@
 // path: lib/halaman/tab/pesanan.dart
 
 // diubah: Mengganti path import, memperbaiki instansiasi, dan memperbaiki logika status
-import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
+import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
 import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +16,6 @@ class HalamanPesan extends StatefulWidget {
 }
 
 class _HalamanPesanState extends State<HalamanPesan> {
-  final PesananOperasi _pesanOperasi = PesananOperasi();
 
   List<PesananModel> _daftarPesanan = [];
   bool _isLoading = true;
@@ -58,13 +57,13 @@ class _HalamanPesanState extends State<HalamanPesan> {
       List<PesananModel> pesanan;
       if (_filterStatus == 'semua') {
         L.i('Mengambil SEMUA pesanan dari database (tanpa filter status).');
-        pesanan = await _pesanOperasi.ambilSemuaPesanan();
+        pesanan = await pesananNotifierGlobal.ambilSemuaPesanan();
         L.i(
           'Berhasil mengambil semua pesanan. Jumlah: ${pesanan.length} pesanan.',
         );
       } else {
         L.i('Mengambil pesanan dengan filter status: "$_filterStatus".');
-        pesanan = await _pesanOperasi.ambilPesananByStatus(_filterStatus);
+        pesanan = await pesananNotifierGlobal.ambilPesananByStatus(_filterStatus);
         L.i(
           'Berhasil mengambil pesanan dengan status "$_filterStatus". Jumlah: ${pesanan.length} pesanan.',
         );
@@ -106,9 +105,9 @@ class _HalamanPesanState extends State<HalamanPesan> {
 
     try {
       L.i(
-        'Memanggil _pesanOperasi.updateStatusPesanan() untuk mengubah status di database.',
+        'Memanggil pesananNotifierGlobal.updateStatusPesanan() untuk mengubah status di database.',
       );
-      await _pesanOperasi.updateStatusPesanan(pesanan.id, statusBaru);
+      await pesananNotifierGlobal.updateStatusPesanan(pesanan.id, statusBaru);
       L.i(
         'Status pesanan berhasil diubah di database dari "${pesanan.status}" menjadi "$statusBaru".',
       );
@@ -196,9 +195,9 @@ class _HalamanPesanState extends State<HalamanPesan> {
       L.i('Pengguna mengkonfirmasi penghapusan. Memproses hapus pesanan...');
       try {
         L.i(
-          'Memanggil _pesanOperasi.hapusPesanan() untuk menghapus pesanan #${pesanan.id} dari database.',
+          'Memanggil pesananNotifierGlobal.hapusPesanan() untuk menghapus pesanan #${pesanan.id} dari database.',
         );
-        await _pesanOperasi.hapusPesanan(pesanan.id);
+        await pesananNotifierGlobal.hapusPesanan(pesanan.id);
         L.i('Pesanan #${pesanan.id} berhasil dihapus dari database.');
 
         L.i(

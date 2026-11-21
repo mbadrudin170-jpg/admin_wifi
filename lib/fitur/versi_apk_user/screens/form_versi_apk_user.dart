@@ -1,6 +1,6 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:material_ui/material_ui.dart';
@@ -10,10 +10,10 @@ import 'package:uuid/uuid.dart';
 
 class FormVersiApkUser extends StatefulWidget {
   final VersiApkUserModel? versiApkUser;
-  final VersiApkUserOperasi operasi;
+  final dynamic operasi;
 
-  FormVersiApkUser({super.key, this.versiApkUser, VersiApkUserOperasi? operasi})
-    : operasi = operasi ?? VersiApkUserOperasi();
+  FormVersiApkUser({super.key, this.versiApkUser, dynamic operasi})
+    : operasi = operasi ?? versiApkUserNotifierGlobal;
 
   @override
   State<FormVersiApkUser> createState() => _FormVersiApkUserState();

@@ -4,15 +4,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:share_global_saya/src/utils/l.dart';
 
-import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
+import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
 import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 
 class ServerLokal {
-  final PesananOperasi operasi;
-
   ServerSocket? _server;
 
-  ServerLokal(this.operasi);
+  ServerLokal();
 
   /// Menjalankan server TCP lokal untuk menerima data pesanan
   /// langsung dari perangkat customer.
@@ -74,7 +72,7 @@ class ServerLokal {
 
                 L.i('Memulai penyimpanan pesanan ke database lokal SQLite.');
 
-                await operasi.simpanPesanan(pesanan);
+                await pesananNotifierGlobal.simpanPesanan(pesanan);
 
                 L.i(
                   'Pesanan dengan ID: ${pesanan.id} berhasil disimpan ke database lokal.',

@@ -1,6 +1,6 @@
 // path: lib/halaman/form/form_pengaturan.dart
 
-import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +19,6 @@ class FormPengaturan extends StatefulWidget {
 
 class _FormPengaturanState extends State<FormPengaturan> {
   final _formKey = GlobalKey<FormState>();
-  final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
   late TextEditingController _intervalController;
   late TextEditingController _hapusArsipController;
@@ -86,7 +85,7 @@ class _FormPengaturanState extends State<FormPengaturan> {
         L.i(
           'Menyimpan pengaturan baru ke database - Interval: $interval, Hapus Arsip: $hapusArsip, Mode: $_modePemeliharaan',
         );
-        await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturanBaru);
+        await pengaturanNotifierGlobal.simpanAtauPerbaruiPengaturan(pengaturanBaru);
         L.i('Pengaturan berhasil disimpan ke database');
 
         if (mounted) {

@@ -1,6 +1,5 @@
 // path: lib/data/operasi/operasi_dasar.dart
 
-import 'package:admin_wifi/data/operasi/status_unggah_operasi.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
@@ -8,7 +7,6 @@ import 'package:sqflite/sqflite.dart';
 /// Kelas ini adalah PUSAT KONTROL untuk semua operasi tulis (write) ke database.
 class OperasiDasar {
   final _dbHelper = DatabaseHelper.instance;
-  final _statusUnggahOperasi = StatusUnggahOperasi();
 
   // Fungsi generik untuk menjalankan operasi tulis di dalam transaksi.
   Future<T> _jalankanDalamTransaksi<T>(
@@ -33,7 +31,10 @@ class OperasiDasar {
 
         try {
           L.i('[TRANSAKSI AKTIF] Menandai status `perlu_unggah` menjadi TRUE.');
-          await _statusUnggahOperasi.setPerluUnggah(true, transaction: txn);
+           await txn.insert('status_aplikasi', {
+             'id': 'perlu_unggah',
+             'value': '1',
+           }, conflictAlgorithm: ConflictAlgorithm.replace);
           L.i('[TRANSAKSI AKTIF] Status `perlu_unggah` berhasil ditandai.');
 
           L.i(

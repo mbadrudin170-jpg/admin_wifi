@@ -8,7 +8,6 @@
 // bagian 4).
 
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/services/notifikasi/notifikasi_servis.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
@@ -27,8 +26,6 @@ class MockDatabaseHelper extends Mock implements DatabaseHelper {}
 class MockSyncManager extends Mock implements SyncManager {}
 
 class MockOperasiDasar extends Mock implements OperasiDasar {}
-
-class MockVersiApkUserOperasi extends Mock implements VersiApkUserOperasi {}
 
 class MockNotifikasiServis extends Mock implements NotifikasiServis {}
 

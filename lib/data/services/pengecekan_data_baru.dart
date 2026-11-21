@@ -1,12 +1,9 @@
 // path: lib/data/services/pengecekan_data_baru.dart
-import 'package:admin_wifi/data/operasi/operasi.dart';
+import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class PengecekanDataBaruService {
-  final StatusUnggahOperasi _statusUnggahOperasi;
-
-  PengecekanDataBaruService({StatusUnggahOperasi? statusUnggahOperasi})
-    : _statusUnggahOperasi = statusUnggahOperasi ?? StatusUnggahOperasi() {
+  PengecekanDataBaruService() {
     L.i('Inisialisasi PengecekanDataBaruService berhasil (Firebase dihapus).');
   }
 
@@ -14,7 +11,13 @@ class PengecekanDataBaruService {
     L.i('Memulai prosedur pengecekan data lokal di SQLite.');
 
     try {
-      final bool hasil = await _statusUnggahOperasi.getPerluUnggah();
+      final db = await DatabaseHelper.instance.database;
+      final result = await db.query(
+        'status_aplikasi',
+        where: 'id = ?',
+        whereArgs: const ['perlu_unggah'],
+      );
+      final bool hasil = result.isNotEmpty && result.first['value'] == '1';
 
       if (hasil) {
         L.i('Ditemukan data baru yang harus diunggah ke server.');

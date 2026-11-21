@@ -1,6 +1,6 @@
 // path: lib/fitur/pengaturan/screens/pengaturan_sreen.dart
 
-import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
+import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
 import 'package:admin_wifi/data/services/pengecekan_waktu_sync_services.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:admin_wifi/fitur/pengaturan/screens/form_pengaturan.dart';
@@ -18,7 +18,6 @@ class PengaturanScren extends StatefulWidget {
 }
 
 class _PengaturanScrenState extends State<PengaturanScren> {
-  final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
   late Future<PengaturanModel> _futurePengaturan;
   bool _sedangSinkronisasi = false;
 
@@ -33,7 +32,7 @@ class _PengaturanScrenState extends State<PengaturanScren> {
   void _loadPengaturan() {
     L.i('Memuat data pengaturan dari database lokal');
     setState(() {
-      _futurePengaturan = _pengaturanOperasi
+      _futurePengaturan = pengaturanNotifierGlobal
           .getPengaturan()
           .then((data) {
             L.i('Data pengaturan berhasil dimuat dari database');

@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/detail_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
@@ -14,7 +14,7 @@ import 'package:share_global_saya/src/utils/navigator_helper.dart';
 enum Urutan { buildZA, buildAZ, versiZA, versiAZ }
 
 class VersiApkUserPage extends StatefulWidget {
-  final VersiApkUserOperasi? operasi;
+  final dynamic operasi;
 
   const VersiApkUserPage({super.key, this.operasi});
 
@@ -23,7 +23,7 @@ class VersiApkUserPage extends StatefulWidget {
 }
 
 class _VersiApkUserPageState extends State<VersiApkUserPage> {
-  late final VersiApkUserOperasi _versiApkUserOperasi;
+  late final dynamic _versiApkUserOperasi;
   List<VersiApkUserModel> _daftarVersiApk = [];
   bool _isLoading = true;
   String? _error;
@@ -33,7 +33,7 @@ class _VersiApkUserPageState extends State<VersiApkUserPage> {
   void initState() {
     super.initState();
     L.i('Menginisialisasi halaman Versi APK User');
-    _versiApkUserOperasi = widget.operasi ?? VersiApkUserOperasi();
+    _versiApkUserOperasi = versiApkUserNotifierGlobal;
     L.i(
       'Menggunakan operasi: ${widget.operasi != null ? "dari parameter" : "instance baru"}',
     );

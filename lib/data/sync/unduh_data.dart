@@ -1,10 +1,10 @@
 // path: lib/data/sync/unduh_data.dart
 
-import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
+import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
+import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/sub_kategori_notifier.dart';
 
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
 import 'package:admin_wifi/db/supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
@@ -34,9 +34,6 @@ class LayananUnduhData {
   final SyncManager _syncManager;
 
   // Global notifier (diakses lewat ProviderContainer terpisah, tanpa instance operasi)
-  final PesananOperasi _pesanOperasi = PesananOperasi();
-  final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
-  final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
 
   LayananUnduhData({SupabaseClient? supabase, SyncManager? syncManager})
     : _supabase = supabase ?? SupabaseKlien.instance.client,
@@ -112,7 +109,7 @@ class LayananUnduhData {
               'Data server lebih baru. Memulai pembaruan database SQLite untuk model PengaturanModel.',
             );
             final pengaturan = PengaturanModel.fromSupabase(data);
-            await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
+            await pengaturanNotifierGlobal.simpanAtauPerbaruiPengaturan(pengaturan);
             L.i('Update Pengaturan lokal berhasil disimpan.');
           } else {
             L.i(
@@ -213,7 +210,7 @@ class LayananUnduhData {
       namaKoleksi: 'pesan',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => PesananModel.fromSupabase(map),
-      operasiBatch: (data) => _pesanOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => pesananNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -235,7 +232,7 @@ class LayananUnduhData {
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => VersiApkUserModel.fromSupabase(map),
       operasiBatch: (data) =>
-          _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(data),
+          versiApkUserNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 

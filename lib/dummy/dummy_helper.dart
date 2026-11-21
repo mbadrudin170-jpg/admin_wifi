@@ -1,10 +1,10 @@
 // path: lib/dummy/dummy_helper.dart
 
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
-import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
-import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
+import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
+import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/sub_kategori_notifier.dart';
-import 'package:admin_wifi/data/operasi/versi_apk_user_operasi.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
 import 'package:admin_wifi/fitur/dompet/dummy/dompet_dummy.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
@@ -47,9 +47,6 @@ import 'package:sqflite/sqflite.dart';
 /// dilakukan kebalikannya dalam satu transaksi.
 abstract final class DummyHelper {
   // Global notifier (diakses lewat ProviderContainer terpisah)
-  static final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
-  static final PesananOperasi _pesananOperasi = PesananOperasi();
-  static final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
   static final OperasiDasar _operasiDasar = OperasiDasar();
 
   /// Menyisipkan semua data dummy ke database (upsert berdasarkan ID).
@@ -89,7 +86,7 @@ abstract final class DummyHelper {
         'Menambahkan ${PengaturanDummy.dummyList.length} data dummy pengaturan',
       );
       for (final pengaturan in PengaturanDummy.dummyList) {
-        await _pengaturanOperasi.simpanAtauPerbaruiPengaturan(pengaturan);
+        await pengaturanNotifierGlobal.simpanAtauPerbaruiPengaturan(pengaturan);
       }
       L.i('Semua data dummy pengaturan berhasil ditambahkan');
 
@@ -105,13 +102,13 @@ abstract final class DummyHelper {
       L.i(
         'Menambahkan ${VersiApkUserDummy.dummyList.length} data dummy versi apk user',
       );
-      await _versiApkUserOperasi.sisipkanAtauPerbaruiBatch(
+      await versiApkUserNotifierGlobal.sisipkanAtauPerbaruiBatch(
         VersiApkUserDummy.dummyList,
       );
       L.i('Semua data dummy versi apk user berhasil ditambahkan');
 
       L.i('Menambahkan ${PesananDummy.dummyList.length} data dummy pesanan');
-      await _pesananOperasi.sisipkanAtauPerbaruiBatch(PesananDummy.dummyList);
+      await pesananNotifierGlobal.sisipkanAtauPerbaruiBatch(PesananDummy.dummyList);
       L.i('Semua data dummy pesanan berhasil ditambahkan');
 
       L.i(
