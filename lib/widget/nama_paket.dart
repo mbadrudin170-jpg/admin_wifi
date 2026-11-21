@@ -16,26 +16,27 @@ class NamaPaketWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final paketAsync = ref.watch(paketProvider);
 
-    return paketAsync.when(
-      data: (state) {
-        final paket = state.listPaket.firstWhereOrNull((p) => p.id == idPaket);
-        if (paket == null) {
-          return Text(
-            'Paket tidak tersedia',
-            style: style?.copyWith(color: Colors.red),
-          );
-        }
-        return Text(paket.nama, style: style);
-      },
-      loading: () => const SizedBox(
+    if (paketAsync.isLoading) {
+      return const SizedBox(
         width: 12,
         height: 12,
         child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      error: (_, __) => Text(
+      );
+    }
+    if (paketAsync.hasError) {
+      return Text(
         'Paket tidak tersedia',
         style: style?.copyWith(color: Colors.red),
-      ),
-    );
+      );
+    }
+    final state = paketAsync.requireValue;
+    final paket = state.listPaket.firstWhereOrNull((p) => p.id == idPaket);
+    if (paket == null) {
+      return Text(
+        'Paket tidak tersedia',
+        style: style?.copyWith(color: Colors.red),
+      );
+    }
+    return Text(paket.nama, style: style);
   }
 }

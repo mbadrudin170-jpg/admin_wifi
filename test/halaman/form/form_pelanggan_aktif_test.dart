@@ -279,9 +279,6 @@ void main() {
   testWidgets('edit mode sukses', (tester) async {
     await pumpForm(tester, pelangganAktif: pelangganAktifDummy);
     await tester.pumpAndSettle();
-    // Tunggu satu frame lagi agar nested Future.microtask di _petakanModeEdit
-    // selesai mengisi _selectedPelanggan dan _selectedPaket.
-    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Simpan'));
     await tester.pump(const Duration(seconds: 3));
