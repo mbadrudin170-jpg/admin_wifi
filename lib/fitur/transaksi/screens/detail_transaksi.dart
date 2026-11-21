@@ -50,11 +50,11 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
   }
 
   // DIUBAH: Logika diperkuat dengan pengecekan tipe eksplisit untuk mencegah error.
-  Future<String?> _getNama(
-    Future<dynamic> Function(String) getModel,
+  String? _getNama(
+    dynamic Function(String) getModel,
     String id,
     String konteks,
-  ) async {
+  ) {
     if (id.isEmpty) {
       L.i('ID $konteks kosong, mengembalikan null');
       return null;
@@ -62,11 +62,10 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
 
     try {
       L.i('Mengambil data $konteks dengan ID: $id');
-      final model = await getModel(id);
+      final model = getModel(id);
 
       if (model != null) {
         String? nama;
-        // diubah: Menggunakan pengecekan tipe eksplisit (is) untuk keamanan akses properti.
         if (model is DompetModel) {
           nama = model.namaDompet;
         } else if (model is KategoriModel) {
@@ -176,12 +175,12 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
             ),
             _buildDetailRow('Tipe', transaksi.tipe.name.toUpperCase()),
 
-            _buildFutureDetailRow(
+            _buildDetailRowSync(
               'Dompet',
               _getNama(
-                (id) async {
-                  final state = await ref.read(dompetProvider.future);
-                  return state.listDompet.firstWhereOrNull((d) => d.id == id);
+                (id) {
+                  final state = ref.read(dompetProvider).value;
+                  return state?.listDompet.firstWhereOrNull((d) => d.id == id);
                 },
                 transaksi.idDompet,
                 'Dompet',
@@ -189,24 +188,28 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
             ),
 
             if (idDompetTujuan != null && idDompetTujuan.isNotEmpty)
-              _buildFutureDetailRow(
+              _buildDetailRowSync(
                 'Dompet Tujuan',
                 _getNama(
-                  (id) async {
-                    final state = await ref.read(dompetProvider.future);
-                    return state.listDompet.firstWhereOrNull((d) => d.id == id);
+                  (id) {
+                    final state = ref.read(dompetProvider).value;
+                    return state?.listDompet.firstWhereOrNull(
+                      (d) => d.id == id,
+                    );
                   },
                   idDompetTujuan,
                   'Dompet Tujuan',
                 ),
               ),
 
-            _buildFutureDetailRow(
+            _buildDetailRowSync(
               'Kategori',
               _getNama(
-                (id) async {
-                  final state = await ref.read(kategoriProvider.future);
-                  return state.listKategori.firstWhereOrNull((k) => k.id == id);
+                (id) {
+                  final state = ref.read(kategoriProvider).value;
+                  return state?.listKategori.firstWhereOrNull(
+                    (k) => k.id == id,
+                  );
                 },
                 transaksi.idKategori,
                 'Kategori',
@@ -214,13 +217,13 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
             ),
 
             if (idSubKategori != null && idSubKategori.isNotEmpty)
-              _buildFutureDetailRow(
+              _buildDetailRowSync(
                 'Sub Kategori',
                 _getNama(
-                  (id) async {
-                    final state = await ref.read(kategoriProvider.future);
-                    for (final k in state.listKategori) {
-                      final found = k.subKategori.firstWhereOrNull(
+                  (id) {
+                    final state = ref.read(kategoriProvider).value;
+                    for (final k in state?.listKategori ?? <dynamic>[]) {
+                      final found = (k as dynamic).subKategori.firstWhereOrNull(
                         (sk) => sk.id == id,
                       );
                       if (found != null) return found;
@@ -233,14 +236,12 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
               ),
 
             if (idPelanggan != null && idPelanggan.isNotEmpty)
-              _buildFutureDetailRow(
+              _buildDetailRowSync(
                 'Pelanggan',
                 _getNama(
-                  (id) async {
-                    final state = await ref.read(pelangganProvider.future);
-                    return state.listPelanggan.firstWhereOrNull(
-                      (p) => p.id == id,
-                    );
+                  (id) {
+                    final state = ref.read(pelangganProvider).value;
+                    return state?.listPelanggan.firstWhereOrNull((p) => p.id == id);
                   },
                   idPelanggan,
                   'Pelanggan',
@@ -248,12 +249,12 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
               ),
 
             if (idPaket != null && idPaket.isNotEmpty)
-              _buildFutureDetailRow(
+              _buildDetailRowSync(
                 'Paket',
                 _getNama(
-                  (id) async {
-                    final state = await ref.read(paketProvider.future);
-                    return state.listPaket.firstWhereOrNull((p) => p.id == id);
+                  (id) {
+                    final state = ref.read(paketProvider).value;
+                    return state?.getPaketById(id);
                   },
                   idPaket,
                   'Paket',
@@ -305,25 +306,7 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     );
   }
 
-  Widget _buildFutureDetailRow(String label, Future<String?> future) {
-    L.i('Membangun FutureBuilder untuk: $label');
-    return FutureBuilder<String?>(
-      future: future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          L.i('FutureBuilder $label: masih loading');
-          return _buildDetailRow(label, 'Memuat...');
-        }
-        if (snapshot.hasError) {
-          L.e(
-            'FutureBuilder $label: error Error: $snapshot.error $snapshot.stackTrace',
-          );
-          return _buildDetailRow(label, 'Error Data');
-        }
-        final data = snapshot.data ?? '-';
-        L.i('FutureBuilder $label: selesai dengan data "$data"');
-        return _buildDetailRow(label, data);
-      },
-    );
+  Widget _buildDetailRowSync(String label, String? value) {
+    return _buildDetailRow(label, value ?? '-');
   }
 }

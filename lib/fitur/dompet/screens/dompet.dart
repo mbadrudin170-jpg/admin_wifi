@@ -211,56 +211,25 @@ class RingkasanKeuangan extends ConsumerStatefulWidget {
 }
 
 class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
-  late Future<List<double>> _summaryFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSummary();
-  }
-
-  void _loadSummary() {
-    final state = ref.read(dompetProvider).requireValue;
-    _summaryFuture = Future.value([
-      state.getTotalSaldoPositif(),
-      state.getTotalSaldoNegatif(),
-      state.getTotalSaldo(),
-    ]);
-  }
-
   void refresh() {
-    setState(() {
-      _loadSummary();
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<double>>(
-      future: _summaryFuture,
-      builder: (context, snapshot) {
-        double pemasukan = 0.0;
-        double pengeluaran = 0.0;
-        double total = 0.0;
+    final dompetState = ref.watch(dompetProvider);
+    double pemasukan = 0.0;
+    double pengeluaran = 0.0;
+    double total = 0.0;
 
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          final result = snapshot.data!;
-          pemasukan = result[0];
-          pengeluaran = result[1].abs(); // Tampilkan sebagai angka positif
-          total = result[2];
-          L.i(
-            'Ringkasan keuangan berhasil dihitung: Pemasukan=$pemasukan, Pengeluaran=$pengeluaran, Total=$total',
-          );
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          L.i('Menunggu data ringkasan keuangan...');
-        } else if (snapshot.hasError) {
-          L.e(
-            'Gagal memuat ringkasan keuangan Error: $snapshot.error $snapshot.stackTrace',
-          );
-        }
+    if (dompetState.hasValue) {
+      final state = dompetState.requireValue;
+      pemasukan = state.getTotalSaldoPositif();
+      pengeluaran = state.getTotalSaldoNegatif().abs();
+      total = state.getTotalSaldo();
+    }
 
-        return Card(
+    return Card(
           margin: const EdgeInsets.all(12.0),
           elevation: 4,
           shape: RoundedRectangleBorder(
@@ -268,7 +237,7 @@ class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: snapshot.connectionState == ConnectionState.waiting
+            child: dompetState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -291,12 +260,10 @@ class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
                         jumlah: total,
                         warna: Theme.of(context).colorScheme.primary,
                       ),
-                    ],
-                  ),
-          ),
-        );
-      },
-    );
+                     ],
+                   ),
+           ),
+         );
   }
 }
 

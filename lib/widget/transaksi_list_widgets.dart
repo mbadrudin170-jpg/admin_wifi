@@ -64,29 +64,6 @@ class TransaksiTile extends ConsumerStatefulWidget {
 }
 
 class _TransaksiTileState extends ConsumerState<TransaksiTile> {
-  Future<String> _getNamaKategori() async {
-    try {
-      final kategori = await kategoriNotifierGlobal.getKategoriById(
-        widget.transaksi.idKategori,
-      );
-      return kategori.nama;
-    } catch (e) {
-      return 'Tidak ada kategori';
-    }
-  }
-
-  Future<String> _getNamaDompet() async {
-    try {
-      final dompet = ref
-          .read(dompetProvider)
-          .requireValue
-          .getDompetById(widget.transaksi.idDompet);
-      return dompet!.namaDompet;
-    } catch (e) {
-      return 'Tidak ada dompet';
-    }
-  }
-
   void _arsipkanTransaksi() async {
     await ref
         .read(transaksiProvider.notifier)
@@ -157,17 +134,18 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
           child: Icon(iconData, color: iconColor),
         ),
         title: Text(widget.transaksi.keterangan),
-        subtitle: FutureBuilder<List<String>>(
-          future: Future.wait([_getNamaKategori(), _getNamaDompet()]),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Text('Memuat...');
-            }
-            if (snapshot.hasError) {
-              return const Text('Error memuat data');
-            }
-            final namaKategori = snapshot.data?[0] ?? '-';
-            final namaDompet = snapshot.data?[1] ?? '-';
+        subtitle: Builder(
+          builder: (context) {
+            final kategoriState = ref.watch(kategoriProvider);
+            final namaKategori =
+                kategoriState.value?.getById(widget.transaksi.idKategori)?.nama ??
+                'Tidak ada kategori';
+            final dompetState = ref.watch(dompetProvider);
+            final namaDompet =
+                dompetState.value
+                    ?.getDompetById(widget.transaksi.idDompet)
+                    ?.namaDompet ??
+                'Tidak ada dompet';
             return Text('$namaKategori | $namaDompet');
           },
         ),

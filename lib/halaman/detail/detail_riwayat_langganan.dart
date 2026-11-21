@@ -3,9 +3,7 @@
 // ditambahkan: Widget untuk menampilkan informasi poin yang dihasilkan dan digunakan.
 
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
-import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -72,42 +70,46 @@ class _DetailLanggananTransaksiPageState
         child: ListView(
           children: <Widget>[
             if (transaksi.idPelanggan != null)
-              _buildFutureInfoCard<PelangganModel>(
-                'Informasi Pelanggan',
-                ref
-                    .read(pelangganProvider.notifier)
-                    .getPelangganById(transaksi.idPelanggan!),
-                'Pelanggan',
-                (pelanggan) => [
-                  _buildDetailRow(
-                    'Nama Pelanggan',
-                    pelanggan?.nama ?? 'Tidak Diketahui',
-                  ),
-                ],
-              ),
+              _buildInfoCard('Informasi Pelanggan', [
+                _buildDetailRow(
+                  'Nama Pelanggan',
+                  ref
+                          .watch(pelangganProvider)
+                          .value
+                          ?.getById(transaksi.idPelanggan!)
+                          ?.nama ??
+                      'Tidak Diketahui',
+                ),
+              ]),
             const SizedBox(height: 16),
             if (transaksi.idPaket != null)
-              _buildFutureInfoCard<PaketModel>(
-                'Informasi Paket',
-                ref.read(paketProvider.future).then(
-                  (state) => state.getPaketById(transaksi.idPaket!),
+              _buildInfoCard('Informasi Paket', [
+                _buildDetailRow(
+                  'Nama Paket',
+                  ref
+                          .watch(paketProvider)
+                          .value
+                          ?.getPaketById(transaksi.idPaket!)
+                          ?.nama ??
+                      'Tidak Diketahui',
                 ),
-                'Paket',
-                (paket) => [
-                  _buildDetailRow(
-                    'Nama Paket',
-                    paket?.nama ?? 'Tidak Diketahui',
+                _buildDetailRow(
+                  'Harga',
+                  FormatUang.formatMataUang(
+                    ref
+                            .watch(paketProvider)
+                            .value
+                            ?.getPaketById(transaksi.idPaket!)
+                            ?.harga
+                            .toDouble() ??
+                        0,
                   ),
-                  _buildDetailRow(
-                    'Harga',
-                    FormatUang.formatMataUang(paket?.harga.toDouble() ?? 0),
-                  ),
-                  _buildDetailRow(
-                    'Durasi',
-                    '${paket?.durasi ?? 0} ${paket?.tipe.name ?? ""}',
-                  ),
-                ],
-              ),
+                ),
+                _buildDetailRow(
+                  'Durasi',
+                  '${ref.watch(paketProvider).value?.getPaketById(transaksi.idPaket!)?.durasi ?? 0} ${ref.watch(paketProvider).value?.getPaketById(transaksi.idPaket!)?.tipe.name ?? ""}',
+                ),
+              ]),
             const SizedBox(height: 16),
             _buildInfoPoin(transaksi),
             const SizedBox(height: 16),
@@ -208,49 +210,6 @@ class _DetailLanggananTransaksiPageState
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFutureInfoCard<T>(
-    String title,
-    Future<T?> future,
-    String tag,
-    List<Widget> Function(T? data) builder,
-  ) {
-    L.i('Membangun Future info card untuk data $tag.');
-
-    return FutureBuilder<T?>(
-      future: future,
-      builder: (context, snapshot) {
-        L.i(
-          'FutureBuilder $tag dijalankan dengan state: ${snapshot.connectionState}.',
-        );
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          L.i('Data $tag masih dalam proses loading.');
-          return _buildInfoCard(title, [
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          ]);
-        }
-
-        if (snapshot.hasError) {
-          L.e('Gagal memuat data $tag. Error: $snapshot.error');
-          return _buildInfoCard(title, [const Text('Gagal memuat data')]);
-        }
-
-        if (snapshot.hasData) {
-          L.i('Data $tag berhasil dimuat secara asynchronous.');
-        } else {
-          L.w('Data $tag tidak ditemukan.');
-        }
-
-        return _buildInfoCard(title, builder(snapshot.data));
-      },
     );
   }
 
