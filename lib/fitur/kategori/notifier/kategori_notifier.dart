@@ -78,53 +78,6 @@ class KategoriNotifier extends _$KategoriNotifier {
     }
   }
 
-  /// Mengambil kategori berdasarkan ID.
-  Future<KategoriModel> getKategoriById(String id) async {
-    L.i('Memulai getKategoriById untuk ID: $id');
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'kategori',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      if (maps.isNotEmpty) {
-        final kategori = KategoriModel.fromSqlite(maps.first);
-        L.i('Kategori dengan ID: $id ditemukan. Data: ${kategori.toSqlite()}');
-        return kategori;
-      } else {
-        L.e('Kategori dengan ID $id tidak ditemukan di database.');
-        throw Exception('Kategori dengan ID $id tidak ditemukan.');
-      }
-    } catch (e, st) {
-      L.e('Gagal saat getKategoriById untuk ID: $id Error: $e $st');
-      rethrow;
-    }
-  }
-
-  /// Mengambil kategori berdasarkan tipe.
-  Future<List<KategoriModel>> getKategoriByTipe(TipeKategori tipe) async {
-    L.i('Memulai getKategoriByTipe untuk tipe: ${tipe.name}');
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'kategori',
-        where: 'tipe = ? AND diarsipkan IS NULL',
-        whereArgs: [tipe.name],
-      );
-      final listKategori = maps.map(KategoriModel.fromSqlite).toList();
-      L.i(
-        'Berhasil mengambil ${listKategori.length} data kategori untuk tipe ${tipe.name}.',
-      );
-      return listKategori;
-    } catch (e, st) {
-      L.e(
-        'Gagal saat getKategoriByTipe untuk tipe: ${tipe.name} Error: $e $st',
-      );
-      rethrow;
-    }
-  }
-
   /// Memperbarui kategori.
   Future<void> perbarui(KategoriModel kategori) async {
     L.i('Memulai perbarui untuk kategori: ${kategori.toSqlite()}');
@@ -217,29 +170,6 @@ class KategoriNotifier extends _$KategoriNotifier {
     }
   }
 
-  /// Mengambil perubahan kategori sejak timestamp tertentu.
-  Future<List<KategoriModel>> getPerubahan(DateTime since) async {
-    L.i(
-      'Memulai getPerubahan untuk kategori sejak: ${since.toIso8601String()}',
-    );
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'kategori',
-        where: 'diperbarui > ?',
-        whereArgs: [since.toIso8601String()],
-      );
-      final listKategori = maps.map(KategoriModel.fromSqlite).toList();
-      L.i(
-        'Berhasil menemukan ${listKategori.length} perubahan kategori sejak ${since.toIso8601String()}.',
-      );
-      return listKategori;
-    } catch (e, st) {
-      L.e('Gagal saat getPerubahan kategori Error: $e $st');
-      rethrow;
-    }
-  }
-
   /// Menyisipkan atau memperbarui batch kategori.
   Future<void> sisipkanAtauPerbaruiBatch(List<KategoriModel> items) async {
     L.i(
@@ -261,30 +191,6 @@ class KategoriNotifier extends _$KategoriNotifier {
       L.e(
         'Gagal saat menjalankan sisipkanAtauPerbaruiBatch kategori Error: $e $st',
       );
-      rethrow;
-    }
-  }
-
-  /// Mengambil kategori berdasarkan daftar ID.
-  Future<List<KategoriModel>> getKategoriByIds(List<String> ids) async {
-    if (ids.isEmpty) {
-      return [];
-    }
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final placeholders = List.filled(ids.length, '?').join(',');
-      final maps = await operasiSqlite.ambil(
-        'kategori',
-        where: 'id IN ($placeholders)',
-        whereArgs: ids,
-      );
-      final listKategori = maps.map(KategoriModel.fromSqlite).toList();
-      L.i(
-        'Berhasil mengambil ${listKategori.length} kategori dari ${ids.length} ID yang diminta.',
-      );
-      return listKategori;
-    } catch (e, st) {
-      L.e('Gagal saat getKategoriByIds Error: $e $st');
       rethrow;
     }
   }

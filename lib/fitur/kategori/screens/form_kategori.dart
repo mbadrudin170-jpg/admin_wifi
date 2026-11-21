@@ -6,12 +6,13 @@ import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:uuid/uuid.dart';
 
-class FormKategoriPage extends StatefulWidget {
+class FormKategoriPage extends ConsumerStatefulWidget {
   final KategoriModel? kategori;
   final SubKategoriModel? subKategori;
   final String? idKategoriInduk;
@@ -24,10 +25,10 @@ class FormKategoriPage extends StatefulWidget {
   });
 
   @override
-  State<FormKategoriPage> createState() => _FormKategoriPageState();
+  ConsumerState<FormKategoriPage> createState() => _FormKategoriPageState();
 }
 
-class _FormKategoriPageState extends State<FormKategoriPage> {
+class _FormKategoriPageState extends ConsumerState<FormKategoriPage> {
   final _formKey = GlobalKey<FormState>();
   final LayananUnggahData _layananUnggahData = LayananUnggahData();
 
@@ -234,9 +235,13 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
           L.i(
             'Mengambil data kategori induk dengan ID: ${widget.idKategoriInduk}',
           );
-          final kategoriInduk = await kategoriNotifierGlobal.getKategoriById(
-            widget.idKategoriInduk!,
-          );
+          final kategoriInduk = (await kategoriNotifierGlobal.build())
+              .getKategoriById(widget.idKategoriInduk!);
+          if (kategoriInduk == null) {
+            throw Exception(
+              'Kategori dengan ID ${widget.idKategoriInduk} tidak ditemukan.',
+            );
+          }
 
           L.i(
             'Kategori induk ditemukan: ${kategoriInduk.nama} (memiliki ${kategoriInduk.subKategori.length} sub-kategori).',

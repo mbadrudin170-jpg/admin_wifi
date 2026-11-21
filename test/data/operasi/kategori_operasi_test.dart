@@ -84,7 +84,7 @@ void main() {
         ),
       );
 
-      final hasil = await kategoriNotifierGlobal.getKategoriByTipe(
+      final hasil = (await kategoriNotifierGlobal.build()).getKategoriByTipe(
         TipeKategori.pemasukan,
       );
       expect(hasil.length, 1);
@@ -167,7 +167,9 @@ void main() {
           ),
         );
 
-        final hasil = await kategoriNotifierGlobal.getPerubahan(waktuSekarang);
+        final hasil = (await kategoriNotifierGlobal.build()).getPerubahan(
+          waktuSekarang,
+        );
         expect(
           hasil.length,
           1,

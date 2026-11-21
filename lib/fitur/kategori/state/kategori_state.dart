@@ -20,4 +20,30 @@ abstract class KategoriState with _$KategoriState {
   /// Mengembalikan `null` bila tidak ditemukan.
   KategoriModel? getById(String id) =>
       listKategori.firstWhereOrNull((item) => item.id == id);
+
+  /// Alias untuk [getById].
+  KategoriModel? getKategoriById(String id) => getById(id);
+
+  /// Mengambil kategori berdasarkan [tipe] dari daftar yang sudah dimuat.
+  ///
+  /// Hanya mengembalikan kategori yang belum diarsipkan.
+  List<KategoriModel> getKategoriByTipe(TipeKategori tipe) => listKategori
+      .where((item) => item.tipe == tipe && item.diarsipkan == null)
+      .toList();
+
+  /// Mengambil perubahan kategori sejak timestamp tertentu dari daftar yang
+  /// sudah dimuat.
+  ///
+  /// Hanya memakai field `diperbarui` yang non-null dan sudah lewat sejak [since].
+  List<KategoriModel> getPerubahan(DateTime since) => listKategori
+      .where(
+        (item) => item.diperbarui != null && item.diperbarui!.isAfter(since),
+      )
+      .toList();
+
+  /// Mengambil kategori berdasarkan daftar ID dari daftar yang sudah dimuat.
+  ///
+  /// Mengembalikan list kosong jika ID tidak ditemukan.
+  List<KategoriModel> getKategoriByIds(List<String> ids) =>
+      listKategori.where((item) => ids.contains(item.id)).toList();
 }
