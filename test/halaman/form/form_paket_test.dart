@@ -58,14 +58,21 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
 class FakePaketNotifier extends PaketNotifier {
   FakePaketNotifier();
 
+  bool tambahCalled = false;
+  bool ubahCalled = false;
+
   @override
   Future<PaketState> build() async => const PaketState();
 
   @override
-  Future<void> tambah(PaketModel model) async {}
+  Future<void> tambah(PaketModel model) async {
+    tambahCalled = true;
+  }
 
   @override
-  Future<void> ubah(PaketModel model) async {}
+  Future<void> ubah(PaketModel model) async {
+    ubahCalled = true;
+  }
 }
 
 void main() {
@@ -144,7 +151,7 @@ void main() {
   });
 
   group('FormPaket - Simpan Data', () {
-    testWidgets('Panggil createPaket saat mode tambah dan tampilkan SnackBar', (
+    testWidgets('Panggil tambah saat mode tambah', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(buildFormPaket());
@@ -164,28 +171,28 @@ void main() {
       await tester.ensureVisible(find.text('Simpan'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Simpan'));
-      await tester.pump();
-
-      expect(find.text('Data paket berhasil disimpan!'), findsOneWidget);
-
+      // Tunggu timer fluttertoast (2 detik) selesai agar tidak pending saat dispose.
+      await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+
+      expect(fakePaketNotifier.tambahCalled, isTrue);
     });
 
-    testWidgets('Panggil updatePaket saat mode edit dan tampilkan SnackBar', (
+    testWidgets('Panggil ubah saat mode edit', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(buildFormPaket(paket: paketDummy));
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');
 
-      await tester.ensureVisible(find.text('Simpan'));
+      await tester.ensureVisible(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Simpan'));
-      await tester.pump();
-
-      expect(find.text('Data paket berhasil diperbarui!'), findsOneWidget);
-
+      await tester.tap(find.byType(ElevatedButton));
+      // Tunggu timer fluttertoast (2 detik) selesai agar tidak pending saat dispose.
+      await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+
+      expect(fakePaketNotifier.ubahCalled, isTrue);
     });
   });
 }

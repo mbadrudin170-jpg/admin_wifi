@@ -248,20 +248,29 @@ class _FormPaketState extends ConsumerState<FormPaket> {
                   onChanged: (value) => setState(() => _isPublic = value),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _saveForm,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('Simpan'),
-                ),
               ],
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: _buildSaveButton(),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: ElevatedButton(
+        onPressed: () async {
+          await _saveForm();
+        },
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: const Text('Simpan'),
       ),
     );
   }
