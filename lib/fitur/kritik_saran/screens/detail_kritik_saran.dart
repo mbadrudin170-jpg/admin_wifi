@@ -1,5 +1,6 @@
 // path: lib/fitur/kritik_saran/screens/detail_kritik_saran.dart
 
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/src/widget/toast_widget.dart';
 
 class DetailKritikSaranPage extends ConsumerStatefulWidget {
   final String id;
@@ -30,47 +32,25 @@ class _DetailKritikSaranPageState extends ConsumerState<DetailKritikSaranPage> {
   Future<void> _hapusKritikSaran() async {
     L.i('Menampilkan dialog konfirmasi penghapusan kritik dan saran.');
 
-    final konfirmasi = await showDialog<bool>(
+    final konfirmasi = await showOkCancelAlertDialog(
       context: context,
-      builder: (context) {
-        L.i('Dialog konfirmasi penghapusan berhasil ditampilkan.');
-
-        return AlertDialog(
-          title: const Text('Konfirmasi Hapus'),
-          content: const Text(
-            'Apakah Anda yakin ingin menghapus kritik dan saran ini?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                L.w(
-                  'Pengguna membatalkan proses penghapusan kritik dan saran.',
-                );
-
-                Nav.pop(context, false);
-              },
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                L.i('Pengguna mengonfirmasi penghapusan kritik dan saran.');
-
-                Nav.pop(context, true);
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Hapus'),
-            ),
-          ],
-        );
-      },
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus kritik dan saran ini?',
+      okLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructiveAction: true,
     );
 
-    L.i('Dialog konfirmasi selesai diproses dengan hasil: $konfirmasi.');
+    if (konfirmasi != OkCancelResult.ok) {
+      L.w('Pengguna membatalkan proses penghapusan kritik dan saran.');
+      return;
+    }
 
-    if (konfirmasi == true && mounted) {
-      L.i('Memulai proses penghapusan data kritik dan saran.');
+    L.i('Pengguna mengonfirmasi penghapusan kritik dan saran.');
 
-      try {
+    if (!mounted) return;
+
+    try {
         L.i('Menampilkan loading dialog selama proses penghapusan.');
 
         showDialog(
@@ -96,14 +76,7 @@ class _DetailKritikSaranPageState extends ConsumerState<DetailKritikSaranPage> {
         }
 
         if (mounted) {
-          L.i('Menampilkan snackbar sukses penghapusan.');
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kritik dan saran berhasil dihapus'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          AppToast.sukses(context, 'Kritik dan saran berhasil dihapus');
         }
 
         if (mounted) {
@@ -123,19 +96,9 @@ class _DetailKritikSaranPageState extends ConsumerState<DetailKritikSaranPage> {
         }
 
         if (mounted) {
-          L.w('Menampilkan snackbar error penghapusan.');
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal menghapus: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          AppToast.gagal(context, 'Gagal menghapus: $e');
         }
       }
-    } else {
-      L.w('Proses penghapusan dibatalkan atau widget sudah tidak mounted.');
-    }
   }
 
   @override
