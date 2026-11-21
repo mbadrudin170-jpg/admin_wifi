@@ -55,11 +55,10 @@ class _DompetPageState extends ConsumerState<DompetPage> {
   }
 
   // Fungsi untuk menampilkan dialog konfirmasi sebelum menghapus semua dompet
-  void _tampilkanDialogHapusSemua() async {
-    final dompetList = ref.read(dompetProvider).requireValue.getDompet();
+  void _tampilkanDialogHapusSemua(List<DompetModel> listDompet) async {
     if (!mounted) return;
 
-    if (dompetList.isEmpty) {
+    if (listDompet.isEmpty) {
       AppToast.warning(context, 'Tidak ada dompet untuk dihapus.');
       return;
     }
@@ -161,13 +160,15 @@ class _DompetPageState extends ConsumerState<DompetPage> {
       );
     }
 
+    final dompetState = asyncDompet.requireValue;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dompet'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep),
-            onPressed: _tampilkanDialogHapusSemua,
+            onPressed: () => _tampilkanDialogHapusSemua(dompetState.listDompet),
             tooltip: 'Hapus Semua Dompet',
           ),
         ],
@@ -176,14 +177,13 @@ class _DompetPageState extends ConsumerState<DompetPage> {
         children: [
           RingkasanKeuangan(key: _ringkasanKey),
           Expanded(
-            child: asyncDompet.requireValue.listDompet.isEmpty
+            child: dompetState.listDompet.isEmpty
                 ? const Center(child: Text('Tidak ada dompet ditemukan.'))
                 : ListView.builder(
-                          padding: const EdgeInsets.only(top: 8),
-                          itemCount: asyncDompet.requireValue.listDompet.length,
-                          itemBuilder: (context, index) {
-                            final dompet =
-                                asyncDompet.requireValue.listDompet[index];
+                    padding: const EdgeInsets.only(top: 8),
+                    itemCount: dompetState.listDompet.length,
+                    itemBuilder: (context, index) {
+                      final dompet = dompetState.listDompet[index];
                             return DompetCard(
                               dompet: dompet,
                               onTap: () async {
