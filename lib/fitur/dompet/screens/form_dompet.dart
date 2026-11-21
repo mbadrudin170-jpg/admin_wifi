@@ -26,7 +26,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
 
-  late FocusNode _namaFocusNode;
+  final _namaFocusNode = FocusNode();
 
   bool get _isEditMode => widget.dompet != null;
 
@@ -38,8 +38,6 @@ class _FormDompetState extends ConsumerState<FormDompet> {
       'Membuat state untuk FormDompet. '
       'Mode: ${isEditMode ? "EDIT (ID: ${widget.dompet!.id}, Nama: ${widget.dompet!.namaDompet}, Saldo: ${widget.dompet!.saldo})" : "TAMBAH BARU"}',
     );
-
-    _namaFocusNode = FocusNode();
 
     if (_isEditMode) {
       _namaController.text = widget.dompet!.namaDompet;
@@ -139,7 +137,7 @@ class _FormDompetState extends ConsumerState<FormDompet> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Nav.pop(context, false);
+            Nav.pop(context);
           },
         ),
       ),
