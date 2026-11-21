@@ -1,6 +1,7 @@
 // path: test/data/operasi/pelanggan_operasi_test.dart
-// diubah: Menyesuaikan dengan PelangganModel terbaru (telepon bukan nomorTelepon) dan fromSqlite
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+// diubah: Menggunakan PelangganNotifier alih-alih PelangganOperasi
+
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,15 +15,13 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('PelangganOperasi Tests', () {
-    late PelangganOperasi operasi;
+  group('PelangganNotifier Tests', () {
     late Database db;
     final uuid = const Uuid();
 
     setUp(() async {
       db = await DatabaseHelper.instance.database;
       await db.delete('pelanggan');
-      operasi = PelangganOperasi();
     });
 
     PelangganModel buatModel({
@@ -42,11 +41,11 @@ void main() {
       );
     }
 
-    test('1. createPelanggan harus menyimpan data baru', () async {
+    test('1. tambah harus menyimpan data baru', () async {
       final model = buatModel();
-      await operasi.createPelanggan(model);
+      await pelangganNotifierGlobal.tambah(model);
 
-      final hasil = await operasi.getPelanggan();
+      final hasil = await pelangganNotifierGlobal.getPelanggan();
       expect(hasil.length, 1);
       expect(hasil.first.id, model.id);
       expect(hasil.first.nama, 'Pelanggan Test');
@@ -60,10 +59,10 @@ void main() {
           nama: 'Arsip',
         ).copyWith(diarsipkan: DateTime.now());
 
-        await operasi.createPelanggan(pelangganAktif);
-        await operasi.createPelanggan(pelangganArsip);
+        await pelangganNotifierGlobal.tambah(pelangganAktif);
+        await pelangganNotifierGlobal.tambah(pelangganArsip);
 
-        final hasil = await operasi.getPelanggan();
+        final hasil = await pelangganNotifierGlobal.getPelanggan();
         expect(hasil.length, 1);
         expect(hasil.first.nama, 'Aktif');
       },
@@ -72,12 +71,12 @@ void main() {
     test(
       '3. getAllPelanggan harus mengembalikan semua pelanggan termasuk arsip',
       () async {
-        await operasi.createPelanggan(buatModel(nama: 'Aktif'));
-        await operasi.createPelanggan(
+        await pelangganNotifierGlobal.tambah(buatModel(nama: 'Aktif'));
+        await pelangganNotifierGlobal.tambah(
           buatModel(nama: 'Arsip').copyWith(diarsipkan: DateTime.now()),
         );
 
-        final hasil = await operasi.getAllPelanggan();
+        final hasil = await pelangganNotifierGlobal.getAllPelanggan();
         expect(hasil.length, 2);
       },
     );
@@ -86,74 +85,73 @@ void main() {
       '4. getPelangganById harus mengembalikan pelanggan yang benar',
       () async {
         final model = buatModel();
-        await operasi.createPelanggan(model);
+        await pelangganNotifierGlobal.tambah(model);
 
-        final hasil = await operasi.getPelangganById(model.id);
+        final hasil = await pelangganNotifierGlobal.getPelangganById(model.id);
         expect(hasil, isNotNull);
         expect(hasil!.nama, model.nama);
       },
     );
 
-    test('5. updatePelanggan harus memperbarui data', () async {
+    test('5. ubah harus memperbarui data', () async {
       final modelAwal = buatModel();
-      await operasi.createPelanggan(modelAwal);
+      await pelangganNotifierGlobal.tambah(modelAwal);
 
       final modelUpdate = modelAwal.copyWith(
         nama: 'Nama Baru',
         telepon: '089876543210',
       );
-      await operasi.updatePelanggan(modelUpdate);
+      await pelangganNotifierGlobal.ubah(modelUpdate);
 
-      final hasil = await operasi.getPelangganById(modelAwal.id);
+      final hasil = await pelangganNotifierGlobal.getPelangganById(
+        modelAwal.id,
+      );
       expect(hasil!.nama, 'Nama Baru');
       expect(hasil.telepon, '089876543210');
     });
 
-    test(
-      '6. deletePelanggan (soft delete) harus mengubah status isDeleted',
-      () async {
-        final model = buatModel();
-        await operasi.createPelanggan(model);
-
-        await operasi.deletePelanggan(model.id, softDelete: true);
-
-        // getPelanggan seharusnya tidak mengembalikan yg soft-deleted
-        final hasil = await operasi.getPelanggan();
-        expect(hasil.isEmpty, isTrue);
-
-        // Cek langsung ke DB
-        final dbData = await db.query(
-          'pelanggan',
-          where: 'id = ?',
-          whereArgs: [model.id],
-        );
-        // diubah: Menggunakan fromSqlite
-        final pelangganDariDb = PelangganModel.fromSqlite(dbData.first);
-        expect(pelangganDariDb.isDeleted, isTrue);
-      },
-    );
-
-    test('7. deletePelanggan (hard delete) harus menghapus data', () async {
+    test('6. hapus (soft delete) harus mengubah status isDeleted', () async {
       final model = buatModel();
-      await operasi.createPelanggan(model);
+      await pelangganNotifierGlobal.tambah(model);
 
-      await operasi.deletePelanggan(model.id, softDelete: false);
+      await pelangganNotifierGlobal.hapus(model.id, softDelete: true);
 
-      final hasil = await operasi.getAllPelanggan();
+      // getPelanggan seharusnya tidak mengembalikan yg soft-deleted
+      final hasil = await pelangganNotifierGlobal.getPelanggan();
+      expect(hasil.isEmpty, isTrue);
+
+      // Cek langsung ke DB
+      final dbData = await db.query(
+        'pelanggan',
+        where: 'id = ?',
+        whereArgs: [model.id],
+      );
+      // diubah: Menggunakan fromSqlite
+      final pelangganDariDb = PelangganModel.fromSqlite(dbData.first);
+      expect(pelangganDariDb.isDeleted, isTrue);
+    });
+
+    test('7. hapus (hard delete) harus menghapus data', () async {
+      final model = buatModel();
+      await pelangganNotifierGlobal.tambah(model);
+
+      await pelangganNotifierGlobal.hapus(model.id, softDelete: false);
+
+      final hasil = await pelangganNotifierGlobal.getAllPelanggan();
       expect(hasil.isEmpty, isTrue);
     });
 
-    test('8. sisipkanAtauPerbaruiBatch harus melakukan upsert data', () async {
+    test('8. tambahBatch harus melakukan upsert data', () async {
       final modelAwal = buatModel(id: 'id-tetap');
-      await operasi.createPelanggan(modelAwal);
+      await pelangganNotifierGlobal.tambah(modelAwal);
 
       final batch = [
         modelAwal.copyWith(nama: 'Nama Updated'), // Update
         buatModel(id: 'id-baru', nama: 'Pelanggan Baru'), // Insert
       ];
 
-      await operasi.sisipkanAtauPerbaruiBatch(batch);
-      final hasil = await operasi.getAllPelanggan();
+      await pelangganNotifierGlobal.tambahBatch(batch);
+      final hasil = await pelangganNotifierGlobal.getAllPelanggan();
       expect(hasil.length, 2);
 
       final updatedItem = hasil.firstWhere((p) => p.id == 'id-tetap');
@@ -170,9 +168,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 50));
 
         final modelBaru = buatModel();
-        await operasi.createPelanggan(modelBaru);
+        await pelangganNotifierGlobal.tambah(modelBaru);
 
-        final perubahan = await operasi.getPerubahan(waktuAmbil);
+        final perubahan = await pelangganNotifierGlobal.getPerubahan(
+          waktuAmbil,
+        );
 
         expect(perubahan.length, 1);
         expect(perubahan.first.id, modelBaru.id);

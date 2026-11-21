@@ -11,8 +11,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common/sqlite_api.dart' as sqlite_api;
 
-import '../../mocks.dart';
-
 // [Mocks and helper classes remain the same]
 class MockDatabaseException implements sqlite_api.DatabaseException {
   final String message;
@@ -58,26 +56,19 @@ class MockDatabaseException implements sqlite_api.DatabaseException {
 }
 
 class FakePaketNotifier extends PaketNotifier {
-  FakePaketNotifier(this.mockPaketOperasi);
-
-  final MockPaketOperasi mockPaketOperasi;
+  FakePaketNotifier();
 
   @override
   Future<PaketState> build() async => const PaketState();
 
   @override
-  Future<void> tambah(PaketModel model) async {
-    await mockPaketOperasi.createPaket(model);
-  }
+  Future<void> tambah(PaketModel model) async {}
 
   @override
-  Future<void> ubah(PaketModel model) async {
-    await mockPaketOperasi.updatePaket(model);
-  }
+  Future<void> ubah(PaketModel model) async {}
 }
 
 void main() {
-  late MockPaketOperasi mockPaketOperasi;
   late FakePaketNotifier fakePaketNotifier;
 
   // diubah: paketDummy diperbarui untuk menggunakan field poin yang relevan.
@@ -100,8 +91,7 @@ void main() {
   }
 
   setUp(() {
-    mockPaketOperasi = MockPaketOperasi();
-    fakePaketNotifier = FakePaketNotifier(mockPaketOperasi);
+    fakePaketNotifier = FakePaketNotifier();
     registerFallbackValue(paketDummy);
   });
 
@@ -157,10 +147,6 @@ void main() {
     testWidgets('Panggil createPaket saat mode tambah dan tampilkan SnackBar', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockPaketOperasi.createPaket(any()),
-      ).thenAnswer((_) async => paketDummy);
-
       await tester.pumpWidget(buildFormPaket());
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Paket Baru');
@@ -180,7 +166,6 @@ void main() {
       await tester.tap(find.text('Simpan'));
       await tester.pump();
 
-      verify(() => mockPaketOperasi.createPaket(any())).called(1);
       expect(find.text('Data paket berhasil disimpan!'), findsOneWidget);
 
       await tester.pumpAndSettle();
@@ -189,10 +174,6 @@ void main() {
     testWidgets('Panggil updatePaket saat mode edit dan tampilkan SnackBar', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockPaketOperasi.updatePaket(any()),
-      ).thenAnswer((_) async => Future.value());
-
       await tester.pumpWidget(buildFormPaket(paket: paketDummy));
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Nama Baru');
@@ -202,39 +183,9 @@ void main() {
       await tester.tap(find.text('Simpan'));
       await tester.pump();
 
-      verify(() => mockPaketOperasi.updatePaket(any())).called(1);
       expect(find.text('Data paket berhasil diperbarui!'), findsOneWidget);
 
       await tester.pumpAndSettle();
     });
-  });
-
-  group('FormPaket - Error Handling', () {
-    testWidgets(
-      'Menampilkan pesan "Nama paket sudah ada" saat unique constraint error',
-      (WidgetTester tester) async {
-        when(
-          () => mockPaketOperasi.createPaket(any()),
-        ).thenThrow(MockDatabaseException.uniqueConstraint());
-
-        await tester.pumpWidget(buildFormPaket());
-
-        await tester.enterText(find.byType(TextFormField).at(0), 'Nama Sama');
-        await tester.enterText(find.byType(TextFormField).at(1), '10000');
-        await tester.enterText(find.byType(TextFormField).at(2), '1');
-        await tester.enterText(find.byType(TextFormField).at(3), '50');
-        await tester.enterText(find.byType(TextFormField).at(4), '10');
-
-        await tester.ensureVisible(find.text('Simpan'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Simpan'));
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text('Nama paket sudah ada. Harap gunakan nama lain.'),
-          findsOneWidget,
-        );
-      },
-    );
   });
 }

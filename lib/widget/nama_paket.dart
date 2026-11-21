@@ -1,7 +1,7 @@
 // path: lib/widget/nama_paket.dart
 // Widget ini berfungsi untuk menampilkan nama paket berdasarkan ID.
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -13,12 +13,8 @@ class NamaPaketWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PaketOperasi paketOperasi = PaketOperasi();
-
-    // diubah: karena nama class yang benar adalah PaketModel
     return FutureBuilder<PaketModel?>(
-      // diubah: Menggunakan fungsi baru getPaketById untuk efisiensi
-      future: paketOperasi.getPaketById(idPaket),
+      future: paketNotifierGlobal.getPaketById(idPaket),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // diubah: Menampilkan indikator loading yang lebih halus.

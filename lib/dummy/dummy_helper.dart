@@ -1,9 +1,6 @@
 // path: lib/dummy/dummy_helper.dart
 
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
@@ -17,6 +14,9 @@ import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/dummy/kritik_saran_dummy.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/paket/dummy/paket_dummy.dart';
@@ -46,10 +46,7 @@ import 'package:sqflite/sqflite.dart';
 /// tidak tersentuh. Penyisipan mengikuti urutan referensi; penghapusan
 /// dilakukan kebalikannya dalam satu transaksi.
 abstract final class DummyHelper {
-  static final PaketOperasi _paketOperasi = PaketOperasi();
-  static final PelangganAktifOperasi _pelangganAktifOperasi =
-      PelangganAktifOperasi();
-  static final PelangganOperasi _pelangganOperasi = PelangganOperasi();
+  // Global notifier (diakses lewat ProviderContainer terpisah)
   static final PengaturanOperasi _pengaturanOperasi = PengaturanOperasi();
   static final PesananOperasi _pesananOperasi = PesananOperasi();
   static final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
@@ -60,15 +57,13 @@ abstract final class DummyHelper {
   static Future<void> tambahSemuaDummy() async {
     try {
       L.i('Menambahkan ${PaketDummy.dummyList.length} data dummy paket');
-      await _paketOperasi.sisipkanAtauPerbaruiBatch(PaketDummy.dummyList);
+      await paketNotifierGlobal.tambahBatch(PaketDummy.dummyList);
       L.i('Semua data dummy paket berhasil ditambahkan');
 
       L.i(
         'Menambahkan ${PelangganDummy.dummyList.length} data dummy pelanggan',
       );
-      await _pelangganOperasi.sisipkanAtauPerbaruiBatch(
-        PelangganDummy.dummyList,
-      );
+      await pelangganNotifierGlobal.tambahBatch(PelangganDummy.dummyList);
       L.i('Semua data dummy pelanggan berhasil ditambahkan');
 
       L.i('Menambahkan ${DompetDummy.dummyList.length} data dummy dompet');
@@ -78,7 +73,9 @@ abstract final class DummyHelper {
       L.i('Semua data dummy dompet berhasil ditambahkan');
 
       L.i('Menambahkan ${KategoriDummy.dummyList.length} data dummy kategori');
-      await kategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(KategoriDummy.dummyList);
+      await kategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(
+        KategoriDummy.dummyList,
+      );
       L.i('Semua data dummy kategori berhasil ditambahkan');
 
       L.i(
@@ -137,7 +134,7 @@ abstract final class DummyHelper {
       L.i(
         'Menambahkan ${PelangganAktifDummy.dummyList.length} data dummy pelanggan aktif',
       );
-      await _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(
+      await penggunaAktifNotifierGlobal.tambahBatch(
         PelangganAktifDummy.dummyList,
       );
       L.i('Semua data dummy berhasil ditambahkan');

@@ -1,11 +1,11 @@
 // path: lib/halaman/detail/detail_pelanggan.dart
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
-import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -23,7 +23,7 @@ class DetailPelangganPage extends StatefulWidget {
 }
 
 class _DetailPelangganPageState extends State<DetailPelangganPage> {
-  final PelangganOperasi pelangganOperasi = PelangganOperasi();
+  // Global notifier untuk pelanggan (diakses lewat ProviderContainer terpisah)
   final TransaksiNotifier transaksiOperasi = transaksiNotifierGlobal;
 
   PelangganModel? pelanggan;
@@ -55,14 +55,16 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       L.i(
         'Memulai request asinkron ke PelangganOperasi untuk mencari data dengan ID: ${widget.idPelanggan}',
       );
-      final hasilPelanggan = await pelangganOperasi.getPelangganById(
+      final hasilPelanggan = await pelangganNotifierGlobal.getPelangganById(
         widget.idPelanggan,
       );
 
       L.i(
         'Memulai request asinkron ke TransaksiOperasi untuk menghitung total poin pelanggan ID: ${widget.idPelanggan}',
       );
-      final hasilPoin = await transaksiOperasi.hitungTotalPoin(widget.idPelanggan);
+      final hasilPoin = await transaksiOperasi.hitungTotalPoin(
+        widget.idPelanggan,
+      );
 
       if (!mounted) {
         L.w(

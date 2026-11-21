@@ -1,6 +1,6 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -35,7 +35,6 @@ class HalamanPoin extends ConsumerStatefulWidget {
 
 class _HalamanPoinState extends ConsumerState<HalamanPoin> {
   MenuPoin _menuPilihan = MenuPoin.penukaran;
-  final PaketOperasi _paketOperasi = PaketOperasi();
 
   int _totalPoin = 0;
   List<PaketModel> _daftarHadiah = [];
@@ -68,7 +67,9 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
           .read(transaksiProvider.notifier)
           .hitungTotalPoin(widget.idPelanggan);
 
-      final daftarHadiah = await _paketOperasi.getPaketByIsPublic();
+      final daftarHadiah = await ref
+          .read(paketProvider.notifier)
+          .getPaketByIsPublic();
 
       if (!mounted) return;
 
@@ -94,7 +95,7 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
   }
 
   // Method untuk memuat riwayat transaksi
-Future<void> _loadRiwayatTransaksi() async {
+  Future<void> _loadRiwayatTransaksi() async {
     if (!mounted) return;
 
     setState(() {
@@ -291,7 +292,9 @@ Future<void> _loadRiwayatTransaksi() async {
                 Text('${hadiah.poinPenukaran} Poin'),
                 LinearProgressIndicator(
                   value: progresPoin,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     cukupPoin ? Colors.green : Colors.orange,
                   ),
@@ -301,7 +304,9 @@ Future<void> _loadRiwayatTransaksi() async {
                   'Poin Anda: $_totalPoin / ${hadiah.poinPenukaran}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: cukupPoin ? Colors.green : Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: cukupPoin
+                        ? Colors.green
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -311,7 +316,8 @@ Future<void> _loadRiwayatTransaksi() async {
       },
     );
   }
-// Widget riwayat poin yang terhubung dengan database
+
+  // Widget riwayat poin yang terhubung dengan database
   Widget _buildRiwayatPoin() {
     if (_isLoadingRiwayat) {
       return const Center(

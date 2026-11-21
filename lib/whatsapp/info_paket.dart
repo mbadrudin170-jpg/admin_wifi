@@ -1,8 +1,8 @@
 // Path: lib/whatsapp/info_paket.dart
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
-import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -20,17 +20,14 @@ class PesanInfoPaket {
     L.i(
       'Memulai proses pengiriman rincian paket via WhatsApp untuk pelanggan aktif ID: ${pelangganAktif.id}',
     );
-    final pelangganOperasi = PelangganOperasi();
-    final paketOperasi = PaketOperasi();
 
     try {
       // 1. Ambil data lengkap pelanggan dan paket dari database lokal.
       L.i('Mengambil data pelanggan dengan ID: ${pelangganAktif.idPelanggan}');
-      final PelangganModel? pelanggan = await pelangganOperasi.getPelangganById(
-        pelangganAktif.idPelanggan,
-      );
+      final PelangganModel? pelanggan = await pelangganNotifierGlobal
+          .getPelangganById(pelangganAktif.idPelanggan);
       L.i('Mengambil data paket dengan ID: ${pelangganAktif.idPaket}');
-      final PaketModel? paket = await paketOperasi.getPaketById(
+      final PaketModel? paket = await paketNotifierGlobal.getPaketById(
         pelangganAktif.idPaket,
       );
 

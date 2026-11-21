@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/screens/detail_paket.dart';
@@ -134,7 +133,7 @@ class _PaketPageState extends ConsumerState<PaketPage> {
                 Nav.pop(dialogContext);
 
                 try {
-                  await PaketOperasi().hapusSemuaPaket();
+                  await ref.read(paketProvider.notifier).hapusSemuaPaket();
                   if (mounted) {
                     AppToast.sukses(context, 'Semua paket berhasil dihapus.');
                   }

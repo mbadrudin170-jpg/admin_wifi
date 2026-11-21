@@ -1,7 +1,8 @@
 // path: lib/fitur/paket/notifier/paket_notifier.dart
+// diubah: Memindahkan logika dari PaketOperasi ke notifier ini.
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,8 +12,6 @@ part 'paket_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class PaketNotifier extends _$PaketNotifier {
-  final PaketOperasi _operasi = PaketOperasi();
-
   @override
   Future<PaketState> build() async {
     L.i('Memuat daftar paket dari database');
@@ -41,46 +40,248 @@ class PaketNotifier extends _$PaketNotifier {
     return PaketState(listPaket: daftar, jumlahPaket: daftar.length);
   }
 
+  /// Membuat paket baru.
   Future<void> tambah(PaketModel model) async {
-    try {
-      await _operasi.createPaket(model);
-      state = AsyncValue.data(await _ambilSemua());
-    } catch (e, s) {
-      L.e('Gagal menambahkan paket: $e\n$s');
-      rethrow;
-    }
-  }
-
-  Future<void> tambahBatch(List<PaketModel> models) async {
+    L.i('Memulai pembuatan paket, id: ${model.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      final data = models.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.tambahBatch(PaketSkema.tabel, data);
+      final now = DateTime.now();
+      final data = model.copyWith(diperbarui: now).toSqlite();
+
+      await operasiSqlite.tambah(PaketSkema.tabel, data);
+      L.i('Berhasil membuat paket, id: ${model.id}');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal menambahkan batch paket: $e\n$s');
+      L.e('Gagal membuat paket, id: ${model.id}, error: $e $s');
       rethrow;
     }
   }
 
+  /// Menyisipkan atau memperbarui batch paket.
+  Future<void> tambahBatch(List<PaketModel> models) async {
+    L.i(
+      'Mendelegasikan proses batch ke OperasiDasar untuk ${models.length} item paket, method: sisipkanAtauPerbaruiBatch',
+    );
+    try {
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final dataList = models.map((item) => item.toSqlite()).toList();
+      await operasiSqlite.tambahBatch(PaketSkema.tabel, dataList);
+      L.i(
+        'Berhasil menyelesaikan proses batch untuk ${models.length} item paket.',
+      );
+      state = AsyncValue.data(await _ambilSemua());
+    } catch (e, s) {
+      L.e('Gagal melakukan proses batch paket, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Memperbarui paket.
   Future<void> ubah(PaketModel model) async {
+    L.i('Memperbarui paket, id: ${model.id}');
     try {
-      await _operasi.updatePaket(model);
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final now = DateTime.now();
+      final data = model.copyWith(diperbarui: now).toSqlite();
+
+      await operasiSqlite.ubah(PaketSkema.tabel, data, id: model.id);
+      L.i('Berhasil memperbarui paket, id: ${model.id}');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal mengubah paket: $e\n$s');
+      L.e('Gagal memperbarui paket, id: ${model.id}, error: $e $s');
       rethrow;
     }
   }
 
-  /// Penghapusan paket dilakukan permanen (tidak ada soft delete).
+  /// Menghapus paket (hard delete).
   Future<void> hapus(String id) async {
+    L.i('Menghapus paket, id: $id');
     try {
-      await _operasi.hapusPaket(id);
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      await operasiSqlite.hapus(PaketSkema.tabel, id: id);
+      L.i('Berhasil menghapus paket, id: $id');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
-      L.e('Gagal menghapus paket: $e\n$s');
+      L.e('Gagal menghapus paket, id: $id, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Mengambil semua paket (tanpa filter is_deleted).
+  Future<List<PaketModel>> getAllPaket() async {
+    L.i('Memulai proses pengambilan semua data paket');
+    try {
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final maps = await operasiSqlite.ambil(
+        PaketSkema.tabel,
+        orderBy:
+            "CASE tipe WHEN 'jam' THEN durasi WHEN 'hari' THEN durasi * 24 WHEN 'bulan' THEN durasi * 24 * 30 ELSE 999999 END ASC",
+      );
+
+      if (maps.isNotEmpty) {
+        L.i('Berhasil mengambil ${maps.length} data paket');
+      } else {
+        L.w('Tidak ada data paket yang ditemukan');
+      }
+      return List.generate(maps.length, (i) {
+        return PaketModel.fromSqlite(maps[i]);
+      });
+    } catch (e, s) {
+      L.e('Gagal mengambil semua data paket, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Mengambil semua paket aktif (is_deleted = 0).
+  Future<List<PaketModel>> getPaket() async {
+    L.i('Memulai proses pengambilan semua data paket aktif');
+    try {
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final maps = await operasiSqlite.ambil(
+        PaketSkema.tabel,
+        where: '${PaketSkema.isDeleted} = ?',
+        whereArgs: const [0],
+        orderBy:
+            "CASE tipe WHEN 'jam' THEN durasi WHEN 'hari' THEN durasi * 24 WHEN 'bulan' THEN durasi * 24 * 30 ELSE 999999 END ASC",
+      );
+
+      if (maps.isNotEmpty) {
+        L.i('Berhasil mengambil ${maps.length} data paket aktif');
+      } else {
+        L.w('Tidak ada data paket aktif yang ditemukan');
+      }
+      return List.generate(maps.length, (i) {
+        return PaketModel.fromSqlite(maps[i]);
+      });
+    } catch (e, s) {
+      L.e('Gagal mengambil semua data paket aktif, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Mengambil semua paket publik (is_deleted = 0 dan is_public = 1).
+  Future<List<PaketModel>> getPaketByIsPublic() async {
+    L.i('Memulai proses pengambilan semua data paket publik');
+    try {
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final maps = await operasiSqlite.ambil(
+        PaketSkema.tabel,
+        where: '${PaketSkema.isDeleted} = ? AND ${PaketSkema.isPublic} = ?',
+        whereArgs: const [0, 1],
+        orderBy:
+            "CASE tipe WHEN 'jam' THEN durasi WHEN 'hari' THEN durasi * 24 WHEN 'bulan' THEN durasi * 24 * 30 ELSE 999999 END ASC",
+      );
+
+      if (maps.isNotEmpty) {
+        L.i('Berhasil mengambil ${maps.length} data paket publik');
+      } else {
+        L.w('Tidak ada data paket publik yang ditemukan');
+      }
+      return List.generate(maps.length, (i) {
+        return PaketModel.fromSqlite(maps[i]);
+      });
+    } catch (e, s) {
+      L.e('Gagal mengambil semua data paket publik, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Mengambil paket berdasarkan ID.
+  Future<PaketModel?> getPaketById(String id) async {
+    L.i('Memulai pencarian paket berdasarkan ID, id: $id');
+    try {
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final maps = await operasiSqlite.ambil(
+        PaketSkema.tabel,
+        where: '${PaketSkema.id} = ?',
+        whereArgs: [id],
+      );
+
+      if (maps.isNotEmpty) {
+        L.i('Paket ditemukan, id: $id');
+        return PaketModel.fromSqlite(maps.first);
+      } else {
+        L.w('Paket dengan ID $id tidak ditemukan');
+        return null;
+      }
+    } catch (e, s) {
+      L.e('Gagal mencari paket berdasarkan ID, id: $id, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Menghapus semua paket.
+  Future<void> hapusSemuaPaket() async {
+    L.i('Memulai proses penghapusan semua data paket');
+    try {
+      final dbHelper = ref.read(databaseHelperProvider);
+      final db = await dbHelper.database;
+      await db.transaction((txn) async {
+        int count = await txn.delete(PaketSkema.tabel);
+        L.i('Berhasil menghapus semua data paket. Total terhapus: $count');
+        return count;
+      });
+      state = AsyncValue.data(await _ambilSemua());
+    } catch (e, s) {
+      L.e('Gagal menghapus semua data paket, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Mengambil perubahan paket sejak timestamp tertentu.
+  Future<List<PaketModel>> getPerubahan(DateTime since) async {
+    L.i('Memulai pengambilan perubahan paket sejak ${since.toIso8601String()}');
+    try {
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final maps = await operasiSqlite.ambil(
+        PaketSkema.tabel,
+        where: '${PaketSkema.diperbarui} > ?',
+        whereArgs: [since.toIso8601String()],
+      );
+      if (maps.isNotEmpty) {
+        L.i('Ditemukan ${maps.length} perubahan paket');
+      } else {
+        L.i(
+          'Tidak ada perubahan paket ditemukan sejak ${since.toIso8601String()}',
+        );
+      }
+      return List.generate(maps.length, (i) => PaketModel.fromSqlite(maps[i]));
+    } catch (e, s) {
+      L.e('Gagal mengambil perubahan paket, error: $e $s');
+      rethrow;
+    }
+  }
+
+  /// Mengambil paket berdasarkan daftar ID.
+  Future<List<PaketModel>> getPaketByIds(List<String> ids) async {
+    L.i('Memulai pengambilan paket berdasarkan list ID, ids: $ids');
+    try {
+      if (ids.isEmpty) {
+        L.w('List ID kosong, mengembalikan list kosong');
+        return [];
+      }
+      final operasiSqlite = ref.read(operasiSqliteProvider);
+      final placeholders = List.filled(ids.length, '?').join(',');
+      final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
+        PaketSkema.tabel,
+        where: 'id IN ($placeholders)',
+        whereArgs: ids,
+      );
+      L.i(
+        'Berhasil mengambil ${maps.length} paket dari ${ids.length} ID yang diminta',
+      );
+      return List.generate(maps.length, (i) {
+        return PaketModel.fromSqlite(maps[i]);
+      });
+    } catch (e, s) {
+      L.e('Gagal mengambil paket berdasarkan list ID, error: $e $s');
       rethrow;
     }
   }
 }
+
+/// Kontainer global untuk mengakses [PaketNotifier] di luar konteks Riverpod.
+final ProviderContainer _paketGlobalContainer = ProviderContainer();
+
+PaketNotifier get paketNotifierGlobal =>
+    _paketGlobalContainer.read(paketProvider.notifier);

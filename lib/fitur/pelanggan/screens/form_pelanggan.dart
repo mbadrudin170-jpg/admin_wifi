@@ -1,7 +1,7 @@
 // path: lib/halaman/form/form_pelanggan.dart
 
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
@@ -94,12 +94,12 @@ class _FormPelangganState extends State<FormPelanggan> {
           L.i(
             'Menjalankan operasi CREATE untuk pelanggan baru: ${newPelanggan.nama}',
           );
-          await PelangganOperasi().createPelanggan(newPelanggan);
+          await pelangganNotifierGlobal.tambah(newPelanggan);
         } else {
           L.i(
             'Menjalankan operasi UPDATE untuk pelanggan ID: ${newPelanggan.id}',
           );
-          await PelangganOperasi().updatePelanggan(newPelanggan);
+          await pelangganNotifierGlobal.ubah(newPelanggan);
         }
 
         if (mounted) {

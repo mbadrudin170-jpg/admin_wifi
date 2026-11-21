@@ -1,8 +1,5 @@
 // path: lib/data/sync/unduh_data.dart
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pengaturan_operasi.dart';
 import 'package:admin_wifi/data/operasi/pesanan_operasi.dart';
 import 'package:admin_wifi/data/operasi/sub_kategori_operasi.dart';
@@ -15,6 +12,9 @@ import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
@@ -32,10 +32,7 @@ class LayananUnduhData {
   final SupabaseClient _supabase;
   final SyncManager _syncManager;
 
-  // Operasi
-  final PaketOperasi _paketOperasi = PaketOperasi();
-  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-  final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
+  // Global notifier (diakses lewat ProviderContainer terpisah, tanpa instance operasi)
   final PesananOperasi _pesanOperasi = PesananOperasi();
   final SubKategoriOperasi _subKategoriOperasi = SubKategoriOperasi();
   final VersiApkUserOperasi _versiApkUserOperasi = VersiApkUserOperasi();
@@ -153,7 +150,8 @@ class LayananUnduhData {
       namaKoleksi: 'kategori',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => KategoriModel.fromSupabase(map),
-      operasiBatch: (data) => kategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) =>
+          kategoriNotifierGlobal.sisipkanAtauPerbaruiBatch(data),
     );
   }
 
@@ -163,7 +161,7 @@ class LayananUnduhData {
       namaKoleksi: 'paket',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => PaketModel.fromSupabase(map),
-      operasiBatch: (data) => _paketOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => paketNotifierGlobal.tambahBatch(data),
     );
   }
 
@@ -173,7 +171,7 @@ class LayananUnduhData {
       namaKoleksi: 'pelanggan',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => PelangganModel.fromSupabase(map),
-      operasiBatch: (data) => _pelangganOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => pelangganNotifierGlobal.tambahBatch(data),
     );
   }
 
@@ -183,8 +181,7 @@ class LayananUnduhData {
       namaKoleksi: 'pelanggan_aktif',
       waktuUnduhTerakhir: waktu,
       fromSupabase: (map) => PelangganAktifModel.fromSupabase(map),
-      operasiBatch: (data) =>
-          _pelangganAktifOperasi.sisipkanAtauPerbaruiBatch(data),
+      operasiBatch: (data) => penggunaAktifNotifierGlobal.tambahBatch(data),
     );
   }
 

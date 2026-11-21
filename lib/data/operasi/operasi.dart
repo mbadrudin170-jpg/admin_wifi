@@ -1,10 +1,6 @@
 // path: lib/data/operasi/operasi.dart
 
-export 'kategori_operasi.dart';
 export 'kritik_saran_operasi.dart';
-export 'paket_operasi.dart';
-export 'pelanggan_aktif_operasi.dart';
-export 'pelanggan_operasi.dart';
 export 'pembersihan_data_operasi.dart';
 export 'pengaturan_operasi.dart';
 export 'pesanan_operasi.dart';

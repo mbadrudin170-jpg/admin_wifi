@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
 import 'package:admin_wifi/data/sync/unggah_data.dart';
 import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
@@ -38,7 +37,6 @@ class PelangganAktifScreen extends ConsumerStatefulWidget {
 }
 
 class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
-  final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
   final now = DateTime.now();
   OpsiUrutkan _urutanAktif = OpsiUrutkan.tanggalBerakhir;
   bool _isSearching = false;
@@ -337,7 +335,9 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
         );
 
         if (konfirmasi == true) {
-          await _pelangganAktifOperasi.arsipkanSemuaPelangganAktif();
+          await ref
+              .read(penggunaAktifProvider.notifier)
+              .arsipkanSemuaPelangganAktif();
           L.i('Semua pelanggan aktif berhasil diarsipkan.');
           _loadData(forceRefresh: true);
         }
@@ -346,7 +346,8 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
         L.i(
           'Memulai proses pengarsipan pelanggan aktif yang sudah kadaluarsa.',
         );
-        final int jumlahDiarsipkan = await _pelangganAktifOperasi
+        final int jumlahDiarsipkan = await ref
+            .read(penggunaAktifProvider.notifier)
             .arsipkanPelangganKadaluarsa();
         L.i(
           'Berhasil mengarsipkan $jumlahDiarsipkan pelanggan aktif yang sudah kadaluarsa.',

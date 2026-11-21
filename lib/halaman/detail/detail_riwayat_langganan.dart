@@ -2,11 +2,11 @@
 // diubah: File ini sekarang menampilkan detail transaksi langganan dari TransaksiModel.
 // ditambahkan: Widget untuk menampilkan informasi poin yang dihasilkan dan digunakan.
 
-import 'package:admin_wifi/data/operasi/paket_operasi.dart';
-import 'package:admin_wifi/data/operasi/pelanggan_operasi.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,9 +25,6 @@ class DetailLanggananTransaksiPage extends ConsumerStatefulWidget {
 
 class _DetailLanggananTransaksiPageState
     extends ConsumerState<DetailLanggananTransaksiPage> {
-  final PaketOperasi _paketOperasi = PaketOperasi();
-  final PelangganOperasi _pelangganOperasi = PelangganOperasi();
-
   late Future<TransaksiModel?> _transaksiFuture;
 
   @override
@@ -88,7 +85,9 @@ class _DetailLanggananTransaksiPageState
                 if (transaksi.idPelanggan != null)
                   _buildFutureInfoCard<PelangganModel>(
                     'Informasi Pelanggan',
-                    _pelangganOperasi.getPelangganById(transaksi.idPelanggan!),
+                    ref
+                        .read(pelangganProvider.notifier)
+                        .getPelangganById(transaksi.idPelanggan!),
                     'Pelanggan',
                     (pelanggan) => [
                       _buildDetailRow(
@@ -101,7 +100,9 @@ class _DetailLanggananTransaksiPageState
                 if (transaksi.idPaket != null)
                   _buildFutureInfoCard<PaketModel>(
                     'Informasi Paket',
-                    _paketOperasi.getPaketById(transaksi.idPaket!),
+                    ref
+                        .read(paketProvider.notifier)
+                        .getPaketById(transaksi.idPaket!),
                     'Paket',
                     (paket) => [
                       _buildDetailRow(

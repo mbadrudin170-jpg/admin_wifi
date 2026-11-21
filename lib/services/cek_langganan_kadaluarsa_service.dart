@@ -1,13 +1,13 @@
 // path: lib/services/cek_langganan_kadaluarsa_service.dart
 // diubah: Menyederhanakan logika dengan memanggil fungsi arsipkan yang sudah ada.
 
-import 'package:admin_wifi/data/operasi/pelanggan_aktif_operasi.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 /// Service ini bertanggung jawab untuk memeriksa dan mengarsipkan
 /// langganan pelanggan aktif yang telah kedaluwarsa secara berkala.
 class CekLanggananKadaluarsaService {
-  final PelangganAktifOperasi _pelangganAktifOperasi = PelangganAktifOperasi();
+  // Global notifier (diakses lewat ProviderContainer terpisah)
 
   /// Memproses semua pelanggan aktif, menemukan yang kedaluwarsa,
   /// dan memanggil operasi untuk mengarsipkan mereka.
@@ -22,7 +22,7 @@ class CekLanggananKadaluarsaService {
       );
 
       // Memanggil satu fungsi yang sudah menangani seluruh logika
-      final jumlahDiarsipkan = await _pelangganAktifOperasi
+      final jumlahDiarsipkan = await penggunaAktifNotifierGlobal
           .arsipkanPelangganKadaluarsa();
 
       if (jumlahDiarsipkan > 0) {
