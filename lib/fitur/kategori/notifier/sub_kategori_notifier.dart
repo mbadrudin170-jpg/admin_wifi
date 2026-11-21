@@ -71,44 +71,6 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
     }
   }
 
-  Future<List<SubKategoriModel>> getSubKategoriByKategoriId(
-    String idKategori,
-  ) async {
-    L.i('Memulai getSubKategoriByKategoriId untuk idKategori: $idKategori');
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'sub_kategori',
-        where:
-            '${SubKategoriSkema.idKategori} = ? AND ${SubKategoriSkema.isDeleted} = ?',
-        whereArgs: [idKategori, 0],
-      );
-      return maps.map(SubKategoriModel.fromSqlite).toList();
-    } catch (e, s) {
-      L.e('Gagal saat getSubKategoriByKategoriId Error: $e $s');
-      rethrow;
-    }
-  }
-
-  Future<SubKategoriModel?> getSubKategoriById(String id) async {
-    L.i('Memulai getSubKategoriById untuk ID: $id');
-    try {
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        'sub_kategori',
-        where: '${SubKategoriSkema.id} = ?',
-        whereArgs: [id],
-      );
-      if (maps.isNotEmpty) {
-        return SubKategoriModel.fromSqlite(maps.first);
-      }
-      return null;
-    } catch (e, s) {
-      L.e('Gagal saat getSubKategoriById Error: $e $s');
-      rethrow;
-    }
-  }
-
   Future<void> updateSubKategori(SubKategoriModel subKategori) async {
     L.i('Memulai updateSubKategori untuk ID: ${subKategori.id}');
     try {
