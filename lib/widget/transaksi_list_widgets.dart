@@ -2,16 +2,17 @@
 // diubah: Menghapus operator null-aware yang tidak perlu dan memperbaiki penanganan error.
 
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
-import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
-import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
-import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart'
+    hide FormatTanggal, FormatUang, FormatJam;
 
 Map<DateTime, List<TransaksiModel>> groupTransaksiByDate(
   List<TransaksiModel> transaksi,
@@ -24,7 +25,7 @@ Map<DateTime, List<TransaksiModel>> groupTransaksiByDate(
   return grouped;
 }
 
-Widget bangunHeaderSeksi(DateTime tanggal, double total) {
+Widget bangunHeaderSeksi(BuildContext context, DateTime tanggal, double total) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     child: Row(
@@ -32,11 +33,13 @@ Widget bangunHeaderSeksi(DateTime tanggal, double total) {
       children: [
         Text(
           FormatTanggal.formatTanggalBasic(tanggal),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         Text(
           FormatUang.formatMataUang(total),
-          style: TextStyle(
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: total >= 0 ? Colors.green : Colors.red,
           ),
@@ -70,6 +73,9 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
 
   @override
   Widget build(BuildContext context) {
+    final kategoriState = ref.watch(kategoriProvider);
+    final dompetState = ref.watch(dompetProvider);
+
     IconData iconData;
     Color iconColor;
     if (widget.transaksi.tipe == TipeTransaksi.pemasukan) {
@@ -78,6 +84,23 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
     } else {
       iconData = Icons.arrow_upward;
       iconColor = Colors.red;
+    }
+
+    Widget subtitle;
+    if (kategoriState.isLoading || dompetState.isLoading) {
+      subtitle = const Text('Memuat...');
+    } else if (kategoriState.hasError || dompetState.hasError) {
+      subtitle = const Text('Gagal memuat');
+    } else {
+      final kategori = kategoriState.requireValue.getById(
+        widget.transaksi.idKategori,
+      );
+      final namaKategori = kategori?.nama ?? 'Tidak ada kategori';
+      final dompet = dompetState.requireValue.getDompetById(
+        widget.transaksi.idDompet,
+      );
+      final namaDompet = dompet?.namaDompet ?? 'Tidak ada dompet';
+      subtitle = Text('$namaKategori | $namaDompet');
     }
 
     return Card(
@@ -131,21 +154,7 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
           child: Icon(iconData, color: iconColor),
         ),
         title: Text(widget.transaksi.keterangan),
-        subtitle: Builder(
-          builder: (context) {
-            final kategoriState = ref.watch(kategoriProvider);
-            final namaKategori =
-                kategoriState.value?.getById(widget.transaksi.idKategori)?.nama ??
-                'Tidak ada kategori';
-            final dompetState = ref.watch(dompetProvider);
-            final namaDompet =
-                dompetState.value
-                    ?.getDompetById(widget.transaksi.idDompet)
-                    ?.namaDompet ??
-                'Tidak ada dompet';
-            return Text('$namaKategori | $namaDompet');
-          },
-        ),
+        subtitle: subtitle,
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,

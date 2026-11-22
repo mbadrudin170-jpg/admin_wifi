@@ -153,7 +153,7 @@ class _DetailDompetState extends ConsumerState<DetailDompet> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            bangunHeaderSeksi(tanggal, totalHarian),
+            bangunHeaderSeksi(context, tanggal, totalHarian),
             ...transaksiPadaTanggal.map(
               (transaksi) => bangunItemTransaksi(context, transaksi, () {}),
             ),

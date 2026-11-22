@@ -195,7 +195,7 @@ class _TransaksiPageState extends ConsumerState<TransaksiScreens> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            bangunHeaderSeksi(tanggal, totalPadaTanggal),
+            bangunHeaderSeksi(context, tanggal, totalPadaTanggal),
             ...transaksiPadaTanggal.map(
               (transaksi) =>
                   bangunItemTransaksi(context, transaksi, () => _muatUlang()),
