@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:admin_wifi/data/sync/unggah_data.dart';
-import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
@@ -17,12 +16,13 @@ import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
-import 'package:share_global_saya/src/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/src/services/cek_koneksi_internet.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:share_global_saya/src/widget/confirmation_dialog.dart';
@@ -432,19 +432,19 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           : hasilFilter.isEmpty && _searchController.text.isNotEmpty
           ? const Center(child: Text('Pelanggan tidak ditemukan.'))
           : CustomScrollView(
-               slivers: [
-                 if (listJatuhTempo.isNotEmpty)
-                   _buildSliverListJatuhTempo(
-                     listJatuhTempo,
-                     pelangganState,
-                     paketState,
-                   ),
-                 if (listJatuhTempo.isNotEmpty)
-                   const SliverToBoxAdapter(
-                     child: Divider(height: 1, indent: 16, endIndent: 16),
-                   ),
-                 _buildSliverListUtama(hasilFilter, pelangganState, paketState),
-               ],
+              slivers: [
+                if (listJatuhTempo.isNotEmpty)
+                  _buildSliverListJatuhTempo(
+                    listJatuhTempo,
+                    pelangganState,
+                    paketState,
+                  ),
+                if (listJatuhTempo.isNotEmpty)
+                  const SliverToBoxAdapter(
+                    child: Divider(height: 1, indent: 16, endIndent: 16),
+                  ),
+                _buildSliverListUtama(hasilFilter, pelangganState, paketState),
+              ],
             ),
     );
   }
@@ -466,9 +466,6 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           pelanggan: pelanggan,
           paket: paket,
           onTap: () async {
-            L.i(
-              'Navigasi ke halaman detail pelanggan aktif dengan ID: ${pelangganAktif.id}.',
-            );
             await Nav.to(
               context,
               DetailPelangganAktif(pelangganAktif: pelangganAktif),
