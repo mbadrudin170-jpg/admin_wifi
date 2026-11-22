@@ -12,6 +12,7 @@ part 'dompet_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class DompetNotifier extends _$DompetNotifier {
   final OperasiDasar _operasiDasar = OperasiDasar();
+  final OperasiSqlite _operasiSqlite = OperasiSqlite();
 
   @override
   Future<DompetState> build() async {
@@ -42,7 +43,7 @@ class DompetNotifier extends _$DompetNotifier {
     L.i('Memulai tambah dompet: ${dompet.toSqlite()}');
     try {
       final data = dompet.copyWith(diperbarui: DateTime.now()).toSqlite();
-      await _operasiDasar.sisipkan(DompetSkema.tabel, data);
+      await _operasiSqlite.sisipkan(DompetSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
       L.i('Berhasil membuat dompet dengan ID data: ${dompet.id}');
     } catch (e, s) {
@@ -108,7 +109,7 @@ class DompetNotifier extends _$DompetNotifier {
       'PERINGATAN: Memulai hapusSemuaDompet. Ini adalah operasi destruktif yang akan menghapus semua dompet secara permanen.',
     );
     try {
-      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+      await _operasiSqlite.jalankanOperasiKompleks((txn) async {
         final count = await txn.delete(DompetSkema.tabel);
         L.i(
           'Berhasil hapusSemuaDompet. Total baris yang dihapus permanen: $count',

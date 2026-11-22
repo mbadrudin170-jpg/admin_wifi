@@ -1,6 +1,5 @@
 // path: lib/fitur/transaksi/notifier/transaksi_notifier.dart
 
-import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
@@ -14,7 +13,7 @@ part 'transaksi_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class TransaksiNotifier extends _$TransaksiNotifier {
-  final OperasiDasar _operasiDasar = OperasiDasar();
+  final OperasiSqlite _operasiSqlite = OperasiSqlite();
 
   @override
   Future<TransaksiState> build() async {
@@ -99,7 +98,7 @@ class TransaksiNotifier extends _$TransaksiNotifier {
 
   Future<int> tambahTransaksi(TransaksiModel transaksi) async {
     try {
-      final id = await _operasiDasar.jalankanOperasiKompleks<int>((txn) async {
+      final id = await _operasiSqlite.jalankanOperasiKompleks<int>((txn) async {
         final data = transaksi.copyWith(diperbarui: DateTime.now());
 
         final newId = await txn.insert(
@@ -150,7 +149,7 @@ class TransaksiNotifier extends _$TransaksiNotifier {
 
   Future<void> updateTransaksi(String id, TransaksiModel transaksiBaru) async {
     try {
-      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+      await _operasiSqlite.jalankanOperasiKompleks((txn) async {
         final maps = await txn.query(
           TransaksiSkema.tabel,
           where: '${TransaksiSkema.id} = ?',
@@ -201,7 +200,7 @@ class TransaksiNotifier extends _$TransaksiNotifier {
 
   Future<void> arsipkanTransaksi(String id) async {
     try {
-      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+      await _operasiSqlite.jalankanOperasiKompleks((txn) async {
         final maps = await txn.query(
           TransaksiSkema.tabel,
           where: '${TransaksiSkema.id} = ?',
@@ -241,7 +240,7 @@ class TransaksiNotifier extends _$TransaksiNotifier {
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
     final affectedWallets = <String>{};
     try {
-      await _operasiDasar.jalankanOperasiKompleks((txn) async {
+      await _operasiSqlite.jalankanOperasiKompleks((txn) async {
         final batch = txn.batch();
         for (final item in items) {
           batch.insert(

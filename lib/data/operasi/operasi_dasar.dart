@@ -1,5 +1,6 @@
 // path: lib/data/operasi/operasi_dasar.dart
 
+import 'package:admin_wifi/db/sqlite/oncreate_sqflite.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite/sqflite.dart';
@@ -31,10 +32,10 @@ class OperasiDasar {
 
         try {
           L.i('[TRANSAKSI AKTIF] Menandai status `perlu_unggah` menjadi TRUE.');
-           await txn.insert('status_aplikasi', {
-             'id': 'perlu_unggah',
-             'value': '1',
-           }, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert(StatusAplikasiSkema.tabel, {
+            StatusAplikasiSkema.id: 'perlu_unggah',
+            StatusAplikasiSkema.value: '1',
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
           L.i('[TRANSAKSI AKTIF] Status `perlu_unggah` berhasil ditandai.');
 
           L.i(
@@ -61,34 +62,6 @@ class OperasiDasar {
       L.e(
         '[TRANSAKSI GAGAL DI LUAR] Gagal saat memulai atau menyelesaikan transaksi. Error: $e $stackTrace',
       );
-      rethrow;
-    }
-  }
-
-  /// Menjalankan blok operasi kustom yang kompleks.
-  Future<T> jalankanOperasiKompleks<T>(
-    Future<T> Function(Transaction txn) aksiKustom,
-  ) async {
-    L.i('Mendelegasikan eksekusi transaksi kompleks');
-    return await _jalankanDalamTransaksi(aksiKustom);
-  }
-
-  /// Menyisipkan satu baris data ke dalam tabel.
-  Future<void> sisipkan(String tabel, Map<String, dynamic> data) async {
-    L.i('Memulai penyisipan data ke tabel: $tabel Data: $data');
-
-    try {
-      await _jalankanDalamTransaksi((txn) async {
-        final result = await txn.insert(
-          tabel,
-          data,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        L.i("INSERT berhasil Data: ${{'rowId': result, 'tabel': tabel}}");
-        return result;
-      });
-    } catch (e, s) {
-      L.e('Gagal menyisipkan data ke tabel: $tabel Error: $e $s Data: $data');
       rethrow;
     }
   }

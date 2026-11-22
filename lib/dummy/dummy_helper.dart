@@ -1,6 +1,7 @@
 // path: lib/dummy/dummy_helper.dart
 
 import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
+import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
 import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/sub_kategori_notifier.dart';
@@ -48,6 +49,7 @@ import 'package:sqflite/sqflite.dart';
 abstract final class DummyHelper {
   // Global notifier (diakses lewat ProviderContainer terpisah)
   static final OperasiDasar _operasiDasar = OperasiDasar();
+  static final OperasiSqlite _operasiSqlite = OperasiSqlite();
 
   /// Menyisipkan semua data dummy ke database (upsert berdasarkan ID).
   static Future<void> tambahSemuaDummy() async {
@@ -185,7 +187,7 @@ abstract final class DummyHelper {
 
     try {
       L.i('Menghapus permanen data dummy');
-      final count = await _operasiDasar.jalankanOperasiKompleks((txn) async {
+      final count = await _operasiSqlite.jalankanOperasiKompleks((txn) async {
         var total = 0;
         // Hapus tabel yang memiliki foreign key terlebih dahulu.
         total += await _hapusDummyBerdasarkanId(
