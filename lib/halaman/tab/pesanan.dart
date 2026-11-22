@@ -80,34 +80,37 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
   @override
   Widget build(BuildContext context) {
     final asyncPesanan = ref.watch(pesananProvider);
+    final asyncPelanggan = ref.watch(pelangganProvider);
+    final asyncPaket = ref.watch(paketProvider);
 
-    if (asyncPesanan.isLoading) {
+    if (asyncPesanan.isLoading ||
+        asyncPelanggan.isLoading ||
+        asyncPaket.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (asyncPesanan.hasError) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Daftar Pesanan')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              Text('Gagal memuat data pesanan: ${asyncPesanan.error}'),
-              FilledButton(
-                onPressed: () => ref.refresh(pesananProvider),
-                child: const Text('Coba Lagi'),
-              ),
-            ],
-          ),
-        ),
+      return _buildError(
+        'Gagal memuat data pesanan: ${asyncPesanan.error}',
+        () => ref.refresh(pesananProvider),
+      );
+    }
+    if (asyncPelanggan.hasError) {
+      return _buildError(
+        'Gagal memuat data pelanggan: ${asyncPelanggan.error}',
+        () => ref.refresh(pelangganProvider),
+      );
+    }
+    if (asyncPaket.hasError) {
+      return _buildError(
+        'Gagal memuat data paket: ${asyncPaket.error}',
+        () => ref.refresh(paketProvider),
       );
     }
 
     final state = asyncPesanan.requireValue;
     final daftar = _filteredList(state.listPesanan);
-    final pelangganState = ref.read(pelangganProvider);
-    final paketState = ref.read(paketProvider);
+    final pelangganState = asyncPelanggan.requireValue;
+    final paketState = asyncPaket.requireValue;
 
     return Scaffold(
       appBar: AppBar(
@@ -140,14 +143,14 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
 
   void _showPesananDetail(
     PesananModel pesanan,
-    AsyncValue<PelangganState> pelangganState,
-    AsyncValue<PaketState> paketState,
+    PelangganState pelangganState,
+    PaketState paketState,
   ) {
     final namaPelanggan =
-        pelangganState.value?.getById(pesanan.idPelanggan)?.nama ??
+        pelangganState.getById(pesanan.idPelanggan)?.nama ??
         pesanan.idPelanggan;
     final namaPaket =
-        paketState.value?.getById(pesanan.idPaket)?.nama ?? pesanan.idPaket;
+        paketState.getById(pesanan.idPaket)?.nama ?? pesanan.idPaket;
 
     showModalBottomSheet(
       context: context,
@@ -189,26 +192,6 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(PesananModel pesanan) {
-    switch (pesanan.status) {
-      case 'baru':
-        return Colors.blue;
-      case 'diproses':
-        return Colors.orange;
-      case 'selesai':
-        return Colors.green;
-      case 'ditolak':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getStatusText(PesananModel pesanan) {
-    return pesanan.status.substring(0, 1).toUpperCase() +
-        pesanan.status.substring(1);
   }
 
   Widget _actionButton(
@@ -284,8 +267,8 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
 
   Widget _buildPesananCard(
     PesananModel pesanan,
-    AsyncValue<PelangganState> pelangganState,
-    AsyncValue<PaketState> paketState,
+    PelangganState pelangganState,
+    PaketState paketState,
   ) {
     final Color statusColor = _getStatusColor(pesanan);
 
@@ -455,8 +438,8 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
 
   Widget _buildPesananList(
     List<PesananModel> daftar,
-    AsyncValue<PelangganState> pelangganState,
-    AsyncValue<PaketState> paketState,
+    PelangganState pelangganState,
+    PaketState paketState,
   ) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -494,5 +477,42 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
         ],
       ),
     );
+  }
+
+  Widget _buildError(String pesan, VoidCallback onRetry) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Daftar Pesanan')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            Text(pesan, textAlign: TextAlign.center),
+            FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(PesananModel pesanan) {
+    switch (pesanan.status) {
+      case 'baru':
+        return Colors.blue;
+      case 'diproses':
+        return Colors.orange;
+      case 'selesai':
+        return Colors.green;
+      case 'ditolak':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusText(PesananModel pesanan) {
+    return pesanan.status.substring(0, 1).toUpperCase() +
+        pesanan.status.substring(1);
   }
 }
