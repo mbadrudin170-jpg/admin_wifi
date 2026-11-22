@@ -110,11 +110,12 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           );
         }
         final state = asyncState.requireValue;
-        if (state.errorMessage != null) {
+        final pesanError = state.errorMessage;
+        if (pesanError != null) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(state.errorMessage!, textAlign: TextAlign.center),
+              child: Text(pesanError, textAlign: TextAlign.center),
             ),
           );
         }
