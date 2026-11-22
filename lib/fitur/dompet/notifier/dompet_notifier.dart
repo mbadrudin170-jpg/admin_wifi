@@ -1,6 +1,5 @@
 // path: lib/fitur/dompet/notifier/dompet_notifier.dart
 
-import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/state/dompet_state.dart';
@@ -11,7 +10,6 @@ part 'dompet_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class DompetNotifier extends _$DompetNotifier {
-  final OperasiDasar _operasiDasar = OperasiDasar();
   final OperasiSqlite _operasiSqlite = OperasiSqlite();
 
   @override
@@ -56,7 +54,7 @@ class DompetNotifier extends _$DompetNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = models.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.tambahBatch(DompetSkema.tabel, data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(DompetSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
       L.e('Gagal menambahkan batch dompet: $e $s');
@@ -68,7 +66,7 @@ class DompetNotifier extends _$DompetNotifier {
     L.i('Memulai ubah dompet: ${dompet.toSqlite()}');
     try {
       final data = dompet.copyWith(diperbarui: DateTime.now()).toSqlite();
-      await _operasiDasar.perbarui(DompetSkema.tabel, data, dompet.id);
+      await _operasiSqlite.perbarui(DompetSkema.tabel, data, dompet.id);
       state = AsyncValue.data(await _ambilSemua());
       L.i('Berhasil ubah dompet untuk ID: ${dompet.id}.');
     } catch (e, s) {
@@ -132,7 +130,7 @@ class DompetNotifier extends _$DompetNotifier {
         DompetSkema.isDeleted: 1,
       };
 
-      await _operasiDasar.perbarui(DompetSkema.tabel, dataToUpdate, id);
+      await _operasiSqlite.perbarui(DompetSkema.tabel, dataToUpdate, id);
 
       L.i('Berhasil arsipkanSatuDompet untuk ID: $id.');
     } catch (e, s) {
@@ -148,7 +146,7 @@ class DompetNotifier extends _$DompetNotifier {
     }
     try {
       final data = items.map((item) => item.toSqlite()).toList();
-      await _operasiDasar.sisipkanAtauPerbaruiBatch(DompetSkema.tabel, data);
+      await _operasiSqlite.sisipkanAtauPerbaruiBatch(DompetSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
       L.i(
         'Berhasil menyelesaikan sisipkanAtauPerbaruiBatch untuk ${items.length} item.',

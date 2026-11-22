@@ -45,7 +45,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
       final data = subKategori.copyWith(diperbarui: now).toSqlite();
-      await operasiSqlite.tambah('sub_kategori', data);
+      await operasiSqlite.sisipkan('sub_kategori', data);
       L.i('Berhasil membuat sub kategori dengan ID: ${subKategori.id}');
       await muatUlang();
     } catch (e, s) {
@@ -75,7 +75,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
       final data = subKategori.copyWith(diperbarui: now).toSqlite();
-      await operasiSqlite.ubah('sub_kategori', data, id: subKategori.id);
+      await operasiSqlite.perbarui('sub_kategori', data, subKategori.id);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal saat updateSubKategori Error: $e $s');
@@ -88,13 +88,13 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       if (softDelete) {
-        await operasiSqlite.ubah(
+        await operasiSqlite.perbarui(
           'sub_kategori',
           {
             SubKategoriSkema.isDeleted: 1,
             SubKategoriSkema.diperbarui: DateTime.now().toIso8601String(),
           },
-          id: id,
+          id,
         );
       } else {
         await operasiSqlite.hapus('sub_kategori', id: id);
@@ -118,7 +118,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final data = items
           .map((item) => item.copyWith(diperbarui: DateTime.now()).toSqlite())
           .toList();
-      await operasiSqlite.tambahBatch('sub_kategori', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch('sub_kategori', data);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal saat sisipkanAtauPerbaruiBatch sub kategori Error: $e $s');

@@ -36,7 +36,7 @@ class PesananNotifier extends _$PesananNotifier {
     L.i('Menyimpan pesanan baru - ID: ${pesanan.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.tambah('pesanan', pesanan.toSqlite());
+      await operasiSqlite.sisipkan('pesanan', pesanan.toSqlite());
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal menyimpan pesanan - ID: ${pesanan.id} Error: $e $s');
@@ -47,7 +47,10 @@ class PesananNotifier extends _$PesananNotifier {
   Future<List<PesananModel>> ambilSemuaPesanan() async {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil('pesanan', orderBy: 'tanggal DESC');
+      final maps = await operasiSqlite.ambil(
+        'pesanan',
+        orderBy: 'tanggal DESC',
+      );
       return maps.map(PesananModel.fromSqlite).toList();
     } catch (e, s) {
       L.e('Gagal mengambil semua pesanan Error: $e $s');
@@ -74,7 +77,7 @@ class PesananNotifier extends _$PesananNotifier {
   Future<void> updateStatusPesanan(String id, String status) async {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.ubah('pesanan', {'status': status}, id: id);
+      await operasiSqlite.perbarui('pesanan', {'status': status}, id);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal update status pesanan Error: $e $s');
@@ -98,7 +101,7 @@ class PesananNotifier extends _$PesananNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = items.map((i) => i.toSqlite()).toList();
-      await operasiSqlite.tambahBatch('pesanan', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch('pesanan', data);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal sisipkanAtauPerbaruiBatch pesanan Error: $e $s');

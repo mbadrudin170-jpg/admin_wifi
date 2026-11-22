@@ -1,6 +1,5 @@
 // path: lib/dummy/dummy_helper.dart
 
-import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
 import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
@@ -48,7 +47,6 @@ import 'package:sqflite/sqflite.dart';
 /// dilakukan kebalikannya dalam satu transaksi.
 abstract final class DummyHelper {
   // Global notifier (diakses lewat ProviderContainer terpisah)
-  static final OperasiDasar _operasiDasar = OperasiDasar();
   static final OperasiSqlite _operasiSqlite = OperasiSqlite();
 
   /// Menyisipkan semua data dummy ke database (upsert berdasarkan ID).
@@ -95,7 +93,7 @@ abstract final class DummyHelper {
       L.i(
         'Menambahkan ${StatusUnggahDummy.dummyList.length} data dummy status unggah',
       );
-      await _operasiDasar.sisipkanAtauPerbaruiBatch(
+      await _operasiSqlite.sisipkanAtauPerbaruiBatch(
         StatusUnggahSkema.tabel,
         StatusUnggahDummy.dummyList.map((item) => item.toSqlite()).toList(),
       );

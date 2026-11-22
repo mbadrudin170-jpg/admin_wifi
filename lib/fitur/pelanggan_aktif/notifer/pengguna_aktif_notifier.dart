@@ -66,7 +66,7 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
       );
 
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.tambah(
+      await operasiSqlite.sisipkan(
         PelangganAktifSkema.tabel,
         pelangganUntukDisimpan.toSqlite(),
       );
@@ -85,7 +85,7 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = models.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.tambahBatch(PelangganAktifSkema.tabel, data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(PelangganAktifSkema.tabel, data);
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
       L.e('Gagal menambahkan batch pelanggan aktif: $e\n$s');
@@ -100,11 +100,11 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
       );
 
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.ubah(
-        PelangganAktifSkema.tabel,
-        pelangganUntukDisimpan.toSqlite(),
-        id: pelangganUntukDisimpan.id,
-      );
+await operasiSqlite.perbarui(
+         PelangganAktifSkema.tabel,
+         pelangganUntukDisimpan.toSqlite(),
+         pelangganUntukDisimpan.id,
+       );
 
       await _jadwalkanNotifikasi(pelangganUntukDisimpan);
 
@@ -128,7 +128,7 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         L.i('Pelanggan aktif ID: $id tidak ditemukan, tidak dapat menghapus');
         return;
       }
-      final pelangganAktif = PelangganAktifModel.fromSqlite(maps.first);
+final pelangganAktif = PelangganAktifModel.fromSqlite(maps.first);
 
       final now = DateTime.now().toUtc();
       final pelangganDiarsipkan = pelangganAktif.copyWith(
@@ -136,10 +136,11 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         diarsipkan: now,
         diperbarui: now,
       );
-      await operasiSqlite.ubah(
+
+      await operasiSqlite.perbarui(
         PelangganAktifSkema.tabel,
         pelangganDiarsipkan.toSqlite(),
-        id: id,
+        id,
       );
 
       await _notifikasiServis.batalNotifikasi(id.hashCode);
@@ -265,14 +266,11 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         diperbarui: now,
       );
 
-      L.i(
-        'Menandai isDeleted=true, diarsipkan=${pelangganDiarsipkan.diarsipkan?.toIso8601String()}',
-      );
-      await operasiSqlite.ubah(
-        PelangganAktifSkema.tabel,
-        pelangganDiarsipkan.toSqlite(),
-        id: id,
-      );
+await operasiSqlite.perbarui(
+         PelangganAktifSkema.tabel,
+         pelangganDiarsipkan.toSqlite(),
+         id,
+       );
 
       await _notifikasiServis.batalNotifikasi(id.hashCode);
       await _notifikasiServis.batalNotifikasi((id.hashCode + 1));
@@ -397,12 +395,13 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         'Menandai ${idsToArchive.length} pelanggan sebagai isDeleted=1, diarsipkan=$now',
       );
 
-      await operasiSqlite.ubah(
-        PelangganAktifSkema.tabel,
-        {'is_deleted': 1, 'diarsipkan': now, 'diperbarui': now},
-        where: 'id IN (${List.filled(idsToArchive.length, '?').join(',')})',
-        whereArgs: idsToArchive,
-      );
+await operasiSqlite.perbarui(
+         PelangganAktifSkema.tabel,
+         {'is_deleted': 1, 'diarsipkan': now, 'diperbarui': now},
+         null,
+         where: 'id IN (${List.filled(idsToArchive.length, '?').join(',')})',
+         whereArgs: idsToArchive,
+       );
 
       L.i(
         'Membatalkan notifikasi untuk ${idsToArchive.length} pelanggan kadaluarsa...',
@@ -440,13 +439,14 @@ class PenggunaAktifNotifier extends _$PenggunaAktifNotifier {
         'Menandai ${idsToArchive.length} pelanggan sebagai isDeleted=1, diarsipkan=$now',
       );
 
-      final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.ubah(
-        PelangganAktifSkema.tabel,
-        {'is_deleted': 1, 'diarsipkan': now, 'diperbarui': now},
-        where: 'id IN (${List.filled(idsToArchive.length, '?').join(',')})',
-        whereArgs: idsToArchive,
-      );
+final operasiSqlite = ref.read(operasiSqliteProvider);
+       await operasiSqlite.perbarui(
+         PelangganAktifSkema.tabel,
+         {'is_deleted': 1, 'diarsipkan': now, 'diperbarui': now},
+         null,
+         where: 'id IN (${List.filled(idsToArchive.length, '?').join(',')})',
+         whereArgs: idsToArchive,
+       );
 
       L.i('Membatalkan notifikasi untuk ${idsToArchive.length} pelanggan...');
       for (final id in idsToArchive) {

@@ -55,7 +55,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       final data = kritikSaran.toSqlite()
         ..['diperbarui'] = now.toIso8601String();
 
-      await operasiSqlite.tambah('kritik_saran', data);
+      await operasiSqlite.sisipkan('kritik_saran', data);
       L.i('Berhasil membuat kritik_saran dengan ID: ${kritikSaran.id}');
       // Refresh state after creation
       await muatUlang();
@@ -79,7 +79,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = daftarKritikSaran.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.tambahBatch('kritik_saran', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch('kritik_saran', data);
       L.i(
         'Berhasil menyelesaikan sisipkanAtauPerbaruiBatch untuk ${daftarKritikSaran.length} item.',
       );

@@ -50,7 +50,7 @@ class PelangganNotifier extends _$PelangganNotifier {
       final pelangganUntukDisimpan = model.copyWith(diperbarui: DateTime.now());
       final data = pelangganUntukDisimpan.toSqlite();
 
-      await operasiSqlite.tambah(PelangganSkema.tabel, data);
+      await operasiSqlite.sisipkan(PelangganSkema.tabel, data);
 
       L.i(
         'Pelanggan (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat di database lokal.',
@@ -148,7 +148,7 @@ class PelangganNotifier extends _$PelangganNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = model.copyWith(diperbarui: DateTime.now()).toSqlite();
 
-      await operasiSqlite.ubah(PelangganSkema.tabel, data, id: model.id);
+      await operasiSqlite.perbarui(PelangganSkema.tabel, data, model.id);
 
       L.i('Berhasil memperbarui pelanggan ID: ${model.id}.');
       state = AsyncValue.data(await _ambilSemua());
@@ -166,10 +166,10 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       if (softDelete) {
-        await operasiSqlite.ubah(PelangganSkema.tabel, {
-          'is_deleted': 1,
-          'diperbarui': DateTime.now().toIso8601String(),
-        }, id: id);
+await operasiSqlite.perbarui(PelangganSkema.tabel, {
+           'is_deleted': 1,
+           'diperbarui': DateTime.now().toIso8601String(),
+         }, id);
         L.i('Berhasil melakukan soft delete pada pelanggan ID: $id.');
       } else {
         await operasiSqlite.hapus(PelangganSkema.tabel, id: id);
@@ -213,11 +213,11 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
-      await operasiSqlite.ubah(PelangganSkema.tabel, {
-        'isDeleted': 1,
-        'diarsipkan': now.toIso8601String(),
-        'diperbarui': now.toIso8601String(),
-      }, id: id);
+await operasiSqlite.perbarui(PelangganSkema.tabel, {
+         'isDeleted': 1,
+         'diarsipkan': now.toIso8601String(),
+         'diperbarui': now.toIso8601String(),
+       }, id);
       L.i('Berhasil mengarsipkan pelanggan ID: $id.');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
@@ -239,7 +239,7 @@ class PelangganNotifier extends _$PelangganNotifier {
         return itemToSave.toSqlite();
       }).toList();
 
-      await operasiSqlite.tambahBatch(PelangganSkema.tabel, data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(PelangganSkema.tabel, data);
       L.i(
         'Berhasil menyelesaikan operasi batch untuk ${models.length} pelanggan.',
       );

@@ -39,52 +39,7 @@ class OperasiSqlite {
     }
   }
 
-  /// Menambahkan satu baris data ke tabel.
-  Future<int> tambah(String tabel, Map<String, dynamic> data) async {
-    L.i('Memulai tambah data ke tabel: $tabel Data: $data');
-    try {
-      final db = await _dbHelper.database;
-      final id = await db.insert(
-        tabel,
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-      L.i('Berhasil tambah data ke tabel: $tabel id: $id');
-      return id;
-    } catch (e, st) {
-      L.e('Gagal tambah data ke tabel: $tabel Error: $e $st');
-      rethrow;
-    }
-  }
-
-  /// Mengubah baris data di tabel.
-  Future<int> ubah(
-    String tabel,
-    Map<String, dynamic> data, {
-    Object? id,
-    String? where,
-    List<Object?>? whereArgs,
-  }) async {
-    L.i('Memulai ubah data di tabel: $tabel Data: $data');
-    try {
-      final db = await _dbHelper.database;
-      final filterWhere = id != null ? 'id = ?' : where;
-      final filterArgs = id != null ? <Object?>[id] : whereArgs;
-      final rows = await db.update(
-        tabel,
-        data,
-        where: filterWhere,
-        whereArgs: filterArgs,
-      );
-      L.i('Berhasil ubah $rows baris di tabel: $tabel');
-      return rows;
-    } catch (e, st) {
-      L.e('Gagal ubah data di tabel: $tabel Error: $e $st');
-      rethrow;
-    }
-  }
-
-  /// Menghapus baris data dari tabel.
+/// Menghapus baris data dari tabel.
   Future<int> hapus(
     String tabel, {
     Object? id,
@@ -109,39 +64,7 @@ class OperasiSqlite {
     }
   }
 
-  /// Menambahkan banyak baris data sekaligus (batch) ke tabel.
-  Future<void> tambahBatch(
-    String tabel,
-    List<Map<String, dynamic>> daftarData,
-  ) async {
-    if (daftarData.isEmpty) {
-      L.w('Daftar data batch kosong, operasi dibatalkan: $tabel');
-      return;
-    }
-    L.i('Memulai tambahBatch ke tabel: $tabel total: ${daftarData.length}');
-    try {
-      final db = await _dbHelper.database;
-      await db.transaction((txn) async {
-        final batch = txn.batch();
-        for (final data in daftarData) {
-          if (data.isNotEmpty) {
-            batch.insert(
-              tabel,
-              data,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          }
-        }
-        await batch.commit(noResult: true);
-      });
-      L.i('Berhasil tambahBatch ke tabel: $tabel');
-    } catch (e, st) {
-      L.e('Gagal tambahBatch ke tabel: $tabel Error: $e $st');
-      rethrow;
-    }
-  }
-
-  /// Menjalankan blok operasi kustom yang kompleks di dalam transaksi.
+/// Menjalankan blok operasi kustom yang kompleks di dalam transaksi.
   Future<T> jalankanOperasiKompleks<T>(
     Future<T> Function(Transaction txn) aksiKustom,
   ) async {
@@ -165,6 +88,97 @@ class OperasiSqlite {
       });
     } catch (e, s) {
       L.e('Gagal menyisipkan data ke tabel: $tabel Error: $e $s Data: $data');
+      rethrow;
+    }
+  }
+
+  /// Memperbarui satu baris data di dalam tabel.
+  Future<void> perbarui(
+    String tabel,
+    Map<String, dynamic> data,
+    Object? id, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) async {
+    L.i(
+      "Memulai pembaruan data di tabel: $tabel Data: ${{'id': id, 'data': data}}",
+    );
+
+    try {
+      await _jalankanDalamTransaksi((txn) async {
+        final filterWhere = id != null ? 'id = ?' : where;
+        final filterArgs = id != null ? <Object?>[id] : whereArgs;
+        final rowsAffected = await txn.update(
+          tabel,
+          data,
+          where: filterWhere,
+          whereArgs: filterArgs,
+        );
+
+        if (rowsAffected == 0) {
+          L.w(
+            "Update selesai tapi tidak ada baris yang berubah (ID tidak ditemukan) Data: ${{'id': id, 'tabel': tabel}}",
+          );
+        } else {
+          L.i(
+            "UPDATE berhasil Data: ${{'rowsAffected': rowsAffected, 'id': id}}",
+          );
+        }
+        return rowsAffected;
+      });
+    } catch (e, s) {
+      L.e(
+        "Gagal memperbarui data di tabel: $tabel Error: $e $s Data: ${{'id': id, 'payload': data}}",
+      );
+      rethrow;
+    }
+  }
+
+  /// Metode batch untuk menyisipkan atau memperbarui banyak data sekaligus.
+  Future<void> sisipkanAtauPerbaruiBatch(
+    String tabel,
+    List<Map<String, dynamic>> daftarData,
+  ) async {
+    if (daftarData.isEmpty) {
+      L.w(
+        "Daftar data batch kosong, operasi dibatalkan Data: ${{'tabel': tabel}}",
+      );
+      return;
+    }
+
+    L.i(
+      "Memulai batch operation Data: ${{'tabel': tabel, 'totalItem': daftarData.length}}",
+    );
+
+    try {
+      await _jalankanDalamTransaksi((txn) async {
+        final batch = txn.batch();
+        int validCount = 0;
+
+        for (int i = 0; i < daftarData.length; i++) {
+          final data = daftarData[i];
+          if (data.isNotEmpty) {
+            batch.insert(
+              tabel,
+              data,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+            validCount++;
+
+            if (i % 10 == 0 && i > 0) {
+              L.i('Batch progress: $i/${daftarData.length} item diproses...');
+            }
+          }
+        }
+
+        L.i("Melakukan commit batch... Data: ${{'validCount': validCount}}");
+        await batch.commit(noResult: true);
+        L.i('Batch operation sukses');
+      });
+    } catch (e, s) {
+      L.e(
+        "Gagal melakukan batch operation di tabel: $tabel Error: $e $s Data: ${{'totalItem': daftarData.length}}",
+      );
       rethrow;
     }
   }

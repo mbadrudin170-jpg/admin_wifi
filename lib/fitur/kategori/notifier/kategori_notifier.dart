@@ -50,7 +50,7 @@ class KategoriNotifier extends _$KategoriNotifier {
       final kategoriBaru = kategori.copyWith(diperbarui: DateTime.now());
       final data = kategoriBaru.toSqlite();
 
-      await operasiSqlite.tambah('kategori', data);
+      await operasiSqlite.sisipkan('kategori', data);
       L.i('Berhasil membuat kategori baru dengan ID: ${kategoriBaru.id}');
       // Refresh state after creation
       await muatUlang();
@@ -84,7 +84,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = kategori.copyWith(diperbarui: DateTime.now()).toSqlite();
-      await operasiSqlite.ubah('kategori', data, id: kategori.id);
+      await operasiSqlite.perbarui('kategori', data, kategori.id);
       L.i('Berhasil perbarui kategori untuk ID: ${kategori.id}.');
       // Refresh state after update
       await muatUlang();
@@ -123,7 +123,7 @@ class KategoriNotifier extends _$KategoriNotifier {
         'is_deleted': 1,
       };
 
-      await operasiSqlite.ubah('kategori', dataToUpdate, id: id);
+      await operasiSqlite.perbarui('kategori', dataToUpdate, id);
 
       L.i('Berhasil arsipkanSatuKategori untuk ID: $id.');
       // Refresh state after archive
@@ -144,7 +144,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     }
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.tambahBatch('kategori', [
+      await operasiSqlite.sisipkanAtauPerbaruiBatch('kategori', [
         // First delete all
         // We'll use a custom approach since operasiSqlite doesn't have a clear method
         // We'll need to use the database directly for this complex operation
@@ -181,7 +181,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = items.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.tambahBatch('kategori', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch('kategori', data);
       L.i(
         'Berhasil menyelesaikan sisipkanAtauPerbaruiBatch untuk ${items.length} item kategori.',
       );

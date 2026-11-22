@@ -39,7 +39,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     L.i('Menambah versi APK user baru - ID: ${versiApkUser.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.tambah('versi_apk_user', versiApkUser.toSqlite());
+      await operasiSqlite.sisipkan('versi_apk_user', versiApkUser.toSqlite());
       L.i('Versi APK user berhasil ditambahkan - ID: ${versiApkUser.id}');
       await muatUlang();
     } catch (e, s) {
@@ -52,7 +52,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     L.i('Memperbarui versi APK user - ID: ${versiApkUser.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.ubah('versi_apk_user', versiApkUser.toSqlite(), id: versiApkUser.id);
+      await operasiSqlite.perbarui('versi_apk_user', versiApkUser.toSqlite(), versiApkUser.id);
       L.i('Versi APK user berhasil diperbarui - ID: ${versiApkUser.id}');
       await muatUlang();
     } catch (e, s) {
@@ -69,7 +69,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
       if (maps.isNotEmpty) {
         final model = VersiApkUserModel.fromSqlite(maps.first);
         final modelDiarsipkan = model.copyWith(isDeleted: true, diarsipkan: DateTime.now());
-        await operasiSqlite.ubah('versi_apk_user', modelDiarsipkan.toSqlite(), id: id);
+        await operasiSqlite.perbarui('versi_apk_user', modelDiarsipkan.toSqlite(), id);
         L.i('Versi APK user berhasil diarsipkan - ID: $id');
       }
       await muatUlang();
@@ -85,7 +85,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final daftarMap = daftarModel.map((m) => m.toSqlite()).toList();
-      await operasiSqlite.tambahBatch('versi_apk_user', daftarMap);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch('versi_apk_user', daftarMap);
       L.i('Operasi batch berhasil - ${daftarMap.length} data diproses');
       await muatUlang();
     } catch (e, s) {

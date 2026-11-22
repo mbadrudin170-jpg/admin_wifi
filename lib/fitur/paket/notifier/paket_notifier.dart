@@ -47,7 +47,7 @@ class PaketNotifier extends _$PaketNotifier {
       final now = DateTime.now();
       final data = model.copyWith(diperbarui: now).toSqlite();
 
-      await operasiSqlite.tambah(PaketSkema.tabel, data);
+      await operasiSqlite.sisipkan(PaketSkema.tabel, data);
       L.i('Berhasil membuat paket, id: ${model.id}');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
@@ -64,7 +64,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final dataList = models.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.tambahBatch(PaketSkema.tabel, dataList);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(PaketSkema.tabel, dataList);
       L.i(
         'Berhasil menyelesaikan proses batch untuk ${models.length} item paket.',
       );
@@ -83,7 +83,7 @@ class PaketNotifier extends _$PaketNotifier {
       final now = DateTime.now();
       final data = model.copyWith(diperbarui: now).toSqlite();
 
-      await operasiSqlite.ubah(PaketSkema.tabel, data, id: model.id);
+      await operasiSqlite.perbarui(PaketSkema.tabel, data, model.id);
       L.i('Berhasil memperbarui paket, id: ${model.id}');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
