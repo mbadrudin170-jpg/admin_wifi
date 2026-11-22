@@ -1,6 +1,8 @@
 // path: lib/widget/transaksi_list_widgets.dart
 // diubah: Menghapus operator null-aware yang tidak perlu dan memperbaiki penanganan error.
 
+import 'dart:async';
+
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
@@ -87,14 +89,16 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         key: ValueKey(widget.transaksi.id),
-        onTap: () async {
-          final result = await Nav.to(
-            context,
-            DetailTransaksiPage(transaksi: widget.transaksi),
+        onTap: () {
+          unawaited(
+            Nav.to(
+              context,
+              DetailTransaksiPage(transaksi: widget.transaksi),
+            ).catchError((e, s) {
+              L.e('Gagal navigasi detail transaksi: $e\n$s');
+              return null;
+            }),
           );
-          if (result == true) {
-            widget.onDataChanged();
-          }
         },
         onLongPress: () {
           showDialog(

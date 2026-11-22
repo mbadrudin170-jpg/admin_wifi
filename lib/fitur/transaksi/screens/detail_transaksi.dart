@@ -1,15 +1,17 @@
 // path: lib/fitur/transaksi/screens/detail_transaksi.dart
 // Halaman ini menampilkan detail dari satu transaksi.
 
+import 'dart:async';
+
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
@@ -25,13 +27,17 @@ class DetailTransaksiPage extends ConsumerStatefulWidget {
 }
 
 class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
-  @override
-  void initState() {
-    super.initState();
+  void _bukaFormEdit() {
+    unawaited(
+      Nav.to(
+        context,
+        FormTransaksiPage(transaksi: widget.transaksi),
+      ).catchError((Object e, StackTrace s) {
+        L.e('Gagal membuka form edit transaksi: $e $s');
+        return null;
+      }),
+    );
   }
-
-  // diubah: me-refresh data transaksi setelah kembali dari halaman edit
-  void _bukaFormEdit() {}
 
   @override
   Widget build(BuildContext context) {
@@ -92,21 +98,11 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Transaksi'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            L.i(
-              'Kembali ke halaman sebelumnya dari Detail Transaksi ID: ${transaksi.id}',
-            );
-            Nav.pop(context);
-          },
-        ),
-        // ditambah: tombol aksi untuk edit
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: _bukaFormEdit,
             tooltip: 'Edit Transaksi',
+            onPressed: _bukaFormEdit,
           ),
         ],
       ),
@@ -122,20 +118,15 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
             ),
             _buildDetailRow(
               'Jumlah',
-              NumberFormat.currency(
-                locale: 'id_ID',
-                symbol: 'Rp ',
-              ).format(transaksi.jumlah),
+              FormatUang.formatMataUang(transaksi.jumlah),
             ),
             _buildDetailRow('Tipe', transaksi.tipe.name.toUpperCase()),
-
             _buildDetailRowSync(
               'Dompet',
               dompetState.listDompet
                   .firstWhereOrNull((d) => d.id == transaksi.idDompet)
                   ?.namaDompet,
             ),
-
             if (idDompetTujuan != null && idDompetTujuan.isNotEmpty)
               _buildDetailRowSync(
                 'Dompet Tujuan',
@@ -208,9 +199,14 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(width: 16),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
           Flexible(child: Text(value, textAlign: TextAlign.end)),
         ],
       ),
@@ -230,9 +226,9 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          spacing: 16,
           children: [
             Text('Gagal memuat $label: $errorMessage'),
-            const SizedBox(height: 16),
             FilledButton(onPressed: onRefresh, child: const Text('Coba Lagi')),
           ],
         ),
