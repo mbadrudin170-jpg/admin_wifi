@@ -33,7 +33,7 @@ final class PesananNotifierProvider
   PesananNotifier create() => PesananNotifier();
 }
 
-String _$pesananNotifierHash() => r'b4ae5820dd75c0d82b64e9ea0016b8fc5caf51c5';
+String _$pesananNotifierHash() => r'e0d0a3b3755e5ca4de7bea47df884a6d8043e0f5';
 
 abstract class _$PesananNotifier extends $AsyncNotifier<PesananState> {
   FutureOr<PesananState> build();

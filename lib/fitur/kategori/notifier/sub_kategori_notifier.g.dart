@@ -34,7 +34,7 @@ final class SubKategoriNotifierProvider
 }
 
 String _$subKategoriNotifierHash() =>
-    r'519cff7866fafacc4531f7f256693d317579f5b8';
+    r'917382a59126d5d20a4590c58bf33cc2ac04e5fd';
 
 abstract class _$SubKategoriNotifier extends $AsyncNotifier<SubKategoriState> {
   FutureOr<SubKategoriState> build();

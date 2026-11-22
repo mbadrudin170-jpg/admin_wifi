@@ -33,7 +33,7 @@ final class PelangganNotifierProvider
   PelangganNotifier create() => PelangganNotifier();
 }
 
-String _$pelangganNotifierHash() => r'77a4f4e8d6bfd9d04eecb7579c1d33794fbf24ab';
+String _$pelangganNotifierHash() => r'fae7f94f518719173a2db9dfd334406a8e4dcb9b';
 
 abstract class _$PelangganNotifier extends $AsyncNotifier<PelangganState> {
   FutureOr<PelangganState> build();

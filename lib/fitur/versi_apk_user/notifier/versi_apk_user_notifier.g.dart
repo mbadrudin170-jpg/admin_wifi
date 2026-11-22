@@ -34,7 +34,7 @@ final class VersiApkUserNotifierProvider
 }
 
 String _$versiApkUserNotifierHash() =>
-    r'b2fc3f0abc2bd953cf00a9953f8ab7f6e4bd7bc6';
+    r'a037c18314f79a45d48fce1390e0430cf37ae04b';
 
 abstract class _$VersiApkUserNotifier
     extends $AsyncNotifier<VersiApkUserState> {

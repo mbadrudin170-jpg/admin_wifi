@@ -1,12 +1,14 @@
 // path: lib/fitur/transaksi/screens/transaksi.dart
+// diubah: Urutan impor alfabetis menurut path lengkap (penamaan-konvensi #17) dan
+// penanganan error pada `_tambahTransaksi` (try/catch + L.e + AppToast + mounted).
 
-import 'package:flutter/cupertino.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
-import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:admin_wifi/widget/transaksi_list_widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
@@ -80,9 +82,16 @@ class _TransaksiPageState extends ConsumerState<TransaksiPage> {
   }
 
   void _tambahTransaksi() async {
-    final result = await Nav.to(context, const FormTransaksiPage());
-    if (result == true) {
-      await _muatUlang();
+    try {
+      final result = await Nav.to(context, const FormTransaksiPage());
+      if (result == true && mounted) {
+        await _muatUlang();
+      }
+    } catch (e, s) {
+      L.e('Gagal menambah transaksi: $e $s');
+      if (mounted) {
+        AppToast.gagal(context, 'Gagal menambah transaksi.');
+      }
     }
   }
 

@@ -34,7 +34,7 @@ final class PenggunaAktifNotifierProvider
 }
 
 String _$penggunaAktifNotifierHash() =>
-    r'ae872b4e77e34619a884a36617bdd26d69d620bc';
+    r'ecf26e0d1fa2b850af86d3e63609ab93cc24c250';
 
 abstract class _$PenggunaAktifNotifier
     extends $AsyncNotifier<PelangganAktifState> {

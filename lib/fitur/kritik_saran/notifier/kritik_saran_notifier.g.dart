@@ -34,7 +34,7 @@ final class KritikSaranNotifierProvider
 }
 
 String _$kritikSaranNotifierHash() =>
-    r'1f6aaba85a7a4ce1970c72399ba07a7d57168f1b';
+    r'607361f9055b39cb860d99759bfb743d872d335c';
 
 abstract class _$KritikSaranNotifier extends $AsyncNotifier<KritikSaranState> {
   FutureOr<KritikSaranState> build();

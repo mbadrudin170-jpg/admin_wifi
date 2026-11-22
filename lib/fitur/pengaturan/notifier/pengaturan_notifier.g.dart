@@ -34,7 +34,7 @@ final class PengaturanNotifierProvider
 }
 
 String _$pengaturanNotifierHash() =>
-    r'4e896df9ea9c7f809592312f6ad3b5affee41405';
+    r'52b3c2e3e470b3a5946cfdcec138c783ce17990e';
 
 abstract class _$PengaturanNotifier extends $AsyncNotifier<PengaturanState> {
   FutureOr<PengaturanState> build();
