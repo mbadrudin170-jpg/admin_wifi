@@ -1,126 +1,63 @@
 // path: lib/fitur/pelanggan/screens/detail_pelanggan.dart
+
 import 'dart:async';
 
+import 'package:admin_wifi/fitur/pelanggan/helper/pelanggan_poin_helper.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
-import 'package:flutter/services.dart';
 
-// Mengganti developer log standar dengan log custom
-
-class DetailPelangganPage extends StatefulWidget {
+/// Halaman detail satu pelanggan.
+///
+/// Data pelanggan dan total poin dibaca dari provider Riverpod via [ref.watch]
+/// di [build]. Query data dilakukan di state Freezed sebagai method in-memory
+/// (`getById`, `getPoinYangDihasilkan`, `getPoinYangDigunakan`), bukan via
+/// `pelangganNotifierGlobal` yang langsung query DB (code.md #29).
+class DetailPelangganPage extends ConsumerStatefulWidget {
   final String idPelanggan;
 
   const DetailPelangganPage({super.key, required this.idPelanggan});
 
   @override
-  State<DetailPelangganPage> createState() => _DetailPelangganPageState();
+  ConsumerState<DetailPelangganPage> createState() =>
+      _DetailPelangganPageState();
 }
 
-class _DetailPelangganPageState extends State<DetailPelangganPage> {
-  // Global notifier untuk pelanggan (diakses lewat ProviderContainer terpisah)
-
-  PelangganModel? pelanggan;
-  int totalPoin = 0;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Log inisialisasi state
-    L.i(
-      'Memulai siklus hidup initState pada DetailPelangganPage untuk ID Pelanggan: ${widget.idPelanggan}. Sistem akan segera memicu pemuatan data dari database.',
-    );
-    _loadData();
-  }
-
-  // Fungsi ini bertujuan untuk memuat data pelanggan dan total poin.
-  Future<void> _loadData() async {
-    L.i(
-      'Menjalankan fungsi _loadData(). Mencoba melakukan pengambilan data paralel untuk profil pelanggan dan akumulasi poin dari database.',
-    );
-    try {
-      // diubah: agar lebih ringkas
-      if (mounted) {
-        setState(() {
-          isLoading = true;
-        });
-      }
-      L.i(
-        'Memulai request asinkron ke PelangganOperasi untuk mencari data dengan ID: ${widget.idPelanggan}',
-      );
-      final hasilPelanggan = await pelangganNotifierGlobal.getPelangganById(
-        widget.idPelanggan,
-      );
-
-      L.i(
-        'Memulai request asinkron ke TransaksiOperasi untuk menghitung total poin pelanggan ID: ${widget.idPelanggan}',
-      );
-      final hasilPoin = await pelangganNotifierGlobal.hitungTotalPoin(
-        widget.idPelanggan,
-      );
-
-      if (!mounted) {
-        L.w(
-          'Fungsi _loadData() selesai tapi widget sudah tidak terpasang (not mounted) di pohon widget. Membatalkan pembaruan State untuk mencegah kebocoran memori.',
-        );
-        return;
-      }
-
-      setState(() {
-        pelanggan = hasilPelanggan;
-        totalPoin = hasilPoin;
-        isLoading = false;
-      });
-
-      if (hasilPelanggan != null) {
-        L.i(
-          'Pemuatan data berhasil secara keseluruhan. Objek pelanggan atas nama "${hasilPelanggan.nama}" telah dimuat ke dalam state dan UI siap dirender ulang.',
-        );
-      } else {
-        L.w(
-          'Pemuatan data selesai tetapi mengembalikan nilai null. Pelanggan dengan ID: ${widget.idPelanggan} tidak ditemukan dalam koleksi database. UI akan menampilkan pesan data tidak ditemukan.',
-        );
-      }
-    } catch (e, stackTrace) {
-      L.e(
-        'Terjadi kegagalan fatal saat proses pengambilan data di fungsi _loadData(). Hal ini bisa disebabkan oleh masalah koneksi database atau ketidakcocokan skema model. Error: $e $stackTrace',
-      );
-      if (mounted) {
-        setState(() => isLoading = false);
-        L.i(
-          'State isLoading telah diatur ke false meskipun terjadi error agar spinner berhenti berputar.',
-        );
-      }
-    }
-  }
-
-  // ditambahkan: fungsi untuk navigasi ke halaman edit
+class _DetailPelangganPageState extends ConsumerState<DetailPelangganPage> {
+  /// Navigasi ke halaman edit pelanggan; refresh data saat perubahan disimpan.
   void _editPelanggan() async {
-    final p = pelanggan;
-    if (p == null) return;
+    final asyncPelanggan = ref.read(pelangganProvider);
+    if (asyncPelanggan.hasError || asyncPelanggan.isLoading) {
+      return;
+    }
+    final p = asyncPelanggan.requireValue.getById(widget.idPelanggan);
+    if (p == null) {
+      return;
+    }
+
     L.i('Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${p.id}');
     final result = await Nav.to(context, FormPelanggan(pelanggan: p));
-
-    if (result == true && mounted) {
+    if (!mounted) {
+      return;
+    }
+    if (result == true) {
       L.i(
         'Kembali dari FormPelanggan dengan hasil true. Memuat ulang data pelanggan.',
       );
-      _loadData(); // Muat ulang data untuk menampilkan perubahan
+      [ref.refresh(pelangganProvider), ref.refresh(transaksiProvider)];
     } else {
       L.i('Kembali dari FormPelanggan tanpa menyimpan perubahan.');
     }
   }
 
-  // Fungsi ini bertujuan untuk menyalin semua info pelanggan.
+  /// Menyalin seluruh info pelanggan ke Clipboard.
   void _salinSemuaInfo(BuildContext context, PelangganModel pelanggan) {
-    L.i(
-      'User memicu aksi _salinSemuaInfo(). Mempersiapkan penggabungan string untuk Nama: ${pelanggan.nama}, Telepon: ${pelanggan.telepon}, Alamat: ${pelanggan.alamat}, Password: ${pelanggan.password}, dan MAC: ${pelanggan.macAddress}.',
-    );
-
     final info =
         '''
 Nama : ${pelanggan.nama}
@@ -131,56 +68,74 @@ MAC : ${pelanggan.macAddress}
 '''
             .trim();
 
-    Clipboard.setData(ClipboardData(text: info)).then((_) {
-      L.i(
-        'Data komprehensif pelanggan berhasil didorong ke sistem Clipboard perangkat.',
-      );
-    });
+    unawaited(
+      Clipboard.setData(ClipboardData(text: info))
+          .then((_) {
+            L.i(
+              'Semua info pelanggan "${pelanggan.nama}" disalin ke Clipboard.',
+            );
+          })
+          .catchError((Object e, StackTrace s) {
+            L.e('Gagal menyalin semua info ke Clipboard: $e $s');
+            return null;
+          }),
+    );
 
     AppToast.sukses(context, 'Semua info berhasil disalin');
   }
 
-  // Fungsi ini bertujuan untuk menyalin data spesifik.
+  /// Menyalin data spesifik [label] dengan nilai [data] ke Clipboard.
   void _salinData(BuildContext context, String label, String data) {
-    L.i(
-      'User memicu aksi _salinData() untuk bagian spesifik: $label dengan nilai data: $data.',
-    );
+    L.i('Data "$label" disalin ke Clipboard.');
 
-    Clipboard.setData(ClipboardData(text: data)).then((_) {
-      L.i('Berhasil menyalin data kategori $label ke Clipboard.');
-    });
+    unawaited(
+      Clipboard.setData(ClipboardData(text: data))
+          .then((_) {
+            L.i('Data "$label" berhasil disalin ke Clipboard.');
+          })
+          .catchError((Object e, StackTrace s) {
+            L.e('Gagal menyalin data "$label" ke Clipboard: $e $s');
+            return null;
+          }),
+    );
 
     AppToast.sukses(context, '$label berhasil disalin');
   }
 
   @override
   Widget build(BuildContext context) {
-    L.i(
-      'Membangun UI (build method) DetailPelangganPage. Status Loading: $isLoading, Pelanggan Terdeteksi: ${pelanggan != null}',
-    );
+    final asyncPelanggan = ref.watch(pelangganProvider);
+    final asyncTransaksi = ref.watch(transaksiProvider);
 
-    // Tampilkan loading spinner saat data sedang diambil
-    if (isLoading) {
-      L.i(
-        'Merender tampilan CircularProgressIndicator karena status isLoading masih true.',
+    // Loading gabungan: jika salah satu provider masih loading, tampilkan indikator.
+    if (asyncPelanggan.isLoading || asyncTransaksi.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Error per provider ditangani secara terpisah via satu helper bersama;
+    // retry memakai ref.refresh dengan hasil yang dipakai (code.md #24 / #41).
+    if (asyncPelanggan.hasError) {
+      return _buildError(
+        'Gagal memuat data pelanggan: ${asyncPelanggan.error}',
+        () => ref.refresh(pelangganProvider),
       );
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Memuat Detail...'),
-        ), // diubah: judul appbar saat loading
-        body: const Center(child: CircularProgressIndicator()),
+    }
+    if (asyncTransaksi.hasError) {
+      return _buildError(
+        'Gagal memuat data transaksi: ${asyncTransaksi.error}',
+        () => ref.refresh(transaksiProvider),
       );
     }
 
-    // Cek jika data kosong setelah loading selesai
-    final p = pelanggan;
+    final pelangganState = asyncPelanggan.requireValue;
+    final transaksiState = asyncTransaksi.requireValue;
+
+    // Query in-memory di state (Freezed), bukan query DB langsung dari notifier.
+    final p = pelangganState.getById(widget.idPelanggan);
     if (p == null) {
-      L.w(
-        'Merender tampilan pesan "Pelanggan tidak ditemukan" karena objek pelanggan bernilai null setelah proses loading selesai.',
-      );
       return Scaffold(
         appBar: AppBar(title: const Text('Detail Pelanggan')),
-        body: EmptyStateView(
+        body: const EmptyStateView(
           ikon: Icons.person_off,
           judul: 'Pelanggan tidak ditemukan',
           deskripsi: 'Data pelanggan dengan ID ini tidak tersedia.',
@@ -188,10 +143,26 @@ MAC : ${pelanggan.macAddress}
       );
     }
 
+    final poinAwal = p.poinAwal;
+    final poinDihasilkan = transaksiState.getPoinYangDihasilkan(
+      widget.idPelanggan,
+    );
+    final poinDigunakan = transaksiState.getPoinYangDigunakan(
+      widget.idPelanggan,
+    );
+    final totalPoin = PelangganPoinHelper.hitungTotalPoin(
+      poinAwal: poinAwal,
+      poinDihasilkan: poinDihasilkan,
+      poinDigunakan: poinDigunakan,
+    );
+
+    L.i(
+      'Detail pelanggan ditampilkan: ${p.nama} (ID: ${p.id}), total poin: $totalPoin',
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Pelanggan'),
-        // ditambahkan: tombol edit di appbar
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -212,22 +183,21 @@ MAC : ${pelanggan.macAddress}
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
-                  L.i(
-                    'Interaksi pengguna: Mengetuk kartu Poin. Melakukan navigasi push ke HalamanPoin untuk pelanggan: ${p.nama}',
-                  );
+                  L.i('Kartu poin diklik untuk pelanggan: ${p.nama}');
                   unawaited(
                     Nav.to(
                           context,
                           HalamanPoin(idPelanggan: widget.idPelanggan),
                         )
                         .then((_) {
-                          L.i(
-                            'Kembali dari HalamanPoin ke DetailPelangganPage.',
-                          );
-                          _loadData(); // ditambahkan: muat ulang data poin jika ada perubahan
+                          [
+                            ref.refresh(pelangganProvider),
+                            ref.refresh(transaksiProvider),
+                          ];
                         })
                         .catchError((Object e, StackTrace s) {
-                          L.e('Navigasi gagal: $e $s');
+                          L.e('Navigasi ke HalamanPoin gagal: $e $s');
+                          return null;
                         }),
                   );
                 },
@@ -263,34 +233,29 @@ MAC : ${pelanggan.macAddress}
             ),
             const SizedBox(height: 24),
             _buildDetailRow(context, 'Nama', p.nama, () {
-              L.i('Trigger tombol salin pada baris Nama.');
               _salinData(context, 'Nama', p.nama);
             }),
             const Divider(),
             _buildDetailRow(context, 'Telepon', p.telepon, () {
-              L.i('Trigger tombol salin pada baris Telepon.');
               _salinData(context, 'No Telepon', p.telepon);
             }),
             const Divider(),
             _buildDetailRow(context, 'Alamat', p.alamat, () {
-              L.i('Trigger tombol salin pada baris Alamat.');
               _salinData(context, 'Alamat', p.alamat);
             }),
             const Divider(),
             _buildDetailRow(context, 'Password', p.password, () {
-              L.i('Trigger tombol salin pada baris Password.');
               _salinData(context, 'Password', p.password);
             }),
             const Divider(),
             _buildDetailRow(context, 'MAC Address', p.macAddress, () {
-              L.i('Trigger tombol salin pada baris MAC Address.');
               _salinData(context, 'MAC Address', p.macAddress);
             }),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
                 L.i(
-                  'Menekan tombol utama "Salin Semua Info" di bagian bawah layar.',
+                  'Menekan tombol utama "Salin Semua Info" untuk pelanggan: ${p.nama}',
                 );
                 _salinSemuaInfo(context, p);
               },
@@ -312,9 +277,6 @@ MAC : ${pelanggan.macAddress}
     String detail,
     VoidCallback salinData,
   ) {
-    // Log pembentukan widget row (opsional untuk sangat terperinci)
-    // L.i('Membangun baris detail untuk kategori: $judul');
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
@@ -345,6 +307,32 @@ MAC : ${pelanggan.macAddress}
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildError(String pesan, VoidCallback onRetry) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            Text(
+              pesan,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
+          ],
+        ),
       ),
     );
   }
