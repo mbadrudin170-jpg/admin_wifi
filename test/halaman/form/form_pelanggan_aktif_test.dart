@@ -249,7 +249,7 @@ void main() {
     expect(fakeTransaksiNotifier.panggilanTambah, 1);
   });
 
-  testWidgets('simpan gagal karena poin tidak cukup', (tester) async {
+  testWidgets('switch poin nonaktif saat poin nol', (tester) async {
     fakeTransaksiNotifier.saldoPoin = 0;
 
     await pumpForm(tester);
@@ -265,15 +265,15 @@ void main() {
     await tester.tap(find.text('Paket 1 Jam').first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(Switch));
-    await tester.pumpAndSettle();
+    final switchWidget = tester.widget<Switch>(find.byType(Switch));
+    expect(switchWidget.onChanged, isNull);
 
     await tester.tap(find.text('Simpan'));
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
-    expect(fakePenggunaAktifNotifier.panggilanTambah, 0);
-    expect(fakeTransaksiNotifier.panggilanTambah, 0);
+    expect(fakePenggunaAktifNotifier.panggilanTambah, 1);
+    expect(fakeTransaksiNotifier.panggilanTambah, 1);
   });
 
   testWidgets('edit mode sukses', (tester) async {

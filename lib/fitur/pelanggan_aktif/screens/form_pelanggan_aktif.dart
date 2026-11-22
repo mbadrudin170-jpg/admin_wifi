@@ -142,10 +142,12 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       });
     });
 
-    final tglMulai = pa.tanggalMulai;
+    final tglMulai = _modePerpanjang ? pa.tanggalBerakhir : pa.tanggalMulai;
     _selectedDate = tglMulai;
     _selectedTime = TimeOfDay.fromDateTime(tglMulai);
-    _statusPembayaran = pa.status;
+    _statusPembayaran = _modePerpanjang
+        ? StatusPembayaranEnum.belumLunas
+        : pa.status;
   }
 
   void _petakanModeBaru() {
@@ -508,16 +510,18 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
           ),
           Switch(
             value: _gunakanPoin,
-            onChanged: (bool value) {
-              setState(() {
-                _gunakanPoin = value;
-                if (!_kategoriList.contains(_selectedKategori)) {
-                  _selectedKategori = _kategoriList.isNotEmpty
-                      ? _kategoriList.first
-                      : null;
-                }
-              });
-            },
+            onChanged: _saldoPoinPelanggan <= 0
+                ? null
+                : (bool value) {
+                    setState(() {
+                      _gunakanPoin = value;
+                      if (!_kategoriList.contains(_selectedKategori)) {
+                        _selectedKategori = _kategoriList.isNotEmpty
+                            ? _kategoriList.first
+                            : null;
+                      }
+                    });
+                  },
           ),
         ],
       ),
@@ -544,12 +548,15 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
               final saldoPoin = await ref
                   .read(transaksiProvider.notifier)
                   .hitungTotalPoin(newValue.id);
-              if (mounted) {
-                setState(() {
-                  _selectedPelanggan = newValue;
-                  _saldoPoinPelanggan = saldoPoin;
-                });
-              }
+        if (mounted) {
+          setState(() {
+            _selectedPelanggan = newValue;
+            _saldoPoinPelanggan = saldoPoin;
+            if (saldoPoin <= 0) {
+              _gunakanPoin = false;
+            }
+          });
+        }
             },
       validator: (v) => v == null ? 'Pelanggan tidak boleh kosong' : null,
     );
@@ -620,7 +627,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             TextButton.icon(
-              onPressed: () => _selectDate(context),
+              onPressed: _modePerpanjang ? null : () => _selectDate(context),
               icon: const Icon(Icons.calendar_today),
               label: Text(
                 _selectedDate == null
@@ -629,7 +636,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
               ),
             ),
             TextButton.icon(
-              onPressed: () => _selectTime(context),
+              onPressed: _modePerpanjang ? null : () => _selectTime(context),
               icon: const Icon(Icons.access_time),
               label: Text(
                 _selectedTime == null

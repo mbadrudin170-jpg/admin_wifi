@@ -47,7 +47,6 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   void initState() {
     super.initState();
     L.i('Halaman Pelanggan Aktif sedang diinisialisasi.');
-    _loadData();
     _searchController.addListener(_onSearchChanged);
   }
 
