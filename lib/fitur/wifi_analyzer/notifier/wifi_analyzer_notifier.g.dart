@@ -13,7 +13,7 @@ part of 'wifi_analyzer_notifier.dart';
 final wifiAnalyzerProvider = WifiAnalyzerNotifierProvider._();
 
 final class WifiAnalyzerNotifierProvider
-    extends $AsyncNotifierProvider<WifiAnalyzerNotifier, WifiAnalyzerState> {
+    extends $StreamNotifierProvider<WifiAnalyzerNotifier, WifiAnalyzerState> {
   WifiAnalyzerNotifierProvider._()
     : super(
         from: null,
@@ -34,11 +34,11 @@ final class WifiAnalyzerNotifierProvider
 }
 
 String _$wifiAnalyzerNotifierHash() =>
-    r'83a7fa620926ed483a7f4c094b572966aaf711cf';
+    r'8b5048a382f43a1767bd0094710f6db293575ec6';
 
 abstract class _$WifiAnalyzerNotifier
-    extends $AsyncNotifier<WifiAnalyzerState> {
-  FutureOr<WifiAnalyzerState> build();
+    extends $StreamNotifier<WifiAnalyzerState> {
+  Stream<WifiAnalyzerState> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {

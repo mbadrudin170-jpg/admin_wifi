@@ -1,10 +1,7 @@
 // path: lib/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart
 
-import 'dart:async';
-
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:wifi_scan/wifi_scan.dart';
@@ -17,28 +14,14 @@ class WifiAnalyzerScreen extends ConsumerStatefulWidget {
 }
 
 class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) {
-          _muatData();
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   Future<void> _muatData() async {
-    await ref.read(wifiAnalyzerProvider.notifier).muatUlang();
+    ref.invalidate(wifiAnalyzerProvider);
+    await ref.read(wifiAnalyzerProvider.future);
   }
 
   String _bandDariFrekuensi(int frekuensi) {

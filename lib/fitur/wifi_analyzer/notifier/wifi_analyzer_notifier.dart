@@ -15,16 +15,10 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   final _networkInfo = NetworkInfo();
 
   @override
-  Future<WifiAnalyzerState> build() async {
-    return _ambilData();
-  }
-
-  Future<void> muatUlang() async {
-    try {
-      state = AsyncValue.data(await _ambilData());
-    } catch (e, s) {
-      L.e('Gagal memuat ulang WiFi analyzer: $e $s');
-      state = AsyncValue.error(e, s);
+  Stream<WifiAnalyzerState> build() async* {
+    yield await _ambilData();
+    await for (final _ in Stream.periodic(const Duration(seconds: 1))) {
+      yield await _ambilData();
     }
   }
 
