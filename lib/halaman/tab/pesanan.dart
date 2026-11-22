@@ -73,6 +73,77 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
     }
   }
 
+  void _showPesananDetail(PesananModel pesanan) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Detail Pesanan #${pesanan.id}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            _detailRow('Nama Pelanggan', pesanan.idPelanggan),
+            _detailRow('Paket', pesanan.idPaket),
+            _detailRow(
+              'Tanggal',
+              DateFormat('dd MMM yyyy HH:mm').format(pesanan.tanggal),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncPesanan = ref.watch(pesananProvider);
@@ -153,14 +224,14 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
 
   Widget _filterChip(String label, String value) {
     final isSelected = _filterStatus == value;
-    return FilterChip(
+    return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
         setState(() => _filterStatus = value);
       },
       selectedColor: Theme.of(context).colorScheme.primaryContainer,
-      checkmarkColor: Theme.of(context).colorScheme.primary,
+      showCheckmark: false,
     );
   }
 
@@ -399,76 +470,5 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
   String _getStatusText(PesananModel pesanan) {
     return pesanan.status.substring(0, 1).toUpperCase() +
         pesanan.status.substring(1);
-  }
-
-  void _showPesananDetail(PesananModel pesanan) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Detail Pesanan #${pesanan.id}',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            _detailRow('Nama Pelanggan', pesanan.idPelanggan),
-            _detailRow('Paket', pesanan.idPaket),
-            _detailRow(
-              'Tanggal',
-              DateFormat('dd MMM yyyy HH:mm').format(pesanan.tanggal),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
