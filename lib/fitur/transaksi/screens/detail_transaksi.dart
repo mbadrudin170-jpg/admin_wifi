@@ -39,18 +39,6 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        L.i(
-          'DetailTransaksiPage Scaffold pertama kali tampil: ${DateTime.now().toIso8601String()}',
-        );
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     L.i('DetailTransaksiPage build mulai: ${DateTime.now().toIso8601String()}');
     final transaksi = widget.transaksi;
@@ -58,19 +46,12 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     final asyncKategori = ref.watch(kategoriProvider);
     final asyncPelanggan = ref.watch(pelangganProvider);
     final asyncPaket = ref.watch(paketProvider);
-
-    L.i(
-      'DetailTransaksiPage providers siap: ${DateTime.now().toIso8601String()}',
-    );
-
-    // Loading gabungan: jika salah satu provider masih loading, tampilkan indikator.
     if (asyncDompet.isLoading ||
         asyncKategori.isLoading ||
         asyncPelanggan.isLoading ||
         asyncPaket.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     // Error per provider, ditangani secara terpisah dengan tombol retry.
     String? errorLabel;
     VoidCallback? errorOnRetry;
@@ -100,9 +81,6 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
         errorOnRetry!,
       );
     }
-    L.i(
-      'DetailTransaksiPage error provider: $errorLabel, pesan: $errorPesan, waktu: ${DateTime.now().toIso8601String()}',
-    );
     final dompetState = asyncDompet.requireValue;
     final kategoriState = asyncKategori.requireValue;
     final pelangganState = asyncPelanggan.requireValue;
