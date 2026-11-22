@@ -1,4 +1,4 @@
-// path: test/halaman/form/form_pelanggan_aktif_test.dart
+// path: test/fitur/pelanggan_aktif/screens/form_pelanggan_aktif_test.dart
 // catatan: widget yang diuji kini berada di lib/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart
 
 import 'package:admin_wifi/enum/enum.dart';
@@ -15,6 +15,11 @@ import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
+import 'package:admin_wifi/fitur/dompet/dummy/dompet_dummy.dart';
+import 'package:admin_wifi/fitur/kategori/dummy/kategori_dummy.dart';
+import 'package:admin_wifi/fitur/paket/dummy/paket_dummy.dart';
+import 'package:admin_wifi/fitur/pelanggan/dummy/pelanggan_dummy.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/dummy/pelanggan_aktif_dummy.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
@@ -129,55 +134,11 @@ void main() {
   late FakeDompetNotifier fakeDompetNotifier;
   late FakeKategoriNotifier fakeKategoriNotifier;
 
-  final pelangganDummy = <PelangganModel>[
-    PelangganModel(
-      id: 'p1',
-      nama: 'Pelanggan A',
-      telepon: '08123',
-      alamat: 'Alamat A',
-      password: 'pass',
-      diperbarui: DateTime.now(),
-    ),
-  ];
-
-  final paketDummy = <PaketModel>[
-    PaketModel(
-      id: 'pkt1',
-      nama: 'Paket 1 Jam',
-      harga: 5000,
-      durasi: 1,
-      tipe: TipeDurasi.jam,
-      poinPenukaran: 0,
-      poinHadiah: 10,
-    ),
-  ];
-
-  final dompetDummy = <DompetModel>[
-    DompetModel(
-      id: 'd1',
-      namaDompet: 'Dompet Utama',
-      saldo: 100000,
-      isDeleted: false,
-    ),
-  ];
-
-  final kategoriDummy = <KategoriModel>[
-    KategoriModel(
-      id: 'k1',
-      nama: 'Aktivasi Paket',
-      tipe: TipeKategori.pemasukan,
-      isDeleted: false,
-    ),
-  ];
-
-  final pelangganAktifDummy = PelangganAktifModel(
-    id: 'pa-dummy',
-    idPelanggan: 'p1',
-    idPaket: 'pkt1',
-    tanggalMulai: DateTime.now(),
-    tanggalBerakhir: DateTime.now().add(const Duration(hours: 1)),
-    status: StatusPembayaranEnum.lunas,
-  );
+  final pelangganDummy = PelangganDummy.dummyList;
+  final paketDummy = PaketDummy.dummyList;
+  final dompetDummy = DompetDummy.dummyList;
+  final kategoriDummy = KategoriDummy.dummyList;
+  final pelangganAktifDummy = PelangganAktifDummy.dummyList.first;
 
   Future<void> pumpForm(
     WidgetTester tester, {
@@ -231,12 +192,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Pelanggan A').first);
+    await tester.tap(find.text('Budi Santoso').first);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('paket_dropdown')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Paket 1 Jam').first);
+    await tester.tap(find.text('Paket Bulanan').first);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Simpan'));
@@ -257,12 +218,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('pelanggan_dropdown')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Pelanggan A').first);
+    await tester.tap(find.text('Budi Santoso').first);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('paket_dropdown')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Paket 1 Jam').first);
+    await tester.tap(find.text('Paket Bulanan').first);
     await tester.pumpAndSettle();
 
     final switchWidget = tester.widget<Switch>(find.byType(Switch));
