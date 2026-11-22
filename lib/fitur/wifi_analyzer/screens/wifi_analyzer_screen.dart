@@ -94,49 +94,55 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           ),
         ],
       ),
-      body: asyncState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text('Gagal memuat data: $e', textAlign: TextAlign.center),
-          ),
-        ),
-        data: (state) {
-          if (state.errorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(state.errorMessage!, textAlign: TextAlign.center),
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: _muatData,
-            child: ListView(
+      body: () {
+        if (asyncState.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (asyncState.hasError) {
+          return Center(
+            child: Padding(
               padding: const EdgeInsets.all(16),
-              children: [
-                _buildKartuTerhubung(state),
-                const SizedBox(height: 16),
-                Text(
-                  'Jaringan di Sekitar (${state.accessPoints.length})',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                if (state.accessPoints.isEmpty)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('Tidak ada jaringan terdeteksi.'),
-                    ),
-                  )
-                else
-                  ...state.accessPoints.map(_buildItemAp),
-              ],
+              child: Text(
+                'Gagal memuat data: ${asyncState.error}',
+                textAlign: TextAlign.center,
+              ),
             ),
           );
-        },
-      ),
+        }
+        final state = asyncState.requireValue;
+        if (state.errorMessage != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(state.errorMessage!, textAlign: TextAlign.center),
+            ),
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: _muatData,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildKartuTerhubung(state),
+              const SizedBox(height: 16),
+              Text(
+                'Jaringan di Sekitar (${state.accessPoints.length})',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              if (state.accessPoints.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('Tidak ada jaringan terdeteksi.'),
+                  ),
+                )
+              else
+                ...state.accessPoints.map(_buildItemAp),
+            ],
+          ),
+        );
+      }(),
     );
   }
 
