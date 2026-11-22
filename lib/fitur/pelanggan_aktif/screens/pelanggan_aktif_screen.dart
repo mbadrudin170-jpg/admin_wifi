@@ -432,15 +432,19 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
           : hasilFilter.isEmpty && _searchController.text.isNotEmpty
           ? const Center(child: Text('Pelanggan tidak ditemukan.'))
           : CustomScrollView(
-              slivers: [
-                if (listJatuhTempo.isNotEmpty)
-                  _buildSliverListJatuhTempo(
-                    listJatuhTempo,
-                    pelangganState,
-                    paketState,
-                  ),
-                _buildSliverListUtama(hasilFilter, pelangganState, paketState),
-              ],
+               slivers: [
+                 if (listJatuhTempo.isNotEmpty)
+                   _buildSliverListJatuhTempo(
+                     listJatuhTempo,
+                     pelangganState,
+                     paketState,
+                   ),
+                 if (listJatuhTempo.isNotEmpty)
+                   const SliverToBoxAdapter(
+                     child: Divider(height: 1, indent: 16, endIndent: 16),
+                   ),
+                 _buildSliverListUtama(hasilFilter, pelangganState, paketState),
+               ],
             ),
     );
   }
@@ -452,8 +456,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   ) {
     return SliverList.separated(
       itemCount: listJatuhTempo.length,
-      separatorBuilder: (context, index) =>
-          const Divider(height: 1, indent: 16, endIndent: 16),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final pelangganAktif = listJatuhTempo[index];
         final pelanggan = pelangganState.getById(pelangganAktif.idPelanggan);
