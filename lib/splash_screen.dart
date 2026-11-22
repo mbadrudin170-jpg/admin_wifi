@@ -4,14 +4,14 @@ import 'dart:async';
 
 import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
-import 'package:admin_wifi/services/notifikasi/fungsi_menampilkan_notifikasi.dart';
 import 'package:admin_wifi/home.dart';
-import 'package:share_global_saya/src/services/cek_koneksi_internet.dart';
+import 'package:admin_wifi/services/notifikasi/fungsi_menampilkan_notifikasi.dart';
 import 'package:admin_wifi/services/pembersihan_data_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/src/services/cek_koneksi_internet.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -180,13 +180,11 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
 
       _updateLoading("Selesai, membuka aplikasi...");
-      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e, s) {
       L.e(
         'Terjadi error kritis selama proses inisialisasi aplikasi. Proses dihentikan. Error: $e $s',
       );
       _updateLoading("Terjadi error, silakan mulai ulang aplikasi.");
-      await Future.delayed(const Duration(seconds: 5));
     }
 
     if (!mounted) {

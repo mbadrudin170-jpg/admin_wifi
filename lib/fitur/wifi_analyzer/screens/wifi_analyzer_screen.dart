@@ -1,11 +1,13 @@
 // path: lib/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart
 
+import 'dart:async';
+
+import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:share_global_saya/core_shared.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
 class WifiAnalyzerScreen extends ConsumerStatefulWidget {
@@ -16,62 +18,28 @@ class WifiAnalyzerScreen extends ConsumerStatefulWidget {
 }
 
 class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
-  final _networkInfo = NetworkInfo();
-
-  bool _isLoading = false;
-  String? _errorMessage;
-  List<WiFiAccessPoint> _accessPoints = <WiFiAccessPoint>[];
-
-  String? _ssidTerhubung;
-  String? _bssidTerhubung;
-  String? _ipTerhubung;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _muatData();
+    if (!kIsWeb) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) {
+          _muatData();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _muatData() async {
-    if (kIsWeb) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage =
-            'WiFi Analyzer tidak didukung di Web. Gunakan perangkat Android.';
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      // Informasi jaringan yang sedang terhubung.
-      _ssidTerhubung = await _networkInfo.getWifiName();
-      _bssidTerhubung = await _networkInfo.getWifiBSSID();
-      _ipTerhubung = await _networkInfo.getWifiIP();
-
-      // Pindai jaringan di sekitar (Android).
-      final canScan = await WiFiScan.instance.canStartScan();
-      if (canScan == CanStartScan.yes) {
-        await WiFiScan.instance.startScan();
-      }
-      final canGet = await WiFiScan.instance.canGetScannedResults();
-      if (canGet == CanGetScannedResults.yes) {
-        _accessPoints = await WiFiScan.instance.getScannedResults();
-      } else {
-        _errorMessage = 'Tidak dapat membaca hasil pemindaian: $canGet';
-      }
-    } catch (e, s) {
-      L.e('Gagal memuat data WiFi analyzer: $e $s');
-      _errorMessage = 'Gagal memuat data: $e';
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    await ref.read(wifiAnalyzerProvider.notifier).muatUlang();
   }
 
   String _bandDariFrekuensi(int frekuensi) {
@@ -102,8 +70,19 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     return 'Sangat Lemah';
   }
 
+  int _frekuensiTerhubung(WifiAnalyzerState state) {
+    final bssid = state.bssidTerhubung;
+    if (bssid == null) return 0;
+    final ap = state.accessPoints.firstWhereOrNull(
+      (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
+    );
+    return ap?.frequency ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final asyncState = ref.watch(wifiAnalyzerProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('WiFi Analyzer'),
@@ -115,48 +94,63 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? Center(
+      body: asyncState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('Gagal memuat data: $e', textAlign: TextAlign.center),
+          ),
+        ),
+        data: (state) {
+          if (state.errorMessage != null) {
+            return Center(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(_errorMessage!, textAlign: TextAlign.center),
+                child: Text(state.errorMessage!, textAlign: TextAlign.center),
               ),
-            )
-          : RefreshIndicator(
-              onRefresh: _muatData,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildKartuTerhubung(),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Jaringan di Sekitar (${_accessPoints.length})',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  if (_accessPoints.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('Tidak ada jaringan terdeteksi.'),
-                      ),
-                    )
-                  else
-                    ..._accessPoints.map(_buildItemAp),
-                ],
-              ),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: _muatData,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildKartuTerhubung(state),
+                const SizedBox(height: 16),
+                Text(
+                  'Jaringan di Sekitar (${state.accessPoints.length})',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                if (state.accessPoints.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('Tidak ada jaringan terdeteksi.'),
+                    ),
+                  )
+                else
+                  ...state.accessPoints.map(_buildItemAp),
+              ],
             ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildKartuTerhubung() {
-    final freq = _frekuensiTerhubung();
+  Widget _buildKartuTerhubung(WifiAnalyzerState state) {
+    final freq = _frekuensiTerhubung(state);
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
     final channel = freq > 0
         ? (_channelDariFrekuensi(freq)?.toString() ?? '-')
         : '-';
+    final apTerhubung = state.accessPoints.firstWhereOrNull(
+      (a) =>
+          a.bssid.toLowerCase() == (state.bssidTerhubung ?? '').toLowerCase(),
+    );
+    final sinyal = apTerhubung != null ? '${apTerhubung.level} dBm' : '-';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -170,26 +164,17 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
-            _buildInfoCustom('SSID', _ssidTerhubung ?? '-'),
-            _buildInfoCustom('BSSID', _bssidTerhubung ?? '-'),
-            _buildInfoCustom('IP', _ipTerhubung ?? '-'),
+            _buildInfoCustom('SSID', state.ssidTerhubung ?? '-'),
+            _buildInfoCustom('BSSID', state.bssidTerhubung ?? '-'),
+            _buildInfoCustom('IP', state.ipTerhubung ?? '-'),
             _buildInfoCustom('Band', band),
             _buildInfoCustom('Frekuensi', freq > 0 ? '$freq MHz' : '-'),
             _buildInfoCustom('Channel', channel),
+            _buildInfoCustom('Sinyal', sinyal),
           ],
         ),
       ),
     );
-  }
-
-  int _frekuensiTerhubung() {
-    // Cari AP yang BSSID-nya sama dengan jaringan terhubung.
-    final bssid = _bssidTerhubung;
-    if (bssid == null) return 0;
-    final ap = _accessPoints.firstWhereOrNull(
-      (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
-    );
-    return ap?.frequency ?? 0;
   }
 
   Widget _buildItemAp(WiFiAccessPoint ap) {

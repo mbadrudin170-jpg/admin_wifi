@@ -69,7 +69,8 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: WifiAnalyzerScreen())),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text(_kWifiName), findsOneWidget);
     expect(find.textContaining('TestSSID'), findsOneWidget);
