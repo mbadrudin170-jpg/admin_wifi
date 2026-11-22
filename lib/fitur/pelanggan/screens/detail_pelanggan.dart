@@ -50,7 +50,11 @@ class _DetailPelangganPageState extends ConsumerState<DetailPelangganPage> {
       L.i(
         'Kembali dari FormPelanggan dengan hasil true. Memuat ulang data pelanggan.',
       );
-      [ref.refresh(pelangganProvider), ref.refresh(transaksiProvider)];
+      final reloaded = [
+        ref.refresh(pelangganProvider),
+        ref.refresh(transaksiProvider),
+      ];
+      L.i('Provider dimuat ulang: $reloaded');
     } else {
       L.i('Kembali dari FormPelanggan tanpa menyimpan perubahan.');
     }
@@ -74,32 +78,30 @@ MAC : ${pelanggan.macAddress}
             L.i(
               'Semua info pelanggan "${pelanggan.nama}" disalin ke Clipboard.',
             );
+            AppToast.sukses(context, 'Semua info berhasil disalin');
           })
           .catchError((Object e, StackTrace s) {
             L.e('Gagal menyalin semua info ke Clipboard: $e $s');
+            AppToast.gagal(context, 'Gagal menyalin semua info: $e');
             return null;
           }),
     );
-
-    AppToast.sukses(context, 'Semua info berhasil disalin');
   }
 
   /// Menyalin data spesifik [label] dengan nilai [data] ke Clipboard.
   void _salinData(BuildContext context, String label, String data) {
-    L.i('Data "$label" disalin ke Clipboard.');
-
     unawaited(
       Clipboard.setData(ClipboardData(text: data))
           .then((_) {
             L.i('Data "$label" berhasil disalin ke Clipboard.');
+            AppToast.sukses(context, '$label berhasil disalin');
           })
           .catchError((Object e, StackTrace s) {
             L.e('Gagal menyalin data "$label" ke Clipboard: $e $s');
+            AppToast.gagal(context, 'Gagal menyalin $label: $e');
             return null;
           }),
     );
-
-    AppToast.sukses(context, '$label berhasil disalin');
   }
 
   @override
@@ -156,10 +158,6 @@ MAC : ${pelanggan.macAddress}
       poinDigunakan: poinDigunakan,
     );
 
-    L.i(
-      'Detail pelanggan ditampilkan: ${p.nama} (ID: ${p.id}), total poin: $totalPoin',
-    );
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Pelanggan'),
@@ -186,19 +184,12 @@ MAC : ${pelanggan.macAddress}
                   L.i('Kartu poin diklik untuk pelanggan: ${p.nama}');
                   unawaited(
                     Nav.to(
-                          context,
-                          HalamanPoin(idPelanggan: widget.idPelanggan),
-                        )
-                        .then((_) {
-                          [
-                            ref.refresh(pelangganProvider),
-                            ref.refresh(transaksiProvider),
-                          ];
-                        })
-                        .catchError((Object e, StackTrace s) {
-                          L.e('Navigasi ke HalamanPoin gagal: $e $s');
-                          return null;
-                        }),
+                      context,
+                      HalamanPoin(idPelanggan: widget.idPelanggan),
+                    ).catchError((Object e, StackTrace s) {
+                      L.e('Navigasi ke HalamanPoin gagal: $e $s');
+                      return null;
+                    }),
                   );
                 },
                 child: Padding(
