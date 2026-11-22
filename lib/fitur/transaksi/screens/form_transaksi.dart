@@ -47,7 +47,6 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
 
   bool get _isEditMode => widget.transaksi != null;
   bool _isLoading = true;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -81,7 +80,8 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
       });
 
       if (_isEditMode) {
-        final trx = widget.transaksi!;
+        final trx = widget.transaksi;
+        if (trx == null) return;
         _tipe = trx.tipe;
         _keteranganController.text = trx.keterangan;
         _jumlahController.text = trx.jumlah.abs().toString();
@@ -190,8 +190,6 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
   Future<void> _simpanForm() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() => _isSaving = true);
-
     unawaited(
       EasyLoading.show(
         status: 'Menyimpan...',
@@ -205,13 +203,16 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
 
     final selectedDompet = _selectedDompet;
     if (selectedDompet == null) {
-      EasyLoading.dismiss();
-      setState(() => _isSaving = false);
+      unawaited(
+        EasyLoading.dismiss().catchError((Object e, StackTrace s) {
+          L.e('Gagal menutup loading: $e $s');
+        }),
+      );
       return;
     }
 
     final transaksi = TransaksiModel(
-      id: _isEditMode ? widget.transaksi!.id : const Uuid().v4(),
+      id: widget.transaksi?.id ?? const Uuid().v4(),
       keterangan: _keteranganController.text,
       jumlah: jumlah,
       tanggal: _tanggal,
@@ -253,9 +254,6 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
           L.e('Gagal menutup loading: $e $s');
         }),
       );
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
     }
   }
 
@@ -419,7 +417,7 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
                       ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: _isSaving ? null : _simpanForm,
+                      onPressed: _simpanForm,
                       child: const Text('Simpan'),
                     ),
                   ],
