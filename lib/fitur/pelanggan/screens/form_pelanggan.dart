@@ -1,7 +1,10 @@
 // path: lib/halaman/form/form_pelanggan.dart
 
+import 'dart:async';
+
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart' hide FormatTanggal;
 import 'package:uuid/uuid.dart';
@@ -32,7 +35,6 @@ class _FormPelangganState extends State<FormPelanggan> {
 
   bool get _isEditMode => widget.pelanggan != null;
   bool _isPasswordVisible = false;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -77,7 +79,15 @@ class _FormPelangganState extends State<FormPelanggan> {
     L.i('Tombol "Simpan" ditekan.');
     if (_formKey.currentState!.validate()) {
       L.i('Form valid. Memulai proses penyimpanan.');
-      setState(() => _isSaving = true);
+
+      unawaited(
+        EasyLoading.show(
+          status: 'Menyimpan...',
+          maskType: EasyLoadingMaskType.black,
+        ).catchError((Object e, StackTrace s) {
+          L.e('Gagal menampilkan loading: $e $s');
+        }),
+      );
 
       final newPelanggan = PelangganModel(
         id: _isEditMode ? widget.pelanggan!.id : const Uuid().v4(),
@@ -120,10 +130,11 @@ class _FormPelangganState extends State<FormPelanggan> {
           AppToast.gagal(context, 'Gagal menyimpan data: $e');
         }
       } finally {
-        if (mounted) {
-          setState(() => _isSaving = false);
-          L.i('Proses penyimpanan selesai. isSaving diatur ke false.');
-        }
+        unawaited(
+          EasyLoading.dismiss().catchError((Object e, StackTrace s) {
+            L.e('Gagal menutup loading: $e $s');
+          }),
+        );
       }
     } else {
       L.w('Form tidak valid. Proses penyimpanan dibatalkan.');
@@ -132,7 +143,7 @@ class _FormPelangganState extends State<FormPelanggan> {
 
   @override
   Widget build(BuildContext context) {
-    L.i('Membangun UI FormPelanggan. isSaving: $_isSaving');
+    L.i('Membangun UI FormPelanggan.');
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditMode ? 'Edit Pelanggan' : 'Tambah Pelanggan'),
@@ -143,6 +154,7 @@ class _FormPelangganState extends State<FormPelanggan> {
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
+              spacing: 16,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildTextField(
@@ -155,7 +167,6 @@ class _FormPelangganState extends State<FormPelanggan> {
                       ? 'Nama tidak boleh kosong'
                       : null,
                 ),
-                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _teleponController,
                   focusNode: _teleponFocusNode,
@@ -167,7 +178,6 @@ class _FormPelangganState extends State<FormPelanggan> {
                       ? 'Telepon tidak boleh kosong'
                       : null,
                 ),
-                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _alamatController,
                   focusNode: _alamatFocusNode,
@@ -178,7 +188,6 @@ class _FormPelangganState extends State<FormPelanggan> {
                       ? 'Alamat tidak boleh kosong'
                       : null,
                 ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   focusNode: _passwordFocusNode,
@@ -210,7 +219,6 @@ class _FormPelangganState extends State<FormPelanggan> {
                       ? 'Password tidak boleh kosong'
                       : null,
                 ),
-                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _macAddressController,
                   focusNode: _macAddressFocusNode,
@@ -223,7 +231,6 @@ class _FormPelangganState extends State<FormPelanggan> {
                       ? 'MAC Address tidak boleh kosong'
                       : null,
                 ),
-                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _poinAwalController,
                   focusNode: _poinAwalFocusNode,
@@ -240,28 +247,18 @@ class _FormPelangganState extends State<FormPelanggan> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _isSaving ? null : _simpanForm,
+                  onPressed: _simpanForm,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : const Text(
-                          'SIMPAN',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                  child: const Text(
+                    'SIMPAN',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
