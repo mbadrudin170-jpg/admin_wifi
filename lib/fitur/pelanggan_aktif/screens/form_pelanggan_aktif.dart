@@ -1,7 +1,6 @@
 // path: lib/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart
 
 import 'package:admin_wifi/enum/enum.dart';
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
@@ -21,9 +20,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
-import 'package:share_global_saya/src/widget/toast_widget.dart';
+import 'package:share_global_saya/core_shared.dart' hide FormatTanggal;
 import 'package:uuid/uuid.dart';
 
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
@@ -51,8 +48,13 @@ DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
 
 class FormPelangganAktif extends ConsumerStatefulWidget {
   final PelangganAktifModel? pelangganAktif;
+  final bool? modePerpanjang;
 
-  const FormPelangganAktif({super.key, this.pelangganAktif});
+  const FormPelangganAktif({
+    super.key,
+    this.pelangganAktif,
+    this.modePerpanjang,
+  });
 
   @override
   ConsumerState<FormPelangganAktif> createState() => _FormPelangganAktifState();
@@ -305,7 +307,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       }
       await Future.delayed(const Duration(milliseconds: 300));
       if (mounted) {
-        Nav.pop(context, true);
+        Nav.pop(context);
       }
     } catch (e, s) {
       L.e('Gagal menyimpan data pelanggan aktif. Error: $e $s');
@@ -456,21 +458,23 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 4,
             children: [
-              const Text(
+              Text(
                 'Gunakan Poin',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (_gunakanPoin)
                 Text(
                   'Poin dipakai: ${hitungPoinEfektif()}',
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
               Text(
                 'Sisa poin: ${hitungSisaPoin()}',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
@@ -577,9 +581,11 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
     return Column(
       spacing: 8,
       children: [
-        const Text(
+        Text(
           'Pilih Tanggal & Waktu Aktif:',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -656,9 +662,11 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Tanggal Mulai:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             Text(
               (_selectedDate == null || _selectedTime == null)
@@ -678,9 +686,11 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Tanggal Berakhir:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             Text((() {
               if (_selectedDate != null && _selectedPaket != null) {

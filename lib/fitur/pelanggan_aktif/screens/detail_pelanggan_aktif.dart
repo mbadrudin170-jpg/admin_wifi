@@ -266,6 +266,7 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                             context,
                             FormPelangganAktif(
                               pelangganAktif: pelangganAktifTerkini,
+                              modePerpanjang: true,
                             ),
                           );
                         },
