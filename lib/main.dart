@@ -40,16 +40,24 @@ void main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      // Overlay root manual berada di ATAS MaterialApp (yang menyediakan
-      // Localizations/Directionality), jadi keduanya harus dipasang manual
-      // di sini:
-      // - Localizations: panel log debug memakai `SelectionArea`, yang
-      //   membutuhkan MaterialLocalizations (diisi delegasi default
-      //   framework, Bahasa Inggris — proyek ini tidak memuat
-      //   flutter_localizations).
-      // - Directionality: `_Theater` (bagian internal Overlay) mewajibkan
-      //   ancestor Directionality.
-      child: const AppMaterial(),
+      child: Localizations(
+        locale: const Locale('en'),
+        delegates: const [
+          DefaultWidgetsLocalizations.delegate,
+          DefaultMaterialLocalizations.delegate,
+        ],
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Overlay(
+            initialEntries: [
+              OverlayEntry(
+                builder: (context) =>
+                    const PengelolaOverlayLogDebug(child: AppMaterial()),
+              ),
+            ],
+          ),
+        ),
+      ),
     ),
   );
   debugPrint('RUNAPP DONE');
