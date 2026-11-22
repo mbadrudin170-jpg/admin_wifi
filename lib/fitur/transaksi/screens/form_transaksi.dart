@@ -10,7 +10,6 @@ import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -50,7 +49,7 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
   void initState() {
     super.initState();
     unawaited(
-      _loadAndPopulateInitialData().catchError((Object e, StackTrace s) {
+      _muatDataAwal().catchError((Object e, StackTrace s) {
         L.e('Gagal memuat data awal form transaksi: $e $s');
       }),
     );
@@ -63,9 +62,7 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
     super.dispose();
   }
 
-  Future<void> _loadAndPopulateInitialData() async {
-    setState(() => _isLoading = true);
-
+  Future<void> _muatDataAwal() async {
     try {
       final dompetState = await ref.read(dompetProvider.future);
       final kategoriState = await ref.read(kategoriProvider.future);
@@ -75,56 +72,53 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
       setState(() {
         _dompetList = dompetState.listDompet;
         _kategoriList = kategoriState.listKategori;
+
+        if (_isEditMode) {
+          final trx = widget.transaksi;
+          if (trx != null) {
+            _tipe = trx.tipe;
+            _keteranganController.text = trx.keterangan;
+            _jumlahController.text = trx.jumlah.abs().toString();
+            _tanggal = trx.tanggal;
+
+            _selectedDompet = dompetState.getById(trx.idDompet);
+            if (_selectedDompet == null && _dompetList.isNotEmpty) {
+              _selectedDompet = _dompetList.first;
+            }
+
+            if (trx.tipe == TipeTransaksi.transfer &&
+                trx.idDompetTujuan != null) {
+              _selectedDompetTujuan = dompetState.getById(trx.idDompetTujuan!);
+              if (_selectedDompetTujuan == null && _dompetList.isNotEmpty) {
+                _selectedDompetTujuan = _dompetList.first;
+              }
+            }
+
+            _filterKategoriInternal();
+
+            if (trx.idKategori.isNotEmpty) {
+              _selectedKategori = kategoriState.getById(trx.idKategori);
+
+              final idSubKategori = trx.idSubKategori;
+              final selectedKategori = _selectedKategori;
+              if (idSubKategori != null && selectedKategori != null) {
+                _selectedSubKategori = kategoriState.getSubKategoriById(
+                  idSubKategori,
+                );
+              }
+            }
+          }
+        } else {
+          _filterKategoriInternal();
+        }
+
+        _isLoading = false;
       });
-
-      if (_isEditMode) {
-        final trx = widget.transaksi;
-        if (trx == null) return;
-        _tipe = trx.tipe;
-        _keteranganController.text = trx.keterangan;
-        _jumlahController.text = trx.jumlah.abs().toString();
-        _tanggal = trx.tanggal;
-
-        _selectedDompet = _dompetList.firstWhereOrNull(
-          (d) => d.id == trx.idDompet,
-        );
-        if (_selectedDompet == null && _dompetList.isNotEmpty) {
-          _selectedDompet = _dompetList.first;
-        }
-
-        if (trx.tipe == TipeTransaksi.transfer && trx.idDompetTujuan != null) {
-          _selectedDompetTujuan = _dompetList.firstWhereOrNull(
-            (d) => d.id == trx.idDompetTujuan,
-          );
-          if (_selectedDompetTujuan == null && _dompetList.isNotEmpty) {
-            _selectedDompetTujuan = _dompetList.first;
-          }
-        }
-
-        _filterKategoriInternal();
-
-        if (trx.idKategori.isNotEmpty) {
-          _selectedKategori = _kategoriFiltered.firstWhereOrNull(
-            (k) => k.id == trx.idKategori,
-          );
-
-          final selectedKategori = _selectedKategori;
-          if (trx.idSubKategori != null && selectedKategori != null) {
-            _selectedSubKategori = selectedKategori.subKategori
-                .firstWhereOrNull((sk) => sk.id == trx.idSubKategori);
-          }
-        }
-      } else {
-        _filterKategoriInternal();
-      }
     } catch (e, s) {
       L.e('Gagal memuat data awal form transaksi: $e $s');
       if (!mounted) return;
       AppToast.gagal(context, 'Gagal memuat data penting: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -197,7 +191,9 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
       }),
     );
 
-    final double jumlah = double.parse(_jumlahController.text).abs();
+    final double jumlah = InputAngka.parseAngkaRibuan(
+      _jumlahController.text,
+    ).abs();
 
     final selectedDompet = _selectedDompet;
     if (selectedDompet == null) {
@@ -270,153 +266,120 @@ class _FormTransaksiPageState extends ConsumerState<FormTransaksiPage> {
                 key: _formKey,
                 child: ListView(
                   children: [
-                    Center(
-                      child: SegmentedButton<TipeTransaksi>(
-                        segments: TipeTransaksi.values
-                            .map(
-                              (tipe) => ButtonSegment<TipeTransaksi>(
-                                value: tipe,
-                                label: Text(tipe.label),
-                              ),
-                            )
-                            .toList(),
-                        selected: <TipeTransaksi>{_tipe},
-                        onSelectionChanged: (newSelection) {
-                          setState(() {
-                            _tipe = newSelection.first;
-                            _filterKategori();
-                            _selectedDompetTujuan = null;
-                          });
-                        },
-                      ),
-                    ),
-                    TextFormField(
-                      controller: _keteranganController,
-                      decoration: const InputDecoration(
-                        labelText: 'Keterangan',
-                      ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Keterangan tidak boleh kosong'
-                          : null,
-                    ),
-                    TextFormField(
-                      controller: _jumlahController,
-                      decoration: const InputDecoration(labelText: 'Jumlah'),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Jumlah tidak boleh kosong';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Format jumlah tidak valid';
-                        }
-                        return null;
-                      },
-                    ),
-                    ListTile(
-                      title: Text(
-                        'Tanggal & Jam: ${_tanggal.toLocal().toString().split('.')[0]}',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.calendar_today),
-                            onPressed: () => _pilihTanggal(context),
+                    Column(
+                      spacing: 16,
+                      children: [
+                        Center(
+                          child: SegmentedButton<TipeTransaksi>(
+                            segments: TipeTransaksi.values
+                                .map(
+                                  (tipe) => ButtonSegment<TipeTransaksi>(
+                                    value: tipe,
+                                    label: Text(tipe.label),
+                                  ),
+                                )
+                                .toList(),
+                            selected: <TipeTransaksi>{_tipe},
+                            onSelectionChanged: (newSelection) {
+                              setState(() {
+                                _tipe = newSelection.first;
+                                _filterKategori();
+                                _selectedDompetTujuan = null;
+                              });
+                            },
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.access_time),
-                            onPressed: () => _pilihWaktu(context),
+                        ),
+                        InputTeks(
+                          controller: _keteranganController,
+                          label: 'Keterangan',
+                          validator: (value) => value == null || value.isEmpty
+                              ? 'Keterangan tidak boleh kosong'
+                              : null,
+                        ),
+                        InputAngka(
+                          controller: _jumlahController,
+                          label: 'Jumlah',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Jumlah tidak boleh kosong';
+                            }
+                            if (double.tryParse(
+                                  value.replaceAll(RegExp(r'[^0-9\-]'), ''),
+                                ) ==
+                                null) {
+                              return 'Format jumlah tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
+                        PemilihTanggalWaktuWidget(
+                          tanggalTerpilih: _tanggal,
+                          waktuTerpilih: TimeOfDay.fromDateTime(_tanggal),
+                          onPilihTanggal: () => _pilihTanggal(context),
+                          onPilihWaktu: () => _pilihWaktu(context),
+                          onResetKeSekarang: () =>
+                              setState(() => _tanggal = DateTime.now()),
+                        ),
+                        InputDropdown<DompetModel>(
+                          value: _selectedDompet,
+                          label: 'Dompet',
+                          items: _dompetList,
+                          displayString: (dompet) => dompet.namaDompet,
+                          onChanged: (val) =>
+                              setState(() => _selectedDompet = val),
+                          validator: (val) =>
+                              val == null ? 'Dompet harus dipilih' : null,
+                        ),
+                        if (_tipe == TipeTransaksi.transfer)
+                          InputDropdown<DompetModel>(
+                            value: _selectedDompetTujuan,
+                            label: 'Dompet Tujuan',
+                            items: _dompetList,
+                            displayString: (dompet) => dompet.namaDompet,
+                            onChanged: (val) =>
+                                setState(() => _selectedDompetTujuan = val),
+                            validator: (val) {
+                              if (val == null)
+                                return 'Dompet tujuan harus dipilih';
+                              if (val == _selectedDompet) {
+                                return 'Dompet tidak boleh sama';
+                              }
+                              return null;
+                            },
                           ),
-                        ],
-                      ),
-                    ),
-                    DropdownButtonFormField<DompetModel>(
-                      initialValue: _selectedDompet,
-                      decoration: const InputDecoration(labelText: 'Dompet'),
-                      items: _dompetList
-                          .map(
-                            (dompet) => DropdownMenuItem(
-                              value: dompet,
-                              child: Text(dompet.namaDompet),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) => setState(() => _selectedDompet = val),
-                      validator: (val) =>
-                          val == null ? 'Dompet harus dipilih' : null,
-                    ),
-                    if (_tipe == TipeTransaksi.transfer)
-                      DropdownButtonFormField<DompetModel>(
-                        initialValue: _selectedDompetTujuan,
-                        decoration: const InputDecoration(
-                          labelText: 'Dompet Tujuan',
+                        if (_kategoriFiltered.isNotEmpty)
+                          InputDropdown<KategoriModel>(
+                            value: selectedKategori,
+                            label: 'Kategori',
+                            items: _kategoriFiltered,
+                            displayString: (kategori) => kategori.nama,
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedKategori = val;
+                                _selectedSubKategori = null;
+                              });
+                            },
+                            validator: (val) =>
+                                val == null ? 'Kategori harus dipilih' : null,
+                          ),
+                        if (selectedKategori != null &&
+                            selectedKategori.subKategori.isNotEmpty)
+                          InputDropdown<SubKategoriModel>(
+                            value: _selectedSubKategori,
+                            label: 'Sub Kategori',
+                            items: selectedKategori.subKategori,
+                            displayString: (sub) => sub.nama,
+                            onChanged: (val) =>
+                                setState(() => _selectedSubKategori = val),
+                            validator: (val) => val == null
+                                ? 'Sub Kategori harus dipilih'
+                                : null,
+                          ),
+                        ElevatedButton(
+                          onPressed: _simpanForm,
+                          child: const Text('Simpan'),
                         ),
-                        items: _dompetList
-                            .map(
-                              (dompet) => DropdownMenuItem(
-                                value: dompet,
-                                child: Text(dompet.namaDompet),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => _selectedDompetTujuan = val),
-                        validator: (val) {
-                          if (val == null) return 'Dompet tujuan harus dipilih';
-                          if (val == _selectedDompet) {
-                            return 'Dompet tidak boleh sama';
-                          }
-                          return null;
-                        },
-                      ),
-                    if (_kategoriFiltered.isNotEmpty)
-                      DropdownButtonFormField<KategoriModel>(
-                        initialValue: selectedKategori,
-                        decoration: const InputDecoration(
-                          labelText: 'Kategori',
-                        ),
-                        items: _kategoriFiltered
-                            .map(
-                              (kategori) => DropdownMenuItem(
-                                value: kategori,
-                                child: Text(kategori.nama),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) {
-                          setState(() {
-                            _selectedKategori = val;
-                            _selectedSubKategori = null;
-                          });
-                        },
-                        validator: (val) =>
-                            val == null ? 'Kategori harus dipilih' : null,
-                      ),
-                    if (selectedKategori != null &&
-                        selectedKategori.subKategori.isNotEmpty)
-                      DropdownButtonFormField<SubKategoriModel>(
-                        initialValue: _selectedSubKategori,
-                        decoration: const InputDecoration(
-                          labelText: 'Sub Kategori',
-                        ),
-                        items: selectedKategori.subKategori
-                            .map(
-                              (sub) => DropdownMenuItem(
-                                value: sub,
-                                child: Text(sub.nama),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => _selectedSubKategori = val),
-                        validator: (val) =>
-                            val == null ? 'Sub Kategori harus dipilih' : null,
-                      ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _simpanForm,
-                      child: const Text('Simpan'),
+                      ],
                     ),
                   ],
                 ),
