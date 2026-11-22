@@ -43,9 +43,6 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
   @override
   void initState() {
     super.initState();
-    L.i(
-      'Menginisialisasi FormVersiApkUser (Mode: ${_isEdit ? 'Edit' : 'Tambah'})',
-    );
 
     if (_isEdit) {
       _populateControllers(widget.versiApkUser!);
@@ -55,7 +52,6 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
   }
 
   void _muatDataVersiTerakhir() async {
-    L.i('Memuat data rilis terakhir untuk otomatisasi input.');
     try {
       final versiTerakhir = await ref
           .read(versiApkUserProvider.notifier)
@@ -101,7 +97,6 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
 
   @override
   void dispose() {
-    L.i('Menghapus semua controller (dispose)');
     _catatanRilisController.dispose();
     _versiTerbaruController.dispose();
     _youtubeTutorialController.dispose();
@@ -116,8 +111,6 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
 
   void _simpanForm() async {
     if (_formKey.currentState?.validate() ?? false) {
-      L.i('Menampilkan dialog konfirmasi kepada pengguna');
-
       final konfirmasi = await showOkCancelAlertDialog(
         context: context,
         title: 'Konfirmasi Simpan',
@@ -127,7 +120,6 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
       );
 
       if (konfirmasi != OkCancelResult.ok) {
-        L.i('Pengguna membatalkan proses penyimpanan');
         return;
       }
 
@@ -139,7 +131,6 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
           L.e('Gagal menampilkan loading: $e $s');
         }),
       );
-      L.i('Sedang memproses penyimpanan ke database...');
 
       final nomorBuild = <ArsitekturApkEnum, int>{};
       if (_buildUniversalController.text.isNotEmpty) {
@@ -186,18 +177,14 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
 
       try {
         if (_isEdit) {
-          L.i('Menjalankan perintah update data...');
           await ref
               .read(versiApkUserProvider.notifier)
               .perbaruiVersiApkUser(dataToSave);
         } else {
-          L.i('Menjalankan perintah tambah data baru...');
           await ref
               .read(versiApkUserProvider.notifier)
               .tambahVersiApkUser(dataToSave);
         }
-
-        L.i('Proses penyimpanan berhasil diselesaikan');
 
         if (!mounted) return;
         AppToast.sukses(context, 'Data berhasil disimpan!');
@@ -235,7 +222,8 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
                     controller: _versiTerbaruController,
                     label: 'Versi Terbaru (Contoh: 1.0.0)',
                     prefixIcon: Icons.info_outline,
-                    validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Wajib diisi' : null,
                   ),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Nomor Build'),
@@ -295,10 +283,9 @@ class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: const TextStyle(
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.bold,
-          fontSize: 16,
-          color: Colors.blue,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
