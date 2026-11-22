@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -144,11 +143,6 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     final channel = freq > 0
         ? (_channelDariFrekuensi(freq)?.toString() ?? '-')
         : '-';
-    final apTerhubung = state.accessPoints.firstWhereOrNull(
-      (a) =>
-          a.bssid.toLowerCase() == (state.bssidTerhubung ?? '').toLowerCase(),
-    );
-    final sinyal = apTerhubung != null ? '${apTerhubung.level} dBm' : '-';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -168,7 +162,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             _buildInfoCustom('Band', band),
             _buildInfoCustom('Frekuensi', freq > 0 ? '$freq MHz' : '-'),
             _buildInfoCustom('Channel', channel),
-            _buildInfoCustom('Sinyal', sinyal),
+            _buildInfoCustom('Sinyal', state.sinyalTerhubung),
           ],
         ),
       ),

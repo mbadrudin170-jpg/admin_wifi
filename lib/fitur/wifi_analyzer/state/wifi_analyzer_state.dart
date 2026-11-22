@@ -28,4 +28,14 @@ abstract class WifiAnalyzerState with _$WifiAnalyzerState {
     );
     return ap?.frequency ?? 0;
   }
+
+  /// Sinyal (dBm) jaringan yang sedang terhubung, '-' bila tidak ditemukan.
+  String get sinyalTerhubung {
+    final bssid = bssidTerhubung;
+    if (bssid == null) return '-';
+    final ap = accessPoints.firstWhereOrNull(
+      (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
+    );
+    return ap != null ? '${ap.level} dBm' : '-';
+  }
 }

@@ -34,7 +34,7 @@ final class WifiAnalyzerNotifierProvider
 }
 
 String _$wifiAnalyzerNotifierHash() =>
-    r'92a7b18099c9addf449444c3c3f19d6650388673';
+    r'83a7fa620926ed483a7f4c094b572966aaf711cf';
 
 abstract class _$WifiAnalyzerNotifier
     extends $AsyncNotifier<WifiAnalyzerState> {
