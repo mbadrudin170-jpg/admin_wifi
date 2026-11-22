@@ -4,6 +4,9 @@ import 'package:admin_wifi/data/operasi/operasi_dasar.dart';
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/pelanggan/helper/pelanggan_poin_helper.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -239,7 +242,25 @@ class TransaksiNotifier extends _$TransaksiNotifier {
   }
 
   Future<int> hitungTotalPoin(String idPelanggan) async {
-    return state.value?.getTotalPoin(idPelanggan) ?? 0;
+    final transaksiState = await future;
+    final poinDihasilkan = transaksiState.getPoinYangDihasilkan(idPelanggan);
+    final poinDigunakan = transaksiState.getPoinYangDigunakan(idPelanggan);
+
+    PelangganModel? pelanggan;
+    try {
+      final pelangganState = await ref.read(pelangganProvider.future);
+      pelanggan = pelangganState.getById(idPelanggan);
+    } catch (e, s) {
+      L.e('Gagal mengambil poin awal pelanggan: $e $s');
+    }
+
+    final double poinAwal = pelanggan?.poinAwal ?? 0;
+
+    return PelangganPoinHelper.hitungTotalPoin(
+      poinAwal: poinAwal,
+      poinDihasilkan: poinDihasilkan,
+      poinDigunakan: poinDigunakan,
+    );
   }
 
   Future<void> sisipkanAtauPerbaruiBatch(List<TransaksiModel> items) async {
