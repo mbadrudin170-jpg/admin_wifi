@@ -19,10 +19,7 @@ Map<DateTime, List<TransaksiModel>> groupTransaksiByDate(
   final Map<DateTime, List<TransaksiModel>> grouped = {};
   for (final t in transaksi) {
     final date = DateTime(t.tanggal.year, t.tanggal.month, t.tanggal.day);
-    if (grouped[date] == null) {
-      grouped[date] = [];
-    }
-    grouped[date]!.add(t);
+    grouped.putIfAbsent(date, () => []).add(t);
   }
   return grouped;
 }

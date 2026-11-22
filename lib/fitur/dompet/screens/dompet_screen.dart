@@ -5,6 +5,7 @@
 
 import 'dart:async';
 
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/dompet/screens/detail_dompet.dart';
@@ -32,16 +33,6 @@ class _DompetPageState extends ConsumerState<DompetPage> {
   void initState() {
     super.initState();
     _dompetOperasi = ref.read(dompetProvider.notifier);
-    _loadDompet();
-  }
-
-  Future<void> _loadDompet() async {
-    try {
-      await ref.read(dompetProvider.notifier).muatUlang();
-    } catch (e, s) {
-      L.e('Gagal memuat ulang dompet: $e $s');
-    }
-    _ringkasanKey.currentState?.refresh();
   }
 
   // Fungsi untuk menavigasi ke halaman tambah dompet
@@ -55,7 +46,7 @@ class _DompetPageState extends ConsumerState<DompetPage> {
   }
 
   // Fungsi untuk menampilkan dialog konfirmasi sebelum menghapus semua dompet
-  void _tampilkanDialogHapusSemua(List<DompetModel> listDompet) async {
+  Future<void> _tampilkanDialogHapusSemua(List<DompetModel> listDompet) async {
     if (!mounted) return;
 
     if (listDompet.isEmpty) {
@@ -63,79 +54,23 @@ class _DompetPageState extends ConsumerState<DompetPage> {
       return;
     }
 
-    showDialog(
+    final konfirmasi = await showOkCancelAlertDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi'),
-          content: const Text(
-            'Apakah Anda yakin ingin menghapus semua dompet? Tindakan ini tidak dapat diurungkan.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Batal'),
-              onPressed: () => Nav.pop(context),
-            ),
-            TextButton(
-              child: const Text('Hapus'),
-              onPressed: () {
-                Nav.pop(context);
-                _hapusSemuaDompet();
-              },
-            ),
-          ],
-        );
-      },
+      title: 'Konfirmasi',
+      message:
+          'Apakah Anda yakin ingin menghapus semua dompet? Tindakan ini tidak dapat diurungkan.',
+      okLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructiveAction: true,
     );
-  }
 
-  // Fungsi untuk menampilkan dialog konfirmasi pengarsipan satu dompet
-  void _showDialogHapusSatu(DompetModel dompet) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi Arsip'),
-          content: Text(
-            'Apakah Anda yakin ingin mengarsipkan dompet "${dompet.namaDompet}"?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Batal'),
-              onPressed: () => Nav.pop(context),
-            ),
-            TextButton(
-              child: const Text('Arsipkan'),
-              onPressed: () {
-                Nav.pop(context);
-                _hapusSatuDompet(dompet);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+    if (konfirmasi != OkCancelResult.ok) return;
+    if (!mounted) return;
 
-  // Fungsi untuk mengarsipkan satu dompet
-  void _hapusSatuDompet(DompetModel dompet) async {
-    try {
-      await _dompetOperasi.arsipkanSatuDompet(dompet.id);
-      await _loadDompet();
-      if (!mounted) return;
-      AppToast.sukses(context, 'Dompet berhasil diarsipkan.');
-    } catch (e, s) {
-      if (!mounted) return;
-      L.e('Gagal mengarsipkan dompet: "${dompet.namaDompet}". Error: $e $s');
-      AppToast.gagal(context, 'Gagal mengarsipkan dompet: $e');
-    }
-  }
-
-  // Fungsi untuk menghapus semua dompet secara permanen
-  void _hapusSemuaDompet() async {
     try {
       await _dompetOperasi.hapusSemuaDompet();
-      await _loadDompet();
+      await ref.read(dompetProvider.notifier).muatUlang();
+      _ringkasanKey.currentState?.refresh();
       if (!mounted) return;
       AppToast.sukses(context, 'Semua dompet berhasil dihapus.');
     } catch (e, s) {
@@ -145,19 +80,42 @@ class _DompetPageState extends ConsumerState<DompetPage> {
     }
   }
 
+  // Fungsi untuk menampilkan dialog konfirmasi pengarsipan satu dompet
+  Future<void> _showDialogHapusSatu(DompetModel dompet) async {
+    final konfirmasi = await showOkCancelAlertDialog(
+      context: context,
+      title: 'Konfirmasi Arsip',
+      message:
+          'Apakah Anda yakin ingin mengarsipkan dompet "${dompet.namaDompet}"?',
+      okLabel: 'Arsipkan',
+      cancelLabel: 'Batal',
+    );
+
+    if (konfirmasi != OkCancelResult.ok) return;
+    if (!mounted) return;
+
+    try {
+      await _dompetOperasi.arsipkanSatuDompet(dompet.id);
+      await ref.read(dompetProvider.notifier).muatUlang();
+      _ringkasanKey.currentState?.refresh();
+      if (!mounted) return;
+      AppToast.sukses(context, 'Dompet berhasil diarsipkan.');
+    } catch (e, s) {
+      if (!mounted) return;
+      L.e('Gagal mengarsipkan dompet: "${dompet.namaDompet}". Error: $e $s');
+      AppToast.gagal(context, 'Gagal mengarsipkan dompet: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncDompet = ref.watch(dompetProvider);
 
     if (asyncDompet.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (asyncDompet.hasError) {
-      return Scaffold(
-        body: Center(child: Text('Error: ${asyncDompet.error}')),
-      );
+      return Scaffold(body: Center(child: Text('Error: ${asyncDompet.error}')));
     }
 
     final dompetState = asyncDompet.requireValue;
@@ -184,20 +142,22 @@ class _DompetPageState extends ConsumerState<DompetPage> {
                     itemCount: dompetState.listDompet.length,
                     itemBuilder: (context, index) {
                       final dompet = dompetState.listDompet[index];
-                            return DompetCard(
-                              dompet: dompet,
-                              onTap: () async {
-                                await Nav.to(
-                                  context,
-                                  DetailDompet(dompet: dompet),
-                                );
-                                if (!mounted) return;
-                                await _loadDompet();
-                              },
-                              onLongPress: () => _showDialogHapusSatu(dompet),
-                            );
-                          },
-                        ),
+                      return DompetCard(
+                        dompet: dompet,
+                        onTap: () async {
+                          await Nav.to(context, DetailDompet(dompet: dompet));
+                          if (!mounted) return;
+                          try {
+                            await ref.read(dompetProvider.notifier).muatUlang();
+                          } catch (e, s) {
+                            L.e('Gagal memuat ulang dompet: $e $s');
+                          }
+                          _ringkasanKey.currentState?.refresh();
+                        },
+                        onLongPress: () => _showDialogHapusSatu(dompet),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -255,38 +215,36 @@ class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
     total = state.getTotalSaldo();
 
     return Card(
-          margin: const EdgeInsets.all(12.0),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      bangunInfoRingkasan(
-                        context: context,
-                        label: 'Pemasukan',
-                        jumlah: pemasukan,
-                        warna: Colors.green,
-                      ),
-                      bangunInfoRingkasan(
-                        context: context,
-                        label: 'Pengeluaran',
-                        jumlah: pengeluaran,
-                        warna: Colors.red,
-                      ),
-                      bangunInfoRingkasan(
-                        context: context,
-                        label: 'Total',
-                        jumlah: total,
-                        warna: Theme.of(context).colorScheme.primary,
-                      ),
-                     ],
-                   ),
-           ),
-         );
+      margin: const EdgeInsets.all(12.0),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            bangunInfoRingkasan(
+              context: context,
+              label: 'Pemasukan',
+              jumlah: pemasukan,
+              warna: Colors.green,
+            ),
+            bangunInfoRingkasan(
+              context: context,
+              label: 'Pengeluaran',
+              jumlah: pengeluaran,
+              warna: Colors.red,
+            ),
+            bangunInfoRingkasan(
+              context: context,
+              label: 'Total',
+              jumlah: total,
+              warna: Theme.of(context).colorScheme.primary,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
