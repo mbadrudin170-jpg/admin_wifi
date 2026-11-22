@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WifiAnalyzerState {
 
- bool get isLoading; String? get errorMessage; String? get ssidTerhubung; String? get bssidTerhubung; String? get ipTerhubung; List<WiFiAccessPoint> get accessPoints;
+ bool get isLoading; String? get errorMessage; String? get ssidTerhubung; String? get bssidTerhubung; String? get ipTerhubung; List<WiFiAccessPoint> get accessPoints; int? get pingMs; String? get pingError;
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $WifiAnalyzerStateCopyWith<WifiAnalyzerState> get copyWith => _$WifiAnalyzerStat
 @override
 bool operator ==(Object other) {
   final _this = this as WifiAnalyzerState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WifiAnalyzerState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage)&&(identical(other.ssidTerhubung, _this.ssidTerhubung) || other.ssidTerhubung == _this.ssidTerhubung)&&(identical(other.bssidTerhubung, _this.bssidTerhubung) || other.bssidTerhubung == _this.bssidTerhubung)&&(identical(other.ipTerhubung, _this.ipTerhubung) || other.ipTerhubung == _this.ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _this.accessPoints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WifiAnalyzerState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage)&&(identical(other.ssidTerhubung, _this.ssidTerhubung) || other.ssidTerhubung == _this.ssidTerhubung)&&(identical(other.bssidTerhubung, _this.bssidTerhubung) || other.bssidTerhubung == _this.bssidTerhubung)&&(identical(other.ipTerhubung, _this.ipTerhubung) || other.ipTerhubung == _this.ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _this.accessPoints)&&(identical(other.pingMs, _this.pingMs) || other.pingMs == _this.pingMs)&&(identical(other.pingError, _this.pingError) || other.pingError == _this.pingError));
 }
 
 
 @override
 int get hashCode {
   final _this = this as WifiAnalyzerState;
-  return Object.hash(runtimeType,_this.isLoading,_this.errorMessage,_this.ssidTerhubung,_this.bssidTerhubung,_this.ipTerhubung,const DeepCollectionEquality().hash(_this.accessPoints));
+  return Object.hash(runtimeType,_this.isLoading,_this.errorMessage,_this.ssidTerhubung,_this.bssidTerhubung,_this.ipTerhubung,const DeepCollectionEquality().hash(_this.accessPoints),_this.pingMs,_this.pingError);
 }
 
 @override
 String toString() {
   final _this = this as WifiAnalyzerState;
-  return 'WifiAnalyzerState(isLoading: ${_this.isLoading}, errorMessage: ${_this.errorMessage}, ssidTerhubung: ${_this.ssidTerhubung}, bssidTerhubung: ${_this.bssidTerhubung}, ipTerhubung: ${_this.ipTerhubung}, accessPoints: ${_this.accessPoints})';
+  return 'WifiAnalyzerState(isLoading: ${_this.isLoading}, errorMessage: ${_this.errorMessage}, ssidTerhubung: ${_this.ssidTerhubung}, bssidTerhubung: ${_this.bssidTerhubung}, ipTerhubung: ${_this.ipTerhubung}, accessPoints: ${_this.accessPoints}, pingMs: ${_this.pingMs}, pingError: ${_this.pingError})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $WifiAnalyzerStateCopyWith<$Res>  {
   factory $WifiAnalyzerStateCopyWith(WifiAnalyzerState value, $Res Function(WifiAnalyzerState) _then) = _$WifiAnalyzerStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, String? errorMessage, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints
+ bool isLoading, String? errorMessage, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints, int? pingMs, String? pingError
 });
 
 
@@ -68,7 +68,7 @@ class _$WifiAnalyzerStateCopyWithImpl<$Res>
 
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? errorMessage = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? errorMessage = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,Object? pingMs = freezed,Object? pingError = freezed,}) {
   return _then(WifiAnalyzerState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -76,7 +76,9 @@ as String?,ssidTerhubung: freezed == ssidTerhubung ? _self.ssidTerhubung : ssidT
 as String?,bssidTerhubung: freezed == bssidTerhubung ? _self.bssidTerhubung : bssidTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,ipTerhubung: freezed == ipTerhubung ? _self.ipTerhubung : ipTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,accessPoints: null == accessPoints ? _self.accessPoints : accessPoints // ignore: cast_nullable_to_non_nullable
-as List<WiFiAccessPoint>,
+as List<WiFiAccessPoint>,pingMs: freezed == pingMs ? _self.pingMs : pingMs // ignore: cast_nullable_to_non_nullable
+as int?,pingError: freezed == pingError ? _self.pingError : pingError // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? pingMs,  String? pingError)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WifiAnalyzerState() when $default != null:
-return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints);case _:
+return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.pingMs,_that.pingError);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bss
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? pingMs,  String? pingError)  $default,) {final _that = this;
 switch (_that) {
 case _WifiAnalyzerState():
-return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints);case _:
+return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.pingMs,_that.pingError);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bss
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? pingMs,  String? pingError)?  $default,) {final _that = this;
 switch (_that) {
 case _WifiAnalyzerState() when $default != null:
-return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints);case _:
+return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.pingMs,_that.pingError);case _:
   return null;
 
 }
@@ -217,7 +219,7 @@ return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bss
 
 
 class _WifiAnalyzerState extends WifiAnalyzerState {
-  const _WifiAnalyzerState({this.isLoading = false, this.errorMessage, this.ssidTerhubung, this.bssidTerhubung, this.ipTerhubung,  List<WiFiAccessPoint> accessPoints = const <WiFiAccessPoint>[]}): _accessPoints = accessPoints,super._();
+  const _WifiAnalyzerState({this.isLoading = false, this.errorMessage, this.ssidTerhubung, this.bssidTerhubung, this.ipTerhubung,  List<WiFiAccessPoint> accessPoints = const <WiFiAccessPoint>[], this.pingMs, this.pingError}): _accessPoints = accessPoints,super._();
   
 
 @override@JsonKey() final  bool isLoading;
@@ -232,6 +234,8 @@ class _WifiAnalyzerState extends WifiAnalyzerState {
   return EqualUnmodifiableListView(_accessPoints);
 }
 
+@override final  int? pingMs;
+@override final  String? pingError;
 
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +247,18 @@ _$WifiAnalyzerStateCopyWith<_WifiAnalyzerState> get copyWith => __$WifiAnalyzerS
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WifiAnalyzerState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.ssidTerhubung, ssidTerhubung) || other.ssidTerhubung == ssidTerhubung)&&(identical(other.bssidTerhubung, bssidTerhubung) || other.bssidTerhubung == bssidTerhubung)&&(identical(other.ipTerhubung, ipTerhubung) || other.ipTerhubung == ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _accessPoints));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WifiAnalyzerState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.ssidTerhubung, ssidTerhubung) || other.ssidTerhubung == ssidTerhubung)&&(identical(other.bssidTerhubung, bssidTerhubung) || other.bssidTerhubung == bssidTerhubung)&&(identical(other.ipTerhubung, ipTerhubung) || other.ipTerhubung == ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _accessPoints)&&(identical(other.pingMs, pingMs) || other.pingMs == pingMs)&&(identical(other.pingError, pingError) || other.pingError == pingError));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,isLoading,errorMessage,ssidTerhubung,bssidTerhubung,ipTerhubung,const DeepCollectionEquality().hash(_accessPoints));
+    return Object.hash(runtimeType,isLoading,errorMessage,ssidTerhubung,bssidTerhubung,ipTerhubung,const DeepCollectionEquality().hash(_accessPoints),pingMs,pingError);
 }
 
 @override
 String toString() {
-    return 'WifiAnalyzerState(isLoading: $isLoading, errorMessage: $errorMessage, ssidTerhubung: $ssidTerhubung, bssidTerhubung: $bssidTerhubung, ipTerhubung: $ipTerhubung, accessPoints: $accessPoints)';
+    return 'WifiAnalyzerState(isLoading: $isLoading, errorMessage: $errorMessage, ssidTerhubung: $ssidTerhubung, bssidTerhubung: $bssidTerhubung, ipTerhubung: $ipTerhubung, accessPoints: $accessPoints, pingMs: $pingMs, pingError: $pingError)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$WifiAnalyzerStateCopyWith<$Res> implements $WifiAnalyzerS
   factory _$WifiAnalyzerStateCopyWith(_WifiAnalyzerState value, $Res Function(_WifiAnalyzerState) _then) = __$WifiAnalyzerStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, String? errorMessage, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints
+ bool isLoading, String? errorMessage, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints, int? pingMs, String? pingError
 });
 
 
@@ -282,7 +286,7 @@ class __$WifiAnalyzerStateCopyWithImpl<$Res>
 
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? errorMessage = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? errorMessage = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,Object? pingMs = freezed,Object? pingError = freezed,}) {
   return _then(_WifiAnalyzerState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -290,7 +294,9 @@ as String?,ssidTerhubung: freezed == ssidTerhubung ? _self.ssidTerhubung : ssidT
 as String?,bssidTerhubung: freezed == bssidTerhubung ? _self.bssidTerhubung : bssidTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,ipTerhubung: freezed == ipTerhubung ? _self.ipTerhubung : ipTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,accessPoints: null == accessPoints ? _self._accessPoints : accessPoints // ignore: cast_nullable_to_non_nullable
-as List<WiFiAccessPoint>,
+as List<WiFiAccessPoint>,pingMs: freezed == pingMs ? _self.pingMs : pingMs // ignore: cast_nullable_to_non_nullable
+as int?,pingError: freezed == pingError ? _self.pingError : pingError // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

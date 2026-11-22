@@ -2,6 +2,7 @@
 
 import 'package:admin_wifi/fitur/wifi_analyzer/dummy/wifi_analyzer_dummy.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
+import 'dart:io';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,6 +41,8 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
     String? ip;
     List<WiFiAccessPoint> accessPoints = <WiFiAccessPoint>[];
     String? errorMessage;
+    int? pingMs;
+    String? pingError;
 
     try {
       ssid = await _networkInfo.getWifiName();
@@ -61,6 +64,24 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       errorMessage = 'Gagal memuat data: $e';
     }
 
+    // Ping ke gateway/router.
+    try {
+      final gateway = await _networkInfo.getWifiGatewayIP();
+      if (gateway != null && gateway.trim().isNotEmpty) {
+        final ms = await _pingGateway(gateway.trim());
+        if (ms != null) {
+          pingMs = ms;
+        } else {
+          pingError = 'Gagal ping gateway';
+        }
+      } else {
+        pingError = 'Gateway tidak ditemukan';
+      }
+    } catch (e, s) {
+      L.e('Gagal ping gateway: $e $s');
+      pingError = 'Gagal ping: $e';
+    }
+
     return WifiAnalyzerState(
       isLoading: false,
       errorMessage: errorMessage,
@@ -68,6 +89,27 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       bssidTerhubung: bssid,
       ipTerhubung: ip,
       accessPoints: accessPoints,
+      pingMs: pingMs,
+      pingError: pingError,
     );
+  }
+
+  Future<int?> _pingGateway(String host) async {
+    for (final port in <int>[80, 443]) {
+      try {
+        final sw = Stopwatch()..start();
+        final socket = await Socket.connect(
+          host,
+          port,
+          timeout: const Duration(seconds: 2),
+        );
+        sw.stop();
+        socket.destroy();
+        return sw.elapsedMilliseconds;
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
   }
 }

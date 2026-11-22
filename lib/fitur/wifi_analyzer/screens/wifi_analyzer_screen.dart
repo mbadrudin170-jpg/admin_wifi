@@ -161,6 +161,10 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                   ? _warnaSinyal(levelTerhubung)
                   : null,
             ),
+            _buildInfoCustom(
+              'Ping',
+              state.pingMs != null ? '${state.pingMs} ms' : (state.pingError ?? '-'),
+            ),
           ],
         ),
       ),

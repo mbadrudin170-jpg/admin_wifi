@@ -17,6 +17,8 @@ abstract class WifiAnalyzerState with _$WifiAnalyzerState {
     String? bssidTerhubung,
     String? ipTerhubung,
     @Default(<WiFiAccessPoint>[]) List<WiFiAccessPoint> accessPoints,
+    int? pingMs,
+    String? pingError,
   }) = _WifiAnalyzerState;
 
   /// Frekuensi (MHz) jaringan yang sedang terhubung, 0 bila tidak ditemukan.
