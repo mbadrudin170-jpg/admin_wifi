@@ -3,7 +3,7 @@
 
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/fitur/transaksi/screens/transaksi.dart';
+import 'package:admin_wifi/fitur/transaksi/screens/transaksi_screen.dart';
 import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,6 +1,8 @@
-// path: lib/fitur/transaksi/screens/transaksi.dart
+// path: lib/fitur/transaksi/screens/transaksi_screen.dart
 // diubah: Urutan impor alfabetis menurut path lengkap (penamaan-konvensi #17) dan
 // penanganan error pada `_tambahTransaksi` (try/catch + L.e + AppToast + mounted).
+
+import 'dart:async';
 
 import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
@@ -81,18 +83,16 @@ class _TransaksiPageState extends ConsumerState<TransaksiPage> {
     }
   }
 
-  void _tambahTransaksi() async {
-    try {
-      final result = await Nav.to(context, const FormTransaksiPage());
-      if (result == true && mounted) {
-        await _muatUlang();
-      }
-    } catch (e, s) {
-      L.e('Gagal menambah transaksi: $e $s');
-      if (mounted) {
-        AppToast.gagal(context, 'Gagal menambah transaksi.');
-      }
-    }
+  void _tambahTransaksi() {
+    unawaited(
+      Nav.to(context, const FormTransaksiPage()).catchError((
+        Object e,
+        StackTrace s,
+      ) {
+        L.e('Gagal menambah transaksi: $e $s');
+        return null;
+      }),
+    );
   }
 
   @override

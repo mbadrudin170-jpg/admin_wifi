@@ -33,20 +33,9 @@ class DetailTransaksiPage extends ConsumerStatefulWidget {
 }
 
 class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
-  late TransaksiModel _transaksiSaatIni;
-
   @override
   void initState() {
     super.initState();
-    _transaksiSaatIni =
-        widget.transaksi; // ditambah: Inisialisasi dengan data awal
-    L.i('Membuka halaman Detail Transaksi ID: ${_transaksiSaatIni.id}');
-    L.i(
-      'Ringkasan transaksi - Tipe: ${_transaksiSaatIni.tipe.name}, Jumlah: ${_transaksiSaatIni.jumlah}, Tanggal: ${_transaksiSaatIni.tanggal.toIso8601String()}, Status: ${_transaksiSaatIni.statusPembayaran.name}',
-    );
-    L.i(
-      'Relasi transaksi - Dompet: ${_transaksiSaatIni.idDompet}, Kategori: ${_transaksiSaatIni.idKategori}, SubKategori: ${_transaksiSaatIni.idSubKategori ?? "N/A"}, Pelanggan: ${_transaksiSaatIni.idPelanggan ?? "N/A"}, Paket: ${_transaksiSaatIni.idPaket ?? "N/A"}',
-    );
   }
 
   // DIUBAH: Logika diperkuat dengan pengecekan tipe eksplisit untuk mencegah error.
@@ -98,42 +87,14 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
   }
 
   // diubah: me-refresh data transaksi setelah kembali dari halaman edit
-  void _bukaFormEdit() {
-    L.i(
-      'Navigasi ke FormTransaksiPage mode edit untuk ID: ${_transaksiSaatIni.id}',
-    );
-    unawaited(
-      Nav.to<TransaksiModel>(
-            context,
-            FormTransaksiPage(transaksi: _transaksiSaatIni),
-          )
-          .then((transaksiYangDiperbarui) {
-            if (transaksiYangDiperbarui != null) {
-              L.i(
-                'Kembali dari form edit, data telah berubah. Memperbarui UI.',
-              );
-              setState(() {
-                _transaksiSaatIni = transaksiYangDiperbarui;
-              });
-            } else {
-              L.i('Kembali dari form edit, tidak ada perubahan data.');
-            }
-          })
-          .catchError((Object e, StackTrace s) {
-            L.e('Navigasi gagal: $e $s');
-          }),
-    );
-  }
+  void _bukaFormEdit() {}
 
   @override
   Widget build(BuildContext context) {
-    final TransaksiModel transaksi =
-        _transaksiSaatIni; // diubah: Menggunakan data dari state
     final idDompetTujuan = transaksi.idDompetTujuan;
     final idSubKategori = transaksi.idSubKategori;
     final idPelanggan = transaksi.idPelanggan;
     final idPaket = transaksi.idPaket;
-    L.i('Membangun UI Detail Transaksi ID: ${transaksi.id}');
 
     return Scaffold(
       appBar: AppBar(
@@ -241,7 +202,9 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
                 _getNama(
                   (id) {
                     final state = ref.read(pelangganProvider).value;
-                    return state?.listPelanggan.firstWhereOrNull((p) => p.id == id);
+                    return state?.listPelanggan.firstWhereOrNull(
+                      (p) => p.id == id,
+                    );
                   },
                   idPelanggan,
                   'Pelanggan',
