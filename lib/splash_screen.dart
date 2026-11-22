@@ -6,7 +6,7 @@ import 'package:admin_wifi/data/sync/unduhan_awal.dart';
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
 import 'package:admin_wifi/services/notifikasi/fungsi_menampilkan_notifikasi.dart';
 import 'package:admin_wifi/home.dart';
-import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:share_global_saya/src/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/services/pembersihan_data_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';

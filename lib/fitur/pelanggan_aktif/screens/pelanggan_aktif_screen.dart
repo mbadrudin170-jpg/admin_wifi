@@ -17,7 +17,7 @@ import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/detail_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/state/pelanggan_aktif_state.dart';
-import 'package:admin_wifi/services/cek_koneksi_internet.dart';
+import 'package:share_global_saya/src/services/cek_koneksi_internet.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/utils/sync_manager.dart';
