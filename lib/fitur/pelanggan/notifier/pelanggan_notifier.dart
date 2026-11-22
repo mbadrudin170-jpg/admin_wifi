@@ -6,7 +6,6 @@ import 'package:admin_wifi/fitur/pelanggan/helper/pelanggan_poin_helper.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 

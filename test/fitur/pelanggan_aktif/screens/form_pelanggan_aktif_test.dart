@@ -1,17 +1,12 @@
 // path: test/fitur/pelanggan_aktif/screens/form_pelanggan_aktif_test.dart
 // catatan: widget yang diuji kini berada di lib/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart
 
-import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
-import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/dompet/state/dompet_state.dart';
-import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/state/kategori_state.dart';
-import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
-import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/dompet/dummy/dompet_dummy.dart';
@@ -80,10 +75,8 @@ class FakeTransaksiNotifier extends TransaksiNotifier {
   @override
   Future<TransaksiState> build() async => const TransaksiState();
 
-  @override
   Future<int> hitungTotalPoin(String idPelanggan) async => saldoPoin;
 
-  @override
   Future<void> tambah(TransaksiModel model) async {
     panggilanTambah++;
   }

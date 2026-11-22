@@ -88,7 +88,7 @@ class DompetNotifier extends _$DompetNotifier {
 
   Future<void> arsipSemuaDompet() async {
     try {
-      final stateData = state.value ?? await _ambilSemua();
+      final stateData = await future;
       final daftarDompetAktif = stateData.listDompet;
       L.i(
         'Ditemukan ${daftarDompetAktif.length} dompet aktif untuk diarsipkan.',
@@ -97,7 +97,6 @@ class DompetNotifier extends _$DompetNotifier {
       for (final dompet in daftarDompetAktif) {
         await ubah(dompet.copyWith(diarsipkan: DateTime.now()));
       }
-
     } catch (e, s) {
       L.e('Gagal saat proses pengarsipan massal dompet. Error: $e $s');
       rethrow;
