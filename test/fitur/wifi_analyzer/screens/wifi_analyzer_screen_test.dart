@@ -5,9 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_info_plus_platform_interface/network_info_plus_platform_interface.dart';
-import 'package:wifi_scan/wifi_scan.dart';
 
 const String _kWifiName = '1337wifi';
 const String _kBssid = 'c0:ff:33:c0:d3:55';
@@ -55,10 +53,10 @@ void main() {
     ];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) {
-      final result = handlers[call.method]?.call(call.arguments);
-      if (result is Future) return result;
-      return Future.value(result);
-    });
+          final result = handlers[call.method]?.call(call.arguments);
+          if (result is Future) return result;
+          return Future.value(result);
+        });
   });
 
   tearDown(() {
@@ -69,9 +67,7 @@ void main() {
 
   testWidgets('menampilkan SSID terhubung dan AP terdeteksi', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: WifiAnalyzerScreen()),
-      ),
+      const ProviderScope(child: MaterialApp(home: WifiAnalyzerScreen())),
     );
     await tester.pumpAndSettle();
 
