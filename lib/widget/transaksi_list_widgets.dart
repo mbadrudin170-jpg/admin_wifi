@@ -73,9 +73,6 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
 
   @override
   Widget build(BuildContext context) {
-    final kategoriState = ref.watch(kategoriProvider);
-    final dompetState = ref.watch(dompetProvider);
-
     IconData iconData;
     Color iconColor;
     if (widget.transaksi.tipe == TipeTransaksi.pemasukan) {
@@ -84,23 +81,6 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
     } else {
       iconData = Icons.arrow_upward;
       iconColor = Colors.red;
-    }
-
-    Widget subtitle;
-    if (kategoriState.isLoading || dompetState.isLoading) {
-      subtitle = const Text('Memuat...');
-    } else if (kategoriState.hasError || dompetState.hasError) {
-      subtitle = const Text('Gagal memuat');
-    } else {
-      final kategori = kategoriState.requireValue.getById(
-        widget.transaksi.idKategori,
-      );
-      final namaKategori = kategori?.nama ?? 'Tidak ada kategori';
-      final dompet = dompetState.requireValue.getDompetById(
-        widget.transaksi.idDompet,
-      );
-      final namaDompet = dompet?.namaDompet ?? 'Tidak ada dompet';
-      subtitle = Text('$namaKategori | $namaDompet');
     }
 
     return Card(
@@ -154,7 +134,29 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
           child: Icon(iconData, color: iconColor),
         ),
         title: Text(widget.transaksi.keterangan),
-        subtitle: subtitle,
+        subtitle: Consumer(
+          builder: (context, ref, _) {
+            final kategoriState = ref.watch(kategoriProvider);
+            final dompetState = ref.watch(dompetProvider);
+
+            if (kategoriState.isLoading || dompetState.isLoading) {
+              return const Text('Memuat...');
+            }
+            if (kategoriState.hasError || dompetState.hasError) {
+              return const Text('Gagal memuat');
+            }
+
+            final kategori = kategoriState.requireValue.getById(
+              widget.transaksi.idKategori,
+            );
+            final namaKategori = kategori?.nama ?? 'Tidak ada kategori';
+            final dompet = dompetState.requireValue.getDompetById(
+              widget.transaksi.idDompet,
+            );
+            final namaDompet = dompet?.namaDompet ?? 'Tidak ada dompet';
+            return Text('$namaKategori | $namaDompet');
+          },
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
