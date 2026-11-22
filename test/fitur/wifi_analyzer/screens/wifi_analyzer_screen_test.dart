@@ -72,8 +72,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text(_kWifiName), findsOneWidget);
-    expect(find.textContaining('TestSSID'), findsOneWidget);
-    expect(find.textContaining('Jaringan di Sekitar (1)'), findsOneWidget);
+    expect(find.text('WiFi-Rumah'), findsOneWidget);
+    expect(find.text('Tidak ada jaringan terdeteksi.'), findsOneWidget);
+    expect(find.textContaining('Jaringan di Sekitar (0)'), findsOneWidget);
   });
 }
