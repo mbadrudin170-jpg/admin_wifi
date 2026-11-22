@@ -142,7 +142,7 @@ void main() {
           paketProvider.overrideWith(() => FakePaketNotifier()),
         ],
         child: MaterialApp(
-          home: TransaksiPage(),
+          home: TransaksiScreens(),
           navigatorObservers: [mockNavigatorObserver],
         ),
       ),

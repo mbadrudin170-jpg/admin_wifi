@@ -64,14 +64,14 @@ class RingkasanTransaksi extends StatelessWidget {
   }
 }
 
-class TransaksiPage extends ConsumerStatefulWidget {
-  const TransaksiPage({super.key});
+class TransaksiScreens extends ConsumerStatefulWidget {
+  const TransaksiScreens({super.key});
 
   @override
-  ConsumerState<TransaksiPage> createState() => _TransaksiPageState();
+  ConsumerState<TransaksiScreens> createState() => _TransaksiPageState();
 }
 
-class _TransaksiPageState extends ConsumerState<TransaksiPage> {
+class _TransaksiPageState extends ConsumerState<TransaksiScreens> {
   Future<void> _muatUlang() async {
     try {
       await ref.read(transaksiProvider.notifier).muatUlang();

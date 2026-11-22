@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
   final List<Widget> _widgetOptions = <Widget>[
     const PelangganAktifScreen(),
     const DompetPage(),
-    const TransaksiPage(),
+    const TransaksiScreens(),
     const LainnyaPage(),
   ];
 
