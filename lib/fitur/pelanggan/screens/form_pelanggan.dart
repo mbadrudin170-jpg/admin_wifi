@@ -163,91 +163,75 @@ class _FormPelangganState extends State<FormPelanggan> {
               spacing: 16,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTextField(
+                InputTeks(
                   controller: _namaController,
                   focusNode: _namaFocusNode,
                   label: 'Nama Pelanggan',
-                  icon: Icons.person_outline,
-                  nextFocus: _teleponFocusNode,
+                  prefixIcon: Icons.person_outline,
+                  nextFocusNode: _teleponFocusNode,
                   validator: (v) => (v == null || v.isEmpty)
                       ? 'Nama tidak boleh kosong'
                       : null,
                 ),
-                _buildTextField(
+                InputTeks(
                   controller: _teleponController,
                   focusNode: _teleponFocusNode,
                   label: 'Nomor Telepon (WhatsApp)',
-                  icon: Icons.phone_android_outlined,
-                  keyboard: TextInputType.phone,
-                  nextFocus: _alamatFocusNode,
+                  prefixIcon: Icons.phone_android_outlined,
+                  keyboardType: TextInputType.phone,
+                  nextFocusNode: _alamatFocusNode,
                   validator: (v) => (v == null || v.isEmpty)
                       ? 'Telepon tidak boleh kosong'
                       : null,
                 ),
-                _buildTextField(
+                InputTeks(
                   controller: _alamatController,
                   focusNode: _alamatFocusNode,
                   label: 'Alamat Lengkap',
-                  icon: Icons.home_outlined,
-                  nextFocus: _passwordFocusNode,
+                  prefixIcon: Icons.home_outlined,
+                  nextFocusNode: _passwordFocusNode,
                   validator: (v) => (v == null || v.isEmpty)
                       ? 'Alamat tidak boleh kosong'
                       : null,
                 ),
-                TextFormField(
+                InputTeks(
                   controller: _passwordController,
                   focusNode: _passwordFocusNode,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        L.i('Visibilitas password diubah.');
-                        setState(
-                          () => _isPasswordVisible = !_isPasswordVisible,
-                        );
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                  label: 'Password',
+                  prefixIcon: Icons.lock_outline,
+                  suffixIcon: _isPasswordVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  onSuffixIconPressed: () =>
+                      setState(() => _isPasswordVisible = !_isPasswordVisible),
                   obscureText: !_isPasswordVisible,
-                  textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(_macAddressFocusNode),
+                  nextFocusNode: _macAddressFocusNode,
                   validator: (v) => (v == null || v.isEmpty)
                       ? 'Password tidak boleh kosong'
                       : null,
                 ),
-                _buildTextField(
+                InputTeks(
                   controller: _macAddressController,
                   focusNode: _macAddressFocusNode,
                   label: 'MAC Address',
-                  icon: Icons.router_outlined,
-                  hint: 'XX:XX:XX:XX:XX:XX',
-                  action: TextInputAction.done,
-                  onSubmitted: (_) => _macAddressFocusNode.unfocus(),
+                  prefixIcon: Icons.router_outlined,
+                  hintText: 'XX:XX:XX:XX:XX:XX',
+                  nextFocusNode: _poinAwalFocusNode,
                   validator: (v) => (v == null || v.isEmpty)
                       ? 'MAC Address tidak boleh kosong'
                       : null,
                 ),
-                _buildTextField(
+                InputAngka(
                   controller: _poinAwalController,
                   focusNode: _poinAwalFocusNode,
                   label: 'Poin Awal',
-                  icon: Icons.stars_outlined,
-                  keyboard: TextInputType.number,
-                  action: TextInputAction.done,
+                  prefixIcon: Icons.stars_outlined,
+                  textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _poinAwalFocusNode.unfocus(),
                   validator: (v) {
                     if (v == null || v.isEmpty) return null;
-                    if (double.tryParse(v) == null) {
+                    if (InputAngka.parseAngkaRibuan(v) == 0 &&
+                        v.replaceAll(RegExp(r'[^0-9]'), '') != '') {
                       return 'Poin harus berupa angka';
                     }
                     return null;
@@ -271,37 +255,6 @@ class _FormPelangganState extends State<FormPelanggan> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String label,
-    required IconData icon,
-    String? hint,
-    TextInputType keyboard = TextInputType.text,
-    TextInputAction action = TextInputAction.next,
-    FocusNode? nextFocus,
-    void Function(String)? onSubmitted,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      keyboardType: keyboard,
-      textInputAction: action,
-      onFieldSubmitted: (v) {
-        if (nextFocus != null) FocusScope.of(context).requestFocus(nextFocus);
-        if (onSubmitted != null) onSubmitted(v);
-      },
-      validator: validator,
     );
   }
 }

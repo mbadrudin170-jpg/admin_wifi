@@ -148,16 +148,13 @@ class _FormDompetState extends ConsumerState<FormDompet> {
           child: Column(
             spacing: 24,
             children: [
-              TextFormField(
+              InputTeks(
                 controller: _namaController,
                 focusNode: _namaFocusNode,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Dompet',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.account_balance_wallet),
-                ),
+                label: 'Nama Dompet',
+                prefixIcon: Icons.account_balance_wallet,
                 textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _simpanForm(),
+                onSubmitted: (_) => _simpanForm(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Nama dompet tidak boleh kosong';

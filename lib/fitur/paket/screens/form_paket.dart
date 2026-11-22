@@ -4,9 +4,7 @@ import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
-import 'package:share_global_saya/src/widget/toast_widget.dart';
+import 'package:share_global_saya/core_shared.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
@@ -79,11 +77,15 @@ class _FormPaketState extends ConsumerState<FormPaket> {
     final newPaket = PaketModel(
       id: _isEditMode ? widget.paket!.id : const Uuid().v4(),
       nama: _namaController.text,
-      harga: int.parse(_hargaController.text),
-      durasi: int.parse(_durasiController.text),
+      harga: InputAngka.parseAngkaRibuan(_hargaController.text).toInt(),
+      durasi: InputAngka.parseAngkaRibuan(_durasiController.text).toInt(),
       tipe: _selectedTipe,
-      poinHadiah: int.tryParse(_poinHadiahController.text) ?? 0,
-      poinPenukaran: int.tryParse(_poinPenukaranController.text) ?? 0,
+      poinHadiah: InputAngka.parseAngkaRibuan(
+        _poinHadiahController.text,
+      ).toInt(),
+      poinPenukaran: InputAngka.parseAngkaRibuan(
+        _poinPenukaranController.text,
+      ).toInt(),
       isPublic: _isPublic,
     );
 
@@ -100,7 +102,7 @@ class _FormPaketState extends ConsumerState<FormPaket> {
         context,
         'Data paket berhasil ${_isEditMode ? 'diperbarui' : 'disimpan'}!',
       );
-      Nav.pop(context, true);
+      Nav.pop(context);
     } on DatabaseException catch (e, s) {
       L.e('Gagal menyimpan paket: $e $s');
       if (!mounted) return;
@@ -118,13 +120,7 @@ class _FormPaketState extends ConsumerState<FormPaket> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditMode ? 'Edit Paket' : 'Tambah Paket'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Nav.pop(context, false),
-        ),
-      ),
+      appBar: AppBar(title: Text(_isEditMode ? 'Edit Paket' : 'Tambah Paket')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -132,108 +128,100 @@ class _FormPaketState extends ConsumerState<FormPaket> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                TextFormField(
+                InputTeks(
                   controller: _namaController,
                   focusNode: _namaFocusNode,
+                  label: 'Nama Paket',
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Nama Paket'),
+                  onSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_hargaFocusNode),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Nama paket tidak boleh kosong';
                     }
                     return null;
                   },
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(_hargaFocusNode),
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                InputAngka(
                   controller: _hargaController,
                   focusNode: _hargaFocusNode,
+                  label: 'Harga',
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Harga'),
-                  keyboardType: TextInputType.number,
+                  onSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_durasiFocusNode),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Harga tidak boleh kosong';
                     }
-                    if (int.tryParse(value) == null) {
+                    if (InputAngka.parseAngkaRibuan(value).toInt() == 0 &&
+                        value.replaceAll(RegExp(r'[^0-9]'), '') == '') {
                       return 'Harga harus berupa angka';
                     }
                     return null;
                   },
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(_durasiFocusNode),
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                InputAngka(
                   controller: _durasiController,
                   focusNode: _durasiFocusNode,
+                  label: 'Durasi',
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Durasi'),
-                  keyboardType: TextInputType.number,
+                  onSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_poinHadiahFocusNode),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Durasi tidak boleh kosong';
                     }
-                    if (int.tryParse(value) == null) {
+                    if (InputAngka.parseAngkaRibuan(value) == 0 &&
+                        value.replaceAll(RegExp(r'[^0-9]'), '') == '') {
                       return 'Durasi harus berupa angka';
                     }
                     return null;
                   },
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(_poinHadiahFocusNode),
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                InputAngka(
                   controller: _poinHadiahController,
                   focusNode: _poinHadiahFocusNode,
+                  label: 'Poin Hadiah',
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Poin Hadiah'),
-                  keyboardType: TextInputType.number,
+                  onSubmitted: (_) => FocusScope.of(
+                    context,
+                  ).requestFocus(_poinPenukaranFocusNode),
                   validator: (value) {
                     if (value != null &&
                         value.isNotEmpty &&
-                        int.tryParse(value) == null) {
+                        InputAngka.parseAngkaRibuan(value) == 0 &&
+                        value.replaceAll(RegExp(r'[^0-9]'), '') != '') {
                       return 'Poin hadiah harus angka';
                     }
                     return null;
                   },
-                  onFieldSubmitted: (_) => FocusScope.of(
-                    context,
-                  ).requestFocus(_poinPenukaranFocusNode),
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                InputAngka(
                   controller: _poinPenukaranController,
                   focusNode: _poinPenukaranFocusNode,
+                  label: 'Poin Penukaran',
                   textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(
-                    labelText: 'Poin Penukaran',
-                  ),
-                  keyboardType: TextInputType.number,
+                  onSubmitted: (_) => _saveForm(),
                   validator: (value) {
                     if (value != null &&
                         value.isNotEmpty &&
-                        int.tryParse(value) == null) {
+                        InputAngka.parseAngkaRibuan(value) == 0 &&
+                        value.replaceAll(RegExp(r'[^0-9]'), '') != '') {
                       return 'Poin penukaran harus angka';
                     }
                     return null;
                   },
-                  onFieldSubmitted: (_) => _saveForm(),
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<TipeDurasi>(
-                  initialValue: _selectedTipe,
-                  decoration: const InputDecoration(labelText: 'Tipe Durasi'),
-                  items: TipeDurasi.values
-                      .map(
-                        (tipe) => DropdownMenuItem<TipeDurasi>(
-                          value: tipe,
-                          child: Text(tipe.label),
-                        ),
-                      )
-                      .toList(),
+                InputDropdown<TipeDurasi>(
+                  value: _selectedTipe,
+                  label: 'Tipe Durasi',
+                  items: TipeDurasi.values,
+                  displayString: (tipe) => tipe.label,
                   onChanged: (value) {
                     if (value != null) {
                       setState(() => _selectedTipe = value);

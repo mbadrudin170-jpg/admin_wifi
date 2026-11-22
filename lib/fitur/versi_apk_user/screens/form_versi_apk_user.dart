@@ -4,8 +4,7 @@ import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier
 import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart';
 import 'package:uuid/uuid.dart';
 
 class FormVersiApkUser extends StatefulWidget {
@@ -227,12 +226,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
       } catch (e, s) {
         L.e('Terjadi kesalahan saat menyimpan data Error: $e $s');
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            content: Text('Gagal menyimpan data: $e'),
-          ),
-        );
+        AppToast.gagal(context, 'Gagal menyimpan data: $e');
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -254,13 +248,10 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextFormField(
+                  InputTeks(
                     controller: _versiTerbaruController,
-                    decoration: const InputDecoration(
-                      labelText: 'Versi Terbaru (Contoh: 1.0.0)',
-                      prefixIcon: Icon(Icons.info_outline),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Versi Terbaru (Contoh: 1.0.0)',
+                    prefixIcon: Icons.info_outline,
                     validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                   ),
                   const SizedBox(height: 24),
@@ -280,26 +271,16 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                   _buildUrlField(_tautan32Controller, 'Tautan 32-bit'),
                   _buildUrlField(_tautan64Controller, 'Tautan 64-bit'),
                   const SizedBox(height: 24),
-                  TextFormField(
+                  InputTeks(
                     controller: _catatanRilisController,
-                    decoration: const InputDecoration(
-                      labelText: 'Catatan Rilis',
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Catatan Rilis',
                     maxLines: 3,
-                    validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  InputTeks(
                     controller: _youtubeTutorialController,
-                    decoration: const InputDecoration(
-                      labelText: 'URL Tutorial YouTube',
-                      prefixIcon: Icon(
-                        Icons.play_circle_fill,
-                        color: Colors.red,
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'URL Tutorial YouTube',
+                    prefixIcon: Icons.play_circle_fill,
                   ),
                   SwitchListTile(
                     title: const Text('Wajib Update'),
@@ -357,28 +338,17 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   Widget _buildNumberField(TextEditingController controller, String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        keyboardType: TextInputType.number,
-      ),
+      child: InputAngka(controller: controller, label: label),
     );
   }
 
   Widget _buildUrlField(TextEditingController controller, String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextFormField(
+      child: InputTeks(
         controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          prefixIcon: const Icon(Icons.link),
-        ),
-        keyboardType: TextInputType.url,
+        label: label,
+        prefixIcon: Icons.link,
       ),
     );
   }

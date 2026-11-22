@@ -8,8 +8,7 @@ import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/services/cek_koneksi_internet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart';
 import 'package:uuid/uuid.dart';
 
 class FormKategoriPage extends ConsumerStatefulWidget {
@@ -521,38 +520,17 @@ class _FormKategoriPageState extends ConsumerState<FormKategoriPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
+                InputTeks(
                   controller: _namaController,
                   focusNode: _namaFocusNode,
-                  decoration: InputDecoration(
-                    labelText: _isSubKategoriMode
-                        ? 'Nama Sub-Kategori'
-                        : 'Nama Kategori',
-                    border: const OutlineInputBorder(),
-                  ),
+                  label: _isSubKategoriMode
+                      ? 'Nama Sub-Kategori'
+                      : 'Nama Kategori',
                   textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) {
-                    L.i(
-                      'INPUT: Field nama disubmit melalui keyboard (TextInputAction.done).',
-                    );
-                    L.i('Nilai yang disubmit: "${_namaController.text}"');
-                    L.i('Menghilangkan fokus dari input.');
-                    FocusScope.of(context).unfocus();
-                  },
-                  onChanged: (value) {
-                    L.i(
-                      'INPUT: Nama ${_isSubKategoriMode ? "sub-kategori" : "kategori"} berubah menjadi: "$value" (panjang: ${value.length} karakter)',
-                    );
-                  },
                   validator: (value) {
-                    L.i(
-                      'VALIDASI: Memvalidasi input nama. Nilai: "${value ?? "NULL"}"',
-                    );
                     if (value == null || value.isEmpty) {
-                      L.w('VALIDASI GAGAL: Nama kosong.');
                       return 'Nama tidak boleh kosong';
                     }
-                    L.i('VALIDASI BERHASIL: Nama valid.');
                     return null;
                   },
                 ),
@@ -604,17 +582,9 @@ class _FormKategoriPageState extends ConsumerState<FormKategoriPage> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: TextFormField(
+                              child: InputTeks(
                                 controller: _subKategoriControllers[index],
-                                decoration: InputDecoration(
-                                  labelText: 'Nama Sub-Kategori ${index + 1}',
-                                  border: const OutlineInputBorder(),
-                                ),
-                                onChanged: (value) {
-                                  L.i(
-                                    'INPUT: Sub-kategori ke-${index + 1} berubah menjadi: "$value" (panjang: ${value.length} karakter)',
-                                  );
-                                },
+                                label: 'Nama Sub-Kategori ${index + 1}',
                               ),
                             ),
                             IconButton(

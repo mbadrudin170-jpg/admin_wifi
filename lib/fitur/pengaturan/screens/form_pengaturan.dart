@@ -3,9 +3,7 @@
 import 'package:admin_wifi/fitur/pengaturan/notifier/pengaturan_notifier.dart';
 import 'package:admin_wifi/fitur/pengaturan/model/pengaturan_model.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 // Halaman formulir untuk mengedit dan menyimpan pengaturan aplikasi.
 class FormPengaturan extends StatefulWidget {
@@ -67,8 +65,12 @@ class _FormPengaturanState extends State<FormPengaturan> {
       setState(() => _isLoading = true);
       L.i('Loading state diaktifkan');
 
-      final interval = int.tryParse(_intervalController.text) ?? 0;
-      final hapusArsip = int.tryParse(_hapusArsipController.text) ?? 0;
+      final interval = InputAngka.parseAngkaRibuan(
+        _intervalController.text,
+      ).toInt();
+      final hapusArsip = InputAngka.parseAngkaRibuan(
+        _hapusArsipController.text,
+      ).toInt();
 
       L.i(
         'Nilai dari form - Interval: $interval jam, Hapus arsip: $hapusArsip hari, Mode pemeliharaan: ${_modePemeliharaan ? "Aktif" : "Nonaktif"}, Info: ${_infoController.text.isNotEmpty ? _infoController.text : "(kosong)"}',
@@ -85,7 +87,9 @@ class _FormPengaturanState extends State<FormPengaturan> {
         L.i(
           'Menyimpan pengaturan baru ke database - Interval: $interval, Hapus Arsip: $hapusArsip, Mode: $_modePemeliharaan',
         );
-        await pengaturanNotifierGlobal.simpanAtauPerbaruiPengaturan(pengaturanBaru);
+        await pengaturanNotifierGlobal.simpanAtauPerbaruiPengaturan(
+          pengaturanBaru,
+        );
         L.i('Pengaturan berhasil disimpan ke database');
 
         if (mounted) {
@@ -136,16 +140,7 @@ class _FormPengaturanState extends State<FormPengaturan> {
   Widget build(BuildContext context) {
     L.i('Membangun UI Form Edit Pengaturan');
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Pengaturan'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            L.i('Kembali ke halaman Pengaturan tanpa menyimpan');
-            Nav.pop(context);
-          },
-        ),
-      ),
+      appBar: AppBar(title: const Text('Edit Pengaturan')),
       body: Stack(
         children: [
           Padding(
@@ -154,16 +149,16 @@ class _FormPengaturanState extends State<FormPengaturan> {
               key: _formKey,
               child: ListView(
                 children: [
-                  _buildTextFormField(
+                  InputAngka(
                     controller: _intervalController,
                     label: 'Interval Sinkronisasi (Jam)',
-                    icon: Icons.sync_outlined,
+                    prefixIcon: Icons.sync_outlined,
                   ),
                   const SizedBox(height: 20),
-                  _buildTextFormField(
+                  InputAngka(
                     controller: _hapusArsipController,
                     label: 'Hapus Arsip Setelah (Hari)',
-                    icon: Icons.auto_delete_outlined,
+                    prefixIcon: Icons.auto_delete_outlined,
                   ),
                   const Divider(height: 32, thickness: 1),
                   SwitchListTile(
@@ -195,21 +190,13 @@ class _FormPengaturanState extends State<FormPengaturan> {
                   if (_modePemeliharaan)
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0),
-                      child: TextFormField(
+                      child: InputTeks(
                         controller: _infoController,
-                        decoration: const InputDecoration(
-                          labelText: 'Informasi Pemeliharaan',
-                          hintText:
-                              'Contoh: Aplikasi sedang dalam perbaikan hingga jam 3 sore.',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.info_outline),
-                        ),
+                        label: 'Informasi Pemeliharaan',
+                        hintText:
+                            'Contoh: Aplikasi sedang dalam perbaikan hingga jam 3 sore.',
+                        prefixIcon: Icons.info_outline,
                         maxLines: 3,
-                        onChanged: (value) {
-                          L.i(
-                            'Info pemeliharaan diubah: ${value.length > 50 ? value.substring(0, 50) : value}',
-                          );
-                        },
                       ),
                     ),
                   const SizedBox(height: 32),
@@ -238,43 +225,6 @@ class _FormPengaturanState extends State<FormPengaturan> {
             ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-  }) {
-    L.i('Membangun TextFormField untuk: $label');
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        prefixIcon: Icon(icon),
-      ),
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      onChanged: (value) {
-        L.i('Input $label berubah: $value');
-      },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          L.i('Validasi $label gagal: field kosong');
-          return 'Field ini tidak boleh kosong.';
-        }
-        if (int.tryParse(value) == null) {
-          L.i('Validasi $label gagal: bukan angka valid ("$value")');
-          return 'Harap masukkan angka yang valid.';
-        }
-        if (int.parse(value) <= 0) {
-          L.i('Validasi $label gagal: nilai <= 0 ($value)');
-          return 'Nilai harus lebih besar dari 0';
-        }
-        L.i('Validasi $label berhasil: $value');
-        return null;
-      },
     );
   }
 }
