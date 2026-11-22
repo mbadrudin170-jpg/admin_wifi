@@ -15,7 +15,7 @@ android {
 
     compileOptions {
         // Format yang benar untuk Kotlin DSL
-        isCoreLibraryDesugaringEnabled = true
+    // (isCoreLibraryDesugaringEnabled dihapus)
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -61,8 +61,4 @@ flutter {
     source = "../.."
 }
 
-// diubah: Gunakan versi yang tersedia (2.1.4 atau 2.1.5)
-dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    implementation("androidx.multidex:multidex:2.0.1")
-}
+    // (dihapus blok dependencies dan isCoreLibraryDesugaringEnabled)
