@@ -175,12 +175,16 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(ap.ssid.isEmpty ? '(Tersembunyi)' : ap.ssid),
-        subtitle: Text(
-          'BSSID: ${ap.bssid}\n'
-          'Band: ${_bandDariFrekuensi(ap.frequency)} | '
-          'Frekuensi: ${ap.frequency} MHz | '
-          'Channel: ${channel ?? '-'} | '
-          'Sinyal: ${ap.level} dBm (${_kualitasSinyal(ap.level)})',
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 2,
+          children: [
+            Text('BSSID: ${ap.bssid}'),
+            Text('Band: ${_bandDariFrekuensi(ap.frequency)}'),
+            Text('Frekuensi: ${ap.frequency} MHz'),
+            Text('Channel: ${channel ?? '-'}'),
+            Text('Sinyal: ${ap.level} dBm (${_kualitasSinyal(ap.level)})'),
+          ],
         ),
         isThreeLine: true,
       ),
