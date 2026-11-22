@@ -19,9 +19,9 @@ import 'package:share_global_saya/core_shared.dart'
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPelangganAktif extends ConsumerStatefulWidget {
-  final PelangganAktifModel pelanggan;
+  final PelangganAktifModel pelangganAktif;
 
-  const DetailPelangganAktif({super.key, required this.pelanggan});
+  const DetailPelangganAktif({super.key, required this.pelangganAktif});
 
   @override
   ConsumerState<DetailPelangganAktif> createState() {
@@ -34,7 +34,7 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
   void initState() {
     super.initState();
     L.i(
-      'DetailPelangganAktif initState, idPelangganAktif=${widget.pelanggan.id}',
+      'DetailPelangganAktif initState, idPelangganAktif=${widget.pelangganAktif.id}',
     );
   }
 
@@ -122,13 +122,10 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
     final pelangganState = pelangganAsync.requireValue;
     final paketState = paketAsync.requireValue;
 
-    // Ambil data terbaru dari notifier; fallback ke data dari widget
-    // bila rekaman tidak (lagi) ada di daftar.
     final pelangganAktifTerkini =
-        penggunaAktifState.getById(widget.pelanggan.id) ?? widget.pelanggan;
-
+        penggunaAktifState.getById(widget.pelangganAktif.id) ??
+        widget.pelangganAktif;
     final pelanggan = pelangganState.getById(pelangganAktifTerkini.idPelanggan);
-
     final idPaket = pelangganAktifTerkini.idPaket;
     final paket = idPaket.isEmpty ? null : paketState.getById(idPaket);
 
@@ -263,6 +260,17 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          Nav.to(
+                            context,
+                            FormPelangganAktif(
+                              pelangganAktif: pelangganAktifTerkini,
+                            ),
+                          );
+                        },
+                        child: Text('Perpanjang Masa Aktif'),
+                      ),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.send_to_mobile),
                         label: const Text('Kirim Info via WhatsApp'),

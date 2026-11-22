@@ -469,7 +469,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
             );
             await Nav.to(
               context,
-              DetailPelangganAktif(pelanggan: pelangganAktif),
+              DetailPelangganAktif(pelangganAktif: pelangganAktif),
             );
           },
           onLongPress: () => _arsipkanPelanggan(pelangganAktif),
@@ -500,7 +500,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
             );
             await Nav.to(
               context,
-              DetailPelangganAktif(pelanggan: pelangganAktif),
+              DetailPelangganAktif(pelangganAktif: pelangganAktif),
             );
             _loadData(forceRefresh: true);
           },
