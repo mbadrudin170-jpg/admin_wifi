@@ -10,7 +10,7 @@ import 'package:wifi_scan/wifi_scan.dart';
 
 part 'wifi_analyzer_notifier.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   final _networkInfo = NetworkInfo();
 
