@@ -180,8 +180,9 @@ class _TransaksiPageState extends ConsumerState<TransaksiPage> {
     return ListView.builder(
       itemCount: groupedTransaksi.length,
       itemBuilder: (context, index) {
-        final tanggal = groupedTransaksi.keys.elementAt(index);
-        final transaksiPadaTanggal = groupedTransaksi[tanggal]!;
+        final entry = groupedTransaksi.entries.elementAt(index);
+        final tanggal = entry.key;
+        final transaksiPadaTanggal = entry.value;
         final totalPadaTanggal = transaksiPadaTanggal.fold<double>(
           0.0,
           (sum, item) =>

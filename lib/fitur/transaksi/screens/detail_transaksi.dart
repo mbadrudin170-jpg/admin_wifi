@@ -146,9 +146,7 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
 
             _buildDetailRowSync(
               'Kategori',
-              kategoriState.listKategori
-                  .firstWhereOrNull((k) => k.id == transaksi.idKategori)
-                  ?.nama,
+              kategoriState.getById(transaksi.idKategori)?.nama,
             ),
 
             if (idSubKategori != null && idSubKategori.isNotEmpty)
