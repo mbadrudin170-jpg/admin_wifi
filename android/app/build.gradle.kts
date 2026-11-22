@@ -32,7 +32,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-          // (multiDexEnabled dihapus)
+              // Enable MultiDex
+        multiDexEnabled = true
     }
 
     flavorDimensions += "env"
