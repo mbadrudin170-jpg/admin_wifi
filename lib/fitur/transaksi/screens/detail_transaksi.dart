@@ -1,19 +1,11 @@
-// path: lib/halaman/detail/detail_transaksi.dart
+// path: lib/fitur/transaksi/screens/detail_transaksi.dart
 // Halaman ini menampilkan detail dari satu transaksi.
 
-import 'dart:async';
-
-import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
-import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
-import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
-import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
-import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
-import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,59 +30,60 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     super.initState();
   }
 
-  // DIUBAH: Logika diperkuat dengan pengecekan tipe eksplisit untuk mencegah error.
-  String? _getNama(
-    dynamic Function(String) getModel,
-    String id,
-    String konteks,
-  ) {
-    if (id.isEmpty) {
-      L.i('ID $konteks kosong, mengembalikan null');
-      return null;
-    }
-
-    try {
-      L.i('Mengambil data $konteks dengan ID: $id');
-      final model = getModel(id);
-
-      if (model != null) {
-        String? nama;
-        if (model is DompetModel) {
-          nama = model.namaDompet;
-        } else if (model is KategoriModel) {
-          nama = model.nama;
-        } else if (model is SubKategoriModel) {
-          nama = model.nama;
-        } else if (model is PelangganModel) {
-          nama = model.nama;
-        } else if (model is PaketModel) {
-          nama = model.nama;
-        }
-
-        if (nama != null) {
-          L.i('Data $konteks ID: $id ditemukan: $nama');
-          return nama;
-        } else {
-          L.w(
-            'Model untuk $konteks ID: $id ditemukan, tetapi properti nama yang relevan tidak dapat diakses atau null. Tipe model: ${model.runtimeType}',
-          );
-          return 'Nama tidak tersedia';
-        }
-      }
-
-      L.w('Data $konteks dengan ID: $id tidak ditemukan di database');
-      return 'Data tidak ditemukan';
-    } catch (e, stackTrace) {
-      L.e('Gagal mengambil data $konteks dengan ID: $id Error: $e $stackTrace');
-      return 'Error Memuat';
-    }
-  }
-
   // diubah: me-refresh data transaksi setelah kembali dari halaman edit
   void _bukaFormEdit() {}
 
   @override
   Widget build(BuildContext context) {
+    final transaksi = widget.transaksi;
+    final asyncDompet = ref.watch(dompetProvider);
+    final asyncKategori = ref.watch(kategoriProvider);
+    final asyncPelanggan = ref.watch(pelangganProvider);
+    final asyncPaket = ref.watch(paketProvider);
+
+    // Loading gabungan: jika salah satu provider masih loading, tampilkan indikator.
+    if (asyncDompet.isLoading ||
+        asyncKategori.isLoading ||
+        asyncPelanggan.isLoading ||
+        asyncPaket.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Error per provider, ditangani secara terpisah dengan tombol retry.
+    if (asyncDompet.hasError) {
+      return _buildErrorRetry(
+        'Dompet',
+        () => ref.refresh(dompetProvider),
+        asyncDompet.error.toString(),
+      );
+    }
+    if (asyncKategori.hasError) {
+      return _buildErrorRetry(
+        'Kategori',
+        () => ref.refresh(kategoriProvider),
+        asyncKategori.error.toString(),
+      );
+    }
+    if (asyncPelanggan.hasError) {
+      return _buildErrorRetry(
+        'Pelanggan',
+        () => ref.refresh(pelangganProvider),
+        asyncPelanggan.error.toString(),
+      );
+    }
+    if (asyncPaket.hasError) {
+      return _buildErrorRetry(
+        'Paket',
+        () => ref.refresh(paketProvider),
+        asyncPaket.error.toString(),
+      );
+    }
+
+    final dompetState = asyncDompet.requireValue;
+    final kategoriState = asyncKategori.requireValue;
+    final pelangganState = asyncPelanggan.requireValue;
+    final paketState = asyncPaket.requireValue;
+
     final idDompetTujuan = transaksi.idDompetTujuan;
     final idSubKategori = transaksi.idSubKategori;
     final idPelanggan = transaksi.idPelanggan;
@@ -138,90 +131,47 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
 
             _buildDetailRowSync(
               'Dompet',
-              _getNama(
-                (id) {
-                  final state = ref.read(dompetProvider).value;
-                  return state?.listDompet.firstWhereOrNull((d) => d.id == id);
-                },
-                transaksi.idDompet,
-                'Dompet',
-              ),
+              dompetState.listDompet
+                  .firstWhereOrNull((d) => d.id == transaksi.idDompet)
+                  ?.namaDompet,
             ),
 
             if (idDompetTujuan != null && idDompetTujuan.isNotEmpty)
               _buildDetailRowSync(
                 'Dompet Tujuan',
-                _getNama(
-                  (id) {
-                    final state = ref.read(dompetProvider).value;
-                    return state?.listDompet.firstWhereOrNull(
-                      (d) => d.id == id,
-                    );
-                  },
-                  idDompetTujuan,
-                  'Dompet Tujuan',
-                ),
+                dompetState.listDompet
+                    .firstWhereOrNull((d) => d.id == idDompetTujuan)
+                    ?.namaDompet,
               ),
 
             _buildDetailRowSync(
               'Kategori',
-              _getNama(
-                (id) {
-                  final state = ref.read(kategoriProvider).value;
-                  return state?.listKategori.firstWhereOrNull(
-                    (k) => k.id == id,
-                  );
-                },
-                transaksi.idKategori,
-                'Kategori',
-              ),
+              kategoriState.listKategori
+                  .firstWhereOrNull((k) => k.id == transaksi.idKategori)
+                  ?.nama,
             ),
 
             if (idSubKategori != null && idSubKategori.isNotEmpty)
               _buildDetailRowSync(
                 'Sub Kategori',
-                _getNama(
-                  (id) {
-                    final state = ref.read(kategoriProvider).value;
-                    for (final k in state?.listKategori ?? <dynamic>[]) {
-                      final found = (k as dynamic).subKategori.firstWhereOrNull(
-                        (sk) => sk.id == id,
-                      );
-                      if (found != null) return found;
-                    }
-                    return null;
-                  },
-                  idSubKategori,
-                  'Sub-Kategori',
-                ),
+                kategoriState.listKategori
+                    .expand((k) => k.subKategori)
+                    .firstWhereOrNull((sk) => sk.id == idSubKategori)
+                    ?.nama,
               ),
 
             if (idPelanggan != null && idPelanggan.isNotEmpty)
               _buildDetailRowSync(
                 'Pelanggan',
-                _getNama(
-                  (id) {
-                    final state = ref.read(pelangganProvider).value;
-                    return state?.listPelanggan.firstWhereOrNull(
-                      (p) => p.id == id,
-                    );
-                  },
-                  idPelanggan,
-                  'Pelanggan',
-                ),
+                pelangganState.listPelanggan
+                    .firstWhereOrNull((p) => p.id == idPelanggan)
+                    ?.nama,
               ),
 
             if (idPaket != null && idPaket.isNotEmpty)
               _buildDetailRowSync(
                 'Paket',
-                _getNama(
-                  (id) {
-                    final state = ref.read(paketProvider).value;
-                    return state?.getPaketById(id);
-                  },
-                  idPaket,
-                  'Paket',
-                ),
+                paketState.getPaketById(idPaket)?.nama,
               ),
 
             _buildDetailRow(
@@ -271,5 +221,24 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
 
   Widget _buildDetailRowSync(String label, String? value) {
     return _buildDetailRow(label, value ?? '-');
+  }
+
+  Widget _buildErrorRetry(
+    String label,
+    void Function() onRefresh,
+    String errorMessage,
+  ) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Gagal memuat $label: $errorMessage'),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: onRefresh, child: const Text('Coba Lagi')),
+          ],
+        ),
+      ),
+    );
   }
 }

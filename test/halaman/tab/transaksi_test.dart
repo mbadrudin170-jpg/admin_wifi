@@ -1,6 +1,14 @@
 // path: test/halaman/tab/transaksi_test.dart
 // diubah: Menghapus parameter namaDompet dan namaKategori yang sudah usang dari fungsi helper.
 
+import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
+import 'package:admin_wifi/fitur/dompet/state/dompet_state.dart';
+import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
+import 'package:admin_wifi/fitur/kategori/state/kategori_state.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/transaksi_screen.dart';
@@ -35,6 +43,26 @@ class FakeTransaksiNotifier extends TransaksiNotifier {
     }
     return initialState;
   }
+}
+
+class FakeDompetNotifier extends DompetNotifier {
+  @override
+  Future<DompetState> build() async => const DompetState();
+}
+
+class FakeKategoriNotifier extends KategoriNotifier {
+  @override
+  Future<KategoriState> build() async => const KategoriState();
+}
+
+class FakePelangganNotifier extends PelangganNotifier {
+  @override
+  Future<PelangganState> build() async => const PelangganState();
+}
+
+class FakePaketNotifier extends PaketNotifier {
+  @override
+  Future<PaketState> build() async => const PaketState();
 }
 
 TransaksiModel buatTransaksi({
@@ -106,7 +134,13 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [transaksiProvider.overrideWith(() => fake)],
+        overrides: [
+          transaksiProvider.overrideWith(() => fake),
+          dompetProvider.overrideWith(() => FakeDompetNotifier()),
+          kategoriProvider.overrideWith(() => FakeKategoriNotifier()),
+          pelangganProvider.overrideWith(() => FakePelangganNotifier()),
+          paketProvider.overrideWith(() => FakePaketNotifier()),
+        ],
         child: MaterialApp(
           home: TransaksiPage(),
           navigatorObservers: [mockNavigatorObserver],
