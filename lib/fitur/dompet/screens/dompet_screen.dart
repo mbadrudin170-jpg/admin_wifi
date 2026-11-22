@@ -8,15 +8,14 @@ import 'dart:async';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:admin_wifi/fitur/dompet/screens/detail_dompet.dart';
 import 'package:admin_wifi/fitur/dompet/screens/form_dompet.dart';
 import 'package:admin_wifi/widget/info_ringkasan_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
-import 'package:share_global_saya/src/widget/toast_widget.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 class DompetPage extends ConsumerStatefulWidget {
   const DompetPage({super.key});
@@ -26,14 +25,7 @@ class DompetPage extends ConsumerStatefulWidget {
 }
 
 class _DompetPageState extends ConsumerState<DompetPage> {
-  late final DompetNotifier _dompetOperasi;
   final GlobalKey<_RingkasanKeuanganState> _ringkasanKey = GlobalKey();
-
-  @override
-  void initState() {
-    super.initState();
-    _dompetOperasi = ref.read(dompetProvider.notifier);
-  }
 
   // Fungsi untuk menavigasi ke halaman tambah dompet
   void _tambahDompet() {
@@ -68,7 +60,7 @@ class _DompetPageState extends ConsumerState<DompetPage> {
     if (!mounted) return;
 
     try {
-      await _dompetOperasi.hapusSemuaDompet();
+      await ref.read(dompetProvider.notifier).hapusSemuaDompet();
       await ref.read(dompetProvider.notifier).muatUlang();
       _ringkasanKey.currentState?.refresh();
       if (!mounted) return;
@@ -95,7 +87,7 @@ class _DompetPageState extends ConsumerState<DompetPage> {
     if (!mounted) return;
 
     try {
-      await _dompetOperasi.arsipkanSatuDompet(dompet.id);
+      await ref.read(dompetProvider.notifier).arsipkanSatuDompet(dompet.id);
       await ref.read(dompetProvider.notifier).muatUlang();
       _ringkasanKey.currentState?.refresh();
       if (!mounted) return;
@@ -122,10 +114,7 @@ class _DompetPageState extends ConsumerState<DompetPage> {
                 'Gagal memuat data dompet: $error',
                 textAlign: TextAlign.center,
               ),
-              FilledButton(
-                onPressed: onRetry,
-                child: const Text('Coba Lagi'),
-              ),
+              FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
             ],
           ),
         ),
@@ -165,7 +154,13 @@ class _DompetPageState extends ConsumerState<DompetPage> {
           RingkasanKeuangan(key: _ringkasanKey),
           Expanded(
             child: dompetState.listDompet.isEmpty
-                ? const Center(child: Text('Tidak ada dompet ditemukan.'))
+                ? EmptyStateView(
+                    ikon: CupertinoIcons.creditcard,
+                    judul: 'Belum ada dompet',
+                    deskripsi: 'Tambahkan dompet pertama Anda untuk memulai.',
+                    ctaLabel: 'Tambah Dompet',
+                    onCta: _tambahDompet,
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.only(top: 8),
                     itemCount: dompetState.listDompet.length,
@@ -229,7 +224,19 @@ class _RingkasanKeuanganState extends ConsumerState<RingkasanKeuangan> {
         margin: const EdgeInsets.all(12.0),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0),
-          child: Center(child: Text('Error: ${dompetState.error}')),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 12,
+              children: [
+                Text('Error: ${dompetState.error}'),
+                FilledButton(
+                  onPressed: () => ref.refresh(dompetProvider),
+                  child: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
@@ -304,12 +311,13 @@ class DompetCard extends StatelessWidget {
         ),
         title: Text(
           dompet.namaDompet,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
           'Saldo: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(dompet.saldo)}',
-          style: TextStyle(
-            fontSize: 16,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: dompet.saldo < 0
                 ? Colors.red
                 : Theme.of(context).colorScheme.onSurfaceVariant,
