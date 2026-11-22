@@ -1,6 +1,7 @@
 // path: lib/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -32,6 +33,15 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   }
 
   Future<void> _muatData() async {
+    if (kIsWeb) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage =
+            'WiFi Analyzer tidak didukung di Web. Gunakan perangkat Android.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
