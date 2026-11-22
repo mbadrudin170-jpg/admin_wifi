@@ -19,6 +19,8 @@ final databaseHelperProvider = Provider<DatabaseHelper>((ref) {
 
 @Riverpod(keepAlive: true)
 class KritikSaranNotifier extends _$KritikSaranNotifier {
+  final _tabel = KritikSaranSkema.tabel;
+
   @override
   Future<KritikSaranState> build() async {
     return _ambilSemua();
@@ -36,7 +38,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
   Future<KritikSaranState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
     final maps = await operasiSqlite.ambil(
-      KritikSaranSkema.tabel,
+      _tabel,
       orderBy: '${KritikSaranSkema.tanggal} DESC',
     );
     final daftar = maps.map(KritikSaranModel.fromSqlite).toList();
@@ -55,7 +57,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       final data = kritikSaran.toSqlite()
         ..['diperbarui'] = now.toIso8601String();
 
-      await operasiSqlite.sisipkan('kritik_saran', data);
+      await operasiSqlite.sisipkan(_tabel, data);
       L.i('Berhasil membuat kritik_saran dengan ID: ${kritikSaran.id}');
       // Refresh state after creation
       await muatUlang();
@@ -79,7 +81,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = daftarKritikSaran.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.sisipkanAtauPerbaruiBatch('kritik_saran', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, data);
       L.i(
         'Berhasil menyelesaikan sisipkanAtauPerbaruiBatch untuk ${daftarKritikSaran.length} item.',
       );
@@ -96,7 +98,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
     L.w('PERINGATAN: Memulai hapusKritikSaran (hard delete) untuk ID: $id');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.hapus('kritik_saran', id: id);
+      await operasiSqlite.hapus(_tabel, id: id);
       L.i('Berhasil menghapus permanen kritik_saran dengan ID: $id.');
       // Refresh state after delete
       await muatUlang();
@@ -115,7 +117,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       final dbHelper = ref.read(databaseHelperProvider);
       final db = await dbHelper.database;
       await db.transaction((txn) async {
-        int count = await txn.delete('kritik_saran');
+        int count = await txn.delete(_tabel);
         L.i(
           'Berhasil hapusSemuaKritikSaran. Total baris yang dihapus permanen: $count',
         );
@@ -139,7 +141,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
       final db = await dbHelper.database;
       await db.transaction((txn) async {
         final deletedCount = await txn.delete(
-          'kritik_saran',
+          _tabel,
           where: 'user_id = ?',
           whereArgs: [userId],
         );
@@ -161,7 +163,7 @@ class KritikSaranNotifier extends _$KritikSaranNotifier {
     L.i('Memulai pengunduhan data dari Supabase tabel: kritik_saran.');
     try {
       final rows = await SupabaseKlien.instance.client
-          .from('kritik_saran')
+          .from(KritikSaranSkema.tabel)
           .select();
       final List<KritikSaranModel> data = rows.map((row) {
         return KritikSaranModel.fromSupabase(

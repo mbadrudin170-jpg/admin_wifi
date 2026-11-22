@@ -18,6 +18,8 @@ final databaseHelperProvider = Provider<DatabaseHelper>((ref) {
 
 @Riverpod(keepAlive: true)
 class KategoriNotifier extends _$KategoriNotifier {
+  final _tabel = KategoriSkema.tabel;
+
   @override
   Future<KategoriState> build() async {
     return _ambilSemua();
@@ -35,7 +37,7 @@ class KategoriNotifier extends _$KategoriNotifier {
   Future<KategoriState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
     final maps = await operasiSqlite.ambil(
-      KategoriSkema.tabel,
+      _tabel,
       where: '${KategoriSkema.diarsipkan} IS NULL',
     );
     final daftar = maps.map(KategoriModel.fromSqlite).toList();
@@ -50,7 +52,7 @@ class KategoriNotifier extends _$KategoriNotifier {
       final kategoriBaru = kategori.copyWith(diperbarui: DateTime.now());
       final data = kategoriBaru.toSqlite();
 
-      await operasiSqlite.sisipkan('kategori', data);
+      await operasiSqlite.sisipkan(_tabel, data);
       L.i('Berhasil membuat kategori baru dengan ID: ${kategoriBaru.id}');
       // Refresh state after creation
       await muatUlang();
@@ -66,7 +68,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'kategori',
+        _tabel,
         where: 'diarsipkan IS NULL',
       );
       final listKategori = maps.map(KategoriModel.fromSqlite).toList();
@@ -84,7 +86,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = kategori.copyWith(diperbarui: DateTime.now()).toSqlite();
-      await operasiSqlite.perbarui('kategori', data, kategori.id);
+      await operasiSqlite.perbarui(_tabel, data, kategori.id);
       L.i('Berhasil perbarui kategori untuk ID: ${kategori.id}.');
       // Refresh state after update
       await muatUlang();
@@ -101,7 +103,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     );
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.hapus('kategori', id: id);
+      await operasiSqlite.hapus(_tabel, id: id);
       L.i('Berhasil delete kategori ID: $id.');
       // Refresh state after delete
       await muatUlang();
@@ -123,7 +125,7 @@ class KategoriNotifier extends _$KategoriNotifier {
         'is_deleted': 1,
       };
 
-      await operasiSqlite.perbarui('kategori', dataToUpdate, id);
+      await operasiSqlite.perbarui(_tabel, dataToUpdate, id);
 
       L.i('Berhasil arsipkanSatuKategori untuk ID: $id.');
       // Refresh state after archive
@@ -144,7 +146,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     }
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.sisipkanAtauPerbaruiBatch('kategori', [
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, [
         // First delete all
         // We'll use a custom approach since operasiSqlite doesn't have a clear method
         // We'll need to use the database directly for this complex operation
@@ -154,9 +156,9 @@ class KategoriNotifier extends _$KategoriNotifier {
       final dbHelper = ref.read(databaseHelperProvider);
       final db = await dbHelper.database;
       await db.transaction((txn) async {
-        await txn.delete('kategori');
+        await txn.delete(_tabel);
         for (var item in items) {
-          await txn.insert('kategori', item.toSqlite());
+          await txn.insert(_tabel, item.toSqlite());
         }
         L.i(
           'Berhasil menyisipkan ${items.length} item baru ke tabel kategori.',
@@ -181,7 +183,7 @@ class KategoriNotifier extends _$KategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = items.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.sisipkanAtauPerbaruiBatch('kategori', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, data);
       L.i(
         'Berhasil menyelesaikan sisipkanAtauPerbaruiBatch untuk ${items.length} item kategori.',
       );

@@ -11,6 +11,8 @@ part 'sub_kategori_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SubKategoriNotifier extends _$SubKategoriNotifier {
+  final _tabel = SubKategoriSkema.tabel;
+
   @override
   Future<SubKategoriState> build() async {
     return _ambilSemua();
@@ -28,7 +30,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
   Future<SubKategoriState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
     final maps = await operasiSqlite.ambil(
-      'sub_kategori',
+      _tabel,
       where: '${SubKategoriSkema.isDeleted} = ?',
       whereArgs: const [0],
     );
@@ -45,7 +47,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
       final data = subKategori.copyWith(diperbarui: now).toSqlite();
-      await operasiSqlite.sisipkan('sub_kategori', data);
+      await operasiSqlite.sisipkan(_tabel, data);
       L.i('Berhasil membuat sub kategori dengan ID: ${subKategori.id}');
       await muatUlang();
     } catch (e, s) {
@@ -58,7 +60,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'sub_kategori',
+        _tabel,
         where: '${SubKategoriSkema.isDeleted} = ?',
         whereArgs: const [0],
       );
@@ -75,7 +77,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
       final data = subKategori.copyWith(diperbarui: now).toSqlite();
-      await operasiSqlite.perbarui('sub_kategori', data, subKategori.id);
+      await operasiSqlite.perbarui(_tabel, data, subKategori.id);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal saat updateSubKategori Error: $e $s');
@@ -89,7 +91,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       if (softDelete) {
         await operasiSqlite.perbarui(
-          'sub_kategori',
+          _tabel,
           {
             SubKategoriSkema.isDeleted: 1,
             SubKategoriSkema.diperbarui: DateTime.now().toIso8601String(),
@@ -97,7 +99,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
           id,
         );
       } else {
-        await operasiSqlite.hapus('sub_kategori', id: id);
+        await operasiSqlite.hapus(_tabel, id: id);
       }
       await muatUlang();
     } catch (e, s) {
@@ -118,7 +120,7 @@ class SubKategoriNotifier extends _$SubKategoriNotifier {
       final data = items
           .map((item) => item.copyWith(diperbarui: DateTime.now()).toSqlite())
           .toList();
-      await operasiSqlite.sisipkanAtauPerbaruiBatch('sub_kategori', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, data);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal saat sisipkanAtauPerbaruiBatch sub kategori Error: $e $s');

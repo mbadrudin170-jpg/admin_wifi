@@ -11,6 +11,8 @@ part 'versi_apk_user_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class VersiApkUserNotifier extends _$VersiApkUserNotifier {
+  final _tabel = VersiApkUserSkema.tabel;
+
   @override
   Future<VersiApkUserState> build() async {
     return _ambilSemua();
@@ -27,7 +29,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
 
   Future<VersiApkUserState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
-    final maps = await operasiSqlite.ambil('versi_apk_user');
+    final maps = await operasiSqlite.ambil(_tabel);
     final daftar = maps.map(VersiApkUserModel.fromSqlite).toList();
     return VersiApkUserState(
       listVersiApkUser: daftar,
@@ -39,7 +41,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     L.i('Menambah versi APK user baru - ID: ${versiApkUser.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.sisipkan('versi_apk_user', versiApkUser.toSqlite());
+      await operasiSqlite.sisipkan(_tabel, versiApkUser.toSqlite());
       L.i('Versi APK user berhasil ditambahkan - ID: ${versiApkUser.id}');
       await muatUlang();
     } catch (e, s) {
@@ -52,7 +54,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     L.i('Memperbarui versi APK user - ID: ${versiApkUser.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.perbarui('versi_apk_user', versiApkUser.toSqlite(), versiApkUser.id);
+      await operasiSqlite.perbarui(_tabel, versiApkUser.toSqlite(), versiApkUser.id);
       L.i('Versi APK user berhasil diperbarui - ID: ${versiApkUser.id}');
       await muatUlang();
     } catch (e, s) {
@@ -65,11 +67,11 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     L.i('Mengarsipkan versi APK user - ID: $id');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil('versi_apk_user', where: 'id = ?', whereArgs: [id]);
+      final maps = await operasiSqlite.ambil(_tabel, where: 'id = ?', whereArgs: [id]);
       if (maps.isNotEmpty) {
         final model = VersiApkUserModel.fromSqlite(maps.first);
         final modelDiarsipkan = model.copyWith(isDeleted: true, diarsipkan: DateTime.now());
-        await operasiSqlite.perbarui('versi_apk_user', modelDiarsipkan.toSqlite(), id);
+        await operasiSqlite.perbarui(_tabel, modelDiarsipkan.toSqlite(), id);
         L.i('Versi APK user berhasil diarsipkan - ID: $id');
       }
       await muatUlang();
@@ -85,7 +87,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final daftarMap = daftarModel.map((m) => m.toSqlite()).toList();
-      await operasiSqlite.sisipkanAtauPerbaruiBatch('versi_apk_user', daftarMap);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, daftarMap);
       L.i('Operasi batch berhasil - ${daftarMap.length} data diproses');
       await muatUlang();
     } catch (e, s) {
@@ -97,7 +99,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
   Future<List<VersiApkUserModel>> ambilSemuaVersiApk() async {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil('versi_apk_user', orderBy: 'diperbarui DESC');
+      final maps = await operasiSqlite.ambil(_tabel, orderBy: 'diperbarui DESC');
       return maps.map(VersiApkUserModel.fromSqlite).toList();
     } catch (e, s) {
       L.e('Gagal mengambil semua data versi APK Error: $e $s');
@@ -109,7 +111,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'versi_apk_user',
+        _tabel,
         where: 'is_deleted = ?',
         whereArgs: const [0],
         orderBy: 'diperbarui DESC',
@@ -125,7 +127,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'versi_apk_user',
+        _tabel,
         where: 'is_deleted = ?',
         whereArgs: const [0],
         orderBy: 'diperbarui DESC',
@@ -143,7 +145,7 @@ class VersiApkUserNotifier extends _$VersiApkUserNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'versi_apk_user',
+        _tabel,
         where: 'id = ? AND is_deleted = ?',
         whereArgs: [id, 0],
       );

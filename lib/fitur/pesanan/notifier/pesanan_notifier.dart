@@ -11,6 +11,8 @@ part 'pesanan_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class PesananNotifier extends _$PesananNotifier {
+  final _tabel = PesananSkema.tabel;
+
   @override
   Future<PesananState> build() async {
     return _ambilSemua();
@@ -27,7 +29,7 @@ class PesananNotifier extends _$PesananNotifier {
 
   Future<PesananState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
-    final maps = await operasiSqlite.ambil('pesanan', orderBy: 'tanggal DESC');
+    final maps = await operasiSqlite.ambil(_tabel, orderBy: 'tanggal DESC');
     final daftar = maps.map(PesananModel.fromSqlite).toList();
     return PesananState(listPesanan: daftar, jumlahPesanan: daftar.length);
   }
@@ -36,7 +38,7 @@ class PesananNotifier extends _$PesananNotifier {
     L.i('Menyimpan pesanan baru - ID: ${pesanan.id}');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.sisipkan('pesanan', pesanan.toSqlite());
+      await operasiSqlite.sisipkan(_tabel, pesanan.toSqlite());
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal menyimpan pesanan - ID: ${pesanan.id} Error: $e $s');
@@ -48,7 +50,7 @@ class PesananNotifier extends _$PesananNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'pesanan',
+        _tabel,
         orderBy: 'tanggal DESC',
       );
       return maps.map(PesananModel.fromSqlite).toList();
@@ -62,7 +64,7 @@ class PesananNotifier extends _$PesananNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        'pesanan',
+        _tabel,
         where: 'status = ?',
         whereArgs: [status],
         orderBy: 'tanggal DESC',
@@ -77,7 +79,7 @@ class PesananNotifier extends _$PesananNotifier {
   Future<void> updateStatusPesanan(String id, String status) async {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.perbarui('pesanan', {'status': status}, id);
+      await operasiSqlite.perbarui(_tabel, {'status': status}, id);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal update status pesanan Error: $e $s');
@@ -88,7 +90,7 @@ class PesananNotifier extends _$PesananNotifier {
   Future<void> hapusPesanan(String id) async {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.hapus('pesanan', id: id);
+      await operasiSqlite.hapus(_tabel, id: id);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal hapus pesanan Error: $e $s');
@@ -101,7 +103,7 @@ class PesananNotifier extends _$PesananNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = items.map((i) => i.toSqlite()).toList();
-      await operasiSqlite.sisipkanAtauPerbaruiBatch('pesanan', data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, data);
       await muatUlang();
     } catch (e, s) {
       L.e('Gagal sisipkanAtauPerbaruiBatch pesanan Error: $e $s');
@@ -115,7 +117,7 @@ class PesananNotifier extends _$PesananNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final placeholders = List.filled(ids.length, '?').join(',');
       final maps = await operasiSqlite.ambil(
-        'pesanan',
+        _tabel,
         where: 'id IN ($placeholders)',
         whereArgs: ids,
       );

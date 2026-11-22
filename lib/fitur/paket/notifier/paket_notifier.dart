@@ -12,6 +12,8 @@ part 'paket_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class PaketNotifier extends _$PaketNotifier {
+  final _tabel = PaketSkema.tabel;
+
   @override
   Future<PaketState> build() async {
     return _ambilSemua();
@@ -29,7 +31,7 @@ class PaketNotifier extends _$PaketNotifier {
   Future<PaketState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
     final maps = await operasiSqlite.ambil(
-      PaketSkema.tabel,
+      _tabel,
       where: '${PaketSkema.isDeleted} = ?',
       whereArgs: const [0],
       orderBy:
@@ -47,7 +49,7 @@ class PaketNotifier extends _$PaketNotifier {
       final now = DateTime.now();
       final data = model.copyWith(diperbarui: now).toSqlite();
 
-      await operasiSqlite.sisipkan(PaketSkema.tabel, data);
+      await operasiSqlite.sisipkan(_tabel, data);
       L.i('Berhasil membuat paket, id: ${model.id}');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
@@ -64,7 +66,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final dataList = models.map((item) => item.toSqlite()).toList();
-      await operasiSqlite.sisipkanAtauPerbaruiBatch(PaketSkema.tabel, dataList);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, dataList);
       L.i(
         'Berhasil menyelesaikan proses batch untuk ${models.length} item paket.',
       );
@@ -83,7 +85,7 @@ class PaketNotifier extends _$PaketNotifier {
       final now = DateTime.now();
       final data = model.copyWith(diperbarui: now).toSqlite();
 
-      await operasiSqlite.perbarui(PaketSkema.tabel, data, model.id);
+      await operasiSqlite.perbarui(_tabel, data, model.id);
       L.i('Berhasil memperbarui paket, id: ${model.id}');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
@@ -97,7 +99,7 @@ class PaketNotifier extends _$PaketNotifier {
     L.i('Menghapus paket, id: $id');
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      await operasiSqlite.hapus(PaketSkema.tabel, id: id);
+      await operasiSqlite.hapus(_tabel, id: id);
       L.i('Berhasil menghapus paket, id: $id');
       state = AsyncValue.data(await _ambilSemua());
     } catch (e, s) {
@@ -111,7 +113,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        PaketSkema.tabel,
+        _tabel,
         orderBy:
             "CASE tipe WHEN 'jam' THEN durasi WHEN 'hari' THEN durasi * 24 WHEN 'bulan' THEN durasi * 24 * 30 ELSE 999999 END ASC",
       );
@@ -133,7 +135,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        PaketSkema.tabel,
+        _tabel,
         where: '${PaketSkema.isDeleted} = ?',
         whereArgs: const [0],
         orderBy:
@@ -157,7 +159,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        PaketSkema.tabel,
+        _tabel,
         where: '${PaketSkema.isDeleted} = ? AND ${PaketSkema.isPublic} = ?',
         whereArgs: const [0, 1],
         orderBy:
@@ -181,7 +183,7 @@ class PaketNotifier extends _$PaketNotifier {
       final dbHelper = ref.read(databaseHelperProvider);
       final db = await dbHelper.database;
       await db.transaction((txn) async {
-        int count = await txn.delete(PaketSkema.tabel);
+        int count = await txn.delete(_tabel);
         L.i('Berhasil menghapus semua data paket. Total terhapus: $count');
         return count;
       });
@@ -198,7 +200,7 @@ class PaketNotifier extends _$PaketNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final maps = await operasiSqlite.ambil(
-        PaketSkema.tabel,
+        _tabel,
         where: '${PaketSkema.diperbarui} > ?',
         whereArgs: [since.toIso8601String()],
       );

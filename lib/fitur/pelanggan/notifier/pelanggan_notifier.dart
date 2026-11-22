@@ -13,6 +13,8 @@ part 'pelanggan_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class PelangganNotifier extends _$PelangganNotifier {
+  final _tabel = PelangganSkema.tabel;
+
   @override
   Future<PelangganState> build() async {
     return _ambilSemua();
@@ -30,7 +32,7 @@ class PelangganNotifier extends _$PelangganNotifier {
   Future<PelangganState> _ambilSemua() async {
     final operasiSqlite = ref.read(operasiSqliteProvider);
     final maps = await operasiSqlite.ambil(
-      PelangganSkema.tabel,
+      _tabel,
       where:
           '${PelangganSkema.diarsipkan} IS NULL AND ${PelangganSkema.isDeleted} = ?',
       whereArgs: const [0],
@@ -50,7 +52,7 @@ class PelangganNotifier extends _$PelangganNotifier {
       final pelangganUntukDisimpan = model.copyWith(diperbarui: DateTime.now());
       final data = pelangganUntukDisimpan.toSqlite();
 
-      await operasiSqlite.sisipkan(PelangganSkema.tabel, data);
+      await operasiSqlite.sisipkan(_tabel, data);
 
       L.i(
         'Pelanggan (ID: ${pelangganUntukDisimpan.id}) berhasil dibuat di database lokal.',
@@ -67,7 +69,7 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
-        PelangganSkema.tabel,
+        _tabel,
         where:
             '${PelangganSkema.diarsipkan} IS NULL AND ${PelangganSkema.isDeleted} = ?',
         whereArgs: [0],
@@ -88,7 +90,7 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
-        PelangganSkema.tabel,
+        _tabel,
       );
 
       L.i('Berhasil mengambil total ${maps.length} pelanggan.');
@@ -107,7 +109,7 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
-        PelangganSkema.tabel,
+        _tabel,
         where: '${PelangganSkema.id} = ?',
         whereArgs: [id],
       );
@@ -148,7 +150,7 @@ class PelangganNotifier extends _$PelangganNotifier {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final data = model.copyWith(diperbarui: DateTime.now()).toSqlite();
 
-      await operasiSqlite.perbarui(PelangganSkema.tabel, data, model.id);
+      await operasiSqlite.perbarui(_tabel, data, model.id);
 
       L.i('Berhasil memperbarui pelanggan ID: ${model.id}.');
       state = AsyncValue.data(await _ambilSemua());
@@ -166,13 +168,13 @@ class PelangganNotifier extends _$PelangganNotifier {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       if (softDelete) {
-await operasiSqlite.perbarui(PelangganSkema.tabel, {
+await operasiSqlite.perbarui(_tabel, {
            'is_deleted': 1,
            'diperbarui': DateTime.now().toIso8601String(),
          }, id);
         L.i('Berhasil melakukan soft delete pada pelanggan ID: $id.');
       } else {
-        await operasiSqlite.hapus(PelangganSkema.tabel, id: id);
+        await operasiSqlite.hapus(_tabel, id: id);
         L.w(
           'Berhasil melakukan hard delete (penghapusan permanen) pada pelanggan ID: $id.',
         );
@@ -190,7 +192,7 @@ await operasiSqlite.perbarui(PelangganSkema.tabel, {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
-        PelangganSkema.tabel,
+        _tabel,
         where: '${PelangganSkema.diperbarui} > ?',
         whereArgs: [since.toIso8601String()],
       );
@@ -213,7 +215,7 @@ await operasiSqlite.perbarui(PelangganSkema.tabel, {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final now = DateTime.now();
-await operasiSqlite.perbarui(PelangganSkema.tabel, {
+await operasiSqlite.perbarui(_tabel, {
          'isDeleted': 1,
          'diarsipkan': now.toIso8601String(),
          'diperbarui': now.toIso8601String(),
@@ -239,7 +241,7 @@ await operasiSqlite.perbarui(PelangganSkema.tabel, {
         return itemToSave.toSqlite();
       }).toList();
 
-      await operasiSqlite.sisipkanAtauPerbaruiBatch(PelangganSkema.tabel, data);
+      await operasiSqlite.sisipkanAtauPerbaruiBatch(_tabel, data);
       L.i(
         'Berhasil menyelesaikan operasi batch untuk ${models.length} pelanggan.',
       );
@@ -260,7 +262,7 @@ await operasiSqlite.perbarui(PelangganSkema.tabel, {
       final operasiSqlite = ref.read(operasiSqliteProvider);
       final placeholders = List.filled(ids.length, '?').join(',');
       final List<Map<String, dynamic>> maps = await operasiSqlite.ambil(
-        PelangganSkema.tabel,
+        _tabel,
         where: 'id IN ($placeholders)',
         whereArgs: ids,
       );
