@@ -652,6 +652,9 @@ class _ItemPelangganAktif extends StatelessWidget {
                 ),
               ),
               Text(
+                'Mulai: ${FormatTanggal.formatTanggalRingkas(pelangganAktif.tanggalMulai)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalMulai)}',
+              ),
+              Text(
                 'Berakhir: ${FormatTanggal.formatTanggalRingkas(pelangganAktif.tanggalBerakhir)} ${FormatJam.formatJamMenit(pelangganAktif.tanggalBerakhir)}',
               ),
             ],
