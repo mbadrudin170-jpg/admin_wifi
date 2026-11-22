@@ -3,8 +3,7 @@
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart' hide FormatTanggal;
 import 'package:uuid/uuid.dart';
 
 class FormPelanggan extends StatefulWidget {
@@ -22,12 +21,14 @@ class _FormPelangganState extends State<FormPelanggan> {
   final _alamatController = TextEditingController();
   final _passwordController = TextEditingController();
   final _macAddressController = TextEditingController();
+  final _poinAwalController = TextEditingController();
 
   final _namaFocusNode = FocusNode();
   final _teleponFocusNode = FocusNode();
   final _alamatFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _macAddressFocusNode = FocusNode();
+  final _poinAwalFocusNode = FocusNode();
 
   bool get _isEditMode => widget.pelanggan != null;
   bool _isPasswordVisible = false;
@@ -48,6 +49,7 @@ class _FormPelangganState extends State<FormPelanggan> {
       _alamatController.text = widget.pelanggan!.alamat;
       _passwordController.text = widget.pelanggan!.password;
       _macAddressController.text = widget.pelanggan!.macAddress;
+      _poinAwalController.text = widget.pelanggan!.poinAwal.toString();
     }
   }
 
@@ -61,11 +63,13 @@ class _FormPelangganState extends State<FormPelanggan> {
     _alamatController.dispose();
     _passwordController.dispose();
     _macAddressController.dispose();
+    _poinAwalController.dispose();
     _namaFocusNode.dispose();
     _teleponFocusNode.dispose();
     _alamatFocusNode.dispose();
     _passwordFocusNode.dispose();
     _macAddressFocusNode.dispose();
+    _poinAwalFocusNode.dispose();
     super.dispose();
   }
 
@@ -82,6 +86,7 @@ class _FormPelangganState extends State<FormPelanggan> {
         alamat: _alamatController.text.trim(),
         password: _passwordController.text, // No trim for password
         macAddress: _macAddressController.text.trim().toUpperCase(),
+        poinAwal: double.tryParse(_poinAwalController.text.trim()) ?? 0,
         diperbarui: DateTime.now(),
       );
 
@@ -106,20 +111,13 @@ class _FormPelangganState extends State<FormPelanggan> {
           L.i(
             'Penyimpanan berhasil. Menutup form dan kembali dengan hasil true.',
           );
-          Nav.pop(context, true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Data pelanggan berhasil disimpan.'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          Nav.pop(context);
+          AppToast.sukses(context, 'Data pelanggan berhasil disimpan.');
         }
       } catch (e, s) {
         L.e('Gagal menyimpan data pelanggan ke database. Error: $e $s');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data: $e')));
+          AppToast.gagal(context, 'Gagal menyimpan data: $e');
         }
       } finally {
         if (mounted) {
@@ -138,12 +136,6 @@ class _FormPelangganState extends State<FormPelanggan> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditMode ? 'Edit Pelanggan' : 'Tambah Pelanggan'),
-        leading: BackButton(
-          onPressed: () {
-            L.i('Tombol "Back" ditekan. Kembali tanpa menyimpan.');
-            Nav.pop(context, false);
-          },
-        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -230,6 +222,23 @@ class _FormPelangganState extends State<FormPelanggan> {
                   validator: (v) => (v == null || v.isEmpty)
                       ? 'MAC Address tidak boleh kosong'
                       : null,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _poinAwalController,
+                  focusNode: _poinAwalFocusNode,
+                  label: 'Poin Awal',
+                  icon: Icons.stars_outlined,
+                  keyboard: TextInputType.number,
+                  action: TextInputAction.done,
+                  onSubmitted: (_) => _poinAwalFocusNode.unfocus(),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return null;
+                    if (double.tryParse(v) == null) {
+                      return 'Poin harus berupa angka';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
