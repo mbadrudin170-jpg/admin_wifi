@@ -3,7 +3,7 @@
 // diubah: Menghapus kolom usang dari pernyataan INSERT manual.
 
 import 'package:admin_wifi/db/sqlite/sqflite.dart';
-import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';

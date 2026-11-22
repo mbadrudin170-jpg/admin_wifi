@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:admin_wifi/data/sync/unggah_data.dart';
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';

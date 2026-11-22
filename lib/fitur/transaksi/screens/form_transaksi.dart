@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';

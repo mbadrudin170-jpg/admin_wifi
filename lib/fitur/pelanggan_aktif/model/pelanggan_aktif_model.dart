@@ -1,6 +1,6 @@
 // path: lib/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart
 
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';

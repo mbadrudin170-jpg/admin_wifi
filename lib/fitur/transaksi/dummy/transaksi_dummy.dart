@@ -1,7 +1,7 @@
 // path: lib/fitur/transaksi/dummy/transaksi_dummy.dart
 
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
-import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 

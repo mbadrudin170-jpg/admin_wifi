@@ -1,7 +1,7 @@
 // path: test/halaman/detail/detail_dompet_test.dart
 
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/enum/tipe_transaksi_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/dompet/screens/detail_dompet.dart';

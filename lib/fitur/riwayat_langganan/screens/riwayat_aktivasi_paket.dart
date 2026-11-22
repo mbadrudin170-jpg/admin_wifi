@@ -1,7 +1,7 @@
 // path: lib/fitur/riwayat_langganan/screens/riwayat_aktivasi_paket.dart
 
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/halaman/detail/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';

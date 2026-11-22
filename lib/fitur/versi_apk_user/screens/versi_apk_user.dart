@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
-import 'package:admin_wifi/enum/arsitektur_apk_enum.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/detail_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';

@@ -1,6 +1,6 @@
 // path: lib/fitur/pelanggan_aktif/dummy/pelanggan_aktif_dummy.dart
 
-import 'package:admin_wifi/enum/status_pembayaran_enum.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 
 /// Data dummy `PelangganAktifModel` untuk kebutuhan pratinjau UI dan
