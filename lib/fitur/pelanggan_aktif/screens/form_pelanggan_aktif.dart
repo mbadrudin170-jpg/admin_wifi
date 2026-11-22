@@ -48,12 +48,12 @@ DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
 
 class FormPelangganAktif extends ConsumerStatefulWidget {
   final PelangganAktifModel? pelangganAktif;
-  final bool? modePerpanjang;
+  final bool modePerpanjang;
 
   const FormPelangganAktif({
     super.key,
     this.pelangganAktif,
-    this.modePerpanjang,
+    this.modePerpanjang = false,
   });
 
   @override
@@ -61,7 +61,7 @@ class FormPelangganAktif extends ConsumerStatefulWidget {
 }
 
 class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
-  bool? get _modePerpanjang => widget.modePerpanjang;
+  bool get _modePerpanjang => widget.modePerpanjang;
   final _formKey = GlobalKey<FormState>();
 
   List<PelangganModel> _pelangganList = [];
@@ -127,6 +127,16 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
           if (_selectedPaket == null) {
             _peringatanPaket =
                 'Peringatan: Paket asli (ID: ${pa.idPaket}) tidak ditemukan. Harap pilih paket baru.';
+          }
+          if (_daftarDompet.isNotEmpty && _selectedDompet == null) {
+            _selectedDompet = _daftarDompet.first;
+          }
+          if (_kategoriPemasukanList.isNotEmpty && _selectedKategori == null) {
+            _selectedKategori =
+                _kategoriPemasukanList.firstWhereOrNull(
+                  (k) => k.nama.toLowerCase() == 'aktivasi paket',
+                ) ??
+                _kategoriPemasukanList.first;
           }
         });
       });
@@ -241,15 +251,13 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       );
 
       final transaksiId =
-          (_isEditMode && !(_modePerpanjang ?? false)) &&
+          (_isEditMode && !_modePerpanjang) &&
               widget.pelangganAktif?.idTransaksi != null
           ? widget.pelangganAktif!.idTransaksi!
           : const Uuid().v4();
 
       final pelangganAktifData = PelangganAktifModel(
-        id: (_isEditMode && !(_modePerpanjang ?? false))
-            ? widget.pelangganAktif!.id
-            : '',
+        id: (_isEditMode && !_modePerpanjang) ? widget.pelangganAktif!.id : '',
         idPelanggan: _selectedPelanggan!.id,
         idPaket: selectedPaket.id,
         tanggalMulai: tanggalMulai,
@@ -283,7 +291,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       );
 
       PelangganAktifModel pelangganAktifHasil;
-      if (_modePerpanjang ?? false) {
+      if (_modePerpanjang) {
         pelangganAktifHasil = await ref
             .read(penggunaAktifProvider.notifier)
             .tambah(pelangganAktifData);
@@ -367,7 +375,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            _modePerpanjang == true
+            _modePerpanjang
                 ? 'Perpanjang Masa Aktif'
                 : (_isEditMode
                       ? 'Edit Pelanggan Aktif'
@@ -517,7 +525,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
   }
 
   Widget _buildPelangganDropdown() {
-    final bool nonaktifkan = _modePerpanjang ?? false;
+    final bool nonaktifkan = _modePerpanjang;
     return DropdownButtonFormField<PelangganModel>(
       key: const Key('pelanggan_dropdown'),
       decoration: const InputDecoration(
