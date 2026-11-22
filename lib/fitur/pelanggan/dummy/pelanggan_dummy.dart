@@ -23,6 +23,7 @@ abstract final class PelangganDummy {
       alamat: 'Jl. Melati No. 12, Bekasi',
       password: 'rahasia123',
       macAddress: 'AA:BB:CC:DD:EE:01',
+      poinAwal: 50,
       diperbarui: DateTime.now().subtract(const Duration(days: 30)),
     ),
     PelangganModel(
@@ -32,6 +33,7 @@ abstract final class PelangganDummy {
       alamat: 'Jl. Anggrek No. 7, Jakarta Selatan',
       password: 'rahasia123',
       macAddress: 'AA:BB:CC:DD:EE:02',
+      poinAwal: 120,
       diperbarui: DateTime.now().subtract(const Duration(days: 20)),
     ),
     PelangganModel(
@@ -41,6 +43,7 @@ abstract final class PelangganDummy {
       alamat: 'Jl. Kenanga No. 45, Depok',
       password: 'rahasia123',
       macAddress: 'AA:BB:CC:DD:EE:03',
+      poinAwal: 0,
       diperbarui: DateTime.now().subtract(const Duration(days: 10)),
     ),
     PelangganModel(
@@ -50,6 +53,7 @@ abstract final class PelangganDummy {
       alamat: 'Jl. Mawar No. 3, Tangerang',
       password: 'rahasia123',
       macAddress: 'AA:BB:CC:DD:EE:04',
+      poinAwal: 200,
       diperbarui: DateTime.now().subtract(const Duration(days: 5)),
     ),
     PelangganModel(
@@ -59,6 +63,7 @@ abstract final class PelangganDummy {
       alamat: 'Jl. Flamboyan No. 28, Bogor',
       password: 'rahasia123',
       macAddress: 'AA:BB:CC:DD:EE:05',
+      poinAwal: 30,
       diperbarui: DateTime.now().subtract(const Duration(days: 1)),
     ),
   ];

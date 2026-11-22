@@ -19,6 +19,7 @@ abstract class PelangganModel with _$PelangganModel {
     required String password,
     @Default('') String macAddress,
     @Default(false) bool isDeleted,
+    @Default(0) double poinAwal,
     DateTime? diperbarui,
     DateTime? diarsipkan,
   }) = _PelangganModel;
@@ -46,6 +47,7 @@ abstract class PelangganModel with _$PelangganModel {
       password: ParserUtil.parseString(map[PelangganSkema.password]),
       macAddress: ParserUtil.parseString(map[PelangganSkema.macAddress]),
       isDeleted: ParserUtil.parseBool(map[PelangganSkema.isDeleted]),
+      poinAwal: ParserUtil.parseDouble(map[PelangganSkema.poinAwal]),
       diperbarui: _parseTanggal(map[PelangganSkema.diperbarui]),
       diarsipkan: _parseTanggal(map[PelangganSkema.diarsipkan]),
     );
@@ -66,6 +68,7 @@ abstract class PelangganModel with _$PelangganModel {
       PelangganSkema.password: password,
       PelangganSkema.macAddress: macAddress,
       PelangganSkema.isDeleted: isDeleted ? 1 : 0,
+      PelangganSkema.poinAwal: poinAwal,
       PelangganSkema.diperbarui: diperbarui?.toUtc().toIso8601String(),
       PelangganSkema.diarsipkan: diarsipkan?.toUtc().toIso8601String(),
     };
@@ -80,6 +83,7 @@ abstract class PelangganModel with _$PelangganModel {
       PelangganSkema.password: password,
       PelangganSkema.macAddress: macAddress,
       PelangganSkema.isDeleted: isDeleted,
+      PelangganSkema.poinAwal: poinAwal,
       PelangganSkema.diperbarui: (diperbarui ?? DateTime.now())
           .toUtc()
           .toIso8601String(),
@@ -103,4 +107,5 @@ abstract final class PelangganSkema {
   static const String diperbarui = 'diperbarui';
   static const String diarsipkan = 'diarsipkan';
   static const String isDeleted = 'is_deleted';
+  static const String poinAwal = 'poin_awal';
 }

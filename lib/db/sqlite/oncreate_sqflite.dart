@@ -179,11 +179,12 @@ final String _tabelPelanggan =
       ${PelangganSkema.telepon} TEXT NOT NULL,
       ${PelangganSkema.alamat} TEXT NOT NULL,
       ${PelangganSkema.password} TEXT NOT NULL,
-      ${PelangganSkema.macAddress} TEXT NOT NULL,
-      ${PelangganSkema.status} TEXT NOT NULL DEFAULT 'aktif',
-      ${PelangganSkema.diperbarui} TEXT,
-      ${PelangganSkema.diarsipkan} TEXT,
-      ${PelangganSkema.isDeleted} INTEGER NOT NULL DEFAULT 0
+       ${PelangganSkema.macAddress} TEXT NOT NULL,
+       ${PelangganSkema.status} TEXT NOT NULL DEFAULT 'aktif',
+       ${PelangganSkema.diperbarui} TEXT,
+       ${PelangganSkema.diarsipkan} TEXT,
+       ${PelangganSkema.isDeleted} INTEGER NOT NULL DEFAULT 0,
+       ${PelangganSkema.poinAwal} REAL NOT NULL DEFAULT 0
     )
   ''';
 

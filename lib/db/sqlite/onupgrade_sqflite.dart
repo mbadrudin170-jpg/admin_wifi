@@ -1,5 +1,15 @@
 // path: lib/db/sqlite/onupgrade_sqflite.dart
 
+import 'package:admin_wifi/fitur/dompet/model/dompet_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
+import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
+import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
+import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
+import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
+import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
+import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -69,73 +79,120 @@ Future<void> onUpgradeSqflite(
   try {
     // Versi 1-30: Migrasi kolom camelCase ke snake_case
     if (oldVersion < 31) {
-      await _renameColumnIfNecessary(db, 'dompet', 'namaDompet', 'nama_dompet');
-      await _renameColumnIfNecessary(db, 'dompet', 'isDeleted', 'is_deleted');
-
-      await _renameColumnIfNecessary(db, 'paket', 'jumlahPoin', 'jumlah_poin');
-      await _renameColumnIfNecessary(db, 'paket', 'isDeleted', 'is_deleted');
-      await _renameColumnIfNecessary(db, 'paket', 'isPublic', 'is_public');
-
       await _renameColumnIfNecessary(
         db,
-        'pelanggan',
+        DompetSkema.tabel,
+        'namaDompet',
+        DompetSkema.namaDompet,
+      );
+      await _renameColumnIfNecessary(
+        db,
+        DompetSkema.tabel,
         'isDeleted',
-        'is_deleted',
+        DompetSkema.isDeleted,
       );
 
       await _renameColumnIfNecessary(
         db,
-        'pelanggan_aktif',
+        PaketSkema.tabel,
+        'jumlahPoin',
+        PaketSkema.jumlahPoin,
+      );
+      await _renameColumnIfNecessary(
+        db,
+        PaketSkema.tabel,
         'isDeleted',
-        'is_deleted',
+        PaketSkema.isDeleted,
+      );
+      await _renameColumnIfNecessary(
+        db,
+        PaketSkema.tabel,
+        'isPublic',
+        PaketSkema.isPublic,
       );
 
       await _renameColumnIfNecessary(
         db,
-        'transaksi',
+        PelangganSkema.tabel,
         'isDeleted',
-        'is_deleted',
-      );
-
-      await _renameColumnIfNecessary(db, 'kategori', 'isDeleted', 'is_deleted');
-
-      await _renameColumnIfNecessary(
-        db,
-        'sub_kategori',
-        'isDeleted',
-        'is_deleted',
+        PelangganSkema.isDeleted,
       );
 
       await _renameColumnIfNecessary(
         db,
-        'versi_apk_user',
+        PelangganAktifSkema.tabel,
         'isDeleted',
-        'is_deleted',
+        PelangganAktifSkema.isDeleted,
       );
 
-      await _renameColumnIfNecessary(db, 'pesanan', 'isDeleted', 'is_deleted');
+      await _renameColumnIfNecessary(
+        db,
+        TransaksiSkema.tabel,
+        'isDeleted',
+        TransaksiSkema.isDeleted,
+      );
 
-      await _renameColumnIfNecessary(db, 'kritik_saran', 'userId', 'user_id');
+      await _renameColumnIfNecessary(
+        db,
+        KategoriSkema.tabel,
+        'isDeleted',
+        KategoriSkema.isDeleted,
+      );
+
+      await _renameColumnIfNecessary(
+        db,
+        SubKategoriSkema.tabel,
+        'isDeleted',
+        SubKategoriSkema.isDeleted,
+      );
+
+      await _renameColumnIfNecessary(
+        db,
+        VersiApkUserSkema.tabel,
+        'isDeleted',
+        VersiApkUserSkema.isDeleted,
+      );
+
+      await _renameColumnIfNecessary(
+        db,
+        PesananSkema.tabel,
+        'isDeleted',
+        PesananSkema.isDeleted,
+      );
+
+      await _renameColumnIfNecessary(
+        db,
+        KritikSaranSkema.tabel,
+        'userId',
+        KritikSaranSkema.userId,
+      );
     }
 
     // Versi 31: Tambah kolom tanggal_mulai dan tanggal_berakhir ke pelanggan_aktif
     if (oldVersion < 32) {
       await _addColumnIfNotExists(
         db,
-        'pelanggan_aktif',
-        'tanggal_mulai',
+        PelangganAktifSkema.tabel,
+        PelangganAktifSkema.tanggalMulai,
         'TEXT',
       );
       await _addColumnIfNotExists(
         db,
-        'pelanggan_aktif',
-        'tanggal_berakhir',
+        PelangganAktifSkema.tabel,
+        PelangganAktifSkema.tanggalBerakhir,
         'TEXT',
       );
     }
 
-    // Versi 32-44: (versi kosong - tidak ada perubahan skema, hanya peningkatan versi)
-    // Tambahkan blok if (oldVersion < N) di sini untuk migrasi masa depan.
+    // Versi 45: Tambah kolom poin_awal ke pelanggan
+    if (oldVersion < 45) {
+      await _addColumnIfNotExists(
+        db,
+        PelangganSkema.tabel,
+        PelangganSkema.poinAwal,
+        'REAL NOT NULL DEFAULT 0',
+      );
+    }
 
     L.i('Upgrade database selesai dari versi $oldVersion ke $newVersion');
   } catch (e, st) {

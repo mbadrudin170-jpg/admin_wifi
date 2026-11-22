@@ -14,8 +14,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _database;
 
-  // dinaikkan ke 43 untuk memaksa migrasi ulang yang aman dan idempoten
-  static const int _databaseVersion = 44;
+  // dinaikkan ke 45 untuk menambahkan kolom poin_awal ke tabel pelanggan
+  static const int _databaseVersion = 45;
 
   DatabaseHelper._internal();
 
