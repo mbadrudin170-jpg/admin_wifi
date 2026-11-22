@@ -546,17 +546,17 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
           : (PelangganModel? newValue) async {
               if (newValue == null) return;
               final saldoPoin = await ref
-                  .read(transaksiProvider.notifier)
+                  .read(pelangganProvider.notifier)
                   .hitungTotalPoin(newValue.id);
-        if (mounted) {
-          setState(() {
-            _selectedPelanggan = newValue;
-            _saldoPoinPelanggan = saldoPoin;
-            if (saldoPoin <= 0) {
-              _gunakanPoin = false;
-            }
-          });
-        }
+              if (mounted) {
+                setState(() {
+                  _selectedPelanggan = newValue;
+                  _saldoPoinPelanggan = saldoPoin;
+                  if (saldoPoin <= 0) {
+                    _gunakanPoin = false;
+                  }
+                });
+              }
             },
       validator: (v) => v == null ? 'Pelanggan tidak boleh kosong' : null,
     );

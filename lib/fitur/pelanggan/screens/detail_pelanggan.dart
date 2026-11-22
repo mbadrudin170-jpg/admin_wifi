@@ -1,15 +1,13 @@
-// path: lib/halaman/detail/detail_pelanggan.dart
+// path: lib/fitur/pelanggan/screens/detail_pelanggan.dart
 import 'dart:async';
 
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
-import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/core_shared.dart';
 import 'package:flutter/services.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // Mengganti developer log standar dengan log custom
 
@@ -24,7 +22,6 @@ class DetailPelangganPage extends StatefulWidget {
 
 class _DetailPelangganPageState extends State<DetailPelangganPage> {
   // Global notifier untuk pelanggan (diakses lewat ProviderContainer terpisah)
-  final TransaksiNotifier transaksiOperasi = transaksiNotifierGlobal;
 
   PelangganModel? pelanggan;
   int totalPoin = 0;
@@ -62,7 +59,7 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
       L.i(
         'Memulai request asinkron ke TransaksiOperasi untuk menghitung total poin pelanggan ID: ${widget.idPelanggan}',
       );
-      final hasilPoin = await transaksiOperasi.hitungTotalPoin(
+      final hasilPoin = await pelangganNotifierGlobal.hitungTotalPoin(
         widget.idPelanggan,
       );
 
@@ -103,11 +100,10 @@ class _DetailPelangganPageState extends State<DetailPelangganPage> {
 
   // ditambahkan: fungsi untuk navigasi ke halaman edit
   void _editPelanggan() async {
-    if (pelanggan == null) return;
-    L.i(
-      'Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${pelanggan!.id}',
-    );
-    final result = await Nav.to(context, FormPelanggan(pelanggan: pelanggan));
+    final p = pelanggan;
+    if (p == null) return;
+    L.i('Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${p.id}');
+    final result = await Nav.to(context, FormPelanggan(pelanggan: p));
 
     if (result == true && mounted) {
       L.i(
@@ -141,9 +137,7 @@ MAC : ${pelanggan.macAddress}
       );
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Semua info berhasil disalin')),
-    );
+    AppToast.sukses(context, 'Semua info berhasil disalin');
   }
 
   // Fungsi ini bertujuan untuk menyalin data spesifik.
@@ -156,9 +150,7 @@ MAC : ${pelanggan.macAddress}
       L.i('Berhasil menyalin data kategori $label ke Clipboard.');
     });
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$label berhasil disalin')));
+    AppToast.sukses(context, '$label berhasil disalin');
   }
 
   @override
@@ -181,13 +173,18 @@ MAC : ${pelanggan.macAddress}
     }
 
     // Cek jika data kosong setelah loading selesai
-    if (pelanggan == null) {
+    final p = pelanggan;
+    if (p == null) {
       L.w(
         'Merender tampilan pesan "Pelanggan tidak ditemukan" karena objek pelanggan bernilai null setelah proses loading selesai.',
       );
       return Scaffold(
         appBar: AppBar(title: const Text('Detail Pelanggan')),
-        body: const Center(child: Text('Pelanggan tidak ditemukan')),
+        body: EmptyStateView(
+          ikon: Icons.person_off,
+          judul: 'Pelanggan tidak ditemukan',
+          deskripsi: 'Data pelanggan dengan ID ini tidak tersedia.',
+        ),
       );
     }
 
@@ -216,7 +213,7 @@ MAC : ${pelanggan.macAddress}
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
                   L.i(
-                    'Interaksi pengguna: Mengetuk kartu Poin. Melakukan navigasi push ke HalamanPoin untuk pelanggan: ${pelanggan!.nama}',
+                    'Interaksi pengguna: Mengetuk kartu Poin. Melakukan navigasi push ke HalamanPoin untuk pelanggan: ${p.nama}',
                   );
                   unawaited(
                     Nav.to(
@@ -238,22 +235,26 @@ MAC : ${pelanggan.macAddress}
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Total Poin',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$totalPoin',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
-                        ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                       ),
-                      const Text(
+                      Text(
                         'Klik untuk detail riwayat poin',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -261,29 +262,29 @@ MAC : ${pelanggan.macAddress}
               ),
             ),
             const SizedBox(height: 24),
-            _buildDetailRow(context, 'Nama', pelanggan!.nama, () {
+            _buildDetailRow(context, 'Nama', p.nama, () {
               L.i('Trigger tombol salin pada baris Nama.');
-              _salinData(context, 'Nama', pelanggan!.nama);
+              _salinData(context, 'Nama', p.nama);
             }),
             const Divider(),
-            _buildDetailRow(context, 'Telepon', pelanggan!.telepon, () {
+            _buildDetailRow(context, 'Telepon', p.telepon, () {
               L.i('Trigger tombol salin pada baris Telepon.');
-              _salinData(context, 'No Telepon', pelanggan!.telepon);
+              _salinData(context, 'No Telepon', p.telepon);
             }),
             const Divider(),
-            _buildDetailRow(context, 'Alamat', pelanggan!.alamat, () {
+            _buildDetailRow(context, 'Alamat', p.alamat, () {
               L.i('Trigger tombol salin pada baris Alamat.');
-              _salinData(context, 'Alamat', pelanggan!.alamat);
+              _salinData(context, 'Alamat', p.alamat);
             }),
             const Divider(),
-            _buildDetailRow(context, 'Password', pelanggan!.password, () {
+            _buildDetailRow(context, 'Password', p.password, () {
               L.i('Trigger tombol salin pada baris Password.');
-              _salinData(context, 'Password', pelanggan!.password);
+              _salinData(context, 'Password', p.password);
             }),
             const Divider(),
-            _buildDetailRow(context, 'MAC Address', pelanggan!.macAddress, () {
+            _buildDetailRow(context, 'MAC Address', p.macAddress, () {
               L.i('Trigger tombol salin pada baris MAC Address.');
-              _salinData(context, 'MAC Address', pelanggan!.macAddress);
+              _salinData(context, 'MAC Address', p.macAddress);
             }),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -291,7 +292,7 @@ MAC : ${pelanggan.macAddress}
                 L.i(
                   'Menekan tombol utama "Salin Semua Info" di bagian bawah layar.',
                 );
-                _salinSemuaInfo(context, pelanggan!);
+                _salinSemuaInfo(context, p);
               },
               icon: const Icon(Icons.copy_all),
               label: const Text('Salin Semua Info'),
@@ -321,10 +322,9 @@ MAC : ${pelanggan.macAddress}
         children: [
           Text(
             judul,
-            style: const TextStyle(
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: Colors.blueGrey,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 4),
@@ -333,13 +333,13 @@ MAC : ${pelanggan.macAddress}
               Expanded(
                 child: Text(
                   detail.isEmpty ? '-' : detail,
-                  style: const TextStyle(fontSize: 16),
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               IconButton(
                 onPressed: salinData,
                 icon: const Icon(Icons.content_copy, size: 20),
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 tooltip: 'Salin $judul',
               ),
             ],

@@ -1,6 +1,7 @@
 // path: lib/halaman/pembantu/halaman_poin.dart
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/utils/format_util.dart';
@@ -64,7 +65,7 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
 
     try {
       final totalPoin = await ref
-          .read(transaksiProvider.notifier)
+          .read(pelangganProvider.notifier)
           .hitungTotalPoin(widget.idPelanggan);
 
       final daftarHadiah = await ref

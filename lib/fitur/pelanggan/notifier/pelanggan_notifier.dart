@@ -2,8 +2,11 @@
 // diubah: Memindahkan logika dari PelangganOperasi ke notifier ini.
 
 import 'package:admin_wifi/db/sqlite/operasi_sqlite.dart';
+import 'package:admin_wifi/fitur/pelanggan/helper/pelanggan_poin_helper.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
+import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
+import 'package:admin_wifi/fitur/transaksi/state/transaksi_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
@@ -120,6 +123,23 @@ class PelangganNotifier extends _$PelangganNotifier {
       L.e('Gagal mencari pelanggan berdasarkan ID. Error: $e $s');
       rethrow;
     }
+  }
+
+  /// Menghitung total poin pelanggan (poin awal + poin dari transaksi).
+  Future<int> hitungTotalPoin(String idPelanggan) async {
+    final transaksiState = await ref.read(transaksiProvider.future);
+    final poinDihasilkan = transaksiState.getPoinYangDihasilkan(idPelanggan);
+    final poinDigunakan = transaksiState.getPoinYangDigunakan(idPelanggan);
+
+    final pelangganState = await future;
+    final pelanggan = pelangganState.getById(idPelanggan);
+    final double poinAwal = pelanggan?.poinAwal ?? 0;
+
+    return PelangganPoinHelper.hitungTotalPoin(
+      poinAwal: poinAwal,
+      poinDihasilkan: poinDihasilkan,
+      poinDigunakan: poinDigunakan,
+    );
   }
 
   /// Memperbarui pelanggan.
