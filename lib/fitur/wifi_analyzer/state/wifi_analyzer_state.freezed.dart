@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WifiAnalyzerState {
 
- bool get isLoading; String? get errorMessage; String? get ssidTerhubung; String? get bssidTerhubung; String? get ipTerhubung; List<WiFiAccessPoint> get accessPoints; int? get pingMs; String? get pingError;
+ bool get isLoading; String? get connectionError; String? get scanError; String? get tcpError; String? get ssidTerhubung; String? get bssidTerhubung; String? get ipTerhubung; List<WiFiAccessPoint> get accessPoints; int? get tcpLatencyMs; DateTime? get lastInfoAt; DateTime? get lastScanAt; DateTime? get lastTcpAt; DateTime? get lastInfoAttemptAt; DateTime? get lastScanAttemptAt; DateTime? get lastTcpAttemptAt;
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $WifiAnalyzerStateCopyWith<WifiAnalyzerState> get copyWith => _$WifiAnalyzerStat
 @override
 bool operator ==(Object other) {
   final _this = this as WifiAnalyzerState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WifiAnalyzerState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage)&&(identical(other.ssidTerhubung, _this.ssidTerhubung) || other.ssidTerhubung == _this.ssidTerhubung)&&(identical(other.bssidTerhubung, _this.bssidTerhubung) || other.bssidTerhubung == _this.bssidTerhubung)&&(identical(other.ipTerhubung, _this.ipTerhubung) || other.ipTerhubung == _this.ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _this.accessPoints)&&(identical(other.pingMs, _this.pingMs) || other.pingMs == _this.pingMs)&&(identical(other.pingError, _this.pingError) || other.pingError == _this.pingError));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WifiAnalyzerState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.connectionError, _this.connectionError) || other.connectionError == _this.connectionError)&&(identical(other.scanError, _this.scanError) || other.scanError == _this.scanError)&&(identical(other.tcpError, _this.tcpError) || other.tcpError == _this.tcpError)&&(identical(other.ssidTerhubung, _this.ssidTerhubung) || other.ssidTerhubung == _this.ssidTerhubung)&&(identical(other.bssidTerhubung, _this.bssidTerhubung) || other.bssidTerhubung == _this.bssidTerhubung)&&(identical(other.ipTerhubung, _this.ipTerhubung) || other.ipTerhubung == _this.ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _this.accessPoints)&&(identical(other.tcpLatencyMs, _this.tcpLatencyMs) || other.tcpLatencyMs == _this.tcpLatencyMs)&&(identical(other.lastInfoAt, _this.lastInfoAt) || other.lastInfoAt == _this.lastInfoAt)&&(identical(other.lastScanAt, _this.lastScanAt) || other.lastScanAt == _this.lastScanAt)&&(identical(other.lastTcpAt, _this.lastTcpAt) || other.lastTcpAt == _this.lastTcpAt)&&(identical(other.lastInfoAttemptAt, _this.lastInfoAttemptAt) || other.lastInfoAttemptAt == _this.lastInfoAttemptAt)&&(identical(other.lastScanAttemptAt, _this.lastScanAttemptAt) || other.lastScanAttemptAt == _this.lastScanAttemptAt)&&(identical(other.lastTcpAttemptAt, _this.lastTcpAttemptAt) || other.lastTcpAttemptAt == _this.lastTcpAttemptAt));
 }
 
 
 @override
 int get hashCode {
   final _this = this as WifiAnalyzerState;
-  return Object.hash(runtimeType,_this.isLoading,_this.errorMessage,_this.ssidTerhubung,_this.bssidTerhubung,_this.ipTerhubung,const DeepCollectionEquality().hash(_this.accessPoints),_this.pingMs,_this.pingError);
+  return Object.hash(runtimeType,_this.isLoading,_this.connectionError,_this.scanError,_this.tcpError,_this.ssidTerhubung,_this.bssidTerhubung,_this.ipTerhubung,const DeepCollectionEquality().hash(_this.accessPoints),_this.tcpLatencyMs,_this.lastInfoAt,_this.lastScanAt,_this.lastTcpAt,_this.lastInfoAttemptAt,_this.lastScanAttemptAt,_this.lastTcpAttemptAt);
 }
 
 @override
 String toString() {
   final _this = this as WifiAnalyzerState;
-  return 'WifiAnalyzerState(isLoading: ${_this.isLoading}, errorMessage: ${_this.errorMessage}, ssidTerhubung: ${_this.ssidTerhubung}, bssidTerhubung: ${_this.bssidTerhubung}, ipTerhubung: ${_this.ipTerhubung}, accessPoints: ${_this.accessPoints}, pingMs: ${_this.pingMs}, pingError: ${_this.pingError})';
+  return 'WifiAnalyzerState(isLoading: ${_this.isLoading}, connectionError: ${_this.connectionError}, scanError: ${_this.scanError}, tcpError: ${_this.tcpError}, ssidTerhubung: ${_this.ssidTerhubung}, bssidTerhubung: ${_this.bssidTerhubung}, ipTerhubung: ${_this.ipTerhubung}, accessPoints: ${_this.accessPoints}, tcpLatencyMs: ${_this.tcpLatencyMs}, lastInfoAt: ${_this.lastInfoAt}, lastScanAt: ${_this.lastScanAt}, lastTcpAt: ${_this.lastTcpAt}, lastInfoAttemptAt: ${_this.lastInfoAttemptAt}, lastScanAttemptAt: ${_this.lastScanAttemptAt}, lastTcpAttemptAt: ${_this.lastTcpAttemptAt})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $WifiAnalyzerStateCopyWith<$Res>  {
   factory $WifiAnalyzerStateCopyWith(WifiAnalyzerState value, $Res Function(WifiAnalyzerState) _then) = _$WifiAnalyzerStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, String? errorMessage, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints, int? pingMs, String? pingError
+ bool isLoading, String? connectionError, String? scanError, String? tcpError, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints, int? tcpLatencyMs, DateTime? lastInfoAt, DateTime? lastScanAt, DateTime? lastTcpAt, DateTime? lastInfoAttemptAt, DateTime? lastScanAttemptAt, DateTime? lastTcpAttemptAt
 });
 
 
@@ -68,17 +68,24 @@ class _$WifiAnalyzerStateCopyWithImpl<$Res>
 
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? errorMessage = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,Object? pingMs = freezed,Object? pingError = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? connectionError = freezed,Object? scanError = freezed,Object? tcpError = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,Object? tcpLatencyMs = freezed,Object? lastInfoAt = freezed,Object? lastScanAt = freezed,Object? lastTcpAt = freezed,Object? lastInfoAttemptAt = freezed,Object? lastScanAttemptAt = freezed,Object? lastTcpAttemptAt = freezed,}) {
   return _then(WifiAnalyzerState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as bool,connectionError: freezed == connectionError ? _self.connectionError : connectionError // ignore: cast_nullable_to_non_nullable
+as String?,scanError: freezed == scanError ? _self.scanError : scanError // ignore: cast_nullable_to_non_nullable
+as String?,tcpError: freezed == tcpError ? _self.tcpError : tcpError // ignore: cast_nullable_to_non_nullable
 as String?,ssidTerhubung: freezed == ssidTerhubung ? _self.ssidTerhubung : ssidTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,bssidTerhubung: freezed == bssidTerhubung ? _self.bssidTerhubung : bssidTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,ipTerhubung: freezed == ipTerhubung ? _self.ipTerhubung : ipTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,accessPoints: null == accessPoints ? _self.accessPoints : accessPoints // ignore: cast_nullable_to_non_nullable
-as List<WiFiAccessPoint>,pingMs: freezed == pingMs ? _self.pingMs : pingMs // ignore: cast_nullable_to_non_nullable
-as int?,pingError: freezed == pingError ? _self.pingError : pingError // ignore: cast_nullable_to_non_nullable
-as String?,
+as List<WiFiAccessPoint>,tcpLatencyMs: freezed == tcpLatencyMs ? _self.tcpLatencyMs : tcpLatencyMs // ignore: cast_nullable_to_non_nullable
+as int?,lastInfoAt: freezed == lastInfoAt ? _self.lastInfoAt : lastInfoAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastScanAt: freezed == lastScanAt ? _self.lastScanAt : lastScanAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastTcpAt: freezed == lastTcpAt ? _self.lastTcpAt : lastTcpAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastInfoAttemptAt: freezed == lastInfoAttemptAt ? _self.lastInfoAttemptAt : lastInfoAttemptAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastScanAttemptAt: freezed == lastScanAttemptAt ? _self.lastScanAttemptAt : lastScanAttemptAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastTcpAttemptAt: freezed == lastTcpAttemptAt ? _self.lastTcpAttemptAt : lastTcpAttemptAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -163,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? pingMs,  String? pingError)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? connectionError,  String? scanError,  String? tcpError,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? tcpLatencyMs,  DateTime? lastInfoAt,  DateTime? lastScanAt,  DateTime? lastTcpAt,  DateTime? lastInfoAttemptAt,  DateTime? lastScanAttemptAt,  DateTime? lastTcpAttemptAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WifiAnalyzerState() when $default != null:
-return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.pingMs,_that.pingError);case _:
+return $default(_that.isLoading,_that.connectionError,_that.scanError,_that.tcpError,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.tcpLatencyMs,_that.lastInfoAt,_that.lastScanAt,_that.lastTcpAt,_that.lastInfoAttemptAt,_that.lastScanAttemptAt,_that.lastTcpAttemptAt);case _:
   return orElse();
 
 }
@@ -184,10 +191,10 @@ return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bss
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? pingMs,  String? pingError)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? connectionError,  String? scanError,  String? tcpError,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? tcpLatencyMs,  DateTime? lastInfoAt,  DateTime? lastScanAt,  DateTime? lastTcpAt,  DateTime? lastInfoAttemptAt,  DateTime? lastScanAttemptAt,  DateTime? lastTcpAttemptAt)  $default,) {final _that = this;
 switch (_that) {
 case _WifiAnalyzerState():
-return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.pingMs,_that.pingError);case _:
+return $default(_that.isLoading,_that.connectionError,_that.scanError,_that.tcpError,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.tcpLatencyMs,_that.lastInfoAt,_that.lastScanAt,_that.lastTcpAt,_that.lastInfoAttemptAt,_that.lastScanAttemptAt,_that.lastTcpAttemptAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +211,10 @@ return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bss
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? errorMessage,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? pingMs,  String? pingError)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? connectionError,  String? scanError,  String? tcpError,  String? ssidTerhubung,  String? bssidTerhubung,  String? ipTerhubung,  List<WiFiAccessPoint> accessPoints,  int? tcpLatencyMs,  DateTime? lastInfoAt,  DateTime? lastScanAt,  DateTime? lastTcpAt,  DateTime? lastInfoAttemptAt,  DateTime? lastScanAttemptAt,  DateTime? lastTcpAttemptAt)?  $default,) {final _that = this;
 switch (_that) {
 case _WifiAnalyzerState() when $default != null:
-return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.pingMs,_that.pingError);case _:
+return $default(_that.isLoading,_that.connectionError,_that.scanError,_that.tcpError,_that.ssidTerhubung,_that.bssidTerhubung,_that.ipTerhubung,_that.accessPoints,_that.tcpLatencyMs,_that.lastInfoAt,_that.lastScanAt,_that.lastTcpAt,_that.lastInfoAttemptAt,_that.lastScanAttemptAt,_that.lastTcpAttemptAt);case _:
   return null;
 
 }
@@ -219,11 +226,13 @@ return $default(_that.isLoading,_that.errorMessage,_that.ssidTerhubung,_that.bss
 
 
 class _WifiAnalyzerState extends WifiAnalyzerState {
-  const _WifiAnalyzerState({this.isLoading = false, this.errorMessage, this.ssidTerhubung, this.bssidTerhubung, this.ipTerhubung,  List<WiFiAccessPoint> accessPoints = const <WiFiAccessPoint>[], this.pingMs, this.pingError}): _accessPoints = accessPoints,super._();
+  const _WifiAnalyzerState({this.isLoading = false, this.connectionError, this.scanError, this.tcpError, this.ssidTerhubung, this.bssidTerhubung, this.ipTerhubung,  List<WiFiAccessPoint> accessPoints = const <WiFiAccessPoint>[], this.tcpLatencyMs, this.lastInfoAt, this.lastScanAt, this.lastTcpAt, this.lastInfoAttemptAt, this.lastScanAttemptAt, this.lastTcpAttemptAt}): _accessPoints = accessPoints,super._();
   
 
 @override@JsonKey() final  bool isLoading;
-@override final  String? errorMessage;
+@override final  String? connectionError;
+@override final  String? scanError;
+@override final  String? tcpError;
 @override final  String? ssidTerhubung;
 @override final  String? bssidTerhubung;
 @override final  String? ipTerhubung;
@@ -234,8 +243,13 @@ class _WifiAnalyzerState extends WifiAnalyzerState {
   return EqualUnmodifiableListView(_accessPoints);
 }
 
-@override final  int? pingMs;
-@override final  String? pingError;
+@override final  int? tcpLatencyMs;
+@override final  DateTime? lastInfoAt;
+@override final  DateTime? lastScanAt;
+@override final  DateTime? lastTcpAt;
+@override final  DateTime? lastInfoAttemptAt;
+@override final  DateTime? lastScanAttemptAt;
+@override final  DateTime? lastTcpAttemptAt;
 
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
@@ -247,18 +261,18 @@ _$WifiAnalyzerStateCopyWith<_WifiAnalyzerState> get copyWith => __$WifiAnalyzerS
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WifiAnalyzerState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.ssidTerhubung, ssidTerhubung) || other.ssidTerhubung == ssidTerhubung)&&(identical(other.bssidTerhubung, bssidTerhubung) || other.bssidTerhubung == bssidTerhubung)&&(identical(other.ipTerhubung, ipTerhubung) || other.ipTerhubung == ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _accessPoints)&&(identical(other.pingMs, pingMs) || other.pingMs == pingMs)&&(identical(other.pingError, pingError) || other.pingError == pingError));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WifiAnalyzerState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.connectionError, connectionError) || other.connectionError == connectionError)&&(identical(other.scanError, scanError) || other.scanError == scanError)&&(identical(other.tcpError, tcpError) || other.tcpError == tcpError)&&(identical(other.ssidTerhubung, ssidTerhubung) || other.ssidTerhubung == ssidTerhubung)&&(identical(other.bssidTerhubung, bssidTerhubung) || other.bssidTerhubung == bssidTerhubung)&&(identical(other.ipTerhubung, ipTerhubung) || other.ipTerhubung == ipTerhubung)&&const DeepCollectionEquality().equals(other.accessPoints, _accessPoints)&&(identical(other.tcpLatencyMs, tcpLatencyMs) || other.tcpLatencyMs == tcpLatencyMs)&&(identical(other.lastInfoAt, lastInfoAt) || other.lastInfoAt == lastInfoAt)&&(identical(other.lastScanAt, lastScanAt) || other.lastScanAt == lastScanAt)&&(identical(other.lastTcpAt, lastTcpAt) || other.lastTcpAt == lastTcpAt)&&(identical(other.lastInfoAttemptAt, lastInfoAttemptAt) || other.lastInfoAttemptAt == lastInfoAttemptAt)&&(identical(other.lastScanAttemptAt, lastScanAttemptAt) || other.lastScanAttemptAt == lastScanAttemptAt)&&(identical(other.lastTcpAttemptAt, lastTcpAttemptAt) || other.lastTcpAttemptAt == lastTcpAttemptAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,isLoading,errorMessage,ssidTerhubung,bssidTerhubung,ipTerhubung,const DeepCollectionEquality().hash(_accessPoints),pingMs,pingError);
+    return Object.hash(runtimeType,isLoading,connectionError,scanError,tcpError,ssidTerhubung,bssidTerhubung,ipTerhubung,const DeepCollectionEquality().hash(_accessPoints),tcpLatencyMs,lastInfoAt,lastScanAt,lastTcpAt,lastInfoAttemptAt,lastScanAttemptAt,lastTcpAttemptAt);
 }
 
 @override
 String toString() {
-    return 'WifiAnalyzerState(isLoading: $isLoading, errorMessage: $errorMessage, ssidTerhubung: $ssidTerhubung, bssidTerhubung: $bssidTerhubung, ipTerhubung: $ipTerhubung, accessPoints: $accessPoints, pingMs: $pingMs, pingError: $pingError)';
+    return 'WifiAnalyzerState(isLoading: $isLoading, connectionError: $connectionError, scanError: $scanError, tcpError: $tcpError, ssidTerhubung: $ssidTerhubung, bssidTerhubung: $bssidTerhubung, ipTerhubung: $ipTerhubung, accessPoints: $accessPoints, tcpLatencyMs: $tcpLatencyMs, lastInfoAt: $lastInfoAt, lastScanAt: $lastScanAt, lastTcpAt: $lastTcpAt, lastInfoAttemptAt: $lastInfoAttemptAt, lastScanAttemptAt: $lastScanAttemptAt, lastTcpAttemptAt: $lastTcpAttemptAt)';
 }
 
 
@@ -269,7 +283,7 @@ abstract mixin class _$WifiAnalyzerStateCopyWith<$Res> implements $WifiAnalyzerS
   factory _$WifiAnalyzerStateCopyWith(_WifiAnalyzerState value, $Res Function(_WifiAnalyzerState) _then) = __$WifiAnalyzerStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, String? errorMessage, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints, int? pingMs, String? pingError
+ bool isLoading, String? connectionError, String? scanError, String? tcpError, String? ssidTerhubung, String? bssidTerhubung, String? ipTerhubung, List<WiFiAccessPoint> accessPoints, int? tcpLatencyMs, DateTime? lastInfoAt, DateTime? lastScanAt, DateTime? lastTcpAt, DateTime? lastInfoAttemptAt, DateTime? lastScanAttemptAt, DateTime? lastTcpAttemptAt
 });
 
 
@@ -286,17 +300,24 @@ class __$WifiAnalyzerStateCopyWithImpl<$Res>
 
 /// Create a copy of WifiAnalyzerState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? errorMessage = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,Object? pingMs = freezed,Object? pingError = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? connectionError = freezed,Object? scanError = freezed,Object? tcpError = freezed,Object? ssidTerhubung = freezed,Object? bssidTerhubung = freezed,Object? ipTerhubung = freezed,Object? accessPoints = null,Object? tcpLatencyMs = freezed,Object? lastInfoAt = freezed,Object? lastScanAt = freezed,Object? lastTcpAt = freezed,Object? lastInfoAttemptAt = freezed,Object? lastScanAttemptAt = freezed,Object? lastTcpAttemptAt = freezed,}) {
   return _then(_WifiAnalyzerState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as bool,connectionError: freezed == connectionError ? _self.connectionError : connectionError // ignore: cast_nullable_to_non_nullable
+as String?,scanError: freezed == scanError ? _self.scanError : scanError // ignore: cast_nullable_to_non_nullable
+as String?,tcpError: freezed == tcpError ? _self.tcpError : tcpError // ignore: cast_nullable_to_non_nullable
 as String?,ssidTerhubung: freezed == ssidTerhubung ? _self.ssidTerhubung : ssidTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,bssidTerhubung: freezed == bssidTerhubung ? _self.bssidTerhubung : bssidTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,ipTerhubung: freezed == ipTerhubung ? _self.ipTerhubung : ipTerhubung // ignore: cast_nullable_to_non_nullable
 as String?,accessPoints: null == accessPoints ? _self._accessPoints : accessPoints // ignore: cast_nullable_to_non_nullable
-as List<WiFiAccessPoint>,pingMs: freezed == pingMs ? _self.pingMs : pingMs // ignore: cast_nullable_to_non_nullable
-as int?,pingError: freezed == pingError ? _self.pingError : pingError // ignore: cast_nullable_to_non_nullable
-as String?,
+as List<WiFiAccessPoint>,tcpLatencyMs: freezed == tcpLatencyMs ? _self.tcpLatencyMs : tcpLatencyMs // ignore: cast_nullable_to_non_nullable
+as int?,lastInfoAt: freezed == lastInfoAt ? _self.lastInfoAt : lastInfoAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastScanAt: freezed == lastScanAt ? _self.lastScanAt : lastScanAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastTcpAt: freezed == lastTcpAt ? _self.lastTcpAt : lastTcpAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastInfoAttemptAt: freezed == lastInfoAttemptAt ? _self.lastInfoAttemptAt : lastInfoAttemptAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastScanAttemptAt: freezed == lastScanAttemptAt ? _self.lastScanAttemptAt : lastScanAttemptAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastTcpAttemptAt: freezed == lastTcpAttemptAt ? _self.lastTcpAttemptAt : lastTcpAttemptAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

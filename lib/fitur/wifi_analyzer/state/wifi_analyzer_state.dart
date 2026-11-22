@@ -12,13 +12,20 @@ abstract class WifiAnalyzerState with _$WifiAnalyzerState {
 
   const factory WifiAnalyzerState({
     @Default(false) bool isLoading,
-    String? errorMessage,
+    String? connectionError,
+    String? scanError,
+    String? tcpError,
     String? ssidTerhubung,
     String? bssidTerhubung,
     String? ipTerhubung,
     @Default(<WiFiAccessPoint>[]) List<WiFiAccessPoint> accessPoints,
-    int? pingMs,
-    String? pingError,
+    int? tcpLatencyMs,
+    DateTime? lastInfoAt,
+    DateTime? lastScanAt,
+    DateTime? lastTcpAt,
+    DateTime? lastInfoAttemptAt,
+    DateTime? lastScanAttemptAt,
+    DateTime? lastTcpAttemptAt,
   }) = _WifiAnalyzerState;
 
   /// Frekuensi (MHz) jaringan yang sedang terhubung, 0 bila tidak ditemukan.

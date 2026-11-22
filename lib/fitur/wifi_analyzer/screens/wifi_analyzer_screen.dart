@@ -91,12 +91,22 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           );
         }
         final state = asyncState.requireValue;
-        final pesanError = state.errorMessage;
-        if (pesanError != null) {
+        final errors = <String>[
+          if (state.connectionError != null) state.connectionError!,
+          if (state.scanError != null) state.scanError!,
+          if (state.tcpError != null) state.tcpError!,
+        ];
+        if (errors.isNotEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(pesanError, textAlign: TextAlign.center),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 4,
+                children: errors
+                    .map((e) => Text(e, textAlign: TextAlign.center))
+                    .toList(),
+              ),
             ),
           );
         }
@@ -162,8 +172,10 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                   : null,
             ),
             _buildInfoCustom(
-              'Ping',
-              state.pingMs != null ? '${state.pingMs} ms' : (state.pingError ?? '-'),
+              'TCP',
+              state.tcpLatencyMs != null
+                  ? '${state.tcpLatencyMs} ms'
+                  : (state.tcpError ?? '-'),
             ),
           ],
         ),
