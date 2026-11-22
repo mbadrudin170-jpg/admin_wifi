@@ -40,24 +40,7 @@ void main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: Localizations(
-        locale: const Locale('en'),
-        delegates: const [
-          DefaultWidgetsLocalizations.delegate,
-          DefaultMaterialLocalizations.delegate,
-        ],
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Overlay(
-            initialEntries: [
-              OverlayEntry(
-                builder: (context) =>
-                    const PengelolaOverlayLogDebug(child: AppMaterial()),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: PengelolaOverlayLogDebugRoot(child: AppMaterial()),
     ),
   );
   debugPrint('RUNAPP DONE');
