@@ -61,6 +61,7 @@ class FormPelangganAktif extends ConsumerStatefulWidget {
 }
 
 class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
+  bool? get _modePerpanjang => widget.modePerpanjang;
   final _formKey = GlobalKey<FormState>();
 
   List<PelangganModel> _pelangganList = [];
@@ -240,12 +241,15 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       );
 
       final transaksiId =
-          _isEditMode && widget.pelangganAktif?.idTransaksi != null
+          (_isEditMode && !(_modePerpanjang ?? false)) &&
+              widget.pelangganAktif?.idTransaksi != null
           ? widget.pelangganAktif!.idTransaksi!
           : const Uuid().v4();
 
       final pelangganAktifData = PelangganAktifModel(
-        id: _isEditMode ? widget.pelangganAktif!.id : '',
+        id: (_isEditMode && !(_modePerpanjang ?? false))
+            ? widget.pelangganAktif!.id
+            : '',
         idPelanggan: _selectedPelanggan!.id,
         idPaket: selectedPaket.id,
         tanggalMulai: tanggalMulai,
@@ -279,7 +283,12 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       );
 
       PelangganAktifModel pelangganAktifHasil;
-      if (_isEditMode) {
+      if (_modePerpanjang ?? false) {
+        pelangganAktifHasil = await ref
+            .read(penggunaAktifProvider.notifier)
+            .tambah(pelangganAktifData);
+        await ref.read(transaksiProvider.notifier).tambah(transaksiData);
+      } else if (_isEditMode) {
         pelangganAktifHasil = await ref
             .read(penggunaAktifProvider.notifier)
             .ubah(pelangganAktifData);
@@ -358,7 +367,11 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
+            _modePerpanjang == true
+                ? 'Perpanjang Masa Aktif'
+                : (_isEditMode
+                      ? 'Edit Pelanggan Aktif'
+                      : 'Form Pelanggan Aktif'),
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -389,7 +402,9 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
+          _modePerpanjang == true
+              ? 'Perpanjang Masa Aktif'
+              : (_isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif'),
         ),
       ),
       body: Padding(
@@ -421,7 +436,9 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif',
+          _modePerpanjang == true
+              ? 'Perpanjang Masa Aktif'
+              : (_isEditMode ? 'Edit Pelanggan Aktif' : 'Form Pelanggan Aktif'),
         ),
       ),
       body: Center(
@@ -500,7 +517,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
   }
 
   Widget _buildPelangganDropdown() {
-    final bool nonaktifkan = widget.modePerpanjang ?? false;
+    final bool nonaktifkan = _modePerpanjang ?? false;
     return DropdownButtonFormField<PelangganModel>(
       key: const Key('pelanggan_dropdown'),
       decoration: const InputDecoration(
