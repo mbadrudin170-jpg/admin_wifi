@@ -10,7 +10,6 @@ import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/utils/format_util.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -120,19 +119,15 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
               'Jumlah',
               FormatUang.formatMataUang(transaksi.jumlah),
             ),
-            _buildDetailRow('Tipe', transaksi.tipe.name.toUpperCase()),
+            _buildDetailRow('Tipe', transaksi.tipe.label),
             _buildDetailRowSync(
               'Dompet',
-              dompetState.listDompet
-                  .firstWhereOrNull((d) => d.id == transaksi.idDompet)
-                  ?.namaDompet,
+              dompetState.getById(transaksi.idDompet)?.namaDompet,
             ),
             if (idDompetTujuan != null && idDompetTujuan.isNotEmpty)
               _buildDetailRowSync(
                 'Dompet Tujuan',
-                dompetState.listDompet
-                    .firstWhereOrNull((d) => d.id == idDompetTujuan)
-                    ?.namaDompet,
+                dompetState.getById(idDompetTujuan)?.namaDompet,
               ),
 
             _buildDetailRowSync(
@@ -143,18 +138,13 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
             if (idSubKategori != null && idSubKategori.isNotEmpty)
               _buildDetailRowSync(
                 'Sub Kategori',
-                kategoriState.listKategori
-                    .expand((k) => k.subKategori)
-                    .firstWhereOrNull((sk) => sk.id == idSubKategori)
-                    ?.nama,
+                kategoriState.getSubKategoriById(idSubKategori)?.nama,
               ),
 
             if (idPelanggan != null && idPelanggan.isNotEmpty)
               _buildDetailRowSync(
                 'Pelanggan',
-                pelangganState.listPelanggan
-                    .firstWhereOrNull((p) => p.id == idPelanggan)
-                    ?.nama,
+                pelangganState.getById(idPelanggan)?.nama,
               ),
 
             if (idPaket != null && idPaket.isNotEmpty)
@@ -165,7 +155,7 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
 
             _buildDetailRow(
               'Status Pembayaran',
-              transaksi.statusPembayaran.name.toUpperCase(),
+              transaksi.statusPembayaran.label,
             ),
             _buildDetailRow(
               'Poin Dihasilkan',

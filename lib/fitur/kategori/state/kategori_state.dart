@@ -1,6 +1,7 @@
 // path: lib/fitur/kategori/state/kategori_state.dart
 
 import 'package:admin_wifi/fitur/kategori/model/kategori_model.dart';
+import 'package:admin_wifi/fitur/kategori/model/sub_kategori_model.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -23,6 +24,14 @@ abstract class KategoriState with _$KategoriState {
 
   /// Alias untuk [getById].
   KategoriModel? getKategoriById(String id) => getById(id);
+
+  /// Mengambil satu sub kategori berdasarkan [id] dari daftar kategori yang
+  /// sudah dimuat.
+  ///
+  /// Mengembalikan `null` bila tidak ditemukan.
+  SubKategoriModel? getSubKategoriById(String id) => listKategori
+      .expand((k) => k.subKategori)
+      .firstWhereOrNull((sk) => sk.id == id);
 
   /// Mengambil kategori berdasarkan [tipe] dari daftar yang sudah dimuat.
   ///
