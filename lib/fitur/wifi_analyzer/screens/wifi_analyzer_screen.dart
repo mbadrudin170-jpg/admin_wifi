@@ -69,6 +69,14 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     return 'Sangat Lemah';
   }
 
+  Color _warnaSinyal(int level) {
+    if (level >= -50) return const Color(0xFF4CAF50);
+    if (level >= -60) return const Color(0xFF8BC34A);
+    if (level >= -70) return const Color(0xFFFF9800);
+    if (level >= -80) return const Color(0xFFFF5722);
+    return const Color(0xFFEF5350);
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncState = ref.watch(wifiAnalyzerProvider);
@@ -138,6 +146,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   }
 
   Widget _buildKartuTerhubung(WifiAnalyzerState state) {
+    final levelTerhubung = state.levelTerhubung;
     final freq = state.frekuensiTerhubung;
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
     final channel = freq > 0
@@ -162,7 +171,13 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             _buildInfoCustom('Band', band),
             _buildInfoCustom('Frekuensi', freq > 0 ? '$freq MHz' : '-'),
             _buildInfoCustom('Channel', channel),
-            _buildInfoCustom('Sinyal', state.sinyalTerhubung),
+            _buildInfoCustom(
+              'Sinyal',
+              state.sinyalTerhubung,
+              valueColor: levelTerhubung != null
+                  ? _warnaSinyal(levelTerhubung)
+                  : null,
+            ),
           ],
         ),
       ),
@@ -183,7 +198,12 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             Text('Band: ${_bandDariFrekuensi(ap.frequency)}'),
             Text('Frekuensi: ${ap.frequency} MHz'),
             Text('Channel: ${channel ?? '-'}'),
-            Text('Sinyal: ${ap.level} dBm (${_kualitasSinyal(ap.level)})'),
+            Text(
+              'Sinyal: ${ap.level} dBm (${_kualitasSinyal(ap.level)})',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: _warnaSinyal(ap.level),
+              ),
+            ),
           ],
         ),
         isThreeLine: true,
@@ -191,16 +211,17 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     );
   }
 
-  Widget _buildInfoCustom(String label, String value) {
+  Widget _buildInfoCustom(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: Theme.of(context).textTheme.bodyMedium),
         Text(
           value,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: valueColor,
+          ),
         ),
       ],
     );

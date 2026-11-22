@@ -38,4 +38,14 @@ abstract class WifiAnalyzerState with _$WifiAnalyzerState {
     );
     return ap != null ? '${ap.level} dBm' : '-';
   }
+
+  /// Level sinyal (dBm) jaringan terhubung, null bila tidak ditemukan.
+  int? get levelTerhubung {
+    final bssid = bssidTerhubung;
+    if (bssid == null) return null;
+    final ap = accessPoints.firstWhereOrNull(
+      (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
+    );
+    return ap?.level;
+  }
 }
