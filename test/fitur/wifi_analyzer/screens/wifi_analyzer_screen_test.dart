@@ -1,5 +1,8 @@
 // path: test/fitur/wifi_analyzer/screens/wifi_analyzer_screen_test.dart
 
+import 'package:admin_wifi/fitur/wifi_analyzer/dummy/wifi_analyzer_dummy.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +23,12 @@ class _MockNetworkInfoPlatform extends NetworkInfoPlatform {
 
   @override
   Future<String?> getWifiIP() async => _kIp;
+}
+
+class _FakeWifiAnalyzerNotifier extends WifiAnalyzerNotifier {
+  @override
+  Stream<WifiAnalyzerState> build() =>
+      Stream.value(WifiAnalyzerDummy.dummyState);
 }
 
 void main() {
@@ -67,7 +76,12 @@ void main() {
 
   testWidgets('menampilkan SSID terhubung dan AP terdeteksi', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: WifiAnalyzerScreen())),
+      ProviderScope(
+        overrides: [
+          wifiAnalyzerProvider.overrideWith(_FakeWifiAnalyzerNotifier.new),
+        ],
+        child: const MaterialApp(home: WifiAnalyzerScreen()),
+      ),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
