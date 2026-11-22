@@ -262,6 +262,7 @@ MAC : ${pelanggan.macAddress}
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
+        spacing: 4,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -271,7 +272,6 @@ MAC : ${pelanggan.macAddress}
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 4),
           Row(
             children: [
               Expanded(
