@@ -4,6 +4,7 @@ import 'package:admin_wifi/fitur/dompet/screens/dompet_screen.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/pelanggan_aktif_screen.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/transaksi_screen.dart';
 import 'package:admin_wifi/fitur/lainnya/screens/lainnya.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
@@ -28,6 +29,7 @@ class _HomeState extends State<Home> {
     const PelangganAktifScreen(),
     const DompetPage(),
     const TransaksiScreens(),
+    const WifiAnalyzerScreen(),
     const LainnyaPage(),
   ];
 
@@ -112,6 +114,7 @@ class _HomeState extends State<Home> {
             icon: Icon(Icons.receipt_long),
             label: 'Transaksi',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.wifi), label: 'WiFi'),
           BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Lainnya'),
         ],
         currentIndex: _selectedIndex,
