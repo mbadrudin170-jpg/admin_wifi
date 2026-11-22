@@ -2,7 +2,6 @@
 // Widget ini berfungsi untuk menampilkan nama paket berdasarkan ID.
 
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -26,15 +25,15 @@ class NamaPaketWidget extends ConsumerWidget {
     if (paketAsync.hasError) {
       return Text(
         'Paket tidak tersedia',
-        style: style?.copyWith(color: Colors.red),
+        style: style?.copyWith(color: Theme.of(context).colorScheme.error),
       );
     }
     final state = paketAsync.requireValue;
-    final paket = state.listPaket.firstWhereOrNull((p) => p.id == idPaket);
+    final paket = state.getById(idPaket);
     if (paket == null) {
       return Text(
         'Paket tidak tersedia',
-        style: style?.copyWith(color: Colors.red),
+        style: style?.copyWith(color: Theme.of(context).colorScheme.error),
       );
     }
     return Text(paket.nama, style: style);
