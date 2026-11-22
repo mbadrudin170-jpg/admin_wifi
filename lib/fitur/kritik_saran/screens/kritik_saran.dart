@@ -1,4 +1,8 @@
 // path: lib/fitur/kritik_saran/screens/kritik_saran.dart
+// diubah: Sesuaikan dengan aturan code.md dan skill terkait (impor core_shared, hapus log narasi,
+// empty state EmptyStateView, hasError tombol retry, warna ColorScheme, unawaited+catchError, L.e $e $s).
+
+import 'dart:async';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
@@ -6,11 +10,10 @@ import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dar
 import 'package:admin_wifi/fitur/kritik_saran/screens/detail_kritik_saran.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/widget/toast_widget.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart' hide FormatTanggal;
 
 class KritikSaranPage extends ConsumerStatefulWidget {
   const KritikSaranPage({super.key});
@@ -20,87 +23,82 @@ class KritikSaranPage extends ConsumerStatefulWidget {
 }
 
 class _KritikSaranPageState extends ConsumerState<KritikSaranPage> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Future<void> _hapusKritikSaran(KritikSaranModel item) async {
-    L.i(
-      'Menampilkan konfirmasi hapus untuk kritik/saran ID: ${item.id}, User ID: ${item.userId}',
-    );
-
-    final konfirmasi = await showOkCancelAlertDialog(
-      context: context,
-      title: 'Konfirmasi Hapus',
-      message: 'Apakah Anda yakin ingin menghapus kritik dan saran ini?',
-      okLabel: 'Hapus',
-      cancelLabel: 'Batal',
-      isDestructiveAction: true,
-    );
-
-    if (konfirmasi != OkCancelResult.ok) {
-      L.w('Pengguna membatalkan proses penghapusan kritik dan saran.');
-      return;
-    }
-
-    L.i('Pengguna mengonfirmasi penghapusan kritik dan saran.');
-
-    if (!mounted) return;
-
     try {
-        L.i(
-          'Menjalankan operasi hapus kritik/saran ID: ${item.id} dari database',
-        );
-        await ref.read(kritikSaranProvider.notifier).hapusKritikSaran(item.id);
+      final konfirmasi = await showOkCancelAlertDialog(
+        context: context,
+        title: 'Konfirmasi Hapus',
+        message: 'Apakah Anda yakin ingin menghapus kritik dan saran ini?',
+        okLabel: 'Hapus',
+        cancelLabel: 'Batal',
+        isDestructiveAction: true,
+      );
 
-        L.i('Kritik/saran ID: ${item.id} berhasil dihapus dari database');
-
-        if (mounted) {
-          AppToast.sukses(context, 'Kritik dan saran berhasil dihapus');
-        }
-      } catch (e, stackTrace) {
-        L.e(
-          'Gagal menghapus kritik/saran ID: ${item.id} dari database Error: $e $stackTrace',
-        );
-        if (mounted) {
-          AppToast.gagal(context, 'Gagal menghapus: $e');
-        }
+      if (konfirmasi != OkCancelResult.ok) {
+        return;
       }
+
+      if (!mounted) return;
+
+      await ref.read(kritikSaranProvider.notifier).hapusKritikSaran(item.id);
+
+      if (mounted) {
+        AppToast.sukses(context, 'Kritik dan saran berhasil dihapus');
+      }
+    } catch (e, s) {
+      L.e('Gagal menghapus kritik/saran ID: ${item.id}: $e $s');
+      if (mounted) {
+        AppToast.gagal(context, 'Gagal menghapus kritik dan saran.');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    L.i('Membangun UI halaman Kritik & Saran');
     final asyncKritikSaran = ref.watch(kritikSaranProvider);
 
     if (asyncKritikSaran.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (asyncKritikSaran.hasError) {
-      L.e(
-        'Terjadi error saat memuat data kritik dan saran Error: ${asyncKritikSaran.error}',
-      );
       return Scaffold(
-        body: Center(child: Text('Error: ${asyncKritikSaran.error}')),
+        appBar: AppBar(title: const Text('Kritik & Saran')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              Text(
+                'Gagal memuat data kritik dan saran: ${asyncKritikSaran.error}',
+                textAlign: TextAlign.center,
+              ),
+              FilledButton(
+                onPressed: () => ref.refresh(kritikSaranProvider),
+                child: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     final listKritikSaran = asyncKritikSaran.requireValue.listKritikSaran;
     if (listKritikSaran.isEmpty) {
-      L.i('Data kritik dan saran kosong, belum ada kritik dan saran');
       return Scaffold(
         appBar: AppBar(title: const Text('Kritik & Saran')),
-        body: const Center(child: Text('Belum ada kritik dan saran.')),
+        body: EmptyStateView(
+          ikon: CupertinoIcons.list_bullet,
+          judul: 'Belum ada kritik dan saran',
+          deskripsi:
+              'Kritik dan saran akan muncul di sini setelah tersampaikan.',
+          ctaLabel: 'Muat Ulang',
+          onCta: () => ref.refresh(kritikSaranProvider),
+        ),
       );
     }
 
-    L.i(
-      'Menampilkan ${listKritikSaran.length} item kritik dan saran dalam daftar',
-    );
     return Scaffold(
       appBar: AppBar(title: const Text('Kritik & Saran')),
       body: ListView.builder(
@@ -117,19 +115,16 @@ class _KritikSaranPageState extends ConsumerState<KritikSaranPage> {
             child: InkWell(
               borderRadius: BorderRadius.circular(10),
               onTap: () async {
-                L.i(
-                  'Navigasi ke halaman Detail Kritik/Saran ID: ${item.id}',
-                );
-                await Nav.to(
-                  context,
-                  DetailKritikSaranPage(id: item.id),
-                );
+                await Nav.to(context, DetailKritikSaranPage(id: item.id));
               },
               onLongPress: () {
-                L.i(
-                  'Long press pada kritik/saran ID: ${item.id}, menampilkan menu hapus',
+                unawaited(
+                  _hapusKritikSaran(item).catchError((Object e, StackTrace s) {
+                    L.e(
+                      'Gagal konfirmasi hapus kritik/saran ID: ${item.id}: $e $s',
+                    );
+                  }),
                 );
-                _hapusKritikSaran(item);
               },
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -165,7 +160,7 @@ class _KritikSaranPageState extends ConsumerState<KritikSaranPage> {
                         FormatTanggal.formatTanggalDanJam(item.tanggal),
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
