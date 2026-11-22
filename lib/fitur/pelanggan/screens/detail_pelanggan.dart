@@ -6,6 +6,7 @@ import 'package:admin_wifi/fitur/pelanggan/helper/pelanggan_poin_helper.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
+import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
 import 'package:flutter/services.dart';
@@ -31,33 +32,23 @@ class DetailPelangganPage extends ConsumerStatefulWidget {
 
 class _DetailPelangganPageState extends ConsumerState<DetailPelangganPage> {
   /// Navigasi ke halaman edit pelanggan; refresh data saat perubahan disimpan.
-  void _editPelanggan() async {
-    final asyncPelanggan = ref.read(pelangganProvider);
-    if (asyncPelanggan.hasError || asyncPelanggan.isLoading) {
-      return;
-    }
-    final p = asyncPelanggan.requireValue.getById(widget.idPelanggan);
+  void _editPelanggan(PelangganState pelangganState) {
+    final p = pelangganState.getById(widget.idPelanggan);
     if (p == null) {
+      AppToast.gagal(context, 'Pelanggan tidak ditemukan');
       return;
     }
 
     L.i('Menavigasi ke FormPelanggan untuk mode edit dengan ID: ${p.id}');
-    final result = await Nav.to(context, FormPelanggan(pelanggan: p));
-    if (!mounted) {
-      return;
-    }
-    if (result == true) {
-      L.i(
-        'Kembali dari FormPelanggan dengan hasil true. Memuat ulang data pelanggan.',
-      );
-      final reloaded = [
-        ref.refresh(pelangganProvider),
-        ref.refresh(transaksiProvider),
-      ];
-      L.i('Provider dimuat ulang: $reloaded');
-    } else {
-      L.i('Kembali dari FormPelanggan tanpa menyimpan perubahan.');
-    }
+    unawaited(
+      Nav.to(context, FormPelanggan(pelanggan: p)).catchError((
+        Object e,
+        StackTrace s,
+      ) {
+        L.e('Navigasi ke FormPelanggan gagal: $e $s');
+        return null;
+      }),
+    );
   }
 
   /// Menyalin seluruh info pelanggan ke Clipboard.
@@ -165,7 +156,7 @@ MAC : ${pelanggan.macAddress}
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Pelanggan',
-            onPressed: _editPelanggan,
+            onPressed: () => _editPelanggan(pelangganState),
           ),
         ],
       ),
