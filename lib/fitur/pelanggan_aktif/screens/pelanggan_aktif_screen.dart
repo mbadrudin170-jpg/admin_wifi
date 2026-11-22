@@ -456,7 +456,7 @@ class _PelangganAktifScreenState extends ConsumerState<PelangganAktifScreen> {
   ) {
     return SliverList.separated(
       itemCount: listJatuhTempo.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => const SizedBox(height: 1),
       itemBuilder: (context, index) {
         final pelangganAktif = listJatuhTempo[index];
         final pelanggan = pelangganState.getById(pelangganAktif.idPelanggan);

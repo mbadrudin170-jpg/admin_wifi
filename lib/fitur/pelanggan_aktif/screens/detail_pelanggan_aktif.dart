@@ -187,8 +187,7 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                             }
                           },
                           child: Text(
-                            pelanggan?.nama ??
-                                pelangganAktifTerkini.idPelanggan,
+                            pelanggan?.nama ?? 'Tidak ditemukan',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
@@ -297,6 +296,13 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                             icon: const Icon(Icons.send_to_mobile),
                             label: const Text('Kirim Info via WhatsApp'),
                             onPressed: () {
+                              if (pelanggan == null) {
+                                AppToast.gagal(
+                                  context,
+                                  'Data pelanggan tidak ditemukan.',
+                                );
+                                return;
+                              }
                               unawaited(
                                 PesanInfoPaket.kirimRincianPaket(
                                   pelangganAktifTerkini,
@@ -388,6 +394,10 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
           Text(label, style: Theme.of(context).textTheme.titleMedium),
           InkWell(
             onTap: () {
+              if (value == 'Tidak ditemukan') {
+                AppToast.gagal(context, 'Data pelanggan tidak ditemukan.');
+                return;
+              }
               _launchWhatsApp(value);
             },
             borderRadius: BorderRadius.circular(8),
