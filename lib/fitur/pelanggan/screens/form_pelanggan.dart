@@ -43,15 +43,17 @@ class _FormPelangganState extends State<FormPelanggan> {
       'Membuka FormPelanggan dalam mode: ${_isEditMode ? "Edit" : "Tambah"}.',
     );
     if (_isEditMode) {
+      final pelanggan = widget.pelanggan;
+      if (pelanggan == null) return;
       L.i(
-        'Mode Edit: Mempopulasikan form dengan data pelanggan ID: ${widget.pelanggan!.id}',
+        'Mode Edit: Mempopulasikan form dengan data pelanggan ID: ${pelanggan.id}',
       );
-      _namaController.text = widget.pelanggan!.nama;
-      _teleponController.text = widget.pelanggan!.telepon;
-      _alamatController.text = widget.pelanggan!.alamat;
-      _passwordController.text = widget.pelanggan!.password;
-      _macAddressController.text = widget.pelanggan!.macAddress;
-      _poinAwalController.text = widget.pelanggan!.poinAwal.toString();
+      _namaController.text = pelanggan.nama;
+      _teleponController.text = pelanggan.telepon;
+      _alamatController.text = pelanggan.alamat;
+      _passwordController.text = pelanggan.password;
+      _macAddressController.text = pelanggan.macAddress;
+      _poinAwalController.text = pelanggan.poinAwal.toString();
     }
   }
 
@@ -77,7 +79,8 @@ class _FormPelangganState extends State<FormPelanggan> {
 
   void _simpanForm() async {
     L.i('Tombol "Simpan" ditekan.');
-    if (_formKey.currentState!.validate()) {
+    final formState = _formKey.currentState;
+    if (formState != null && formState.validate()) {
       L.i('Form valid. Memulai proses penyimpanan.');
 
       unawaited(
@@ -89,8 +92,11 @@ class _FormPelangganState extends State<FormPelanggan> {
         }),
       );
 
+      final pelangganEdit = widget.pelanggan;
       final newPelanggan = PelangganModel(
-        id: _isEditMode ? widget.pelanggan!.id : const Uuid().v4(),
+        id: _isEditMode && pelangganEdit != null
+            ? pelangganEdit.id
+            : const Uuid().v4(),
         nama: _namaController.text.trim(),
         telepon: _teleponController.text.trim(),
         alamat: _alamatController.text.trim(),
