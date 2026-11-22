@@ -70,15 +70,6 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     return 'Sangat Lemah';
   }
 
-  int _frekuensiTerhubung(WifiAnalyzerState state) {
-    final bssid = state.bssidTerhubung;
-    if (bssid == null) return 0;
-    final ap = state.accessPoints.firstWhereOrNull(
-      (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
-    );
-    return ap?.frequency ?? 0;
-  }
-
   @override
   Widget build(BuildContext context) {
     final asyncState = ref.watch(wifiAnalyzerProvider);
@@ -148,7 +139,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   }
 
   Widget _buildKartuTerhubung(WifiAnalyzerState state) {
-    final freq = _frekuensiTerhubung(state);
+    final freq = state.frekuensiTerhubung;
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
     final channel = freq > 0
         ? (_channelDariFrekuensi(freq)?.toString() ?? '-')
