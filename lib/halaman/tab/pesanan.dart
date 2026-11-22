@@ -1,6 +1,10 @@
 // path: lib/halaman/tab/pesanan.dart
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
+import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
+import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
+import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/pesanan/model/pesanan_model.dart';
 import 'package:admin_wifi/fitur/pesanan/notifier/pesanan_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,7 +77,78 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
     }
   }
 
-  void _showPesananDetail(PesananModel pesanan) {
+  @override
+  Widget build(BuildContext context) {
+    final asyncPesanan = ref.watch(pesananProvider);
+
+    if (asyncPesanan.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (asyncPesanan.hasError) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Daftar Pesanan')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              Text('Gagal memuat data pesanan: ${asyncPesanan.error}'),
+              FilledButton(
+                onPressed: () => ref.refresh(pesananProvider),
+                child: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final state = asyncPesanan.requireValue;
+    final daftar = _filteredList(state.listPesanan);
+    final pelangganState = ref.read(pelangganProvider);
+    final paketState = ref.read(paketProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Daftar Pesanan'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _muatPesanan,
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildFilterChips(),
+          _buildSummaryCards(daftar.length),
+          Expanded(
+            child: daftar.isEmpty
+                ? EmptyStateView(
+                    ikon: Icons.inbox,
+                    judul: 'Belum ada pesanan',
+                    deskripsi: 'Pesanan akan muncul di sini setelah dibuat.',
+                  )
+                : _buildPesananList(daftar, pelangganState, paketState),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPesananDetail(
+    PesananModel pesanan,
+    AsyncValue<PelangganState> pelangganState,
+    AsyncValue<PaketState> paketState,
+  ) {
+    final namaPelanggan =
+        pelangganState.value?.getById(pesanan.idPelanggan)?.nama ??
+        pesanan.idPelanggan;
+    final namaPaket =
+        paketState.value?.getById(pesanan.idPaket)?.nama ?? pesanan.idPaket;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -103,8 +178,8 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            _detailRow('Nama Pelanggan', pesanan.idPelanggan),
-            _detailRow('Paket', pesanan.idPaket),
+            _detailRow('Nama Pelanggan', namaPelanggan),
+            _detailRow('Paket', namaPaket),
             _detailRow(
               'Tanggal',
               DateFormat('dd MMM yyyy HH:mm').format(pesanan.tanggal),
@@ -116,89 +191,43 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
     );
   }
 
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
-      ),
-    );
+  Color _getStatusColor(PesananModel pesanan) {
+    switch (pesanan.status) {
+      case 'baru':
+        return Colors.blue;
+      case 'diproses':
+        return Colors.orange;
+      case 'selesai':
+        return Colors.green;
+      case 'ditolak':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final asyncPesanan = ref.watch(pesananProvider);
+  String _getStatusText(PesananModel pesanan) {
+    return pesanan.status.substring(0, 1).toUpperCase() +
+        pesanan.status.substring(1);
+  }
 
-    if (asyncPesanan.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (asyncPesanan.hasError) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Daftar Pesanan')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              Text('Gagal memuat data pesanan: ${asyncPesanan.error}'),
-              FilledButton(
-                onPressed: _muatPesanan,
-                child: const Text('Coba Lagi'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final state = asyncPesanan.requireValue;
-    final daftar = _filteredList(state.listPesanan);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daftar Pesanan'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _muatPesanan,
-            tooltip: 'Refresh',
-          ),
-        ],
+  Widget _actionButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16, color: color),
+      label: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
       ),
-      body: Column(
-        children: [
-          _buildFilterChips(),
-          _buildSummaryCards(daftar.length),
-          Expanded(
-            child: daftar.isEmpty
-                ? EmptyStateView(
-                    ikon: Icons.inbox,
-                    judul: 'Belum ada pesanan',
-                    deskripsi: 'Pesanan akan muncul di sini setelah dibuat.',
-                  )
-                : _buildPesananList(daftar),
-          ),
-        ],
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }
@@ -253,54 +282,11 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
     );
   }
 
-  Widget _summaryCard(String title, String value, IconData icon, Color color) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 8,
-          children: [
-            Row(
-              spacing: 8,
-              children: [
-                Icon(icon, color: color, size: 24),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPesananList(List<PesananModel> daftar) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: daftar.length,
-      itemBuilder: (context, index) {
-        final pesanan = daftar[index];
-        return _buildPesananCard(pesanan);
-      },
-    );
-  }
-
-  Widget _buildPesananCard(PesananModel pesanan) {
+  Widget _buildPesananCard(
+    PesananModel pesanan,
+    AsyncValue<PelangganState> pelangganState,
+    AsyncValue<PaketState> paketState,
+  ) {
     final Color statusColor = _getStatusColor(pesanan);
 
     return Card(
@@ -311,7 +297,7 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
         side: BorderSide(color: statusColor.withValues(alpha: 0.3), width: 1),
       ),
       child: InkWell(
-        onTap: () => _showPesananDetail(pesanan),
+        onTap: () => _showPesananDetail(pesanan, pelangganState, paketState),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -431,44 +417,82 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
     );
   }
 
-  Widget _actionButton(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onPressed,
-  ) {
-    return TextButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16, color: color),
-      label: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
-      ),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  Widget _summaryCard(String title, String value, IconData icon, Color color) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Icon(icon, color: color, size: 24),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Color _getStatusColor(PesananModel pesanan) {
-    switch (pesanan.status) {
-      case 'baru':
-        return Colors.blue;
-      case 'diproses':
-        return Colors.orange;
-      case 'selesai':
-        return Colors.green;
-      case 'ditolak':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
+  Widget _buildPesananList(
+    List<PesananModel> daftar,
+    AsyncValue<PelangganState> pelangganState,
+    AsyncValue<PaketState> paketState,
+  ) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: daftar.length,
+      itemBuilder: (context, index) {
+        final pesanan = daftar[index];
+        return _buildPesananCard(pesanan, pelangganState, paketState);
+      },
+    );
   }
 
-  String _getStatusText(PesananModel pesanan) {
-    return pesanan.status.substring(0, 1).toUpperCase() +
-        pesanan.status.substring(1);
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

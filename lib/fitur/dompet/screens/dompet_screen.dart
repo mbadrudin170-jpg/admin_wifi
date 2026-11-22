@@ -99,29 +99,6 @@ class _DompetPageState extends ConsumerState<DompetPage> {
     }
   }
 
-  Widget _buildTampilanError(Object? error, VoidCallback onRetry) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Dompet')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              Text(
-                'Gagal memuat data dompet: $error',
-                textAlign: TextAlign.center,
-              ),
-              FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final asyncDompet = ref.watch(dompetProvider);
@@ -189,6 +166,29 @@ class _DompetPageState extends ConsumerState<DompetPage> {
         onPressed: _tambahDompet,
         tooltip: 'Tambah Dompet',
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildTampilanError(Object? error, VoidCallback onRetry) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dompet')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              Text(
+                'Gagal memuat data dompet: $error',
+                textAlign: TextAlign.center,
+              ),
+              FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
+            ],
+          ),
+        ),
       ),
     );
   }
