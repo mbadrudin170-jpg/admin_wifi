@@ -1,5 +1,6 @@
 // path: lib/halaman/tab/pesanan.dart
 
+import 'package:admin_wifi/fitur/pesanan/enum/status_filter_pesanan_enum.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/paket/state/paket_state.dart';
@@ -20,11 +21,11 @@ class HalamanPesan extends ConsumerStatefulWidget {
 }
 
 class _HalamanPesanState extends ConsumerState<HalamanPesan> {
-  String _filterStatus = 'semua';
+  StatusFilterPesananEnum _filterStatus = StatusFilterPesananEnum.semua;
 
   List<PesananModel> _filteredList(List<PesananModel> list) {
-    if (_filterStatus == 'semua') return list;
-    return list.where((p) => p.status == _filterStatus).toList();
+    if (_filterStatus == StatusFilterPesananEnum.semua) return list;
+    return list.where((p) => p.status == _filterStatus.name).toList();
   }
 
   Future<void> _muatPesanan() async {
@@ -223,21 +224,21 @@ class _HalamanPesanState extends ConsumerState<HalamanPesan> {
         child: Row(
           spacing: 8,
           children: [
-            _filterChip('Semua', 'semua'),
-            _filterChip('Baru', 'baru'),
-            _filterChip('Diproses', 'diproses'),
-            _filterChip('Selesai', 'selesai'),
-            _filterChip('Ditolak', 'ditolak'),
+            _filterChip(StatusFilterPesananEnum.semua),
+            _filterChip(StatusFilterPesananEnum.baru),
+            _filterChip(StatusFilterPesananEnum.diproses),
+            _filterChip(StatusFilterPesananEnum.selesai),
+            _filterChip(StatusFilterPesananEnum.ditolak),
           ],
         ),
       ),
     );
   }
 
-  Widget _filterChip(String label, String value) {
+  Widget _filterChip(StatusFilterPesananEnum value) {
     final isSelected = _filterStatus == value;
     return ChoiceChip(
-      label: Text(label),
+      label: Text(value.label),
       selected: isSelected,
       onSelected: (selected) {
         setState(() => _filterStatus = value);
