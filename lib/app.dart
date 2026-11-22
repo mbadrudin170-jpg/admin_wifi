@@ -3,6 +3,7 @@ import 'package:admin_wifi/data/services/navigasi_servis.dart';
 import 'package:admin_wifi/splash_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/log_debug/overlay_log_debug.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 
 class AppMaterial extends StatelessWidget {
@@ -62,7 +63,7 @@ class AppMaterial extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
       themeMode: ThemeMode.light,
-      home: const SplashScreen(),
+      home: const PengelolaOverlayLogDebug(child: SplashScreen()),
       navigatorKey: NavigasiServis.navigatorKey,
     );
   }

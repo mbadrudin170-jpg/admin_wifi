@@ -53,8 +53,8 @@ jobs:
 
       - name: Buat file .env dari secret
         run: |
-          printf 'SUPABASE_URL=%s\nSUPABASE_ANON_KEY=%s\n' \
-            "${{ secrets.SUPABASE_URL }}" "${{ secrets.SUPABASE_ANON_KEY }}" > .env
+          printf 'SUPABASE_URL=%s\nSUPABASE_PUBLISHABLE_KEY=%s\n' \
+            "${{ secrets.SUPABASE_URL }}" "${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" > .env
 
       - name: Analisis statis
         run: flutter analyze

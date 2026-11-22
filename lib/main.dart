@@ -10,10 +10,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 void main() async {
+  debugPrint('MAIN START');
   WidgetsFlutterBinding.ensureInitialized();
 
   // Muat konfigurasi dari berkas .env (dotenv) sebelum inisialisasi layanan.
   await dotenv.load();
+  debugPrint('DOTENV LOADED');
 
   // SQLite di Web berjalan lewat sqflite_common_ffi_web (IndexedDB).
   // Factory wajib diset sebelum database pertama dibuka (dokumen resmi).
@@ -22,6 +24,7 @@ void main() async {
   }
 
   await SharedPrefService.init();
+  debugPrint('SHAREDPREF INIT');
 
   // Inisialisasi klien Supabase (idempoten) sebelum runApp; konfigurasi
   // diambil dari .env, bukan hardcode (skill supabase).
@@ -29,6 +32,7 @@ void main() async {
     url: dotenv.get('SUPABASE_URL'),
     publishableKey: dotenv.get('SUPABASE_PUBLISHABLE_KEY'),
   );
+  debugPrint('SUPABASE INIT');
 
   final container = ProviderContainer();
   L.init(container);
@@ -45,26 +49,8 @@ void main() async {
       //   flutter_localizations).
       // - Directionality: `_Theater` (bagian internal Overlay) mewajibkan
       //   ancestor Directionality.
-      child: Localizations(
-        locale: const Locale('en'),
-        delegates: const [
-          DefaultWidgetsLocalizations.delegate,
-          DefaultMaterialLocalizations.delegate,
-        ],
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Overlay(
-            initialEntries: [
-              OverlayEntry(
-                // PengelolaOverlayLogDebug menyisipkan ikon/panel ke Overlay.maybeOf(context);
-                // Overlay dibuat di root agar pemanggilannya menemukan ancestor (rootOverlay).
-                builder: (context) =>
-                    const PengelolaOverlayLogDebug(child: AppMaterial()),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: const AppMaterial(),
     ),
   );
+  debugPrint('RUNAPP DONE');
 }
