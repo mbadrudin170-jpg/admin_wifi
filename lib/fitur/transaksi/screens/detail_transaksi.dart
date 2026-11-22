@@ -12,8 +12,8 @@ import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
 import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart'
+    hide FormatTanggal, FormatUang;
 
 class DetailTransaksiPage extends ConsumerStatefulWidget {
   final TransaksiModel transaksi;
@@ -39,12 +39,29 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        L.i(
+          'DetailTransaksiPage Scaffold pertama kali tampil: ${DateTime.now().toIso8601String()}',
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    L.i('DetailTransaksiPage build mulai: ${DateTime.now().toIso8601String()}');
     final transaksi = widget.transaksi;
     final asyncDompet = ref.watch(dompetProvider);
     final asyncKategori = ref.watch(kategoriProvider);
     final asyncPelanggan = ref.watch(pelangganProvider);
     final asyncPaket = ref.watch(paketProvider);
+
+    L.i(
+      'DetailTransaksiPage providers siap: ${DateTime.now().toIso8601String()}',
+    );
 
     // Loading gabungan: jika salah satu provider masih loading, tampilkan indikator.
     if (asyncDompet.isLoading ||
@@ -55,35 +72,37 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     }
 
     // Error per provider, ditangani secara terpisah dengan tombol retry.
+    String? errorLabel;
+    VoidCallback? errorOnRetry;
+    String? errorPesan;
+
     if (asyncDompet.hasError) {
-      return _buildErrorRetry(
-        'Dompet',
-        () => ref.refresh(dompetProvider),
-        asyncDompet.error.toString(),
-      );
-    }
-    if (asyncKategori.hasError) {
-      return _buildErrorRetry(
-        'Kategori',
-        () => ref.refresh(kategoriProvider),
-        asyncKategori.error.toString(),
-      );
-    }
-    if (asyncPelanggan.hasError) {
-      return _buildErrorRetry(
-        'Pelanggan',
-        () => ref.refresh(pelangganProvider),
-        asyncPelanggan.error.toString(),
-      );
-    }
-    if (asyncPaket.hasError) {
-      return _buildErrorRetry(
-        'Paket',
-        () => ref.refresh(paketProvider),
-        asyncPaket.error.toString(),
-      );
+      errorLabel = 'Dompet';
+      errorOnRetry = () => ref.refresh(dompetProvider);
+      errorPesan = asyncDompet.error.toString();
+    } else if (asyncKategori.hasError) {
+      errorLabel = 'Kategori';
+      errorOnRetry = () => ref.refresh(kategoriProvider);
+      errorPesan = asyncKategori.error.toString();
+    } else if (asyncPelanggan.hasError) {
+      errorLabel = 'Pelanggan';
+      errorOnRetry = () => ref.refresh(pelangganProvider);
+      errorPesan = asyncPelanggan.error.toString();
+    } else if (asyncPaket.hasError) {
+      errorLabel = 'Paket';
+      errorOnRetry = () => ref.refresh(paketProvider);
+      errorPesan = asyncPaket.error.toString();
     }
 
+    if (errorLabel != null) {
+      return _buildError(
+        'Gagal memuat $errorLabel: $errorPesan',
+        errorOnRetry!,
+      );
+    }
+    L.i(
+      'DetailTransaksiPage error provider: $errorLabel, pesan: $errorPesan, waktu: ${DateTime.now().toIso8601String()}',
+    );
     final dompetState = asyncDompet.requireValue;
     final kategoriState = asyncKategori.requireValue;
     final pelangganState = asyncPelanggan.requireValue;
@@ -93,6 +112,8 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     final idSubKategori = transaksi.idSubKategori;
     final idPelanggan = transaksi.idPelanggan;
     final idPaket = transaksi.idPaket;
+    final tanggalMulai = transaksi.tanggalMulai;
+    final tanggalBerakhir = transaksi.tanggalBerakhir;
 
     return Scaffold(
       appBar: AppBar(
@@ -166,15 +187,15 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
               transaksi.poinYangDigunakan.toString(),
             ),
 
-            if (transaksi.tanggalMulai != null)
+            if (tanggalMulai != null)
               _buildDetailRow(
                 'Masa Aktif Mulai',
-                FormatTanggal.formatTanggalDanJam(transaksi.tanggalMulai!),
+                FormatTanggal.formatTanggalDanJam(tanggalMulai),
               ),
-            if (transaksi.tanggalBerakhir != null)
+            if (tanggalBerakhir != null)
               _buildDetailRow(
                 'Masa Aktif Berakhir',
-                FormatTanggal.formatTanggalDanJam(transaksi.tanggalBerakhir!),
+                FormatTanggal.formatTanggalDanJam(tanggalBerakhir),
               ),
           ],
         ),
@@ -183,7 +204,6 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    L.i('Membangun baris detail - $label: $value');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -207,19 +227,15 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     return _buildDetailRow(label, value ?? '-');
   }
 
-  Widget _buildErrorRetry(
-    String label,
-    void Function() onRefresh,
-    String errorMessage,
-  ) {
+  Widget _buildError(String pesan, VoidCallback onRetry) {
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 16,
           children: [
-            Text('Gagal memuat $label: $errorMessage'),
-            FilledButton(onPressed: onRefresh, child: const Text('Coba Lagi')),
+            Text(pesan),
+            FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
           ],
         ),
       ),

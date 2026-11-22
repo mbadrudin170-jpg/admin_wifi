@@ -3,9 +3,9 @@
 
 import 'dart:async';
 
-import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/dompet/notifier/dompet_notifier.dart';
 import 'package:admin_wifi/fitur/kategori/notifier/kategori_notifier.dart';
+import 'package:admin_wifi/fitur/transaksi/enum/tipe_transaksi_enum.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
@@ -90,6 +90,9 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
       child: ListTile(
         key: ValueKey(widget.transaksi.id),
         onTap: () {
+          L.i(
+            'Sebelum Nav.to DetailTransaksiPage: ${DateTime.now().toIso8601String()}',
+          );
           unawaited(
             Nav.to(
               context,
