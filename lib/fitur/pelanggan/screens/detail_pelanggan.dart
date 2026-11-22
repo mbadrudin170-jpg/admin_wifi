@@ -8,7 +8,7 @@ import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/screens/form_pelanggan.dart';
 import 'package:admin_wifi/fitur/pelanggan/state/pelanggan_state.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/halaman/pembantu/halaman_poin.dart';
+import 'package:admin_wifi/fitur/lainnya/screens/halaman_poin.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';

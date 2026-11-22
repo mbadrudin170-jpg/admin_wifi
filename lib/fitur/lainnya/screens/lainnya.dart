@@ -11,12 +11,12 @@ import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/utils/navigator_helper.dart';
 
 // import '../../data/services/notifikasi_servis.dart';
-import '../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
-import '../../fitur/paket/screens/paket_screen.dart';
-import '../../fitur/pelanggan/screens/pelanggan.dart';
-import '../../fitur/versi_apk_user/screens/versi_apk_user.dart';
-import '../lainnya/tentang_aplikasi.dart';
-import 'pesanan.dart';
+import '../../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
+import '../../paket/screens/paket_screen.dart';
+import '../../pelanggan/screens/pelanggan.dart';
+import '../../versi_apk_user/screens/versi_apk_user.dart';
+import 'tentang_aplikasi.dart';
+import '../../pesanan/screens/pesanan.dart';
 
 class LainnyaPage extends StatefulWidget {
   const LainnyaPage({super.key});

@@ -3,7 +3,7 @@
 import 'package:admin_wifi/fitur/dompet/screens/dompet_screen.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/pelanggan_aktif_screen.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/transaksi_screen.dart';
-import 'package:admin_wifi/halaman/tab/lainnya.dart';
+import 'package:admin_wifi/fitur/lainnya/screens/lainnya.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/src/utils/l.dart';
 import 'package:share_global_saya/src/widget/toast_widget.dart';
