@@ -14,7 +14,7 @@ import 'package:share_global_saya/src/utils/navigator_helper.dart';
 import '../../../dummy/dummy_screen.dart'; // ditambahkan: Import layar Data Dummy
 import '../../paket/screens/paket_screen.dart';
 import '../../pelanggan/screens/pelanggan.dart';
-import '../../versi_apk_user/screens/versi_apk_user.dart';
+import '../../versi_apk_user/screens/versi_apk_user_screen.dart';
 import 'tentang_aplikasi.dart';
 import '../../pesanan/screens/pesanan.dart';
 
@@ -121,7 +121,7 @@ class _LainnyaTabState extends State<LainnyaPage> {
             icon: Icons.system_update,
             onTap: () => _handleNavigation(
               'Versi Aplikasi Pengguna',
-              const VersiApkUserPage(),
+              const VersiApkUserScreen(),
             ),
           ),
           _buildNavigationButton(

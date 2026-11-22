@@ -1,10 +1,11 @@
-// path: lib/halaman/lainnya/versi_apk_user.dart
+// path: lib/fitur/versi_apk_user/screens/versi_apk_user_screen.dart
 
 import 'dart:async';
 
 import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/enum/arsitektur_apk_enum.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/enum/urutan_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/detail_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/screens/form_versi_apk_user.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
@@ -13,18 +14,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
 
-enum Urutan { buildZA, buildAZ, versiZA, versiAZ }
-
-class VersiApkUserPage extends ConsumerStatefulWidget {
-  final dynamic operasi;
-
-  const VersiApkUserPage({super.key, this.operasi});
+class VersiApkUserScreen extends ConsumerStatefulWidget {
+  const VersiApkUserScreen({super.key});
 
   @override
-  ConsumerState<VersiApkUserPage> createState() => _VersiApkUserPageState();
+  ConsumerState<VersiApkUserScreen> createState() => _VersiApkUserScreenState();
 }
 
-class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
+class _VersiApkUserScreenState extends ConsumerState<VersiApkUserScreen> {
   Urutan _urutanSaatIni = Urutan.buildZA;
 
   @override
@@ -54,10 +51,7 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
     unawaited(
       Nav.to<VersiApkUserModel>(
         context,
-        FormVersiApkUser(
-          versiApkUser: versiApk,
-          operasi: ref.read(versiApkUserProvider.notifier),
-        ),
+        FormVersiApkUser(versiApkUser: versiApk),
       ).catchError((Object e, StackTrace s) {
         L.e('Navigasi gagal: $e $s');
         return null;
@@ -68,10 +62,10 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
   void _keFormTambah() {
     L.i('Navigasi ke Form Tambah Versi APK');
     unawaited(
-      Nav.to<VersiApkUserModel>(
-        context,
-        FormVersiApkUser(operasi: ref.read(versiApkUserProvider.notifier)),
-      ).catchError((Object e, StackTrace s) {
+      Nav.to<VersiApkUserModel>(context, FormVersiApkUser()).catchError((
+        Object e,
+        StackTrace s,
+      ) {
         L.e('Navigasi gagal: $e $s');
         return null;
       }),
@@ -80,7 +74,7 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
 
   Future<void> _tampilkanDialogUrutkan() async {
     L.i(
-      'Menampilkan dialog pengurutan, urutan saat ini: ${_getNamaUrutan(_urutanSaatIni)}',
+      'Menampilkan dialog pengurutan, urutan saat ini: ${_urutanSaatIni.label}',
     );
     final urutanBaru = await showDialog<Urutan>(
       context: context,
@@ -94,7 +88,7 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
                 groupValue: selectedUrutan,
                 onChanged: (Urutan? value) {
                   if (value != null) {
-                    L.i('User memilih opsi: ${_getNamaUrutan(value)}');
+                    L.i('User memilih opsi: ${value.label}');
                     setStateDialog(() {
                       selectedUrutan = value;
                     });
@@ -104,7 +98,7 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: Urutan.values.map((urutan) {
                     final isSelected = urutan == _urutanSaatIni;
-                    final nama = _getNamaUrutan(urutan);
+                    final nama = urutan.label;
                     return RadioListTile<Urutan>(
                       title: Text('$nama${isSelected ? " (saat ini)" : ""}'),
                       value: urutan,
@@ -124,7 +118,7 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
                   child: const Text('OK'),
                   onPressed: () {
                     L.i(
-                      'User mengonfirmasi urutan: ${selectedUrutan != null ? _getNamaUrutan(selectedUrutan!) : "null"}',
+                      'User mengonfirmasi urutan: ${selectedUrutan?.label ?? "null"}',
                     );
                     Nav.pop(context, selectedUrutan);
                   },
@@ -138,14 +132,14 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
 
     if (urutanBaru != null && urutanBaru != _urutanSaatIni) {
       L.i(
-        'Mengubah urutan dari ${_getNamaUrutan(_urutanSaatIni)} ke ${_getNamaUrutan(urutanBaru)}',
+        'Mengubah urutan dari ${_urutanSaatIni.label} ke ${urutanBaru.label}',
       );
       setState(() {
         _urutanSaatIni = urutanBaru;
       });
     } else if (urutanBaru == _urutanSaatIni) {
       L.i(
-        'User memilih urutan yang sama (${_getNamaUrutan(_urutanSaatIni)}), tidak ada perubahan',
+        'User memilih urutan yang sama (${_urutanSaatIni.label}), tidak ada perubahan',
       );
     } else {
       L.i('Dialog ditutup tanpa memilih urutan');
@@ -342,18 +336,5 @@ class _VersiApkUserPageState extends ConsumerState<VersiApkUserPage> {
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  String _getNamaUrutan(Urutan urutan) {
-    switch (urutan) {
-      case Urutan.buildZA:
-        return 'Build (Terbaru ke Terlama)';
-      case Urutan.buildAZ:
-        return 'Build (Terlama ke Terbaru)';
-      case Urutan.versiZA:
-        return 'Versi (Z-A)';
-      case Urutan.versiAZ:
-        return 'Versi (A-Z)';
-    }
   }
 }

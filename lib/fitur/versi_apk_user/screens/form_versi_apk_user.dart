@@ -1,39 +1,44 @@
 // path: lib/halaman/form/form_versi_apk_user.dart
 
-import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
+import 'dart:async';
+
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/enum/arsitektur_apk_enum.dart';
 import 'package:admin_wifi/fitur/versi_apk_user/model/versi_apk_user_model.dart';
+import 'package:admin_wifi/fitur/versi_apk_user/notifier/versi_apk_user_notifier.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
 import 'package:uuid/uuid.dart';
 
-class FormVersiApkUser extends StatefulWidget {
+class FormVersiApkUser extends ConsumerStatefulWidget {
   final VersiApkUserModel? versiApkUser;
-  final dynamic operasi;
 
-  FormVersiApkUser({super.key, this.versiApkUser, dynamic operasi})
-    : operasi = operasi ?? versiApkUserNotifierGlobal;
+  const FormVersiApkUser({super.key, this.versiApkUser});
 
   @override
-  State<FormVersiApkUser> createState() => _FormVersiApkUserState();
+  ConsumerState<FormVersiApkUser> createState() => _FormVersiApkUserState();
 }
 
-class _FormVersiApkUserState extends State<FormVersiApkUser> {
+class _FormVersiApkUserState extends ConsumerState<FormVersiApkUser> {
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
   bool get _isEdit => widget.versiApkUser != null;
 
-  late TextEditingController _catatanRilisController;
-  late TextEditingController _versiTerbaruController;
-  late TextEditingController _youtubeTutorialController;
-  late bool _wajibUpdate;
+  final TextEditingController _catatanRilisController = TextEditingController();
+  final TextEditingController _versiTerbaruController = TextEditingController();
+  final TextEditingController _youtubeTutorialController =
+      TextEditingController();
+  bool _wajibUpdate = false;
 
-  late TextEditingController _buildUniversalController;
-  late TextEditingController _build32Controller;
-  late TextEditingController _build64Controller;
-  late TextEditingController _tautanUniversalController;
-  late TextEditingController _tautan32Controller;
-  late TextEditingController _tautan64Controller;
+  final TextEditingController _buildUniversalController =
+      TextEditingController();
+  final TextEditingController _build32Controller = TextEditingController();
+  final TextEditingController _build64Controller = TextEditingController();
+  final TextEditingController _tautanUniversalController =
+      TextEditingController();
+  final TextEditingController _tautan32Controller = TextEditingController();
+  final TextEditingController _tautan64Controller = TextEditingController();
 
   @override
   void initState() {
@@ -41,18 +46,6 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
     L.i(
       'Menginisialisasi FormVersiApkUser (Mode: ${_isEdit ? 'Edit' : 'Tambah'})',
     );
-
-    _catatanRilisController = TextEditingController();
-    _versiTerbaruController = TextEditingController();
-    _youtubeTutorialController = TextEditingController();
-    _wajibUpdate = false;
-
-    _buildUniversalController = TextEditingController();
-    _build32Controller = TextEditingController();
-    _build64Controller = TextEditingController();
-    _tautanUniversalController = TextEditingController();
-    _tautan32Controller = TextEditingController();
-    _tautan64Controller = TextEditingController();
 
     if (_isEdit) {
       _populateControllers(widget.versiApkUser!);
@@ -63,9 +56,10 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
 
   void _muatDataVersiTerakhir() async {
     L.i('Memuat data rilis terakhir untuk otomatisasi input.');
-    setState(() => _isLoading = true);
     try {
-      final versiTerakhir = await widget.operasi.ambilVersiApkTerbaru();
+      final versiTerakhir = await ref
+          .read(versiApkUserProvider.notifier)
+          .ambilVersiApkTerbaru();
       if (versiTerakhir != null && mounted) {
         _versiTerbaruController.text = versiTerakhir.versiTerbaru;
         final buildBerikutnya =
@@ -80,8 +74,6 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
       }
     } catch (e, s) {
       L.e('Gagal memuat data versi terakhir Error: $e $s');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -123,41 +115,30 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
   }
 
   void _simpanForm() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() ?? false) {
       L.i('Menampilkan dialog konfirmasi kepada pengguna');
 
-      final konfirmasi = await showDialog<bool>(
+      final konfirmasi = await showOkCancelAlertDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.blue),
-              SizedBox(width: 10),
-              Text('Konfirmasi Simpan'),
-            ],
-          ),
-          content: const Text(
-            'Apakah data versi aplikasi yang Anda masukkan sudah benar?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Nav.pop(context, false),
-              child: const Text('Periksa Kembali'),
-            ),
-            ElevatedButton(
-              onPressed: () => Nav.pop(context, true),
-              child: const Text('Ya, Simpan'),
-            ),
-          ],
-        ),
+        title: 'Konfirmasi Simpan',
+        message: 'Apakah data versi aplikasi yang Anda masukkan sudah benar?',
+        okLabel: 'Ya, Simpan',
+        cancelLabel: 'Periksa Kembali',
       );
 
-      if (konfirmasi != true) {
+      if (konfirmasi != OkCancelResult.ok) {
         L.i('Pengguna membatalkan proses penyimpanan');
         return;
       }
 
-      setState(() => _isLoading = true);
+      unawaited(
+        EasyLoading.show(
+          status: 'Menyimpan...',
+          maskType: EasyLoadingMaskType.black,
+        ).catchError((Object e, StackTrace s) {
+          L.e('Gagal menampilkan loading: $e $s');
+        }),
+      );
       L.i('Sedang memproses penyimpanan ke database...');
 
       final nomorBuild = <ArsitekturApkEnum, int>{};
@@ -206,29 +187,31 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
       try {
         if (_isEdit) {
           L.i('Menjalankan perintah update data...');
-          await widget.operasi.perbaruiVersiApkUser(dataToSave);
+          await ref
+              .read(versiApkUserProvider.notifier)
+              .perbaruiVersiApkUser(dataToSave);
         } else {
           L.i('Menjalankan perintah tambah data baru...');
-          await widget.operasi.tambahVersiApkUser(dataToSave);
+          await ref
+              .read(versiApkUserProvider.notifier)
+              .tambahVersiApkUser(dataToSave);
         }
 
         L.i('Proses penyimpanan berhasil diselesaikan');
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data berhasil disimpan!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        Nav.pop(context, dataToSave);
+        AppToast.sukses(context, 'Data berhasil disimpan!');
+        Nav.pop(context);
       } catch (e, s) {
         L.e('Terjadi kesalahan saat menyimpan data Error: $e $s');
         if (!mounted) return;
         AppToast.gagal(context, 'Gagal menyimpan data: $e');
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        unawaited(
+          EasyLoading.dismiss().catchError((Object e, StackTrace s) {
+            L.e('Gagal menutup loading: $e $s');
+          }),
+        );
       }
     }
   }
@@ -292,7 +275,7 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _simpanForm,
+                    onPressed: _simpanForm,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -302,20 +285,6 @@ class _FormVersiApkUserState extends State<FormVersiApkUser> {
               ),
             ),
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withAlpha(128),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 10),
-                    Text('Menyimpan...', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );
