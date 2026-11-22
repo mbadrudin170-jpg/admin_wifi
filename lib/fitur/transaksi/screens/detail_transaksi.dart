@@ -15,23 +15,17 @@ import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart'
     hide FormatTanggal, FormatUang;
 
-class DetailTransaksiPage extends ConsumerStatefulWidget {
+class DetailTransaksiPage extends ConsumerWidget {
   final TransaksiModel transaksi;
 
   const DetailTransaksiPage({super.key, required this.transaksi});
 
-  @override
-  ConsumerState<DetailTransaksiPage> createState() =>
-      _DetailTransaksiPageState();
-}
-
-class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
-  void _bukaFormEdit() {
+  void _bukaFormEdit(BuildContext context) {
     unawaited(
-      Nav.to(
-        context,
-        FormTransaksiPage(transaksi: widget.transaksi),
-      ).catchError((Object e, StackTrace s) {
+      Nav.to(context, FormTransaksiPage(transaksi: transaksi)).catchError((
+        Object e,
+        StackTrace s,
+      ) {
         L.e('Gagal membuka form edit transaksi: $e $s');
         return null;
       }),
@@ -39,13 +33,14 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     L.i('DetailTransaksiPage build mulai: ${DateTime.now().toIso8601String()}');
-    final transaksi = widget.transaksi;
+    final transaksi = this.transaksi;
     final asyncDompet = ref.watch(dompetProvider);
     final asyncKategori = ref.watch(kategoriProvider);
     final asyncPelanggan = ref.watch(pelangganProvider);
     final asyncPaket = ref.watch(paketProvider);
+
     if (asyncDompet.isLoading ||
         asyncKategori.isLoading ||
         asyncPelanggan.isLoading ||
@@ -77,6 +72,7 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
 
     if (errorLabel != null) {
       return _buildError(
+        context,
         'Gagal memuat $errorLabel: $errorPesan',
         errorOnRetry!,
       );
@@ -100,7 +96,7 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Transaksi',
-            onPressed: _bukaFormEdit,
+            onPressed: () => _bukaFormEdit(context),
           ),
         ],
       ),
@@ -108,70 +104,83 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            _buildDetailRow('ID', transaksi.id),
-            _buildDetailRow('Keterangan', transaksi.keterangan),
+            _buildDetailRow(context, 'ID', transaksi.id),
+            _buildDetailRow(context, 'Keterangan', transaksi.keterangan),
             _buildDetailRow(
+              context,
               'Tanggal',
               FormatTanggal.formatTanggalDanJam(transaksi.tanggal),
             ),
             _buildDetailRow(
+              context,
               'Jumlah',
               FormatUang.formatMataUang(transaksi.jumlah),
             ),
-            _buildDetailRow('Tipe', transaksi.tipe.label),
+            _buildDetailRow(context, 'Tipe', transaksi.tipe.label),
             _buildDetailRowSync(
+              context,
               'Dompet',
               dompetState.getById(transaksi.idDompet)?.namaDompet,
             ),
             if (idDompetTujuan != null && idDompetTujuan.isNotEmpty)
               _buildDetailRowSync(
+                context,
                 'Dompet Tujuan',
                 dompetState.getById(idDompetTujuan)?.namaDompet,
               ),
 
             _buildDetailRowSync(
+              context,
               'Kategori',
               kategoriState.getById(transaksi.idKategori)?.nama,
             ),
 
             if (idSubKategori != null && idSubKategori.isNotEmpty)
               _buildDetailRowSync(
+                context,
                 'Sub Kategori',
                 kategoriState.getSubKategoriById(idSubKategori)?.nama,
               ),
 
             if (idPelanggan != null && idPelanggan.isNotEmpty)
               _buildDetailRowSync(
+                context,
                 'Pelanggan',
                 pelangganState.getById(idPelanggan)?.nama,
               ),
 
             if (idPaket != null && idPaket.isNotEmpty)
               _buildDetailRowSync(
+                context,
                 'Paket',
                 paketState.getPaketById(idPaket)?.nama,
               ),
 
             _buildDetailRow(
+              context,
               'Status Pembayaran',
               transaksi.statusPembayaran.label,
             ),
             _buildDetailRow(
+              context,
               'Poin Dihasilkan',
               transaksi.poinYangDihasilkan.toString(),
             ),
             _buildDetailRow(
+              context,
               'Poin Digunakan',
               transaksi.poinYangDigunakan.toString(),
             ),
 
             if (tanggalMulai != null)
               _buildDetailRow(
+                context,
                 'Masa Aktif Mulai',
                 FormatTanggal.formatTanggalDanJam(tanggalMulai),
               ),
             if (tanggalBerakhir != null)
               _buildDetailRow(
+                context,
                 'Masa Aktif Berakhir',
                 FormatTanggal.formatTanggalDanJam(tanggalBerakhir),
               ),
@@ -181,7 +190,7 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -201,11 +210,15 @@ class _DetailTransaksiPageState extends ConsumerState<DetailTransaksiPage> {
     );
   }
 
-  Widget _buildDetailRowSync(String label, String? value) {
-    return _buildDetailRow(label, value ?? '-');
+  Widget _buildDetailRowSync(
+    BuildContext context,
+    String label,
+    String? value,
+  ) {
+    return _buildDetailRow(context, label, value ?? '-');
   }
 
-  Widget _buildError(String pesan, VoidCallback onRetry) {
+  Widget _buildError(BuildContext context, String pesan, VoidCallback onRetry) {
     return Scaffold(
       body: Center(
         child: Column(

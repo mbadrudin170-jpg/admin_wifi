@@ -90,9 +90,6 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
       child: ListTile(
         key: ValueKey(widget.transaksi.id),
         onTap: () {
-          L.i(
-            'Sebelum Nav.to DetailTransaksiPage: ${DateTime.now().toIso8601String()}',
-          );
           unawaited(
             Nav.to(
               context,
