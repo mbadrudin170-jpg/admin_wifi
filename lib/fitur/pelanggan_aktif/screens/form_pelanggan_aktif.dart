@@ -500,6 +500,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
   }
 
   Widget _buildPelangganDropdown() {
+    final bool nonaktifkan = widget.modePerpanjang ?? false;
     return DropdownButtonFormField<PelangganModel>(
       key: const Key('pelanggan_dropdown'),
       decoration: const InputDecoration(
@@ -507,21 +508,24 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
         border: OutlineInputBorder(),
       ),
       initialValue: _selectedPelanggan,
+      enabled: !nonaktifkan,
       items: _pelangganList
           .map((p) => DropdownMenuItem(value: p, child: Text(p.nama)))
           .toList(),
-      onChanged: (PelangganModel? newValue) async {
-        if (newValue == null) return;
-        final saldoPoin = await ref
-            .read(transaksiProvider.notifier)
-            .hitungTotalPoin(newValue.id);
-        if (mounted) {
-          setState(() {
-            _selectedPelanggan = newValue;
-            _saldoPoinPelanggan = saldoPoin;
-          });
-        }
-      },
+      onChanged: nonaktifkan
+          ? null
+          : (PelangganModel? newValue) async {
+              if (newValue == null) return;
+              final saldoPoin = await ref
+                  .read(transaksiProvider.notifier)
+                  .hitungTotalPoin(newValue.id);
+              if (mounted) {
+                setState(() {
+                  _selectedPelanggan = newValue;
+                  _saldoPoinPelanggan = saldoPoin;
+                });
+              }
+            },
       validator: (v) => v == null ? 'Pelanggan tidak boleh kosong' : null,
     );
   }

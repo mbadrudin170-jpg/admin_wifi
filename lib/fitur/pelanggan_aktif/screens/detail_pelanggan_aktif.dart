@@ -260,37 +260,62 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () {
-                          Nav.to(
-                            context,
-                            FormPelangganAktif(
-                              pelangganAktif: pelangganAktifTerkini,
-                              modePerpanjang: true,
+                      Column(
+                        spacing: 12,
+                        children: [
+                          if (pelanggan != null)
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.edit_calendar),
+                              label: const Text('Perpanjang Masa Aktif'),
+                              onPressed: () {
+                                unawaited(
+                                  Nav.to(
+                                    context,
+                                    FormPelangganAktif(
+                                      pelangganAktif: pelangganAktifTerkini,
+                                      modePerpanjang: true,
+                                    ),
+                                  ).catchError((Object e, StackTrace s) {
+                                    L.e(
+                                      'Gagal navigasi ke form pelanggan aktif: $e $s',
+                                    );
+                                    return null;
+                                  }),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
                             ),
-                          );
-                        },
-                        child: Text('Perpanjang Masa Aktif'),
-                      ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.send_to_mobile),
-                        label: const Text('Kirim Info via WhatsApp'),
-                        onPressed: () {
-                          unawaited(
-                            PesanInfoPaket.kirimRincianPaket(
-                              pelangganAktifTerkini,
-                            ).catchError((Object e, StackTrace s) {
-                              L.e('Gagal mengirim rincian paket: $e $s');
-                            }),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.green.shade600,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.send_to_mobile),
+                            label: const Text('Kirim Info via WhatsApp'),
+                            onPressed: () {
+                              unawaited(
+                                PesanInfoPaket.kirimRincianPaket(
+                                  pelangganAktifTerkini,
+                                ).catchError((Object e, StackTrace s) {
+                                  L.e('Gagal mengirim rincian paket: $e $s');
+                                }),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              minimumSize: const Size(double.infinity, 50),
+                              backgroundColor: Colors.green.shade600,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
