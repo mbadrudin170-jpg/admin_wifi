@@ -1,6 +1,10 @@
 // path: lib/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart
 
+import 'dart:async';
+
+import 'package:admin_wifi/fitur/wifi_analyzer/notifier/ping_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -17,11 +21,17 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   @override
   void initState() {
     super.initState();
+    _pingRouter();
   }
 
   Future<void> _muatData() async {
     ref.invalidate(wifiAnalyzerProvider);
     await ref.read(wifiAnalyzerProvider.future);
+    unawaited(_pingRouter());
+  }
+
+  Future<void> _pingRouter() async {
+    await ref.read(pingProvider.notifier).pingRouter();
   }
 
   String _bandDariFrekuensi(int frekuensi) {
@@ -63,6 +73,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncState = ref.watch(wifiAnalyzerProvider);
+    final pingState = ref.watch(pingProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -94,7 +105,6 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         final errors = <String>[
           if (state.connectionError != null) state.connectionError!,
           if (state.scanError != null) state.scanError!,
-          if (state.tcpError != null) state.tcpError!,
         ];
         if (errors.isNotEmpty) {
           return Center(
@@ -115,7 +125,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildKartuTerhubung(state),
+              _buildKartuTerhubung(state, pingState),
               const SizedBox(height: 16),
               Text(
                 'Jaringan di Sekitar (${state.accessPoints.length})',
@@ -138,7 +148,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     );
   }
 
-  Widget _buildKartuTerhubung(WifiAnalyzerState state) {
+  Widget _buildKartuTerhubung(WifiAnalyzerState state, PingState pingState) {
     final levelTerhubung = state.levelTerhubung;
     final freq = state.frekuensiTerhubung;
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
@@ -172,10 +182,12 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                   : null,
             ),
             _buildInfoCustom(
-              'TCP',
-              state.tcpLatencyMs != null
-                  ? '${state.tcpLatencyMs} ms'
-                  : (state.tcpError ?? '-'),
+              'Ping Router',
+              pingState.isLoading
+                  ? 'Menguji...'
+                  : pingState.success
+                  ? '${pingState.latencyMs} ms'
+                  : (pingState.error ?? '-'),
             ),
           ],
         ),

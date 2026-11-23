@@ -12,7 +12,7 @@ part 'ping_notifier.g.dart';
 
 @riverpod
 class PingNotifier extends _$PingNotifier {
-  final _networkInfo = NetworkInfo();
+  final _infoJaringan = NetworkInfo();
 
   @override
   PingState build() => const PingState();
@@ -26,40 +26,96 @@ class PingNotifier extends _$PingNotifier {
     );
 
     try {
-      final gateway = await _networkInfo.getWifiGatewayIP();
+      final gateway = await _infoJaringan.getWifiGatewayIP();
       if (gateway == null || gateway.trim().isEmpty) {
-        state = state.copyWith(isLoading: false, error: 'Gateway tidak ditemukan');
-        return;
-      }
-      final host = gateway.trim();
-      state = state.copyWith(host: host);
-
-      var response;
-      final stopwatch = Stopwatch()..start();
-      while (response == null || response.time == null) {
-        final r = ActiveHost.getPingData(host);
-        if (r != null && r.time != null) {
-          response = r;
-          break;
-        }
-        if (stopwatch.elapsed >= const Duration(seconds: 3)) {
-          break;
-        }
-        await Future.delayed(const Duration(milliseconds: 200));
-      }
-
-      if (response != null && response.time != null) {
+        L.w('gateway=$gateway');
         state = state.copyWith(
           isLoading: false,
-          latencyMs: response.time!.inMilliseconds,
+          error: 'Gateway tidak ditemukan',
+        );
+        return;
+      }
+
+      final host = gateway.trim();
+      final bagianIp = host.split('.');
+      final oktetTerakhir = int.tryParse(bagianIp.last);
+      if (bagianIp.length != 4 || oktetTerakhir == null) {
+        L.w('host=$host, oktetTerakhir=$oktetTerakhir');
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Format IP gateway tidak valid',
+        );
+        return;
+      }
+
+      final subnet = bagianIp.take(3).join('.');
+      state = state.copyWith(host: host);
+
+      ActiveHost? hostDitemukan;
+      final stream = HostScannerService.instance
+          .getAllPingableDevices(
+            subnet,
+            firstHostId: oktetTerakhir,
+            lastHostId: oktetTerakhir,
+          )
+          .timeout(const Duration(seconds: 4));
+
+      await for (final aktifHost in stream) {
+        if (aktifHost.address == host) {
+          hostDitemukan = aktifHost;
+        }
+      }
+
+      if (hostDitemukan != null) {
+        final latensiMs = hostDitemukan.pingData?.time?.inMilliseconds;
+        L.s('host=$host, latensiMs=$latensiMs, jalur=icmp');
+        state = state.copyWith(
+          isLoading: false,
+          latencyMs: latensiMs,
           success: true,
         );
-      } else {
-        state = state.copyWith(isLoading: false, error: 'Ping gagal');
+        return;
       }
+
+      final portTerbuka = await _cekPortFallback(host);
+      if (portTerbuka != null) {
+        L.s('host=$host, portTerbuka=$portTerbuka, jalur=tcp_fallback');
+        state = state.copyWith(
+          isLoading: false,
+          latencyMs: null,
+          success: true,
+        );
+        return;
+      }
+
+      L.w('host=$host, hostDitemukan=null, portTerbuka=null');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Router tidak merespons ping maupun port',
+      );
+    } on TimeoutException catch (e, s) {
+      L.e('Timeout ping router: $e $s');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Ping timeout',
+      );
     } catch (e, s) {
       L.e('Gagal ping router: $e $s');
-      state = state.copyWith(isLoading: false, error: 'Gagal ping: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Gagal ping: $e',
+      );
     }
+  }
+
+  Future<int?> _cekPortFallback(String host) async {
+    const daftarPort = [80, 443];
+    for (final port in daftarPort) {
+      final terbuka = await PortScannerService.instance.isOpen(host, port);
+      if (terbuka != null) {
+        return port;
+      }
+    }
+    return null;
   }
 }

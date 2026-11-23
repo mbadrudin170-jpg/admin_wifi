@@ -1,7 +1,6 @@
 // path: lib/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/dummy/wifi_analyzer_dummy.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
@@ -22,20 +21,16 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   String? _lastBssid;
   String? _lastIp;
   List<WiFiAccessPoint> _lastScanResults = <WiFiAccessPoint>[];
-  int? _lastTcpMs;
-
+  
   // Error terbaru per sumber data.
   String? _connectionError;
   String? _scanError;
-  String? _tcpError;
 
   // Waktu percobaan dan keberhasilan per sumber data.
   DateTime? _lastInfoAttemptAt;
   DateTime? _lastInfoAt;
   DateTime? _lastScanAttemptAt;
   DateTime? _lastScanAt;
-  DateTime? _lastTcpAttemptAt;
-  DateTime? _lastTcpAt;
 
   // Permintaan scan manual dari pengguna.
   bool _scanRequested = false;
@@ -99,36 +94,18 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         }
       }
 
-      final lastTcpAttemptAt = _lastTcpAttemptAt;
-      if (lastTcpAttemptAt == null ||
-          now.difference(lastTcpAttemptAt) >= const Duration(seconds: 30)) {
-        _lastTcpAttemptAt = DateTime.now();
-        final tcp = await _ambilTcp();
-        if (tcp.tcpError == null) {
-          _lastTcpMs = tcp.tcpLatencyMs;
-          _tcpError = null;
-          _lastTcpAt = DateTime.now();
-        } else {
-          _tcpError = tcp.tcpError;
-        }
-      }
-
-      yield WifiAnalyzerState(
+       yield WifiAnalyzerState(
         isLoading: false,
         connectionError: _connectionError,
         scanError: _scanError,
-        tcpError: _tcpError,
         ssidTerhubung: _lastSsid,
         bssidTerhubung: _lastBssid,
         ipTerhubung: _lastIp,
         accessPoints: _lastScanResults,
-        tcpLatencyMs: _lastTcpMs,
         lastInfoAt: _lastInfoAt,
         lastScanAt: _lastScanAt,
-        lastTcpAt: _lastTcpAt,
         lastInfoAttemptAt: _lastInfoAttemptAt,
         lastScanAttemptAt: _lastScanAttemptAt,
-        lastTcpAttemptAt: _lastTcpAttemptAt,
       );
 
       await Future.delayed(const Duration(seconds: 2));
@@ -210,41 +187,5 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
     } finally {
       await subscription?.cancel();
     }
-  }
-
-  Future<({int? tcpLatencyMs, String? tcpError})> _ambilTcp() async {
-    try {
-      final gateway = await _networkInfo.getWifiGatewayIP();
-      if (gateway == null || gateway.trim().isEmpty) {
-        return (tcpLatencyMs: null, tcpError: 'Gateway tidak ditemukan');
-      }
-      final ms = await _ujiTcpGateway(gateway.trim());
-      if (ms != null) {
-        return (tcpLatencyMs: ms, tcpError: null);
-      }
-      return (tcpLatencyMs: null, tcpError: 'Gagal TCP ke gateway');
-    } catch (e, s) {
-      L.e('Gagal menguji gateway: $e $s');
-      return (tcpLatencyMs: null, tcpError: 'Gagal TCP: $e');
-    }
-  }
-
-  Future<int?> _ujiTcpGateway(String host) async {
-    for (final port in <int>[80, 443]) {
-      try {
-        final sw = Stopwatch()..start();
-        final socket = await Socket.connect(
-          host,
-          port,
-          timeout: const Duration(seconds: 1),
-        );
-        sw.stop();
-        socket.destroy();
-        return sw.elapsedMilliseconds;
-      } catch (_) {
-        continue;
-      }
-    }
-    return null;
   }
 }
