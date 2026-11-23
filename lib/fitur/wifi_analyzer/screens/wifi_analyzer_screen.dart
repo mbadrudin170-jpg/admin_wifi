@@ -199,9 +199,9 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             Text('Channel: ${channel ?? '-'}'),
             Text(
               'Sinyal: ${ap.level} dBm (${_kualitasSinyal(ap.level)})',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: _warnaSinyal(ap.level),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: _warnaSinyal(ap.level)),
             ),
           ],
         ),

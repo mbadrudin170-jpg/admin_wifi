@@ -118,15 +118,11 @@ class _DetailLanggananTransaksiPageState
               _buildInfoCard('Waktu Langganan', [
                 _buildDetailRow(
                   'Tanggal Mulai',
-                  FormatTanggal.formatTanggalDanJam(
-                    transaksi.tanggalMulai!,
-                  ),
+                  FormatTanggal.formatTanggalDanJam(transaksi.tanggalMulai!),
                 ),
                 _buildDetailRow(
                   'Tanggal Berakhir',
-                  FormatTanggal.formatTanggalDanJam(
-                    transaksi.tanggalBerakhir!,
-                  ),
+                  FormatTanggal.formatTanggalDanJam(transaksi.tanggalBerakhir!),
                 ),
               ]),
             const SizedBox(height: 16),

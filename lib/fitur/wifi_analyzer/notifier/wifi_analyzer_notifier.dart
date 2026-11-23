@@ -77,10 +77,12 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       }
 
       final now = DateTime.now();
-      final scanCooldownPassed = _lastScanAttemptAt == null ||
-          now.difference(_lastScanAttemptAt!) >=
-              const Duration(seconds: 35);
-      final scanDue = _scanRequested ||
+      final lastScanAttemptAt = _lastScanAttemptAt;
+      final scanCooldownPassed =
+          lastScanAttemptAt == null ||
+          now.difference(lastScanAttemptAt) >= const Duration(seconds: 35);
+      final scanDue =
+          _scanRequested ||
           _lastScanAt == null ||
           now.difference(_lastScanAt!) >= const Duration(seconds: 35);
 
@@ -97,8 +99,9 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         }
       }
 
-      if (_lastTcpAttemptAt == null ||
-          now.difference(_lastTcpAttemptAt!) >= const Duration(seconds: 30)) {
+      final lastTcpAttemptAt = _lastTcpAttemptAt;
+      if (lastTcpAttemptAt == null ||
+          now.difference(lastTcpAttemptAt) >= const Duration(seconds: 30)) {
         _lastTcpAttemptAt = DateTime.now();
         final tcp = await _ambilTcp();
         if (tcp.tcpError == null) {
@@ -133,7 +136,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   }
 
   Future<({String? ssid, String? bssid, String? ip, String? error})>
-      _ambilInfoTerhubung() async {
+  _ambilInfoTerhubung() async {
     try {
       final ssid = await _networkInfo.getWifiName();
       final bssid = await _networkInfo.getWifiBSSID();
@@ -141,12 +144,17 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       return (ssid: ssid, bssid: bssid, ip: ip, error: null);
     } catch (e, s) {
       L.e('Gagal mengambil info jaringan terhubung: $e $s');
-      return (ssid: null, bssid: null, ip: null, error: 'Gagal memuat data: $e');
+      return (
+        ssid: null,
+        bssid: null,
+        ip: null,
+        error: 'Gagal memuat data: $e',
+      );
     }
   }
 
   Future<({List<WiFiAccessPoint> accessPoints, String? error})>
-      _pindaiSekitar() async {
+  _pindaiSekitar() async {
     StreamSubscription<List<WiFiAccessPoint>>? subscription;
     final completer = Completer<List<WiFiAccessPoint>>();
 
@@ -188,9 +196,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         );
       }
 
-      final hasil = await completer.future.timeout(
-        const Duration(seconds: 10),
-      );
+      final hasil = await completer.future.timeout(const Duration(seconds: 10));
 
       return (accessPoints: hasil, error: null);
     } on TimeoutException {
@@ -200,10 +206,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       );
     } catch (e, s) {
       L.e('Gagal memindai jaringan sekitar: $e $s');
-      return (
-        accessPoints: <WiFiAccessPoint>[],
-        error: 'Gagal memindai: $e',
-      );
+      return (accessPoints: <WiFiAccessPoint>[], error: 'Gagal memindai: $e');
     } finally {
       await subscription?.cancel();
     }

@@ -49,10 +49,7 @@ class PesananNotifier extends _$PesananNotifier {
   Future<List<PesananModel>> ambilSemuaPesanan() async {
     try {
       final operasiSqlite = ref.read(operasiSqliteProvider);
-      final maps = await operasiSqlite.ambil(
-        _tabel,
-        orderBy: 'tanggal DESC',
-      );
+      final maps = await operasiSqlite.ambil(_tabel, orderBy: 'tanggal DESC');
       return maps.map(PesananModel.fromSqlite).toList();
     } catch (e, s) {
       L.e('Gagal mengambil semua pesanan Error: $e $s');
