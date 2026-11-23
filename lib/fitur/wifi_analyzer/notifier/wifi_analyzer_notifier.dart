@@ -21,7 +21,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   String? _lastBssid;
   String? _lastIp;
   List<WiFiAccessPoint> _lastScanResults = <WiFiAccessPoint>[];
-  
+
   // Error terbaru per sumber data.
   String? _connectionError;
   String? _scanError;
@@ -94,7 +94,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         }
       }
 
-       yield WifiAnalyzerState(
+      yield WifiAnalyzerState(
         isLoading: false,
         connectionError: _connectionError,
         scanError: _scanError,
