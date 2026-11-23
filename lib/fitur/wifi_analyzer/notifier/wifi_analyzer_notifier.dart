@@ -54,8 +54,10 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       }
 
       final rssi = await _ambilRssi();
-      if (rssi != null) {
+      if (rssi != null && rssi != -127 && rssi > -127) {
         _lastRssi = rssi;
+      } else {
+        _lastRssi = null;
       }
 
       yield WifiAnalyzerState(
@@ -95,6 +97,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
     if (kIsWeb) return null;
     try {
       final rssi = await _platform.invokeMethod<int>('getRssi');
+      if (rssi == null || rssi == -127) return null;
       return rssi;
     } catch (e, s) {
       L.w('Gagal mengambil RSSI: $e $s');

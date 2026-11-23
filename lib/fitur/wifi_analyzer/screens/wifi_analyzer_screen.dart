@@ -162,7 +162,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         : scanState.accessPoints.firstWhereOrNull(
             (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
           );
-    final levelTerhubung = state.rssiTerhubung ?? apTerhubung?.level;
+    final levelTerhubung = state.rssiTerhubung;
     final freq = apTerhubung?.frequency ?? 0;
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
     final channel = freq > 0
