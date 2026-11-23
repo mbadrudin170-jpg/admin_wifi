@@ -1,5 +1,6 @@
 // path: lib/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/dummy/wifi_analyzer_dummy.dart';
@@ -46,18 +47,18 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   @override
   Stream<WifiAnalyzerState> build() async* {
     while (true) {
-      if (kDebugMode) {
-        yield WifiAnalyzerDummy.dummyState;
-        await Future.delayed(const Duration(seconds: 5));
-        continue;
-      }
-
       if (kIsWeb) {
         yield const WifiAnalyzerState(
           isLoading: false,
           connectionError:
               'WiFi Analyzer tidak didukung di Web. Gunakan perangkat Android.',
         );
+        await Future.delayed(const Duration(seconds: 5));
+        continue;
+      }
+
+      if (kDebugMode) {
+        yield WifiAnalyzerDummy.dummyState;
         await Future.delayed(const Duration(seconds: 5));
         continue;
       }
@@ -76,12 +77,16 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       }
 
       final now = DateTime.now();
-      final perluScan = _scanRequested ||
+      final scanCooldownPassed = _lastScanAttemptAt == null ||
+          now.difference(_lastScanAttemptAt!) >=
+              const Duration(seconds: 35);
+      final scanDue = _scanRequested ||
           _lastScanAt == null ||
           now.difference(_lastScanAt!) >= const Duration(seconds: 35);
-      if (perluScan) {
+
+      if (scanDue && scanCooldownPassed) {
         _scanRequested = false;
-        _lastScanAttemptAt = now;
+        _lastScanAttemptAt = DateTime.now();
         final scan = await _pindaiSekitar();
         if (scan.error == null) {
           _lastScanResults = scan.accessPoints;
@@ -92,10 +97,10 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         }
       }
 
-      if (_lastTcpAt == null ||
-          now.difference(_lastTcpAt!) >= const Duration(seconds: 30)) {
-        _lastTcpAttemptAt = now;
-        final tcp = await _ambilPing();
+      if (_lastTcpAttemptAt == null ||
+          now.difference(_lastTcpAttemptAt!) >= const Duration(seconds: 30)) {
+        _lastTcpAttemptAt = DateTime.now();
+        final tcp = await _ambilTcp();
         if (tcp.tcpError == null) {
           _lastTcpMs = tcp.tcpLatencyMs;
           _tcpError = null;
@@ -142,7 +147,18 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
 
   Future<({List<WiFiAccessPoint> accessPoints, String? error})>
       _pindaiSekitar() async {
+    StreamSubscription<List<WiFiAccessPoint>>? subscription;
+    final completer = Completer<List<WiFiAccessPoint>>();
+
     try {
+      final canGet = await WiFiScan.instance.canGetScannedResults();
+      if (canGet != CanGetScannedResults.yes) {
+        return (
+          accessPoints: <WiFiAccessPoint>[],
+          error: 'Tidak dapat membaca hasil scan: $canGet',
+        );
+      }
+
       final canScan = await WiFiScan.instance.canStartScan();
       if (canScan != CanStartScan.yes) {
         return (
@@ -150,9 +166,20 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
           error: 'Tidak dapat memindai: $canScan',
         );
       }
-      // Pasang listener sebelum meminta scan.
-      final hasilFuture = WiFiScan.instance.onScannedResultsAvailable.first
-          .timeout(const Duration(seconds: 10));
+
+      subscription = WiFiScan.instance.onScannedResultsAvailable.listen(
+        (results) {
+          if (!completer.isCompleted) {
+            completer.complete(results);
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!completer.isCompleted) {
+            completer.completeError(error, stackTrace);
+          }
+        },
+      );
+
       final started = await WiFiScan.instance.startScan();
       if (!started) {
         return (
@@ -160,24 +187,35 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
           error: 'Permintaan scan ditolak Android',
         );
       }
-      final hasil = await hasilFuture;
+
+      final hasil = await completer.future.timeout(
+        const Duration(seconds: 10),
+      );
+
       return (accessPoints: hasil, error: null);
+    } on TimeoutException {
+      return (
+        accessPoints: <WiFiAccessPoint>[],
+        error: 'Waktu menunggu hasil scan habis',
+      );
     } catch (e, s) {
       L.e('Gagal memindai jaringan sekitar: $e $s');
       return (
         accessPoints: <WiFiAccessPoint>[],
         error: 'Gagal memindai: $e',
       );
+    } finally {
+      await subscription?.cancel();
     }
   }
 
-  Future<({int? tcpLatencyMs, String? tcpError})> _ambilPing() async {
+  Future<({int? tcpLatencyMs, String? tcpError})> _ambilTcp() async {
     try {
       final gateway = await _networkInfo.getWifiGatewayIP();
       if (gateway == null || gateway.trim().isEmpty) {
         return (tcpLatencyMs: null, tcpError: 'Gateway tidak ditemukan');
       }
-      final ms = await _pingGateway(gateway.trim());
+      final ms = await _ujiTcpGateway(gateway.trim());
       if (ms != null) {
         return (tcpLatencyMs: ms, tcpError: null);
       }
@@ -188,7 +226,7 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
     }
   }
 
-  Future<int?> _pingGateway(String host) async {
+  Future<int?> _ujiTcpGateway(String host) async {
     for (final port in <int>[80, 443]) {
       try {
         final sw = Stopwatch()..start();
