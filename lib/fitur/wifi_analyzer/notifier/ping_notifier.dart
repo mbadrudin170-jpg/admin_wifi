@@ -105,6 +105,12 @@ class PingNotifier extends _$PingNotifier {
       if (!ref.mounted) return;
 
       if (suksesIcmp) {
+        final latensiSebelumnya = state.latencyMs;
+        if (latensiSebelumnya != null &&
+            latensiMs != null &&
+            (latensiMs - latensiSebelumnya).abs() <= 5) {
+          latensiMs = latensiSebelumnya;
+        }
         L.s('host=$host, latensiMs=$latensiMs, jalur=icmp');
         state = state.copyWith(
           isLoading: false,
@@ -119,13 +125,19 @@ class PingNotifier extends _$PingNotifier {
       final hasilTcp = await _cekPortFallback(host);
       if (!ref.mounted) return;
       if (hasilTcp != null) {
+        final latensiSebelumnya = state.latencyMs;
+        int latensiTcp = hasilTcp.$2;
+        if (latensiSebelumnya != null &&
+            (latensiTcp - latensiSebelumnya).abs() <= 5) {
+          latensiTcp = latensiSebelumnya;
+        }
         L.s(
           'host=$host, portTerbuka=${hasilTcp.$1}, '
-          'latensiMs=${hasilTcp.$2}, jalur=tcp_fallback',
+          'latensiMs=$latensiTcp, jalur=tcp_fallback',
         );
         state = state.copyWith(
           isLoading: false,
-          latencyMs: hasilTcp.$2,
+          latencyMs: latensiTcp,
           success: true,
           jenisPengukuran: JenisPengukuranPing.tcpProbe,
         );
@@ -136,7 +148,7 @@ class PingNotifier extends _$PingNotifier {
       state = state.copyWith(
         isLoading: false,
         success: false,
-        error: 'Router tidak merespons ping maupun port',
+        error: 'Router tidak merespons',
       );
     } on TimeoutException catch (e, s) {
       if (!ref.mounted) return;
