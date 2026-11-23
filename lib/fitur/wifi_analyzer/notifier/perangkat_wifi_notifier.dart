@@ -54,16 +54,16 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         return;
       }
 
-      final bagianIp = ip.trim().split('.');
-      if (bagianIp.length != 4) {
+      final submask = await _infoJaringan.getWifiSubmask();
+
+      final subnet = _deriveSubnet(ip.trim(), submask);
+      if (subnet == null) {
         state = state.copyWith(
           isLoading: false,
-          error: 'Format IP tidak valid: $ip',
+          error: 'Format IP/subnet tidak valid: $ip / ${submask ?? '-'}',
         );
         return;
       }
-
-      final subnet = '${bagianIp[0]}.${bagianIp[1]}.${bagianIp[2]}';
 
       final ditemukan = <ActiveHost>{};
 
@@ -115,5 +115,49 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     await _subscription?.cancel();
     _subscription = null;
     state = state.copyWith(isLoading: false);
+  }
+
+  String? _deriveSubnet(String ip, String? submask) {
+    final bagianIp = ip.split('.');
+    if (bagianIp.length != 4) return null;
+    final ipOktet = bagianIp.map(int.tryParse).toList();
+    if (ipOktet.any((v) => v == null || v < 0 || v > 255)) return null;
+
+    final maskStr = (submask == null || submask.trim().isEmpty)
+        ? '255.255.255.0'
+        : submask.trim();
+    final bagianMask = maskStr.split('.');
+    if (bagianMask.length != 4) return null;
+    final maskOktet = bagianMask.map(int.tryParse).toList();
+    if (maskOktet.any((v) => v == null || v < 0 || v > 255)) return null;
+
+    var prefix = 0;
+    for (final m in maskOktet) {
+      var bits = m!;
+      for (var i = 7; i >= 0; i--) {
+        if ((bits >> i) & 1 == 1) {
+          prefix++;
+        } else {
+          break;
+        }
+      }
+      if (bits != 255) break;
+    }
+
+    final networkOktet = List<int>.generate(
+      4,
+      (i) => ipOktet[i]! & maskOktet[i]!,
+    );
+
+    if (prefix >= 24) {
+      return '${networkOktet[0]}.${networkOktet[1]}.${networkOktet[2]}';
+    }
+    if (prefix >= 16) {
+      return '${networkOktet[0]}.${networkOktet[1]}';
+    }
+    if (prefix >= 8) {
+      return '${networkOktet[0]}';
+    }
+    return null;
   }
 }
