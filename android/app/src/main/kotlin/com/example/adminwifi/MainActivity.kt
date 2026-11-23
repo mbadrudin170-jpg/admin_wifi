@@ -20,8 +20,14 @@ class MainActivity : FlutterActivity() {
                 try {
                     val rssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                        val caps = cm.getNetworkCapabilities(cm.activeNetwork)
-                        (caps?.transportInfo as? WifiInfo)?.rssi ?: -127
+                        val network = cm.activeNetwork
+                        val caps = network?.let { cm.getNetworkCapabilities(it) }
+                        val wifiInfo = if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+                            caps.transportInfo as? WifiInfo
+                        } else {
+                            null
+                        }
+                        wifiInfo?.rssi ?: -127
                     } else {
                         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
                         wifiManager.connectionInfo.rssi
