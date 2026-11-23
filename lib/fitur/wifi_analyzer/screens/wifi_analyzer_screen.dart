@@ -244,7 +244,6 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   Widget _buildPingRouter(PingState pingState) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Ping'),
         Row(
