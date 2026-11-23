@@ -45,13 +45,7 @@ class PingNotifier extends _$PingNotifier {
       return;
     }
 
-    state = state.copyWith(
-      isLoading: true,
-      success: false,
-      latencyMs: null,
-      error: null,
-      jenisPengukuran: null,
-    );
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       final gateway = await _infoJaringan.getWifiGatewayIP();
@@ -210,7 +204,8 @@ class PingNotifier extends _$PingNotifier {
       final socket = await Socket.connect(
         host,
         port,
-      ).timeout(const Duration(seconds: 2));
+        timeout: const Duration(seconds: 2),
+      );
       sw.stop();
       await socket.close();
       return (port, sw.elapsedMilliseconds);

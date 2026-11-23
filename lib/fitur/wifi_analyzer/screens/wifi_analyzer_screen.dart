@@ -28,7 +28,12 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     _pingTimer?.cancel();
 
     _pingTimer = Timer(delay, () {
-      unawaited(_pingDanJadwalkanUlang());
+      unawaited(
+        _pingDanJadwalkanUlang().catchError((Object e, StackTrace s) {
+          L.e('Gagal ping dan jadwalkan ulang: $e $s');
+          return null;
+        }),
+      );
     });
   }
 
@@ -267,14 +272,22 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             FittedBox(
               child: Text(
                 pingState.isLoading
-                    ? 'Menguji...'
+                    ? (pingState.latencyMs != null
+                          ? '${pingState.latencyMs}'
+                          : '-')
                     : pingState.success
                     ? '${pingState.latencyMs ?? '-'}'
                     : (pingState.error ?? '-'),
                 style: TextStyle(color: _warnaPing(pingState.latencyMs)),
               ),
             ),
-            FittedBox(child: Text(pingState.jenisPengukuran?.label ?? '')),
+            FittedBox(
+              child: Text(
+                pingState.isLoading
+                    ? 'Menguji...'
+                    : (pingState.jenisPengukuran?.label ?? ''),
+              ),
+            ),
           ],
         ),
       ],
