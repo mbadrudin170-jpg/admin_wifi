@@ -24,13 +24,28 @@ class WifiAnalyzerScreen extends ConsumerStatefulWidget {
 class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   Timer? _pingTimer;
 
+  void _jadwalkanPing([Duration delay = Duration.zero]) {
+    _pingTimer?.cancel();
+
+    _pingTimer = Timer(delay, () {
+      unawaited(_pingDanJadwalkanUlang());
+    });
+  }
+
+  Future<void> _pingDanJadwalkanUlang() async {
+    if (!mounted) return;
+
+    await ref.read(pingProvider.notifier).pingRouter();
+
+    if (mounted) {
+      _jadwalkanPing(const Duration(seconds: 1));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(_pingRouter);
-    _pingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _pingRouter();
-    });
+    _jadwalkanPing();
   }
 
   @override

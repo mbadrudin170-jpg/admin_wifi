@@ -44,13 +44,17 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       _lastInfoAttemptAt = infoAttemptAt;
       final info = await _ambilInfoTerhubung();
       if (info.error == null) {
-        if (info.ssid != null) _lastSsid = info.ssid;
-        if (info.bssid != null) _lastBssid = info.bssid;
-        if (info.ip != null) _lastIp = info.ip;
+        _lastSsid = info.ssid;
+        _lastBssid = info.bssid;
+        _lastIp = info.ip;
         _connectionError = null;
         _lastInfoAt = DateTime.now();
       } else {
         _connectionError = info.error;
+        _lastSsid = null;
+        _lastBssid = null;
+        _lastIp = null;
+        _lastRssi = null;
       }
 
       final rssi = await _ambilRssi();

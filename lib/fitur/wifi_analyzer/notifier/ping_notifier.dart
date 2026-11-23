@@ -1,6 +1,7 @@
 // path: lib/fitur/wifi_analyzer/notifier/ping_notifier.dart
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
@@ -16,10 +17,14 @@ part 'ping_notifier.g.dart';
 class PingNotifier extends _$PingNotifier {
   final _infoJaringan = NetworkInfo();
 
-  @override
-  PingState build() => const PingState();
+  final Queue<int> _riwayatLatensi = Queue<int>();
+  String? _hostRiwayat;
+  JenisPengukuranPing? _jenisRiwayat;
 
   bool _sedangPing = false;
+
+  @override
+  PingState build() => const PingState();
 
   Future<void> pingRouter() async {
     if (_sedangPing) return;
@@ -77,14 +82,6 @@ class PingNotifier extends _$PingNotifier {
         return;
       }
 
-      state = state.copyWith(
-        isLoading: true,
-        error: null,
-        success: false,
-        latencyMs: null,
-        host: host,
-      );
-
       // Jalur 1: ICMP ping langsung ke host.
       int? latensiMs;
       bool suksesIcmp = false;
@@ -104,17 +101,18 @@ class PingNotifier extends _$PingNotifier {
       }
       if (!ref.mounted) return;
 
-      if (suksesIcmp) {
-        final latensiSebelumnya = state.latencyMs;
-        if (latensiSebelumnya != null &&
-            latensiMs != null &&
-            (latensiMs - latensiSebelumnya).abs() <= 5) {
-          latensiMs = latensiSebelumnya;
-        }
-        L.s('host=$host, latensiMs=$latensiMs, jalur=icmp');
+      if (suksesIcmp && latensiMs != null) {
+        final latensiStabil = _stabilkanLatensi(
+          host: host,
+          jenis: JenisPengukuranPing.icmp,
+          latensi: latensiMs,
+        );
+
+        L.s('host=$host, raw=$latensiMs, median=$latensiStabil, jalur=icmp');
+
         state = state.copyWith(
           isLoading: false,
-          latencyMs: latensiMs,
+          latencyMs: latensiStabil,
           success: true,
           jenisPengukuran: JenisPengukuranPing.icmp,
         );
@@ -125,19 +123,20 @@ class PingNotifier extends _$PingNotifier {
       final hasilTcp = await _cekPortFallback(host);
       if (!ref.mounted) return;
       if (hasilTcp != null) {
-        final latensiSebelumnya = state.latencyMs;
-        int latensiTcp = hasilTcp.$2;
-        if (latensiSebelumnya != null &&
-            (latensiTcp - latensiSebelumnya).abs() <= 5) {
-          latensiTcp = latensiSebelumnya;
-        }
-        L.s(
-          'host=$host, portTerbuka=${hasilTcp.$1}, '
-          'latensiMs=$latensiTcp, jalur=tcp_fallback',
+        final latensiStabil = _stabilkanLatensi(
+          host: host,
+          jenis: JenisPengukuranPing.tcpProbe,
+          latensi: hasilTcp.$2,
         );
+
+        L.s(
+          'host=$host, port=${hasilTcp.$1}, '
+          'raw=${hasilTcp.$2}, median=$latensiStabil, jalur=tcp',
+        );
+
         state = state.copyWith(
           isLoading: false,
-          latencyMs: latensiTcp,
+          latencyMs: latensiStabil,
           success: true,
           jenisPengukuran: JenisPengukuranPing.tcpProbe,
         );
@@ -161,24 +160,48 @@ class PingNotifier extends _$PingNotifier {
     }
   }
 
-  Future<(int, int)?> _cekPortFallback(String host) async {
-    const daftarPort = [80, 443, 8080, 8443, 22];
-    final completer = Completer<(int, int)?>();
-    var sisa = daftarPort.length;
-
-    for (final port in daftarPort) {
-      _cekSatuPort(host, port).then((hasil) {
-        if (hasil != null && !completer.isCompleted) {
-          completer.complete(hasil);
-        }
-        sisa--;
-        if (sisa == 0 && !completer.isCompleted) {
-          completer.complete(null);
-        }
-      });
+  int _stabilkanLatensi({
+    required String host,
+    required JenisPengukuranPing jenis,
+    required int latensi,
+  }) {
+    if (_hostRiwayat != host || _jenisRiwayat != jenis) {
+      _riwayatLatensi.clear();
+      _hostRiwayat = host;
+      _jenisRiwayat = jenis;
     }
 
-    return completer.future;
+    _riwayatLatensi.addLast(latensi);
+
+    if (_riwayatLatensi.length > 5) {
+      _riwayatLatensi.removeFirst();
+    }
+
+    final hasil = _riwayatLatensi.toList()..sort();
+    final tengah = hasil.length ~/ 2;
+
+    if (hasil.length.isOdd) {
+      return hasil[tengah];
+    }
+
+    return ((hasil[tengah - 1] + hasil[tengah]) / 2).round();
+  }
+
+  Future<(int, int)?> _cekPortFallback(String host) async {
+    const daftarPort = [80, 443, 8080, 8443, 22];
+
+    final hasil = await Future.wait<(int, int)?>([
+      for (final port in daftarPort) _cekSatuPort(host, port),
+    ]);
+
+    final berhasil = hasil.whereType<(int, int)>().toList()
+      ..sort((a, b) => a.$2.compareTo(b.$2));
+
+    if (berhasil.isEmpty) {
+      return null;
+    }
+
+    return berhasil.first;
   }
 
   Future<(int, int)?> _cekSatuPort(String host, int port) async {
