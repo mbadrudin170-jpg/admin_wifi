@@ -64,20 +64,20 @@ class WifiScanNotifier extends _$WifiScanNotifier {
       if (scanDue && scanCooldownPassed) {
         _scanRequested = false;
         _lastScanAttemptAt = DateTime.now();
-      if (!kIsWeb) {
-        final granted = await Permission.location.isGranted;
-        if (granted) {
-          final canGet = await WiFiScan.instance.canGetScannedResults();
-          if (canGet == CanGetScannedResults.yes) {
-            final results = await WiFiScan.instance.getScannedResults();
-            if (results.isNotEmpty) {
-              _lastScanResults = results;
+        if (!kIsWeb) {
+          final granted = await Permission.location.isGranted;
+          if (granted) {
+            final canGet = await WiFiScan.instance.canGetScannedResults();
+            if (canGet == CanGetScannedResults.yes) {
+              final results = await WiFiScan.instance.getScannedResults();
+              if (results.isNotEmpty) {
+                _lastScanResults = results;
+              }
             }
           }
         }
-      }
 
-      yield WifiScanState(
+        yield WifiScanState(
           isLoading: true,
           scanError: _scanError,
           accessPoints: _lastScanResults,

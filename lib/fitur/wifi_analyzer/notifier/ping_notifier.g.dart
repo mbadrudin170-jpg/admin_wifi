@@ -41,7 +41,7 @@ final class PingNotifierProvider
   }
 }
 
-String _$pingNotifierHash() => r'baa3aa639d2393ef5e4626aed9c19898e7ba56dd';
+String _$pingNotifierHash() => r'b97ef50bba5b21b9aa9b48f00349d9e355ffa5a5';
 
 abstract class _$PingNotifier extends $Notifier<PingState> {
   PingState build();

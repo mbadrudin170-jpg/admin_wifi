@@ -8,6 +8,7 @@ import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_scan_notifier.dart'
 import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_scan_state.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/widget/list_perangkat_widget.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -149,6 +150,8 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                   ),
                 ),
               _buildKartuTerhubung(state, pingState, scanState),
+              const SizedBox(height: 16),
+              const ListPerangkatWidget(),
               const SizedBox(height: 16),
               Text(
                 'Jaringan di Sekitar (${scanState.accessPoints.length})',
