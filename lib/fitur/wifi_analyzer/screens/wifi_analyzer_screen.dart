@@ -4,8 +4,11 @@ import 'dart:async';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/ping_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_scan_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_scan_state.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:wifi_scan/wifi_scan.dart';
@@ -26,7 +29,10 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
 
   Future<void> _muatData() async {
     ref.invalidate(wifiAnalyzerProvider);
+    ref.invalidate(wifiScanProvider);
     await ref.read(wifiAnalyzerProvider.future);
+    unawaited(ref.read(wifiScanProvider.future));
+    ref.read(wifiScanProvider.notifier).pindaiUlang();
     unawaited(_pingRouter());
   }
 
@@ -72,7 +78,8 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncState = ref.watch(wifiAnalyzerProvider);
+    final asyncAnalyzer = ref.watch(wifiAnalyzerProvider);
+    final asyncScan = ref.watch(wifiScanProvider);
     final pingState = ref.watch(pingProvider);
 
     return Scaffold(
@@ -87,24 +94,36 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         ],
       ),
       body: () {
-        if (asyncState.isLoading) {
+        if (asyncAnalyzer.isLoading || asyncScan.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (asyncState.hasError) {
+        if (asyncAnalyzer.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Gagal memuat data: ${asyncState.error}',
+                'Gagal memuat data: ${asyncAnalyzer.error}',
                 textAlign: TextAlign.center,
               ),
             ),
           );
         }
-        final state = asyncState.requireValue;
+        if (asyncScan.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Gagal memuat data: ${asyncScan.error}',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+        final state = asyncAnalyzer.requireValue;
+        final scanState = asyncScan.requireValue;
         final errors = <String>[
           if (state.connectionError != null) state.connectionError!,
-          if (state.scanError != null) state.scanError!,
+          if (scanState.scanError != null) scanState.scanError!,
         ];
         if (errors.isNotEmpty) {
           return Center(
@@ -125,14 +144,14 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildKartuTerhubung(state, pingState),
+              _buildKartuTerhubung(state, pingState, scanState),
               const SizedBox(height: 16),
               Text(
-                'Jaringan di Sekitar (${state.accessPoints.length})',
+                'Jaringan di Sekitar (${scanState.accessPoints.length})',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              if (state.accessPoints.isEmpty)
+              if (scanState.accessPoints.isEmpty)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
@@ -140,7 +159,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                   ),
                 )
               else
-                ...state.accessPoints.map(_buildItemAp),
+                ...scanState.accessPoints.map(_buildItemAp),
             ],
           ),
         );
@@ -148,13 +167,24 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     );
   }
 
-  Widget _buildKartuTerhubung(WifiAnalyzerState state, PingState pingState) {
-    final levelTerhubung = state.levelTerhubung;
-    final freq = state.frekuensiTerhubung;
+  Widget _buildKartuTerhubung(
+    WifiAnalyzerState state,
+    PingState pingState,
+    WifiScanState scanState,
+  ) {
+    final bssid = state.bssidTerhubung;
+    final apTerhubung = bssid == null
+        ? null
+        : scanState.accessPoints.firstWhereOrNull(
+            (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
+          );
+    final levelTerhubung = apTerhubung?.level;
+    final freq = apTerhubung?.frequency ?? 0;
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
     final channel = freq > 0
         ? (_channelDariFrekuensi(freq)?.toString() ?? '-')
         : '-';
+    final sinyal = apTerhubung != null ? '${apTerhubung.level} dBm' : '-';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -176,7 +206,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             _buildInfoCustom('Channel', channel),
             _buildInfoCustom(
               'Sinyal',
-              state.sinyalTerhubung,
+              sinyal,
               valueColor: levelTerhubung != null
                   ? _warnaSinyal(levelTerhubung)
                   : null,

@@ -8,6 +8,5 @@ abstract final class WifiAnalyzerDummy {
     ssidTerhubung: 'WiFi-Rumah',
     bssidTerhubung: 'aa:bb:cc:dd:ee:ff',
     ipTerhubung: '192.168.1.10',
-    accessPoints: const [],
   );
 }

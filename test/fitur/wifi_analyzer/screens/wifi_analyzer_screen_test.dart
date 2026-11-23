@@ -2,6 +2,8 @@
 
 import 'package:admin_wifi/fitur/wifi_analyzer/dummy/wifi_analyzer_dummy.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_scan_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_scan_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/screens/wifi_analyzer_screen.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:network_info_plus_platform_interface/network_info_plus_platform_interface.dart';
+import 'package:wifi_scan/wifi_scan.dart';
 
 const String _kWifiName = '1337wifi';
 const String _kBssid = 'c0:ff:33:c0:d3:55';
@@ -31,6 +34,12 @@ class _FakeWifiAnalyzerNotifier extends WifiAnalyzerNotifier {
   @override
   Stream<WifiAnalyzerState> build() =>
       Stream.value(WifiAnalyzerDummy.dummyState);
+}
+
+class _FakeWifiScanNotifier extends WifiScanNotifier {
+  @override
+  Stream<WifiScanState> build() =>
+      Stream.value(const WifiScanState(accessPoints: <WiFiAccessPoint>[]));
 }
 
 void main() {
@@ -81,6 +90,7 @@ void main() {
       ProviderScope(
         overrides: [
           wifiAnalyzerProvider.overrideWith(_FakeWifiAnalyzerNotifier.new),
+          wifiScanProvider.overrideWith(_FakeWifiScanNotifier.new),
         ],
         child: const MaterialApp(home: WifiAnalyzerScreen()),
       ),
