@@ -15,6 +15,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
+enum ModeTampilan { wifi, perangkat }
+
 class WifiAnalyzerScreen extends ConsumerStatefulWidget {
   const WifiAnalyzerScreen({super.key});
 
@@ -23,6 +25,7 @@ class WifiAnalyzerScreen extends ConsumerStatefulWidget {
 }
 
 class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
+  ModeTampilan _modeTampilan = ModeTampilan.perangkat;
   Timer? _pingTimer;
 
   void _jadwalkanPing([Duration delay = Duration.zero]) {
@@ -151,22 +154,11 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                 ),
               _buildKartuTerhubung(state, pingState, scanState),
               const SizedBox(height: 16),
-              const ListPerangkatWidget(),
-              const SizedBox(height: 16),
-              Text(
-                'Jaringan di Sekitar (${scanState.accessPoints.length})',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              if (scanState.accessPoints.isEmpty)
-                const EmptyStateView(
-                  ikon: Icons.wifi_off,
-                  judul: 'Tidak ada jaringan terdeteksi',
-                  deskripsi:
-                      'Belum ada access point yang terdeteksi di sekitar.',
-                )
+              _buildTombolTampilan(),
+              if (_modeTampilan == ModeTampilan.perangkat)
+                ListPerangkatWidget()
               else
-                ...scanState.accessPoints.map(_buildItemAp),
+                _buildListAp(scanState),
             ],
           ),
         );
@@ -221,6 +213,37 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTombolTampilan() {
+    return SegmentedButton<ModeTampilan>(
+      segments: [
+        ButtonSegment(value: ModeTampilan.perangkat, label: Text('Perangkat')),
+        ButtonSegment(value: ModeTampilan.wifi, label: Text('Wifi')),
+      ],
+      selected: {_modeTampilan},
+      onSelectionChanged: (s) => setState(() => _modeTampilan = s.first),
+    );
+  }
+
+  Widget _buildListAp(WifiScanState scanState) {
+    return Column(
+      children: [
+        Text(
+          'Jaringan di Sekitar (${scanState.accessPoints.length})',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        if (scanState.accessPoints.isEmpty)
+          const EmptyStateView(
+            ikon: Icons.wifi_off,
+            judul: 'Tidak ada jaringan terdeteksi',
+            deskripsi: 'Belum ada access point yang terdeteksi di sekitar.',
+          )
+        else
+          ...scanState.accessPoints.map(_buildItemAp),
+      ],
     );
   }
 
