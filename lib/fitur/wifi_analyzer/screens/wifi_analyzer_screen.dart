@@ -21,10 +21,21 @@ class WifiAnalyzerScreen extends ConsumerStatefulWidget {
 }
 
 class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
+  Timer? _pingTimer;
+
   @override
   void initState() {
     super.initState();
     Future.microtask(_pingRouter);
+    _pingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _pingRouter();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pingTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _muatData() async {
@@ -39,11 +50,11 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
 
     await scanFuture;
 
-    unawaited(_pingRouter());
+    _pingRouter();
   }
 
-  Future<void> _pingRouter() async {
-    await ref.read(pingProvider.notifier).pingRouter();
+  void _pingRouter() {
+    ref.read(pingProvider.notifier).pingRouter();
   }
 
   String _bandDariFrekuensi(int frekuensi) {

@@ -65,7 +65,7 @@ class PingNotifier extends _$PingNotifier {
         host: host,
       );
 
-      // Jalur 1: ICMP ping langsung ke host (tanpa scan subnet/mDNS yang lambat).
+      // Jalur 1: ICMP ping langsung ke host.
       int? latensiMs;
       bool suksesIcmp = false;
       try {
@@ -115,6 +115,7 @@ class PingNotifier extends _$PingNotifier {
       L.w('host=$host, suksesIcmp=false, hasilTcp=null');
       state = state.copyWith(
         isLoading: false,
+        success: false,
         error: 'Router tidak merespons ping maupun port',
       );
     } on TimeoutException catch (e, s) {
@@ -128,7 +129,6 @@ class PingNotifier extends _$PingNotifier {
     }
   }
 
-  /// Mencoba beberapa port umum router; return begitu ada yang berhasil.
   Future<(int, int)?> _cekPortFallback(String host) async {
     const daftarPort = [80, 443, 8080, 8443, 22];
     final completer = Completer<(int, int)?>();
@@ -162,7 +162,6 @@ class PingNotifier extends _$PingNotifier {
     } on SocketException catch (e) {
       sw.stop();
       final code = e.osError?.errorCode;
-      // Connection refused berarti host hidup meski port tertutup.
       if (code == 111 || code == 10061 || code == 61) {
         return (port, sw.elapsedMilliseconds);
       }
