@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,12 +19,13 @@ class PingNotifier extends _$PingNotifier {
   PingState build() => const PingState();
 
   Future<void> pingRouter() async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      success: false,
-      latencyMs: null,
-    );
+    if (kIsWeb) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Ping tidak didukung di Web',
+      );
+      return;
+    }
 
     try {
       final gateway = await _infoJaringan.getWifiGatewayIP();
