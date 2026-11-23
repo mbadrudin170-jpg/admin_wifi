@@ -41,8 +41,6 @@ dependencies:
   uuid: ^4.5.3
   wifi_scan: ^0.5.0
   network_tools: ^6.0.18
-  network_tools_flutter: ^3.0.5
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

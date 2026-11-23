@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:network_tools_flutter/network_tools_flutter.dart';
+import 'package:network_tools/network_tools.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_global_saya/core_shared.dart';
 import 'package:sqflite/sqflite.dart';
@@ -42,13 +42,13 @@ void main() async {
   if (!kIsWeb) {
     try {
       final direktoriAplikasi = await getApplicationSupportDirectory();
-      await configureNetworkToolsFlutter(
+      await configureNetworkTools(
         direktoriAplikasi.path,
         enableDebugging: false,
       );
       L.i('direktoriAplikasi=${direktoriAplikasi.path}');
     } catch (e, s) {
-      L.e('Gagal inisialisasi network_tools_flutter: $e $s');
+      L.e('Gagal inisialisasi network_tools: $e $s');
     }
   }
 
