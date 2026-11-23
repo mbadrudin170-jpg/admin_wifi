@@ -161,13 +161,15 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         : scanState.accessPoints.firstWhereOrNull(
             (a) => a.bssid.toLowerCase() == bssid.toLowerCase(),
           );
-    final levelTerhubung = apTerhubung?.level;
+    final levelTerhubung = state.rssiTerhubung ?? apTerhubung?.level;
     final freq = apTerhubung?.frequency ?? 0;
     final band = freq > 0 ? _bandDariFrekuensi(freq) : '-';
     final channel = freq > 0
         ? (_channelDariFrekuensi(freq)?.toString() ?? '-')
         : '-';
-    final sinyal = apTerhubung != null ? '${apTerhubung.level} dBm' : '-';
+    final sinyal = levelTerhubung != null
+        ? '$levelTerhubung dBm'
+        : '-';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

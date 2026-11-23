@@ -2,6 +2,7 @@
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/core_shared.dart';
@@ -11,11 +12,13 @@ part 'wifi_analyzer_notifier.g.dart';
 @riverpod
 class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
   final _networkInfo = NetworkInfo();
+  static const _platform = MethodChannel('wifi_rssi');
 
   // Cache hasil terakhir yang valid.
   String? _lastSsid;
   String? _lastBssid;
   String? _lastIp;
+  int? _lastRssi;
 
   // Error terbaru koneksi.
   String? _connectionError;
@@ -50,17 +53,23 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         _connectionError = info.error;
       }
 
+      final rssi = await _ambilRssi();
+      if (rssi != null) {
+        _lastRssi = rssi;
+      }
+
       yield WifiAnalyzerState(
         isLoading: false,
         connectionError: _connectionError,
         ssidTerhubung: _lastSsid,
         bssidTerhubung: _lastBssid,
         ipTerhubung: _lastIp,
+        rssiTerhubung: _lastRssi,
         lastInfoAt: _lastInfoAt,
         lastInfoAttemptAt: _lastInfoAttemptAt,
       );
 
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
 
@@ -79,6 +88,17 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
         ip: null,
         error: 'Gagal memuat data: $e',
       );
+    }
+  }
+
+  Future<int?> _ambilRssi() async {
+    if (kIsWeb) return null;
+    try {
+      final rssi = await _platform.invokeMethod<int>('getRssi');
+      return rssi;
+    } catch (e, s) {
+      L.w('Gagal mengambil RSSI: $e $s');
+      return null;
     }
   }
 }

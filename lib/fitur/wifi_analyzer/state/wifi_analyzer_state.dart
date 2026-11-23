@@ -14,6 +14,7 @@ abstract class WifiAnalyzerState with _$WifiAnalyzerState {
     String? ssidTerhubung,
     String? bssidTerhubung,
     String? ipTerhubung,
+    int? rssiTerhubung,
     DateTime? lastInfoAt,
     DateTime? lastInfoAttemptAt,
   }) = _WifiAnalyzerState;
