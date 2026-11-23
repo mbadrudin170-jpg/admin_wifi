@@ -139,7 +139,8 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                 const EmptyStateView(
                   ikon: Icons.wifi_off,
                   judul: 'Tidak ada jaringan terdeteksi',
-                  deskripsi: 'Belum ada access point yang terdeteksi di sekitar.',
+                  deskripsi:
+                      'Belum ada access point yang terdeteksi di sekitar.',
                 )
               else
                 ...scanState.accessPoints.map(_buildItemAp),
@@ -167,9 +168,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     final channel = freq > 0
         ? (_channelDariFrekuensi(freq)?.toString() ?? '-')
         : '-';
-    final sinyal = levelTerhubung != null
-        ? '$levelTerhubung dBm'
-        : '-';
+    final sinyal = levelTerhubung != null ? '$levelTerhubung dBm' : '-';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -179,9 +178,8 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
           children: [
             Text(
               'JARINGAN TERHUBUNG',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             _buildInfoCustom('SSID', state.ssidTerhubung ?? '-'),
             _buildInfoCustom('BSSID', state.bssidTerhubung ?? '-'),
@@ -196,14 +194,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                   ? _warnaSinyal(levelTerhubung)
                   : null,
             ),
-            _buildInfoCustom(
-              'Ping Router',
-              pingState.isLoading
-                  ? 'Menguji...'
-                  : pingState.success
-                  ? '${pingState.latencyMs ?? '-'} ms (${pingState.jenisPengukuran?.label ?? '-'})'
-                  : (pingState.error ?? '-'),
-            ),
+            _buildPingRouter(pingState),
           ],
         ),
       ),
@@ -226,9 +217,8 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             Text('Channel: ${channel ?? '-'}'),
             Text(
               'Sinyal: ${ap.level} dBm (${_kualitasSinyal(ap.level)})',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: _warnaSinyal(ap.level)),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: _warnaSinyal(ap.level)),
             ),
           ],
         ),
@@ -244,10 +234,34 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         Text(label, style: Theme.of(context).textTheme.bodyMedium),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: valueColor,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(fontWeight: FontWeight.bold, color: valueColor),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPingRouter(PingState pingState) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Ping'),
+        Row(
+          spacing: 4,
+          children: [
+            FittedBox(
+              child: Text(
+                pingState.isLoading
+                    ? 'Menguji...'
+                    : pingState.success
+                    ? '${pingState.latencyMs ?? '-'}'
+                    : (pingState.error ?? '-'),
+                style: TextStyle(color: _warnaPing(pingState.latencyMs)),
+              ),
+            ),
+            FittedBox(child: Text(pingState.jenisPengukuran?.label ?? '')),
+          ],
         ),
       ],
     );
@@ -279,6 +293,13 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     if (level >= -70) return 'Cukup';
     if (level >= -80) return 'Lemah';
     return 'Sangat Lemah';
+  }
+
+  Color _warnaPing(int? ms) {
+    if (ms == null) return const Color(0xFF9E9E9E);
+    if (ms <= 50) return const Color(0xFF4CAF50);
+    if (ms <= 100) return const Color(0xFFFF9800);
+    return const Color(0xFFEF5350);
   }
 
   Color _warnaSinyal(int level) {
