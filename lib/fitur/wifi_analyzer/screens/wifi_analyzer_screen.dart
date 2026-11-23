@@ -28,11 +28,15 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   }
 
   Future<void> _muatData() async {
-    ref.invalidate(wifiAnalyzerProvider);
-    ref.invalidate(wifiScanProvider);
-    await ref.read(wifiAnalyzerProvider.future);
-    unawaited(ref.read(wifiScanProvider.future));
     ref.read(wifiScanProvider.notifier).pindaiUlang();
+
+    ref.invalidate(wifiAnalyzerProvider);
+    try {
+      await ref.read(wifiAnalyzerProvider.future);
+    } catch (_) {
+      // Abaikan error analyzer; UI menampilkan pesan error melalui state.
+    }
+
     unawaited(_pingRouter());
   }
 
@@ -94,10 +98,13 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         ],
       ),
       body: () {
-        if (asyncAnalyzer.isLoading || asyncScan.isLoading) {
+        if (asyncAnalyzer.isLoading && asyncAnalyzer.value == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (asyncAnalyzer.hasError) {
+        if (asyncScan.isLoading && asyncScan.value == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (asyncAnalyzer.hasError && asyncAnalyzer.value == null) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -108,7 +115,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             ),
           );
         }
-        if (asyncScan.hasError) {
+        if (asyncScan.hasError && asyncScan.value == null) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -119,31 +126,28 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
             ),
           );
         }
-        final state = asyncAnalyzer.requireValue;
-        final scanState = asyncScan.requireValue;
+        final state = asyncAnalyzer.value ?? const WifiAnalyzerState();
+        final scanState = asyncScan.value ?? const WifiScanState();
         final errors = <String>[
           if (state.connectionError != null) state.connectionError!,
           if (scanState.scanError != null) scanState.scanError!,
         ];
-        if (errors.isNotEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 4,
-                children: errors
-                    .map((e) => Text(e, textAlign: TextAlign.center))
-                    .toList(),
-              ),
-            ),
-          );
-        }
         return RefreshIndicator(
           onRefresh: _muatData,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              if (errors.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: errors
+                        .map((e) => Text(e, textAlign: TextAlign.center))
+                        .toList(),
+                  ),
+                ),
               _buildKartuTerhubung(state, pingState, scanState),
               const SizedBox(height: 16),
               Text(

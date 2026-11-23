@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_scan_state.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/core_shared.dart';
 import 'package:wifi_scan/wifi_scan.dart';
@@ -42,15 +42,6 @@ class WifiScanNotifier extends _$WifiScanNotifier {
         continue;
       }
 
-      if (kDebugMode) {
-        yield const WifiScanState(
-          isLoading: false,
-          accessPoints: <WiFiAccessPoint>[],
-        );
-        await Future.delayed(const Duration(seconds: 5));
-        continue;
-      }
-
       final now = DateTime.now();
       final lastScanAttemptAt = _lastScanAttemptAt;
       final scanCooldownPassed =
@@ -64,6 +55,13 @@ class WifiScanNotifier extends _$WifiScanNotifier {
       if (scanDue && scanCooldownPassed) {
         _scanRequested = false;
         _lastScanAttemptAt = DateTime.now();
+        yield WifiScanState(
+          isLoading: true,
+          scanError: _scanError,
+          accessPoints: _lastScanResults,
+          lastScanAt: _lastScanAt,
+          lastScanAttemptAt: _lastScanAttemptAt,
+        );
         final scan = await _pindaiSekitar();
         if (scan.error == null) {
           _lastScanResults = scan.accessPoints;
