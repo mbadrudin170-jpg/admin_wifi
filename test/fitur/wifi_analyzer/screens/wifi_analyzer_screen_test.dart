@@ -23,6 +23,8 @@ class _MockNetworkInfoPlatform extends NetworkInfoPlatform {
 
   @override
   Future<String?> getWifiIP() async => _kIp;
+  @override
+  Future<String?> getWifiGatewayIP() async => null;
 }
 
 class _FakeWifiAnalyzerNotifier extends WifiAnalyzerNotifier {

@@ -21,7 +21,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   @override
   void initState() {
     super.initState();
-    _pingRouter();
+    Future.microtask(_pingRouter);
   }
 
   Future<void> _muatData() async {
