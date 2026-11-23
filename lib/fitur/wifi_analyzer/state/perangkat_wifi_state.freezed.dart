@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PerangkatWifiState {
 
- bool get isLoading; List<ActiveHost> get perangkat; int? get progress; String? get error;
+ bool get isLoading; List<PerangkatWifiModel> get perangkat; int? get progress; String? get error;
 /// Create a copy of PerangkatWifiState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $PerangkatWifiStateCopyWith<$Res>  {
   factory $PerangkatWifiStateCopyWith(PerangkatWifiState value, $Res Function(PerangkatWifiState) _then) = _$PerangkatWifiStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, List<ActiveHost> perangkat, int? progress, String? error
+ bool isLoading, List<PerangkatWifiModel> perangkat, int? progress, String? error
 });
 
 
@@ -72,7 +72,7 @@ class _$PerangkatWifiStateCopyWithImpl<$Res>
   return _then(PerangkatWifiState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,perangkat: null == perangkat ? _self.perangkat : perangkat // ignore: cast_nullable_to_non_nullable
-as List<ActiveHost>,progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as List<PerangkatWifiModel>,progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
 as int?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -159,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  List<ActiveHost> perangkat,  int? progress,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  List<PerangkatWifiModel> perangkat,  int? progress,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PerangkatWifiState() when $default != null:
 return $default(_that.isLoading,_that.perangkat,_that.progress,_that.error);case _:
@@ -180,7 +180,7 @@ return $default(_that.isLoading,_that.perangkat,_that.progress,_that.error);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  List<ActiveHost> perangkat,  int? progress,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  List<PerangkatWifiModel> perangkat,  int? progress,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _PerangkatWifiState():
 return $default(_that.isLoading,_that.perangkat,_that.progress,_that.error);case _:
@@ -200,7 +200,7 @@ return $default(_that.isLoading,_that.perangkat,_that.progress,_that.error);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  List<ActiveHost> perangkat,  int? progress,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  List<PerangkatWifiModel> perangkat,  int? progress,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _PerangkatWifiState() when $default != null:
 return $default(_that.isLoading,_that.perangkat,_that.progress,_that.error);case _:
@@ -215,12 +215,12 @@ return $default(_that.isLoading,_that.perangkat,_that.progress,_that.error);case
 
 
 class _PerangkatWifiState extends PerangkatWifiState {
-  const _PerangkatWifiState({this.isLoading = false,  List<ActiveHost> perangkat = const <ActiveHost>[], this.progress, this.error}): _perangkat = perangkat,super._();
+  const _PerangkatWifiState({this.isLoading = false,  List<PerangkatWifiModel> perangkat = const <PerangkatWifiModel>[], this.progress, this.error}): _perangkat = perangkat,super._();
   
 
 @override@JsonKey() final  bool isLoading;
- final  List<ActiveHost> _perangkat;
-@override@JsonKey() List<ActiveHost> get perangkat {
+ final  List<PerangkatWifiModel> _perangkat;
+@override@JsonKey() List<PerangkatWifiModel> get perangkat {
   if (_perangkat is EqualUnmodifiableListView) return _perangkat;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_perangkat);
@@ -261,7 +261,7 @@ abstract mixin class _$PerangkatWifiStateCopyWith<$Res> implements $PerangkatWif
   factory _$PerangkatWifiStateCopyWith(_PerangkatWifiState value, $Res Function(_PerangkatWifiState) _then) = __$PerangkatWifiStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, List<ActiveHost> perangkat, int? progress, String? error
+ bool isLoading, List<PerangkatWifiModel> perangkat, int? progress, String? error
 });
 
 
@@ -282,7 +282,7 @@ class __$PerangkatWifiStateCopyWithImpl<$Res>
   return _then(_PerangkatWifiState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,perangkat: null == perangkat ? _self._perangkat : perangkat // ignore: cast_nullable_to_non_nullable
-as List<ActiveHost>,progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as List<PerangkatWifiModel>,progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
 as int?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

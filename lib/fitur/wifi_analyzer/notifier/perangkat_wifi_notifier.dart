@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
@@ -40,7 +41,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     state = state.copyWith(
       isLoading: true,
       error: null,
-      perangkat: <ActiveHost>[],
+      perangkat: <PerangkatWifiModel>[],
       progress: 0,
     );
 
@@ -65,7 +66,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         return;
       }
 
-      final ditemukan = <ActiveHost>{};
+      final ditemukan = <String, PerangkatWifiModel>{};
 
       _subscription = HostScannerService.instance
           .getAllPingableDevicesAsync(
@@ -76,13 +77,26 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
             },
           )
           .listen(
-            (host) {
+            (host) async {
               if (!ref.mounted) return;
-              ditemukan.add(host);
-              state = state.copyWith(
-                perangkat: ditemukan.toList()
-                  ..sort((a, b) => a.address.compareTo(b.address)),
+              final nama = await host.deviceName;
+              final mac = await host.getMacAddress();
+              final vendor = (await host.vendor)?.vendorName;
+              final latency = host.responseTime?.inMilliseconds;
+              final model = PerangkatWifiModel(
+                ip: host.address,
+                nama: (nama.isEmpty || nama == ActiveHost.generic)
+                    ? null
+                    : nama,
+                mac: (mac == null || mac.isEmpty) ? null : mac,
+                vendor: (vendor == null || vendor.isEmpty) ? null : vendor,
+                latencyMs: latency,
               );
+              ditemukan[host.address] = model;
+              if (!ref.mounted) return;
+              final list = ditemukan.values.toList()
+                ..sort((a, b) => a.ip.compareTo(b.ip));
+              state = state.copyWith(perangkat: list);
             },
             onError: (Object e, StackTrace s) {
               L.e('Gagal memindai perangkat: $e $s');

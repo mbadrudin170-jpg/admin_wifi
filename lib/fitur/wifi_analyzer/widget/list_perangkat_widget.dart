@@ -1,9 +1,9 @@
 // path: lib/fitur/wifi_analyzer/widget/list_perangkat_widget.dart
 
+import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:network_tools/network_tools.dart';
 import 'package:share_global_saya/core_shared.dart';
 
 class ListPerangkatWidget extends ConsumerWidget {
@@ -28,19 +28,12 @@ class ListPerangkatWidget extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                if (state.isLoading)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    tooltip: 'Pindai Perangkat',
-                    onPressed: () =>
-                        ref.read(perangkatWifiProvider.notifier).pindai(),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Pindai Perangkat',
+                  onPressed: () =>
+                      ref.read(perangkatWifiProvider.notifier).pindai(),
+                ),
               ],
             ),
             if (state.isLoading && state.perangkat.isEmpty)
@@ -67,16 +60,14 @@ class ListPerangkatWidget extends ConsumerWidget {
                 onCta: () => ref.read(perangkatWifiProvider.notifier).pindai(),
               )
             else
-              ...state.perangkat.map(
-                (host) => _buildItemPerangkat(context, host),
-              ),
+              ...state.perangkat.map((p) => _buildItemPerangkat(context, p)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildItemPerangkat(BuildContext context, ActiveHost host) {
+  Widget _buildItemPerangkat(BuildContext context, PerangkatWifiModel p) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -89,58 +80,29 @@ class ListPerangkatWidget extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  host.address,
+                  p.ip,
                   style: Theme.of(context).textTheme.titleSmall
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                if (host.responseTime != null)
+                if (p.latencyMs != null)
                   Text(
-                    '${host.responseTime!.inMilliseconds} ms',
+                    '${p.latencyMs} ms',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
               ],
             ),
-            FutureBuilder<String>(
-              future: host.deviceName,
-              builder: (context, snapshot) {
-                final nama = snapshot.data;
-                if (nama == null ||
-                    nama.isEmpty ||
-                    nama == ActiveHost.generic) {
-                  return const SizedBox.shrink();
-                }
-                return Text(
-                  nama,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                );
-              },
-            ),
-            FutureBuilder<String?>(
-              future: host.getMacAddress(),
-              builder: (context, snapshot) {
-                final mac = snapshot.data;
-                if (mac == null || mac.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Text(
-                  'MAC: $mac',
-                  style: Theme.of(context).textTheme.bodySmall,
-                );
-              },
-            ),
-            FutureBuilder<Vendor?>(
-              future: host.vendor,
-              builder: (context, snapshot) {
-                final vendor = snapshot.data?.vendorName;
-                if (vendor == null || vendor.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Text(
-                  'Vendor: $vendor',
-                  style: Theme.of(context).textTheme.bodySmall,
-                );
-              },
-            ),
+            if (p.nama != null)
+              Text(p.nama!, style: Theme.of(context).textTheme.bodyMedium),
+            if (p.mac != null)
+              Text(
+                'MAC: ${p.mac}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            if (p.vendor != null)
+              Text(
+                'Vendor: ${p.vendor}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ),
       ),
