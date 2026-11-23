@@ -24,9 +24,12 @@ class WifiScanNotifier extends _$WifiScanNotifier {
 
   // Permintaan scan manual dari pengguna.
   bool _scanRequested = false;
+  Completer<void>? _pendingScanCompleter;
 
-  void pindaiUlang() {
+  Future<void> pindaiUlang() {
     _scanRequested = true;
+    _pendingScanCompleter ??= Completer<void>();
+    return _pendingScanCompleter!.future;
   }
 
   @override
@@ -47,12 +50,13 @@ class WifiScanNotifier extends _$WifiScanNotifier {
       final scanCooldownPassed =
           lastScanAttemptAt == null ||
           now.difference(lastScanAttemptAt) >= const Duration(seconds: 35);
+      final manualRequest = _scanRequested;
       final scanDue =
-          _scanRequested ||
+          manualRequest ||
           _lastScanAt == null ||
           now.difference(_lastScanAt!) >= const Duration(seconds: 35);
 
-      if (scanDue && scanCooldownPassed) {
+      if (scanDue && (scanCooldownPassed || manualRequest)) {
         _scanRequested = false;
         _lastScanAttemptAt = DateTime.now();
         yield WifiScanState(
@@ -70,6 +74,13 @@ class WifiScanNotifier extends _$WifiScanNotifier {
         } else {
           _scanError = scan.error;
         }
+        _pendingScanCompleter?.complete();
+        _pendingScanCompleter = null;
+      } else if (manualRequest) {
+        // Tidak dapat memindai (cooldown); selesaikan permintaan.
+        _scanRequested = false;
+        _pendingScanCompleter?.complete();
+        _pendingScanCompleter = null;
       }
 
       yield WifiScanState(
@@ -90,7 +101,9 @@ class WifiScanNotifier extends _$WifiScanNotifier {
     final completer = Completer<List<WiFiAccessPoint>>();
 
     try {
-      final canGet = await WiFiScan.instance.canGetScannedResults();
+      final canGet = await WiFiScan.instance.canGetScannedResults(
+        askPermissions: true,
+      );
       if (canGet != CanGetScannedResults.yes) {
         return (
           accessPoints: <WiFiAccessPoint>[],
@@ -98,7 +111,9 @@ class WifiScanNotifier extends _$WifiScanNotifier {
         );
       }
 
-      final canScan = await WiFiScan.instance.canStartScan();
+      final canScan = await WiFiScan.instance.canStartScan(
+        askPermissions: true,
+      );
       if (canScan != CanStartScan.yes) {
         return (
           accessPoints: <WiFiAccessPoint>[],

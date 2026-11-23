@@ -33,7 +33,7 @@ final class WifiScanNotifierProvider
   WifiScanNotifier create() => WifiScanNotifier();
 }
 
-String _$wifiScanNotifierHash() => r'9a1e0ff50c64c64d581ee5aa959558c77d069446';
+String _$wifiScanNotifierHash() => r'd851887239424fa4e6b7193e5e03963d5774ec35';
 
 abstract class _$WifiScanNotifier extends $StreamNotifier<WifiScanState> {
   Stream<WifiScanState> build();

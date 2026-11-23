@@ -28,7 +28,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
   }
 
   Future<void> _muatData() async {
-    ref.read(wifiScanProvider.notifier).pindaiUlang();
+    final scanFuture = ref.read(wifiScanProvider.notifier).pindaiUlang();
 
     ref.invalidate(wifiAnalyzerProvider);
     try {
@@ -36,6 +36,8 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     } catch (_) {
       // Abaikan error analyzer; UI menampilkan pesan error melalui state.
     }
+
+    await scanFuture;
 
     unawaited(_pingRouter());
   }
@@ -46,7 +48,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
 
   String _bandDariFrekuensi(int frekuensi) {
     if (frekuensi < 3000) return '2.4 GHz';
-    if (frekuensi < 6000) return '5 GHz';
+    if (frekuensi < 5925) return '5 GHz';
     return '6 GHz';
   }
 
@@ -58,7 +60,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     if (frekuensi >= 5170 && frekuensi <= 5825) {
       return (frekuensi - 5000) ~/ 5;
     }
-    if (frekuensi >= 5925 && frekuensi <= 7125) {
+    if (frekuensi >= 5955 && frekuensi <= 7125) {
       return (frekuensi - 5950) ~/ 5;
     }
     return null;
@@ -220,7 +222,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
               pingState.isLoading
                   ? 'Menguji...'
                   : pingState.success
-                  ? '${pingState.latencyMs} ms'
+                  ? '${pingState.latencyMs ?? '-'} ms (${pingState.jenisPengukuran ?? 'icmp'})'
                   : (pingState.error ?? '-'),
             ),
           ],

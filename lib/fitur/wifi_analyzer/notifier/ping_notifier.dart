@@ -74,7 +74,7 @@ class PingNotifier extends _$PingNotifier {
           const Duration(seconds: 3),
         )) {
           if (!ref.mounted) return;
-          if (event is PingResponse) {
+          if (event is PingResponse && event.time != null) {
             suksesIcmp = true;
             latensiMs = event.time?.inMilliseconds;
           }
@@ -90,6 +90,7 @@ class PingNotifier extends _$PingNotifier {
           isLoading: false,
           latencyMs: latensiMs,
           success: true,
+          jenisPengukuran: 'icmp',
         );
         return;
       }
@@ -106,6 +107,7 @@ class PingNotifier extends _$PingNotifier {
           isLoading: false,
           latencyMs: hasilTcp.$2,
           success: true,
+          jenisPengukuran: 'tcp probe',
         );
         return;
       }

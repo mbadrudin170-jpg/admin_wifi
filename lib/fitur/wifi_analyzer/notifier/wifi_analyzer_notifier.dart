@@ -48,9 +48,9 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
       _lastInfoAttemptAt = infoAttemptAt;
       final info = await _ambilInfoTerhubung();
       if (info.error == null) {
-        _lastSsid = info.ssid;
-        _lastBssid = info.bssid;
-        _lastIp = info.ip;
+        if (info.ssid != null) _lastSsid = info.ssid;
+        if (info.bssid != null) _lastBssid = info.bssid;
+        if (info.ip != null) _lastIp = info.ip;
         _connectionError = null;
         _lastInfoAt = DateTime.now();
       } else {

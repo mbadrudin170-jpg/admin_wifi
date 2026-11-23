@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PingState {
 
- bool get isLoading; String? get host; int? get latencyMs; bool get success; String? get error;
+ bool get isLoading; String? get host; int? get latencyMs; bool get success; String? get error; String? get jenisPengukuran;
 /// Create a copy of PingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $PingStateCopyWith<PingState> get copyWith => _$PingStateCopyWithImpl<PingState>
 @override
 bool operator ==(Object other) {
   final _this = this as PingState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PingState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.host, _this.host) || other.host == _this.host)&&(identical(other.latencyMs, _this.latencyMs) || other.latencyMs == _this.latencyMs)&&(identical(other.success, _this.success) || other.success == _this.success)&&(identical(other.error, _this.error) || other.error == _this.error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PingState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.host, _this.host) || other.host == _this.host)&&(identical(other.latencyMs, _this.latencyMs) || other.latencyMs == _this.latencyMs)&&(identical(other.success, _this.success) || other.success == _this.success)&&(identical(other.error, _this.error) || other.error == _this.error)&&(identical(other.jenisPengukuran, _this.jenisPengukuran) || other.jenisPengukuran == _this.jenisPengukuran));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PingState;
-  return Object.hash(runtimeType,_this.isLoading,_this.host,_this.latencyMs,_this.success,_this.error);
+  return Object.hash(runtimeType,_this.isLoading,_this.host,_this.latencyMs,_this.success,_this.error,_this.jenisPengukuran);
 }
 
 @override
 String toString() {
   final _this = this as PingState;
-  return 'PingState(isLoading: ${_this.isLoading}, host: ${_this.host}, latencyMs: ${_this.latencyMs}, success: ${_this.success}, error: ${_this.error})';
+  return 'PingState(isLoading: ${_this.isLoading}, host: ${_this.host}, latencyMs: ${_this.latencyMs}, success: ${_this.success}, error: ${_this.error}, jenisPengukuran: ${_this.jenisPengukuran})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $PingStateCopyWith<$Res>  {
   factory $PingStateCopyWith(PingState value, $Res Function(PingState) _then) = _$PingStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, String? host, int? latencyMs, bool success, String? error
+ bool isLoading, String? host, int? latencyMs, bool success, String? error, String? jenisPengukuran
 });
 
 
@@ -68,13 +68,14 @@ class _$PingStateCopyWithImpl<$Res>
 
 /// Create a copy of PingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? host = freezed,Object? latencyMs = freezed,Object? success = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? host = freezed,Object? latencyMs = freezed,Object? success = null,Object? error = freezed,Object? jenisPengukuran = freezed,}) {
   return _then(PingState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,host: freezed == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
 as String?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // ignore: cast_nullable_to_non_nullable
 as int?,success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String?,jenisPengukuran: freezed == jenisPengukuran ? _self.jenisPengukuran : jenisPengukuran // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  String? jenisPengukuran)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PingState() when $default != null:
-return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error);case _:
+return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error,_that.jenisPengukuran);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.e
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  String? jenisPengukuran)  $default,) {final _that = this;
 switch (_that) {
 case _PingState():
-return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error);case _:
+return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error,_that.jenisPengukuran);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.e
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  String? jenisPengukuran)?  $default,) {final _that = this;
 switch (_that) {
 case _PingState() when $default != null:
-return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error);case _:
+return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error,_that.jenisPengukuran);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.e
 
 
 class _PingState extends PingState {
-  const _PingState({this.isLoading = false, this.host, this.latencyMs, this.success = false, this.error}): super._();
+  const _PingState({this.isLoading = false, this.host, this.latencyMs, this.success = false, this.error, this.jenisPengukuran}): super._();
   
 
 @override@JsonKey() final  bool isLoading;
@@ -224,6 +225,7 @@ class _PingState extends PingState {
 @override final  int? latencyMs;
 @override@JsonKey() final  bool success;
 @override final  String? error;
+@override final  String? jenisPengukuran;
 
 /// Create a copy of PingState
 /// with the given fields replaced by the non-null parameter values.
@@ -235,18 +237,18 @@ _$PingStateCopyWith<_PingState> get copyWith => __$PingStateCopyWithImpl<_PingSt
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PingState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.host, host) || other.host == host)&&(identical(other.latencyMs, latencyMs) || other.latencyMs == latencyMs)&&(identical(other.success, success) || other.success == success)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PingState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.host, host) || other.host == host)&&(identical(other.latencyMs, latencyMs) || other.latencyMs == latencyMs)&&(identical(other.success, success) || other.success == success)&&(identical(other.error, error) || other.error == error)&&(identical(other.jenisPengukuran, jenisPengukuran) || other.jenisPengukuran == jenisPengukuran));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,isLoading,host,latencyMs,success,error);
+    return Object.hash(runtimeType,isLoading,host,latencyMs,success,error,jenisPengukuran);
 }
 
 @override
 String toString() {
-    return 'PingState(isLoading: $isLoading, host: $host, latencyMs: $latencyMs, success: $success, error: $error)';
+    return 'PingState(isLoading: $isLoading, host: $host, latencyMs: $latencyMs, success: $success, error: $error, jenisPengukuran: $jenisPengukuran)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$PingStateCopyWith<$Res> implements $PingStateCopyWith<$Re
   factory _$PingStateCopyWith(_PingState value, $Res Function(_PingState) _then) = __$PingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, String? host, int? latencyMs, bool success, String? error
+ bool isLoading, String? host, int? latencyMs, bool success, String? error, String? jenisPengukuran
 });
 
 
@@ -274,13 +276,14 @@ class __$PingStateCopyWithImpl<$Res>
 
 /// Create a copy of PingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? host = freezed,Object? latencyMs = freezed,Object? success = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? host = freezed,Object? latencyMs = freezed,Object? success = null,Object? error = freezed,Object? jenisPengukuran = freezed,}) {
   return _then(_PingState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,host: freezed == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
 as String?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // ignore: cast_nullable_to_non_nullable
 as int?,success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String?,jenisPengukuran: freezed == jenisPengukuran ? _self.jenisPengukuran : jenisPengukuran // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

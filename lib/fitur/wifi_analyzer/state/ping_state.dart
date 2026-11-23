@@ -14,5 +14,6 @@ abstract class PingState with _$PingState {
     int? latencyMs,
     @Default(false) bool success,
     String? error,
+    String? jenisPengukuran,
   }) = _PingState;
 }

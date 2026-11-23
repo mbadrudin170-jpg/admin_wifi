@@ -258,7 +258,7 @@ packages:
     source: hosted
     version: "3.4.1"
   dart_ping:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_ping
       sha256: "91b45954dbb7f3dc51633ba0c1b939df9dbe141f083d047fc87cfb5932e59f38"
