@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_scan_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/core_shared.dart';
 import 'package:wifi_scan/wifi_scan.dart';
@@ -40,8 +41,7 @@ class WifiScanNotifier extends _$WifiScanNotifier {
         _pendingScanCompleter = null;
         yield const WifiScanState(
           isLoading: false,
-          scanError:
-              'Scan WiFi sekitar tidak didukung di Web. Gunakan perangkat Android.',
+          scanError: 'Scan WiFi sekitar tidak didukung di Web. Gunakan perangkat Android.',
         );
         await Future.delayed(const Duration(seconds: 5));
         continue;
@@ -105,6 +105,23 @@ class WifiScanNotifier extends _$WifiScanNotifier {
     final completer = Completer<List<WiFiAccessPoint>>();
 
     try {
+      if (!kIsWeb) {
+        final serviceStatus = await Permission.location.serviceStatus;
+        if (serviceStatus != ServiceStatus.enabled) {
+          return (
+            accessPoints: <WiFiAccessPoint>[],
+            error: 'Aktifkan layanan lokasi untuk memindai WiFi.',
+          );
+        }
+        final status = await Permission.location.request();
+        if (!status.isGranted) {
+          return (
+            accessPoints: <WiFiAccessPoint>[],
+            error: 'Izin lokasi diperlukan untuk memindai WiFi.',
+          );
+        }
+      }
+
       final canGet = await WiFiScan.instance.canGetScannedResults(
         askPermissions: true,
       );
@@ -142,7 +159,7 @@ class WifiScanNotifier extends _$WifiScanNotifier {
       if (!started) {
         return (
           accessPoints: <WiFiAccessPoint>[],
-          error: 'Permintaan scan ditolak Android',
+          error: 'Pemindaian ditolak sistem Android (batas scan). Coba lagi nanti.',
         );
       }
 
