@@ -36,6 +36,8 @@ class WifiScanNotifier extends _$WifiScanNotifier {
   Stream<WifiScanState> build() async* {
     while (true) {
       if (kIsWeb) {
+        _pendingScanCompleter?.complete();
+        _pendingScanCompleter = null;
         yield const WifiScanState(
           isLoading: false,
           scanError:
@@ -51,12 +53,15 @@ class WifiScanNotifier extends _$WifiScanNotifier {
           lastScanAttemptAt == null ||
           now.difference(lastScanAttemptAt) >= const Duration(seconds: 35);
       final manualRequest = _scanRequested;
-      final scanDue =
-          manualRequest ||
-          _lastScanAt == null ||
-          now.difference(_lastScanAt!) >= const Duration(seconds: 35);
+      final lastScanAt = _lastScanAt;
+      final bool scanDue;
+      if (manualRequest || lastScanAt == null) {
+        scanDue = true;
+      } else {
+        scanDue = now.difference(lastScanAt) >= const Duration(seconds: 35);
+      }
 
-      if (scanDue && (scanCooldownPassed || manualRequest)) {
+      if (scanDue && scanCooldownPassed) {
         _scanRequested = false;
         _lastScanAttemptAt = DateTime.now();
         yield WifiScanState(
@@ -77,7 +82,6 @@ class WifiScanNotifier extends _$WifiScanNotifier {
         _pendingScanCompleter?.complete();
         _pendingScanCompleter = null;
       } else if (manualRequest) {
-        // Tidak dapat memindai (cooldown); selesaikan permintaan.
         _scanRequested = false;
         _pendingScanCompleter?.complete();
         _pendingScanCompleter = null;

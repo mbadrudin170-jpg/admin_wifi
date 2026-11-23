@@ -19,7 +19,19 @@ class PingNotifier extends _$PingNotifier {
   @override
   PingState build() => const PingState();
 
+  bool _sedangPing = false;
+
   Future<void> pingRouter() async {
+    if (_sedangPing) return;
+    _sedangPing = true;
+    try {
+      await _jalankanPing();
+    } finally {
+      _sedangPing = false;
+    }
+  }
+
+  Future<void> _jalankanPing() async {
     if (kIsWeb) {
       state = state.copyWith(
         isLoading: false,
@@ -27,6 +39,14 @@ class PingNotifier extends _$PingNotifier {
       );
       return;
     }
+
+    state = state.copyWith(
+      isLoading: true,
+      success: false,
+      latencyMs: null,
+      error: null,
+      jenisPengukuran: null,
+    );
 
     try {
       final gateway = await _infoJaringan.getWifiGatewayIP();
@@ -90,7 +110,7 @@ class PingNotifier extends _$PingNotifier {
           isLoading: false,
           latencyMs: latensiMs,
           success: true,
-          jenisPengukuran: 'icmp',
+          jenisPengukuran: JenisPengukuranPing.icmp,
         );
         return;
       }
@@ -107,7 +127,7 @@ class PingNotifier extends _$PingNotifier {
           isLoading: false,
           latencyMs: hasilTcp.$2,
           success: true,
-          jenisPengukuran: 'tcp probe',
+          jenisPengukuran: JenisPengukuranPing.tcpProbe,
         );
         return;
       }

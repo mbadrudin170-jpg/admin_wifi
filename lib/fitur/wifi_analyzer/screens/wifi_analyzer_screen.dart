@@ -11,6 +11,7 @@ import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_scan_state.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/core_shared.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
 class WifiAnalyzerScreen extends ConsumerStatefulWidget {
@@ -55,42 +56,6 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
 
   void _pingRouter() {
     ref.read(pingProvider.notifier).pingRouter();
-  }
-
-  String _bandDariFrekuensi(int frekuensi) {
-    if (frekuensi < 3000) return '2.4 GHz';
-    if (frekuensi < 5925) return '5 GHz';
-    return '6 GHz';
-  }
-
-  int? _channelDariFrekuensi(int frekuensi) {
-    if (frekuensi >= 2412 && frekuensi <= 2484) {
-      if (frekuensi == 2484) return 14;
-      return (frekuensi - 2407) ~/ 5;
-    }
-    if (frekuensi >= 5170 && frekuensi <= 5825) {
-      return (frekuensi - 5000) ~/ 5;
-    }
-    if (frekuensi >= 5955 && frekuensi <= 7125) {
-      return (frekuensi - 5950) ~/ 5;
-    }
-    return null;
-  }
-
-  String _kualitasSinyal(int level) {
-    if (level >= -50) return 'Sangat Baik';
-    if (level >= -60) return 'Baik';
-    if (level >= -70) return 'Cukup';
-    if (level >= -80) return 'Lemah';
-    return 'Sangat Lemah';
-  }
-
-  Color _warnaSinyal(int level) {
-    if (level >= -50) return const Color(0xFF4CAF50);
-    if (level >= -60) return const Color(0xFF8BC34A);
-    if (level >= -70) return const Color(0xFFFF9800);
-    if (level >= -80) return const Color(0xFFFF5722);
-    return const Color(0xFFEF5350);
   }
 
   @override
@@ -141,9 +106,11 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         }
         final state = asyncAnalyzer.value ?? const WifiAnalyzerState();
         final scanState = asyncScan.value ?? const WifiScanState();
+        final connectionError = state.connectionError;
+        final scanError = scanState.scanError;
         final errors = <String>[
-          if (state.connectionError != null) state.connectionError!,
-          if (scanState.scanError != null) scanState.scanError!,
+          if (connectionError != null) connectionError,
+          if (scanError != null) scanError,
         ];
         return RefreshIndicator(
           onRefresh: _muatData,
@@ -169,11 +136,10 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
               ),
               const SizedBox(height: 8),
               if (scanState.accessPoints.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('Tidak ada jaringan terdeteksi.'),
-                  ),
+                const EmptyStateView(
+                  ikon: Icons.wifi_off,
+                  judul: 'Tidak ada jaringan terdeteksi',
+                  deskripsi: 'Belum ada access point yang terdeteksi di sekitar.',
                 )
               else
                 ...scanState.accessPoints.map(_buildItemAp),
@@ -233,7 +199,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
               pingState.isLoading
                   ? 'Menguji...'
                   : pingState.success
-                  ? '${pingState.latencyMs ?? '-'} ms (${pingState.jenisPengukuran ?? 'icmp'})'
+                  ? '${pingState.latencyMs ?? '-'} ms (${pingState.jenisPengukuran?.label ?? '-'})'
                   : (pingState.error ?? '-'),
             ),
           ],
@@ -283,5 +249,41 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
         ),
       ],
     );
+  }
+
+  String _bandDariFrekuensi(int frekuensi) {
+    if (frekuensi < 3000) return '2.4 GHz';
+    if (frekuensi < 5925) return '5 GHz';
+    return '6 GHz';
+  }
+
+  int? _channelDariFrekuensi(int frekuensi) {
+    if (frekuensi >= 2412 && frekuensi <= 2484) {
+      if (frekuensi == 2484) return 14;
+      return (frekuensi - 2407) ~/ 5;
+    }
+    if (frekuensi >= 5170 && frekuensi <= 5885) {
+      return (frekuensi - 5000) ~/ 5;
+    }
+    if (frekuensi >= 5955 && frekuensi <= 7115) {
+      return (frekuensi - 5950) ~/ 5;
+    }
+    return null;
+  }
+
+  String _kualitasSinyal(int level) {
+    if (level >= -50) return 'Sangat Baik';
+    if (level >= -60) return 'Baik';
+    if (level >= -70) return 'Cukup';
+    if (level >= -80) return 'Lemah';
+    return 'Sangat Lemah';
+  }
+
+  Color _warnaSinyal(int level) {
+    if (level >= -50) return const Color(0xFF4CAF50);
+    if (level >= -60) return const Color(0xFF8BC34A);
+    if (level >= -70) return const Color(0xFFFF9800);
+    if (level >= -80) return const Color(0xFFFF5722);
+    return const Color(0xFFEF5350);
   }
 }

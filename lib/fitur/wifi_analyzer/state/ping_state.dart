@@ -4,6 +4,15 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'ping_state.freezed.dart';
 
+enum JenisPengukuranPing {
+  icmp('ICMP ping'),
+  tcpProbe('TCP probe');
+
+  const JenisPengukuranPing(this.label);
+
+  final String label;
+}
+
 @freezed
 abstract class PingState with _$PingState {
   const PingState._();
@@ -14,6 +23,6 @@ abstract class PingState with _$PingState {
     int? latencyMs,
     @Default(false) bool success,
     String? error,
-    String? jenisPengukuran,
+    JenisPengukuranPing? jenisPengukuran,
   }) = _PingState;
 }

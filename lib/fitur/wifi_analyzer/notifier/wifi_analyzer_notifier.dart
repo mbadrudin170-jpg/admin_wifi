@@ -1,8 +1,7 @@
 // path: lib/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart
 
-import 'package:admin_wifi/fitur/wifi_analyzer/dummy/wifi_analyzer_dummy.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/wifi_analyzer_state.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_global_saya/core_shared.dart';
@@ -34,12 +33,6 @@ class WifiAnalyzerNotifier extends _$WifiAnalyzerNotifier {
           connectionError:
               'WiFi Analyzer tidak didukung di Web. Gunakan perangkat Android.',
         );
-        await Future.delayed(const Duration(seconds: 5));
-        continue;
-      }
-
-      if (kDebugMode) {
-        yield WifiAnalyzerDummy.dummyState;
         await Future.delayed(const Duration(seconds: 5));
         continue;
       }

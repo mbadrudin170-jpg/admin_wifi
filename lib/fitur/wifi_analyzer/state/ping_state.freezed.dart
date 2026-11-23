@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PingState {
 
- bool get isLoading; String? get host; int? get latencyMs; bool get success; String? get error; String? get jenisPengukuran;
+ bool get isLoading; String? get host; int? get latencyMs; bool get success; String? get error; JenisPengukuranPing? get jenisPengukuran;
 /// Create a copy of PingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $PingStateCopyWith<$Res>  {
   factory $PingStateCopyWith(PingState value, $Res Function(PingState) _then) = _$PingStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, String? host, int? latencyMs, bool success, String? error, String? jenisPengukuran
+ bool isLoading, String? host, int? latencyMs, bool success, String? error, JenisPengukuranPing? jenisPengukuran
 });
 
 
@@ -76,7 +76,7 @@ as String?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // igno
 as int?,success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,jenisPengukuran: freezed == jenisPengukuran ? _self.jenisPengukuran : jenisPengukuran // ignore: cast_nullable_to_non_nullable
-as String?,
+as JenisPengukuranPing?,
   ));
 }
 
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  String? jenisPengukuran)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  JenisPengukuranPing? jenisPengukuran)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PingState() when $default != null:
 return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error,_that.jenisPengukuran);case _:
@@ -182,7 +182,7 @@ return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.e
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  String? jenisPengukuran)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  JenisPengukuranPing? jenisPengukuran)  $default,) {final _that = this;
 switch (_that) {
 case _PingState():
 return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error,_that.jenisPengukuran);case _:
@@ -202,7 +202,7 @@ return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.e
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  String? jenisPengukuran)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  String? host,  int? latencyMs,  bool success,  String? error,  JenisPengukuranPing? jenisPengukuran)?  $default,) {final _that = this;
 switch (_that) {
 case _PingState() when $default != null:
 return $default(_that.isLoading,_that.host,_that.latencyMs,_that.success,_that.error,_that.jenisPengukuran);case _:
@@ -225,7 +225,7 @@ class _PingState extends PingState {
 @override final  int? latencyMs;
 @override@JsonKey() final  bool success;
 @override final  String? error;
-@override final  String? jenisPengukuran;
+@override final  JenisPengukuranPing? jenisPengukuran;
 
 /// Create a copy of PingState
 /// with the given fields replaced by the non-null parameter values.
@@ -259,7 +259,7 @@ abstract mixin class _$PingStateCopyWith<$Res> implements $PingStateCopyWith<$Re
   factory _$PingStateCopyWith(_PingState value, $Res Function(_PingState) _then) = __$PingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, String? host, int? latencyMs, bool success, String? error, String? jenisPengukuran
+ bool isLoading, String? host, int? latencyMs, bool success, String? error, JenisPengukuranPing? jenisPengukuran
 });
 
 
@@ -284,7 +284,7 @@ as String?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // igno
 as int?,success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,jenisPengukuran: freezed == jenisPengukuran ? _self.jenisPengukuran : jenisPengukuran // ignore: cast_nullable_to_non_nullable
-as String?,
+as JenisPengukuranPing?,
   ));
 }
 
