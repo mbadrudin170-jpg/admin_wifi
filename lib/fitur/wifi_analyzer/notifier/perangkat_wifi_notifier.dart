@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_local_device_discovery/flutter_local_device_discovery.dart';
+import 'package:nsd/nsd.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -223,49 +223,32 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   _jalankanServiceDiscovery() async {
     final hasil = <String, ({String? nama, String? vendor})>{};
     if (kIsWeb) return hasil;
-    try {
-      final discovery = FlutterLocalDeviceDiscovery();
-      final snapshot = await discovery.discover(
-        const LocalDiscoveryRequest(
-          duration: Duration(seconds: 4),
-          protocols: {
-            LocalDiscoveryProtocol.mdns,
-            LocalDiscoveryProtocol.dnsSd,
-            LocalDiscoveryProtocol.ssdp,
-            LocalDiscoveryProtocol.upnp,
-          },
-          ssdpSearchTargets: {'ssdp:all'},
-          fetchUpnpDescriptions: false,
-        ),
-      );
-      for (final device in snapshot.devices) {
-        String? nama;
-        if (device.displayName.isNotEmpty && device.displayName != device.id) {
-          nama = device.displayName;
-        }
-        if ((nama == null || nama.isEmpty) &&
-            device.hostname != null &&
-            device.hostname!.isNotEmpty) {
-          nama = device.hostname;
-        }
-        if ((nama == null || nama.isEmpty) &&
-            device.identity.manufacturer != null &&
-            device.identity.manufacturer!.isNotEmpty) {
-          nama = device.identity.manufacturer;
-        }
-        final vendor = device.vendor?.name ?? device.identity.manufacturer;
-
-        for (final addr in device.addresses) {
-          final ip = addr.address;
-          if (ip.isEmpty) continue;
-          hasil[ip] = (
+    const serviceTypes = <String>['_http._tcp', '_workstation._tcp'];
+    for (final type in serviceTypes) {
+      Discovery? discovery;
+      try {
+        discovery = await startDiscovery(type);
+        await Future<void>.delayed(const Duration(seconds: 2));
+        for (final service in discovery.services) {
+          final host = service.host;
+          if (host == null || host.isEmpty) continue;
+          final nama = service.name;
+          hasil[host] = (
             nama: (nama == null || nama.isEmpty) ? null : nama,
-            vendor: (vendor == null || vendor.isEmpty) ? null : vendor,
+            vendor: null,
           );
         }
+      } catch (e, s) {
+        L.e('Gagal nsd discovery $type: $e $s');
+      } finally {
+        if (discovery != null) {
+          try {
+            await stopDiscovery(discovery);
+          } catch (e, s) {
+            L.e('Gagal stop nsd discovery $type: $e $s');
+          }
+        }
       }
-    } catch (e, s) {
-      L.e('Gagal service discovery: $e $s');
     }
     return hasil;
   }

@@ -45,7 +45,8 @@ dependencies:
   network_tools: ^6.0.18
   dart_ping: ^10.0.1
   permission_handler: ^13.0.2
-  flutter_local_device_discovery: ^0.1.0
+  nsd: ^5.0.1
+  # flutter_local_device_discovery: ^0.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
