@@ -14,8 +14,6 @@ class ListPerangkatWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = this.state;
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
