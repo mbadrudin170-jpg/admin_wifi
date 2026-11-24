@@ -1,6 +1,7 @@
 // path: lib/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
@@ -109,10 +110,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
               if (!ref.mounted) return;
               final nama = await host.deviceName;
               final vendorMac = (await host.vendor)?.vendorName;
-              final vendor =
-                  (vendorMac == null || vendorMac.isEmpty)
-                      ? _inferManufaktur(nama)
-                      : vendorMac;
+              var vendor = (vendorMac == null || vendorMac.isEmpty)
+                  ? null
+                  : vendorMac;
+              // Fallback dinamis: coba baca header Server perangkat via HTTP.
+              if (vendor == null) {
+                vendor = await _probeManufakturHttp(host.address);
+              }
               final latency = host.responseTime?.inMilliseconds;
               final model = PerangkatWifiModel(
                 ip: host.address,
@@ -271,7 +275,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                      if (addr.isEmpty) continue;
                      hasil[addr] = (
                        nama: (nama.isEmpty) ? null : nama,
-                       vendor: _inferManufaktur(nama),
+                       vendor: null,
                      );
                    }
                   break;
@@ -322,39 +326,22 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     state = state.copyWith(perangkat: updated);
   }
 
-  String? _inferManufaktur(String? sumber) {
-    if (sumber == null || sumber.trim().isEmpty) return null;
-    final teks = sumber.toLowerCase();
-    const merek = <String>[
-      'samsung',
-      'apple',
-      'xiaomi',
-      'huawei',
-      'oppo',
-      'vivo',
-      'realme',
-      'google',
-      'amazon',
-      'hp',
-      'canon',
-      'epson',
-      'brother',
-      'asus',
-      'lenovo',
-      'dell',
-      'microsoft',
-      'sonos',
-      'roku',
-      'chromecast',
-      'tplink',
-      'tp-link',
-      'netgear',
-      'linksys',
-      'dlink',
-      'd-link',
-    ];
-    for (final m in merek) {
-      if (teks.contains(m)) return m;
+  Future<String?> _probeManufakturHttp(String ip) async {
+    try {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 1);
+      final request = await client
+          .getUrl(Uri.parse('http://$ip/'))
+          .timeout(const Duration(seconds: 1));
+      final response = await request.close().timeout(const Duration(seconds: 1));
+      final server = response.headers.value('server');
+      await response.drain<void>();
+      client.close();
+      if (server != null && server.trim().isNotEmpty) {
+        return server.trim();
+      }
+    } catch (_) {
+      // Perangkat mungkin tidak membuka HTTP atau menolak koneksi.
     }
     return null;
   }
