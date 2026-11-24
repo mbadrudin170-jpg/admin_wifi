@@ -1128,9 +1128,11 @@ packages:
   share_global_saya:
     dependency: "direct main"
     description:
-      path: "../share_global_saya"
-      relative: true
-    source: path
+      path: "."
+      ref: main
+      resolved-ref: "1498b97278c4b23f4061544db38d8cd62429e997"
+      url: "https://github.com/mbadrudin170-jpg/share_global_saya.git"
+    source: git
     version: "1.0.0"
   shared_preferences:
     dependency: transitive
