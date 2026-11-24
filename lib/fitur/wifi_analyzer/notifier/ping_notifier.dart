@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
+import 'package:collection/collection.dart';
 import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
@@ -171,7 +172,7 @@ class PingNotifier extends _$PingNotifier {
       _riwayatLatensi.removeFirst();
     }
 
-    final hasil = _riwayatLatensi.toList()..sort();
+    final hasil = _riwayatLatensi.toList().sorted((a, b) => a.compareTo(b));
     final tengah = hasil.length ~/ 2;
 
     if (hasil.length.isOdd) {
@@ -188,8 +189,9 @@ class PingNotifier extends _$PingNotifier {
       for (final port in daftarPort) _cekSatuPort(host, port),
     ]);
 
-    final berhasil = hasil.whereType<(int, int)>().toList()
-      ..sort((a, b) => a.$2.compareTo(b.$2));
+    final berhasil = hasil.whereType<(int, int)>().toList().sorted(
+      (a, b) => a.$2.compareTo(b.$2),
+    );
 
     if (berhasil.isEmpty) {
       return null;
