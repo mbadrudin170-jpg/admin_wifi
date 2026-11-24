@@ -86,6 +86,13 @@ class ListPerangkatWidget extends ConsumerWidget {
                   ),
               ],
             ),
+            if (p.sumberDiscovery != null)
+              Text(
+                'Sumber: ${p.sumberDiscovery}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             if (p.nama != null)
               Text(p.nama!, style: Theme.of(context).textTheme.bodyMedium)
             else

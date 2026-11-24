@@ -21,6 +21,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   StreamSubscription<ActiveHost>? _subscription;
   Timer? _timerPemindaian;
   bool _sedangScan = false;
+  String? _ipTerakhir;
 
   @override
   PerangkatWifiState build() {
@@ -82,77 +83,91 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         );
         return;
       }
+      final ipBersih = ip.trim();
 
       final submask = await _infoJaringan.getWifiSubmask();
 
-      final subnet = _deriveSubnet(ip.trim(), submask);
+      final subnet = _deriveSubnet(ipBersih, submask);
       if (subnet == null) {
         state = state.copyWith(
           isLoading: false,
-          error: 'Format IP/subnet tidak valid: $ip / ${submask ?? '-'}',
+          error: 'Format IP/subnet tidak valid: $ipBersih / ${submask ?? '-'}',
         );
         return;
       }
-      L.i('pindai: ip=$ip subnet=$subnet');
+
+      if (_ipTerakhir != null && _ipTerakhir != ipBersih) {
+        state = state.copyWith(perangkat: const <PerangkatWifiModel>[]);
+      }
+      _ipTerakhir = ipBersih;
+
+      final hostIds = _hostIdsUntukSubnet(ipBersih, submask);
+      L.i('pindai: ip=$ipBersih subnet=$subnet hostIds=${hostIds.length}');
 
       final ditemukan = <String, PerangkatWifiModel>{};
 
-      _subscription = HostScannerService.instance
-          .getAllPingableDevicesAsync(
-            subnet,
-            progressCallback: (progress) {
-              if (!ref.mounted) return;
-              state = state.copyWith(progress: progress.round());
-            },
-          )
-          .listen(
-            (host) async {
-              if (!ref.mounted) return;
-              final nama = await host.deviceName;
-              final vendorMac = (await host.vendor)?.vendorName;
-              var vendor = (vendorMac == null || vendorMac.isEmpty)
-                  ? null
-                  : vendorMac;
-              // Fallback dinamis: coba baca header Server perangkat via HTTP.
-              if (vendor == null) {
-                vendor = await _probeManufakturHttp(host.address);
-              }
-              final latency = host.responseTime?.inMilliseconds;
-              final model = PerangkatWifiModel(
-                ip: host.address,
-                nama: (nama.isEmpty || nama == ActiveHost.generic)
+      if (hostIds.isNotEmpty) {
+        _subscription = HostScannerService.instance
+            .getAllPingableDevicesAsync(
+              subnet,
+              hostIds: hostIds,
+              progressCallback: (progress) {
+                if (!ref.mounted) return;
+                state = state.copyWith(progress: progress.round());
+              },
+            )
+            .listen(
+              (host) async {
+                if (!ref.mounted) return;
+                final nama = await host.deviceName;
+                final vendorMac = (await host.vendor)?.vendorName;
+                var vendor = (vendorMac == null || vendorMac.isEmpty)
                     ? null
-                    : nama,
-                vendor: (vendor == null || vendor.isEmpty) ? null : vendor,
-                latencyMs: latency,
-              );
-              ditemukan[host.address] = model;
-              L.i(
-                'host ditemukan: ${host.address} nama=$nama vendor=$vendor latency=$latency',
-              );
-              if (!ref.mounted) return;
-              final list = ditemukan.values.toList()
-                ..sort((a, b) => a.ip.compareTo(b.ip));
-              state = state.copyWith(perangkat: list);
-            },
-            onError: (Object e, StackTrace s) {
-              L.e('Gagal memindai perangkat: $e $s');
-              if (!ref.mounted) return;
-              state = state.copyWith(error: 'Gagal memindai: $e');
-            },
-            onDone: () {
-              if (!ref.mounted) return;
-              state = state.copyWith(progress: 100);
-            },
-          );
+                    : vendorMac;
+                // Fallback dinamis: coba baca header Server perangkat via HTTP.
+                if (vendor == null) {
+                  vendor = await _probeManufakturHttp(host.address);
+                }
+                final latency = host.responseTime?.inMilliseconds;
+                final model = PerangkatWifiModel(
+                  ip: host.address,
+                  nama: (nama.isEmpty || nama == ActiveHost.generic)
+                      ? null
+                      : nama,
+                  vendor: vendor,
+                  latencyMs: latency,
+                  sumberDiscovery: 'icmp',
+                );
+                ditemukan[host.address] = model;
+                L.i(
+                  'host ditemukan: ${host.address} nama=$nama vendor=$vendor latency=$latency',
+                );
+                if (!ref.mounted) return;
+                final list = ditemukan.values.toList()
+                  ..sort((a, b) => a.ip.compareTo(b.ip));
+                state = state.copyWith(perangkat: list);
+              },
+              onError: (Object e, StackTrace s) {
+                L.e('Gagal memindai perangkat: $e $s');
+                if (!ref.mounted) return;
+                state = state.copyWith(error: 'Gagal memindai: $e');
+              },
+              onDone: () {
+                if (!ref.mounted) return;
+                state = state.copyWith(progress: 100);
+              },
+            );
 
-      // Tunggu hingga stream selesai.
-      await _subscription!.asFuture<void>().catchError((
-        Object e,
-        StackTrace s,
-      ) {
-        L.e('Stream scan perangkat error: $e $s');
-      });
+        // Tunggu hingga stream selesai.
+        await _subscription!.asFuture<void>().catchError((
+          Object e,
+          StackTrace s,
+        ) {
+          L.e('Stream scan perangkat error: $e $s');
+        });
+      } else {
+        L.w('Tidak ada host id valid untuk subnet $subnet; lewati ICMP scan.');
+      }
 
       // Gabungkan hasil service discovery (nama/vendor/mac) berdasarkan IP.
       final serviceData = await discoveryFuture;
@@ -182,7 +197,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     state = state.copyWith(isLoading: false);
   }
 
-  String? _deriveSubnet(String ip, String? submask) {
+  ({
+    List<int> ipOktet,
+    List<int> maskOktet,
+    int prefix,
+    List<int> networkOktet,
+  })?
+  _parseSubnet(String ip, String? submask) {
     final bagianIp = ip.split('.');
     if (bagianIp.length != 4) return null;
     final ipOktet = bagianIp.map(int.tryParse).toList();
@@ -214,22 +235,59 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       (i) => ipOktet[i]! & maskOktet[i]!,
     );
 
-    final networkAddress =
-        '${networkOktet[0]}.${networkOktet[1]}.${networkOktet[2]}.${networkOktet[3]}';
-    L.i(
-      'deriveSubnet: ip=$ip mask=$maskStr prefix=$prefix network=$networkAddress',
+    return (
+      ipOktet: ipOktet.cast<int>(),
+      maskOktet: maskOktet.cast<int>(),
+      prefix: prefix,
+      networkOktet: networkOktet,
     );
+  }
 
-    if (prefix >= 24) {
-      return '${networkOktet[0]}.${networkOktet[1]}.${networkOktet[2]}';
+  String? _deriveSubnet(String ip, String? submask) {
+    final info = _parseSubnet(ip, submask);
+    if (info == null) return null;
+    L.i(
+      'deriveSubnet: ip=$ip mask=${submask ?? '255.255.255.0'} '
+      'prefix=${info.prefix} network=${info.networkOktet.join('.')} '
+      'hostIds=${_hostIdsUntukSubnet(ip, submask).length}',
+    );
+    // network_tools hanya mendukung pemindaian /24; gunakan /24 yang memuat IP.
+    return '${info.networkOktet[0]}.${info.networkOktet[1]}.${info.networkOktet[2]}';
+  }
+
+  List<int> _hostIdsUntukSubnet(String ip, String? submask) {
+    final info = _parseSubnet(ip, submask);
+    if (info == null) {
+      return List<int>.generate(254, (i) => i + 1);
     }
-    if (prefix >= 16) {
-      return '${networkOktet[0]}.${networkOktet[1]}';
+    final prefix = info.prefix;
+    if (prefix < 24) {
+      // Subnet lebih besar: pindai seluruh /24 yang memuat IP (subset subnet).
+      return List<int>.generate(254, (i) => i + 1);
     }
-    if (prefix >= 8) {
-      return '${networkOktet[0]}';
+    if (prefix >= 31) {
+      final hostId = info.ipOktet[3];
+      if (hostId > 0 && hostId < 255) return <int>[hostId];
+      return const <int>[];
     }
-    return null;
+    final blockSize = 1 << (32 - prefix);
+    final networkInt =
+        (info.networkOktet[0] << 24) |
+        (info.networkOktet[1] << 16) |
+        (info.networkOktet[2] << 8) |
+        info.networkOktet[3];
+    final firstHost = networkInt + 1;
+    final lastHost = networkInt + blockSize - 2;
+    final start = firstHost & 0xFF;
+    final end = lastHost & 0xFF;
+    final ids = <int>[];
+    for (var i = start; i <= end; i++) {
+      if (i > 0 && i < 255) ids.add(i);
+    }
+    if (ids.isEmpty) {
+      return List<int>.generate(254, (i) => i + 1);
+    }
+    return ids;
   }
 
   Future<Map<String, ({String? nama, String? vendor})>>
@@ -271,13 +329,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                   final nama = service.name;
                   final addresses = service.hostAddresses;
                   L.i('bonsoir resolved: ${service.name} addresses=$addresses');
-                   for (final addr in addresses) {
-                     if (addr.isEmpty) continue;
-                     hasil[addr] = (
-                       nama: (nama.isEmpty) ? null : nama,
-                       vendor: null,
-                     );
-                   }
+                  for (final addr in addresses) {
+                    if (addr.isEmpty) continue;
+                    hasil[addr] = (
+                      nama: (nama.isEmpty) ? null : nama,
+                      vendor: null,
+                    );
+                  }
                   break;
                 default:
                   break;
@@ -311,6 +369,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       return p.copyWith(
         nama: p.nama ?? info.nama,
         vendor: p.vendor ?? info.vendor,
+        sumberDiscovery: p.sumberDiscovery == null
+            ? 'gabungan'
+            : '${p.sumberDiscovery}+bonsoir',
       );
     }).toList();
 
@@ -318,7 +379,12 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       if (updated.any((p) => p.ip == entry.key)) continue;
       final info = entry.value;
       updated.add(
-        PerangkatWifiModel(ip: entry.key, nama: info.nama, vendor: info.vendor),
+        PerangkatWifiModel(
+          ip: entry.key,
+          nama: info.nama,
+          vendor: info.vendor,
+          sumberDiscovery: 'bonsoir',
+        ),
       );
     }
 
@@ -333,7 +399,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       final request = await client
           .getUrl(Uri.parse('http://$ip/'))
           .timeout(const Duration(seconds: 1));
-      final response = await request.close().timeout(const Duration(seconds: 1));
+      final response = await request.close().timeout(
+        const Duration(seconds: 1),
+      );
       final server = response.headers.value('server');
       await response.drain<void>();
       client.close();

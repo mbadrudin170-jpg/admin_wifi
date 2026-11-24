@@ -42,7 +42,7 @@ final class PerangkatWifiNotifierProvider
 }
 
 String _$perangkatWifiNotifierHash() =>
-    r'3349c308f3ef486a81c32d0603ab89db1b90cf04';
+    r'a72db4f37eed62c93b5a9c1505e73fb9386e72d6';
 
 abstract class _$PerangkatWifiNotifier extends $Notifier<PerangkatWifiState> {
   PerangkatWifiState build();

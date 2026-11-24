@@ -11,5 +11,6 @@ abstract class PerangkatWifiModel with _$PerangkatWifiModel {
     String? nama,
     String? vendor,
     int? latencyMs,
+    String? sumberDiscovery,
   }) = _PerangkatWifiModel;
 }
