@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:nsd/nsd.dart';
+import 'package:bonsoir/bonsoir.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -225,27 +225,41 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     if (kIsWeb) return hasil;
     const serviceTypes = <String>['_http._tcp', '_workstation._tcp'];
     for (final type in serviceTypes) {
-      Discovery? discovery;
+      BonsoirDiscovery? discovery;
       try {
-        discovery = await startDiscovery(type);
-        await Future<void>.delayed(const Duration(seconds: 2));
-        for (final service in discovery.services) {
-          final host = service.host;
-          if (host == null || host.isEmpty) continue;
-          final nama = service.name;
-          hasil[host] = (
-            nama: (nama == null || nama.isEmpty) ? null : nama,
-            vendor: null,
-          );
-        }
+        discovery = BonsoirDiscovery(type: type);
+        await discovery.initialize();
+        discovery.eventStream?.listen((event) {
+          switch (event) {
+            case BonsoirDiscoveryServiceFoundEvent():
+              event.service.resolve(discovery!.serviceResolver);
+              break;
+            case BonsoirDiscoveryServiceResolvedEvent():
+              final service = event.service;
+              final nama = service.name;
+              final addresses = service.hostAddresses;
+              for (final addr in addresses) {
+                if (addr.isEmpty) continue;
+                hasil[addr] = (
+                  nama: (nama.isEmpty) ? null : nama,
+                  vendor: null,
+                );
+              }
+              break;
+            default:
+              break;
+          }
+        });
+        await discovery.start();
+        await Future<void>.delayed(const Duration(seconds: 4));
       } catch (e, s) {
-        L.e('Gagal nsd discovery $type: $e $s');
+        L.e('Gagal bonsoir discovery $type: $e $s');
       } finally {
         if (discovery != null) {
           try {
-            await stopDiscovery(discovery);
+            await discovery.stop();
           } catch (e, s) {
-            L.e('Gagal stop nsd discovery $type: $e $s');
+            L.e('Gagal stop bonsoir discovery $type: $e $s');
           }
         }
       }
