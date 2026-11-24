@@ -1,7 +1,10 @@
 // path: lib/fitur/wifi_analyzer/widget/list_perangkat_widget.dart
 
+import 'dart:async';
+
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/screens/detail_perangkat_screen.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,6 +14,18 @@ class ListPerangkatWidget extends ConsumerWidget {
   const ListPerangkatWidget({super.key, required this.state});
 
   final PerangkatWifiState state;
+
+  void _bukaDetail(BuildContext context, PerangkatWifiModel p) {
+    unawaited(
+      Nav.to(context, DetailPerangkatScreen(perangkat: p)).catchError((
+        Object e,
+        StackTrace s,
+      ) {
+        L.e('Gagal membuka detail perangkat: $e $s');
+        return null;
+      }),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,67 +78,70 @@ class ListPerangkatWidget extends ConsumerWidget {
   }
 
   Widget _buildItemPerangkat(BuildContext context, PerangkatWifiModel p) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 4,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  p.ip,
-                  style: Theme.of(context).textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                if (p.latencyMs != null)
+    return InkWell(
+      onTap: () => _bukaDetail(context, p),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 4,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    '${p.latencyMs} ms',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    p.ip,
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
-              ],
-            ),
-            if (p.sumberDiscovery != null)
+                  if (p.latencyMs != null)
+                    Text(
+                      '${p.latencyMs} ms',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
+              ),
+              if (p.sumberDiscovery != null)
+                Text(
+                  'Sumber: ${p.sumberDiscovery}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              if (p.nama != null)
+                Text(p.nama!, style: Theme.of(context).textTheme.bodyMedium)
+              else
+                Text(
+                  'Perangkat tidak dikenal',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               Text(
-                'Sumber: ${p.sumberDiscovery}',
+                'Manufaktur: ${p.vendor ?? 'Tidak diketahui'}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: p.vendor == null
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : null,
                 ),
               ),
-            if (p.nama != null)
-              Text(p.nama!, style: Theme.of(context).textTheme.bodyMedium)
-            else
               Text(
-                'Perangkat tidak dikenal',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            Text(
-              'Manufaktur: ${p.vendor ?? 'Tidak diketahui'}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: p.vendor == null
-                    ? Theme.of(context).colorScheme.onSurfaceVariant
-                    : null,
-              ),
-            ),
-            Text(
-              'MAC: ${p.macAddress ?? 'Tidak tersedia'}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            Text(
-              'Tipe: ${p.tipePerangkat ?? 'Unknown'}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            if (p.layanan != null)
-              Text(
-                'Layanan: ${p.layanan}',
+                'MAC: ${p.macAddress ?? 'Tidak tersedia'}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-          ],
+              Text(
+                'Tipe: ${p.tipePerangkat ?? 'Unknown'}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (p.layanan != null)
+                Text(
+                  'Layanan: ${p.layanan}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+            ],
+          ),
         ),
       ),
     );
