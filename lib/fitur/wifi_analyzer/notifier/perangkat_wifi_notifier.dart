@@ -231,45 +231,54 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       '_hap._tcp',
       '_matter._tcp',
     ];
-    for (final type in serviceTypes) {
-      BonsoirDiscovery? discovery;
-      try {
-        discovery = BonsoirDiscovery(type: type);
-        await discovery.initialize();
-        discovery.eventStream?.listen((event) {
-          switch (event) {
-            case BonsoirDiscoveryServiceFoundEvent():
-              event.service.resolve(discovery!.serviceResolver);
-              break;
-            case BonsoirDiscoveryServiceResolvedEvent():
-              final service = event.service;
-              final nama = service.name;
-              final addresses = service.hostAddresses;
-              for (final addr in addresses) {
-                if (addr.isEmpty) continue;
-                hasil[addr] = (
-                  nama: (nama.isEmpty) ? null : nama,
-                  vendor: null,
-                );
-              }
-              break;
-            default:
-              break;
-          }
-        });
-        await discovery.start();
-        await Future<void>.delayed(const Duration(seconds: 4));
-      } catch (e, s) {
-        L.e('Gagal bonsoir discovery $type: $e $s');
-      } finally {
-        if (discovery != null) {
+    const batchSize = 5;
+    for (var i = 0; i < serviceTypes.length; i += batchSize) {
+      final chunk = serviceTypes.sublist(
+        i,
+        (i + batchSize).clamp(0, serviceTypes.length),
+      );
+      await Future.wait(
+        chunk.map((type) async {
+          BonsoirDiscovery? discovery;
           try {
-            await discovery.stop();
+            discovery = BonsoirDiscovery(type: type);
+            await discovery.initialize();
+            discovery.eventStream?.listen((event) {
+              switch (event) {
+                case BonsoirDiscoveryServiceFoundEvent():
+                  event.service.resolve(discovery!.serviceResolver);
+                  break;
+                case BonsoirDiscoveryServiceResolvedEvent():
+                  final service = event.service;
+                  final nama = service.name;
+                  final addresses = service.hostAddresses;
+                  for (final addr in addresses) {
+                    if (addr.isEmpty) continue;
+                    hasil[addr] = (
+                      nama: (nama.isEmpty) ? null : nama,
+                      vendor: null,
+                    );
+                  }
+                  break;
+                default:
+                  break;
+              }
+            });
+            await discovery.start();
+            await Future<void>.delayed(const Duration(seconds: 3));
           } catch (e, s) {
-            L.e('Gagal stop bonsoir discovery $type: $e $s');
+            L.e('Gagal bonsoir discovery $type: $e $s');
+          } finally {
+            if (discovery != null) {
+              try {
+                await discovery.stop();
+              } catch (e, s) {
+                L.e('Gagal stop bonsoir discovery $type: $e $s');
+              }
+            }
           }
-        }
-      }
+        }),
+      );
     }
     return hasil;
   }
