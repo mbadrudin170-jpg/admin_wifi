@@ -95,11 +95,14 @@ class ListPerangkatWidget extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-            if (p.vendor != null)
-              Text(
-                'Vendor: ${p.vendor}',
-                style: Theme.of(context).textTheme.bodySmall,
+            Text(
+              'Manufaktur: ${p.vendor ?? 'Tidak diketahui'}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: p.vendor == null
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : null,
               ),
+            ),
           ],
         ),
       ),

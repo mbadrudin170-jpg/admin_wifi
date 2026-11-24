@@ -108,7 +108,11 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
             (host) async {
               if (!ref.mounted) return;
               final nama = await host.deviceName;
-              final vendor = (await host.vendor)?.vendorName;
+              final vendorMac = (await host.vendor)?.vendorName;
+              final vendor =
+                  (vendorMac == null || vendorMac.isEmpty)
+                      ? _inferManufaktur(nama)
+                      : vendorMac;
               final latency = host.responseTime?.inMilliseconds;
               final model = PerangkatWifiModel(
                 ip: host.address,
@@ -263,13 +267,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                   final nama = service.name;
                   final addresses = service.hostAddresses;
                   L.i('bonsoir resolved: ${service.name} addresses=$addresses');
-                  for (final addr in addresses) {
-                    if (addr.isEmpty) continue;
-                    hasil[addr] = (
-                      nama: (nama.isEmpty) ? null : nama,
-                      vendor: null,
-                    );
-                  }
+                   for (final addr in addresses) {
+                     if (addr.isEmpty) continue;
+                     hasil[addr] = (
+                       nama: (nama.isEmpty) ? null : nama,
+                       vendor: _inferManufaktur(nama),
+                     );
+                   }
                   break;
                 default:
                   break;
@@ -316,5 +320,42 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
 
     updated.sort((a, b) => a.ip.compareTo(b.ip));
     state = state.copyWith(perangkat: updated);
+  }
+
+  String? _inferManufaktur(String? sumber) {
+    if (sumber == null || sumber.trim().isEmpty) return null;
+    final teks = sumber.toLowerCase();
+    const merek = <String>[
+      'samsung',
+      'apple',
+      'xiaomi',
+      'huawei',
+      'oppo',
+      'vivo',
+      'realme',
+      'google',
+      'amazon',
+      'hp',
+      'canon',
+      'epson',
+      'brother',
+      'asus',
+      'lenovo',
+      'dell',
+      'microsoft',
+      'sonos',
+      'roku',
+      'chromecast',
+      'tplink',
+      'tp-link',
+      'netgear',
+      'linksys',
+      'dlink',
+      'd-link',
+    ];
+    for (final m in merek) {
+      if (teks.contains(m)) return m;
+    }
+    return null;
   }
 }
