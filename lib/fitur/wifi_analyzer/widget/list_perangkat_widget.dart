@@ -135,9 +135,9 @@ class ListPerangkatWidget extends ConsumerWidget {
                 'Tipe: ${p.tipePerangkat ?? 'Unknown'}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              if (p.layanan != null)
+              if (p.services.isNotEmpty)
                 Text(
-                  'Layanan: ${p.layanan}',
+                  'Layanan: ${p.services.join(', ')}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
             ],

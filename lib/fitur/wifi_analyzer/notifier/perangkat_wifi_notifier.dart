@@ -1,6 +1,8 @@
 // path: lib/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
@@ -139,9 +141,24 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                         : nama,
                     vendor: vendor,
                     macAddress: macAddress,
-                    tipePerangkat: 'Unknown',
+                    tipePerangkat: _klasifikasikanPerangkat(
+                      nama: (nama.isEmpty || nama == ActiveHost.generic)
+                          ? null
+                          : nama,
+                      vendor: vendor,
+                      services: const <String>[],
+                    ),
+                    services: const <String>[],
                     terakhirDilihat: DateTime.now(),
                     latencyMs: latency,
+                    latencyMethod: latency == null ? null : 'ICMP',
+                    discoveryMethods: const <String>['icmp'],
+                    isOnline: latency != null,
+                    identificationStatus:
+                        vendor == null &&
+                            (nama.isEmpty || nama == ActiveHost.generic)
+                        ? 'tidak tersedia'
+                        : 'sebagian',
                     sumberDiscovery: 'icmp',
                   );
                   ditemukan[host.address] = model;
@@ -177,10 +194,18 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         L.w('Tidak ada host id valid untuk subnet $subnet; lewati ICMP scan.');
       }
 
-      // Gabungkan hasil service discovery (nama/vendor/mac) berdasarkan IP.
+      // Gabungkan hasil service discovery (mDNS/Bonsoir).
       final serviceData = await discoveryFuture;
       if (ref.mounted && serviceData.isNotEmpty) {
         _gabungkanServiceData(serviceData);
+      }
+
+      // SSDP/UPnP discovery (best-effort).
+      if (ref.mounted) {
+        final ssdpData = await _jalankanSsdpDiscovery();
+        if (ref.mounted && ssdpData.isNotEmpty) {
+          _gabungkanServiceData(ssdpData);
+        }
       }
     } catch (e, s) {
       L.e('Gagal memindai perangkat: $e $s');
@@ -298,9 +323,10 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     return ids;
   }
 
-  Future<Map<String, ({String? nama, String? vendor, String? layanan})>>
+  Future<Map<String, ({String? nama, String? vendor, List<String> services})>>
   _jalankanServiceDiscovery() async {
-    final hasil = <String, ({String? nama, String? vendor, String? layanan})>{};
+    final hasil =
+        <String, ({String? nama, String? vendor, List<String> services})>{};
     if (kIsWeb) return hasil;
     const serviceTypes = <String>[
       '_http._tcp',
@@ -339,13 +365,19 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                   L.i('bonsoir resolved: ${service.name} addresses=$addresses');
                   for (final addr in addresses) {
                     if (addr.isEmpty) continue;
+                    final existing = hasil[addr];
+                    final services = <String>[
+                      ...?existing?.services,
+                      if (!(existing?.services.contains(service.type) ?? false))
+                        service.type,
+                    ];
                     hasil[addr] = (
-                      nama: (nama.isEmpty) ? null : nama,
-                      vendor: null,
-                       layanan: service.type,
-                     );
-                   }
-                   break;
+                      nama: existing?.nama ?? ((nama.isEmpty) ? null : nama),
+                      vendor: existing?.vendor,
+                      services: services,
+                    );
+                  }
+                  break;
                 default:
                   break;
               }
@@ -369,35 +401,230 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     return hasil;
   }
 
+  String _klasifikasikanPerangkat({
+    String? nama,
+    String? vendor,
+    required List<String> services,
+  }) {
+    final teks = '${nama ?? ''} ${vendor ?? ''} ${services.join(' ')}'
+        .toLowerCase();
+    if (teks.contains('printer') ||
+        teks.contains('ipp') ||
+        teks.contains('_printer') ||
+        vendor == 'hp' ||
+        vendor == 'canon' ||
+        vendor == 'epson' ||
+        vendor == 'brother') {
+      return 'Printer';
+    }
+    if (teks.contains('tv') ||
+        teks.contains('chromecast') ||
+        teks.contains('airplay') ||
+        teks.contains('roku')) {
+      return 'Smart TV';
+    }
+    if (services.any((s) => s.contains('matter')) ||
+        teks.contains('iot') ||
+        teks.contains('sensor')) {
+      return 'IoT';
+    }
+    if (vendor == 'apple' &&
+        (teks.contains('iphone') || teks.contains('ipad'))) {
+      return teks.contains('ipad') ? 'Tablet' : 'Smartphone';
+    }
+    if (vendor == 'samsung' ||
+        vendor == 'xiaomi' ||
+        vendor == 'oppo' ||
+        vendor == 'vivo' ||
+        vendor == 'realme' ||
+        vendor == 'huawei') {
+      if (teks.contains('tablet')) return 'Tablet';
+      return 'Smartphone';
+    }
+    if (teks.contains('router') ||
+        teks.contains('gateway') ||
+        teks.contains('access point') ||
+        vendor == 'tplink' ||
+        vendor == 'tp-link' ||
+        vendor == 'netgear' ||
+        vendor == 'linksys' ||
+        vendor == 'dlink' ||
+        vendor == 'd-link') {
+      return 'Router / Access Point';
+    }
+    if (teks.contains('windows') ||
+        teks.contains('macbook') ||
+        teks.contains('linux') ||
+        teks.contains('desktop')) {
+      return 'Komputer / Laptop';
+    }
+    return 'Unknown';
+  }
+
+  Future<Map<String, ({String? nama, String? vendor, List<String> services})>>
+  _jalankanSsdpDiscovery() async {
+    final hasil =
+        <String, ({String? nama, String? vendor, List<String> services})>{};
+    if (kIsWeb) return hasil;
+    RawDatagramSocket? socket;
+    try {
+      socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        0,
+        reuseAddress: true,
+      );
+      socket.broadcastEnabled = true;
+      try {
+        socket.joinMulticast(InternetAddress('239.255.255.250'));
+      } catch (_) {
+        // Beberapa perangkat tidak mengizinkan join multicast.
+      }
+
+      const permintaan =
+          'M-SEARCH * HTTP/1.1\r\n'
+          'HOST: 239.255.255.250:1900\r\n'
+          'MAN: "ssdp:discover"\r\n'
+          'MX: 2\r\n'
+          'ST: ssdp:all\r\n'
+          '\r\n';
+      final data = utf8.encode(permintaan);
+      socket.send(data, InternetAddress('239.255.255.250'), 1900);
+
+      final batas = DateTime.now().add(const Duration(seconds: 3));
+      while (DateTime.now().isBefore(batas)) {
+        final event = socket.receive();
+        if (event == null) {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          continue;
+        }
+        try {
+          final teks = utf8.decode(event.data);
+          final locationMatch = RegExp(
+            r'LOCATION:\s*(.+)',
+            caseSensitive: false,
+          ).firstMatch(teks);
+          final location = locationMatch?.group(1)?.trim();
+          if (location == null || location.isEmpty) continue;
+          final uri = Uri.tryParse(location);
+          if (uri == null || uri.host.isEmpty) continue;
+          final ip = uri.host;
+
+          // Ambil device description XML untuk manufacturer/model.
+          String? nama;
+          String? vendor;
+          String? tipe;
+          try {
+            final client = HttpClient();
+            client.connectionTimeout = const Duration(seconds: 2);
+            final request = await client
+                .getUrl(uri)
+                .timeout(const Duration(seconds: 2));
+            final response = await request.close().timeout(
+              const Duration(seconds: 2),
+            );
+            final body = await response.transform(utf8.decoder).join();
+            client.close();
+            nama =
+                _ambilTagXml(body, 'friendlyName') ??
+                _ambilTagXml(body, 'modelName');
+            vendor = _ambilTagXml(body, 'manufacturer');
+            tipe = _ambilTagXml(body, 'deviceType');
+          } catch (_) {
+            // Abaikan; tetap simpan IP.
+          }
+
+          final existing = hasil[ip];
+          final services = <String>[...?existing?.services];
+          const layanan = 'SSDP';
+          if (!services.contains(layanan)) services.add(layanan);
+          hasil[ip] = (
+            nama: existing?.nama ?? nama,
+            vendor: existing?.vendor ?? vendor,
+            services: services,
+          );
+          // Simpan tipe ke nama? Tipe perangkat akan diklasifikasikan nanti.
+          if (tipe != null && tipe.isNotEmpty) {
+            L.i('ssdp: ip=$ip type=$tipe');
+          }
+        } catch (_) {
+          // Abaikan paket yang tidak valid.
+        }
+      }
+    } catch (e, s) {
+      L.w('SSDP discovery gagal: $e $s');
+    } finally {
+      socket?.close();
+    }
+    return hasil;
+  }
+
+  String? _ambilTagXml(String xml, String tag) {
+    final match = RegExp(
+      '<$tag[^>]*>([^<]+)</$tag>',
+      caseSensitive: false,
+    ).firstMatch(xml);
+    return match?.group(1)?.trim();
+  }
+
   void _gabungkanServiceData(
-    Map<String, ({String? nama, String? vendor, String? layanan})> serviceData,
+    Map<String, ({String? nama, String? vendor, List<String> services})>
+    serviceData,
   ) {
     final updated = state.perangkat.map((p) {
       final info = serviceData[p.ip];
       if (info == null) return p;
+      final methods = <String>[...p.discoveryMethods];
+      // Tentukan sumber berdasarkan jenis layanan yang ditemukan.
+      final sumber = info.services.any((s) => s.startsWith('_'))
+          ? 'bonsoir'
+          : 'ssdp';
+      if (!methods.contains(sumber)) methods.add(sumber);
+      final services = <String>[...p.services];
+      for (final s in info.services) {
+        if (!services.contains(s)) services.add(s);
+      }
       return p.copyWith(
         nama: p.nama ?? info.nama,
         vendor: p.vendor ?? info.vendor,
-        layanan: p.layanan ?? info.layanan,
+        services: services,
+        tipePerangkat: p.tipePerangkat == 'Unknown'
+            ? _klasifikasikanPerangkat(
+                nama: p.nama ?? info.nama,
+                vendor: p.vendor ?? info.vendor,
+                services: services,
+              )
+            : p.tipePerangkat,
         terakhirDilihat: DateTime.now(),
+        discoveryMethods: methods,
         sumberDiscovery: p.sumberDiscovery == null
-            ? 'gabungan'
-            : '${p.sumberDiscovery}+bonsoir',
+            ? sumber
+            : '${p.sumberDiscovery}+$sumber',
       );
     }).toList();
 
     for (final entry in serviceData.entries) {
       if (updated.any((p) => p.ip == entry.key)) continue;
       final info = entry.value;
+      final services = <String>[...info.services];
+      final sumber = info.services.any((s) => s.startsWith('_'))
+          ? 'bonsoir'
+          : 'ssdp';
       updated.add(
         PerangkatWifiModel(
           ip: entry.key,
           nama: info.nama,
           vendor: info.vendor,
-          layanan: info.layanan,
-          tipePerangkat: 'Unknown',
+          services: services,
+          tipePerangkat: _klasifikasikanPerangkat(
+            nama: info.nama,
+            vendor: info.vendor,
+            services: services,
+          ),
           terakhirDilihat: DateTime.now(),
-          sumberDiscovery: 'bonsoir',
+          discoveryMethods: <String>[sumber],
+          isOnline: true,
+          identificationStatus: 'sebagian',
+          sumberDiscovery: sumber,
         ),
       );
     }
@@ -405,5 +632,4 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     updated.sort((a, b) => a.ip.compareTo(b.ip));
     state = state.copyWith(perangkat: updated);
   }
-
 }

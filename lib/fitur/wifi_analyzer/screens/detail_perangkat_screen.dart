@@ -277,6 +277,20 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
           _barisInfo('Manufaktur', p.vendor ?? 'Tidak tersedia'),
           _barisInfo('MAC Address', p.macAddress ?? 'Tidak tersedia'),
           _barisInfo('Sumber', p.sumberDiscovery ?? 'Tidak tersedia'),
+          _barisInfo(
+            'Metode Discovery',
+            p.discoveryMethods.isEmpty
+                ? 'Tidak tersedia'
+                : p.discoveryMethods.join(', '),
+          ),
+          _barisInfo(
+            'Layanan',
+            p.services.isEmpty ? 'Tidak tersedia' : p.services.join(', '),
+          ),
+          _barisInfo(
+            'Status Identifikasi',
+            p.identificationStatus ?? 'Tidak tersedia',
+          ),
           const SizedBox(height: 16),
           Text(
             'Informasi Jaringan',
@@ -295,6 +309,7 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
             'Ping',
             _latencyMs == null ? 'Tidak tersedia' : '$_latencyMs ms',
           ),
+          _barisInfo('Metode Latensi', p.latencyMethod ?? 'Tidak tersedia'),
           _barisInfo('Packet Loss', '$_packetLossPersen%'),
           _barisInfo(
             'Ping Min',

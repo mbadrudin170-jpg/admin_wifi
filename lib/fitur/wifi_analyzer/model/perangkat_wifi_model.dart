@@ -12,9 +12,13 @@ abstract class PerangkatWifiModel with _$PerangkatWifiModel {
     String? vendor,
     String? macAddress,
     String? tipePerangkat,
-    String? layanan,
+    @Default(<String>[]) List<String> services,
     DateTime? terakhirDilihat,
     int? latencyMs,
+    String? latencyMethod,
+    @Default(<String>[]) List<String> discoveryMethods,
+    @Default(false) bool isOnline,
+    String? identificationStatus,
     String? sumberDiscovery,
   }) = _PerangkatWifiModel;
 }
