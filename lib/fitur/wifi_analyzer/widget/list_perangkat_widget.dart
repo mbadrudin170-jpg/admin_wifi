@@ -2,16 +2,19 @@
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart';
+import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
 
 class ListPerangkatWidget extends ConsumerWidget {
-  const ListPerangkatWidget({super.key});
+  const ListPerangkatWidget({super.key, required this.state});
+
+  final PerangkatWifiState state;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(perangkatWifiProvider);
+    final state = this.state;
 
     return Card(
       child: Padding(

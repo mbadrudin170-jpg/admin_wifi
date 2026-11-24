@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:admin_wifi/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/ping_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_analyzer_notifier.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/notifier/wifi_scan_notifier.dart';
@@ -87,6 +88,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
     final asyncAnalyzer = ref.watch(wifiAnalyzerProvider);
     final asyncScan = ref.watch(wifiScanProvider);
     final pingState = ref.watch(pingProvider);
+    final perangkatState = ref.watch(perangkatWifiProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -156,7 +158,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
               const SizedBox(height: 16),
               _buildTombolTampilan(),
               if (_modeTampilan == ModeTampilan.perangkat)
-                ListPerangkatWidget()
+                ListPerangkatWidget(state: perangkatState)
               else
                 _buildListAp(scanState),
             ],
