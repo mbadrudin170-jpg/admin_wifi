@@ -13,7 +13,7 @@ part of 'voucher_notifier.dart';
 final voucherProvider = VoucherNotifierProvider._();
 
 final class VoucherNotifierProvider
-    extends $NotifierProvider<VoucherNotifier, String> {
+    extends $NotifierProvider<VoucherNotifier, VoucherState> {
   VoucherNotifierProvider._()
     : super(
         from: null,
@@ -33,27 +33,27 @@ final class VoucherNotifierProvider
   VoucherNotifier create() => VoucherNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(String value) {
+  Override overrideWithValue(VoucherState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<String>(value),
+      providerOverride: $SyncValueProvider<VoucherState>(value),
     );
   }
 }
 
-String _$voucherNotifierHash() => r'd407613c4673b75376321498155bf865ac15cc84';
+String _$voucherNotifierHash() => r'5c20eee7672a306d9e44de201ae01b1ce988eb2f';
 
-abstract class _$VoucherNotifier extends $Notifier<String> {
-  String build();
+abstract class _$VoucherNotifier extends $Notifier<VoucherState> {
+  VoucherState build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<String, String>;
+    final ref = this.ref as $Ref<VoucherState, VoucherState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<String, String>,
-              String,
+              AnyNotifier<VoucherState, VoucherState>,
+              VoucherState,
               Object?,
               Object?
             >;
