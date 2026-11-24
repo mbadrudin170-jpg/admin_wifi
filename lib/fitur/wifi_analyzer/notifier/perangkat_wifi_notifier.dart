@@ -18,11 +18,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   final _infoJaringan = NetworkInfo();
 
   StreamSubscription<ActiveHost>? _subscription;
+  Timer? _timerPemindaian;
 
   @override
   PerangkatWifiState build() {
     ref.onDispose(() {
       _subscription?.cancel();
+      _timerPemindaian?.cancel();
     });
 
     if (kIsWeb) {
@@ -34,6 +36,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
 
     // Pemindaian berjalan otomatis saat provider mulai di-watch oleh widget.
     unawaited(_pindai());
+
+    // Auto-refresh tiap 30 detik.
+    _timerPemindaian = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (ref.mounted) {
+        unawaited(_pindai());
+      }
+    });
 
     return const PerangkatWifiState(isLoading: true, progress: 0);
   }
