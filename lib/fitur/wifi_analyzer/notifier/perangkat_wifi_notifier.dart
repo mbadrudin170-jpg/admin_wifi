@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_local_device_discovery/flutter_local_device_discovery.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -44,6 +45,8 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       perangkat: <PerangkatWifiModel>[],
       progress: 0,
     );
+
+    final discoveryFuture = _jalankanServiceDiscovery();
 
     try {
       final ip = await _infoJaringan.getWifiIP();
@@ -105,7 +108,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
             },
             onDone: () {
               if (!ref.mounted) return;
-              state = state.copyWith(isLoading: false, progress: 100);
+              state = state.copyWith(progress: 100);
             },
           );
 
@@ -116,12 +119,24 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       ) {
         L.e('Stream scan perangkat error: $e $s');
       });
+
+      // Gabungkan hasil service discovery (nama/vendor/mac) berdasarkan IP.
+      final serviceData = await discoveryFuture;
+      if (ref.mounted && serviceData.isNotEmpty) {
+        _gabungkanServiceData(serviceData);
+      }
     } catch (e, s) {
       L.e('Gagal memindai perangkat: $e $s');
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Gagal memindai perangkat: $e',
-      );
+      if (ref.mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Gagal memindai perangkat: $e',
+        );
+      }
+    } finally {
+      if (ref.mounted) {
+        state = state.copyWith(isLoading: false, progress: 100);
+      }
     }
   }
 
@@ -173,5 +188,88 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       return '${networkOktet[0]}';
     }
     return null;
+  }
+
+  Future<Map<String, ({String? nama, String? mac, String? vendor})>>
+  _jalankanServiceDiscovery() async {
+    final hasil = <String, ({String? nama, String? mac, String? vendor})>{};
+    if (kIsWeb) return hasil;
+    try {
+      final discovery = FlutterLocalDeviceDiscovery();
+      final snapshot = await discovery.discover(
+        const LocalDiscoveryRequest(
+          duration: Duration(seconds: 4),
+          protocols: {
+            LocalDiscoveryProtocol.mdns,
+            LocalDiscoveryProtocol.dnsSd,
+            LocalDiscoveryProtocol.ssdp,
+            LocalDiscoveryProtocol.upnp,
+          },
+          ssdpSearchTargets: {'ssdp:all'},
+          fetchUpnpDescriptions: false,
+        ),
+      );
+      for (final device in snapshot.devices) {
+        String? nama;
+        if (device.displayName.isNotEmpty && device.displayName != device.id) {
+          nama = device.displayName;
+        }
+        if ((nama == null || nama.isEmpty) &&
+            device.hostname != null &&
+            device.hostname!.isNotEmpty) {
+          nama = device.hostname;
+        }
+        if ((nama == null || nama.isEmpty) &&
+            device.identity.manufacturer != null &&
+            device.identity.manufacturer!.isNotEmpty) {
+          nama = device.identity.manufacturer;
+        }
+        final vendor = device.vendor?.name ?? device.identity.manufacturer;
+        final mac = device.identity.macAddress;
+
+        for (final addr in device.addresses) {
+          final ip = addr.address;
+          if (ip.isEmpty) continue;
+          hasil[ip] = (
+            nama: (nama == null || nama.isEmpty) ? null : nama,
+            mac: (mac == null || mac.isEmpty) ? null : mac,
+            vendor: (vendor == null || vendor.isEmpty) ? null : vendor,
+          );
+        }
+      }
+    } catch (e, s) {
+      L.e('Gagal service discovery: $e $s');
+    }
+    return hasil;
+  }
+
+  void _gabungkanServiceData(
+    Map<String, ({String? nama, String? mac, String? vendor})> serviceData,
+  ) {
+    final updated = state.perangkat.map((p) {
+      final info = serviceData[p.ip];
+      if (info == null) return p;
+      return p.copyWith(
+        nama: p.nama ?? info.nama,
+        mac: p.mac ?? info.mac,
+        vendor: p.vendor ?? info.vendor,
+      );
+    }).toList();
+
+    for (final entry in serviceData.entries) {
+      if (updated.any((p) => p.ip == entry.key)) continue;
+      final info = entry.value;
+      updated.add(
+        PerangkatWifiModel(
+          ip: entry.key,
+          nama: info.nama,
+          mac: info.mac,
+          vendor: info.vendor,
+        ),
+      );
+    }
+
+    updated.sort((a, b) => a.ip.compareTo(b.ip));
+    state = state.copyWith(perangkat: updated);
   }
 }

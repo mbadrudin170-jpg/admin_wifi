@@ -92,7 +92,14 @@ class ListPerangkatWidget extends ConsumerWidget {
               ],
             ),
             if (p.nama != null)
-              Text(p.nama!, style: Theme.of(context).textTheme.bodyMedium),
+              Text(p.nama!, style: Theme.of(context).textTheme.bodyMedium)
+            else
+              Text(
+                'Perangkat tidak dikenal',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             if (p.mac != null)
               Text(
                 'MAC: ${p.mac}',

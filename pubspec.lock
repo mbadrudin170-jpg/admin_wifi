@@ -414,6 +414,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_local_device_discovery:
+    dependency: "direct main"
+    description:
+      name: flutter_local_device_discovery
+      sha256: "30c07ee9370c6a5239067b92cd95eb02ae8dfa23fcfd0a9824948715cc1f0a79"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
+  flutter_local_device_discovery_android:
+    dependency: transitive
+    description:
+      name: flutter_local_device_discovery_android
+      sha256: af79d01387bd1892048027cfc695de57d7a077f87b2d1d5b25c34a30eec8f361
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
+  flutter_local_device_discovery_darwin:
+    dependency: transitive
+    description:
+      name: flutter_local_device_discovery_darwin
+      sha256: "87dfa2307da678928da945ec53fdaf78668ac8ec5268008d5edd96827700a063"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
+  flutter_local_device_discovery_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_local_device_discovery_platform_interface
+      sha256: "892718a588e24efb7405397ad2173d7d02c2a108be64ed32fbe2ed7fd4cebafa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
+  flutter_local_device_discovery_windows:
+    dependency: transitive
+    description:
+      name: flutter_local_device_discovery_windows
+      sha256: "725141570eb6954e1332a2e21610b358a176ba0ca538b5893cf890fd3009fbb3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   flutter_local_notifications:
     dependency: "direct main"
     description:

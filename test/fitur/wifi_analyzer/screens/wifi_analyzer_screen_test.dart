@@ -98,6 +98,12 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
+    // Mode tampilan default adalah perangkat; alihkan ke mode WiFi untuk
+    // menguji daftar access point.
+    await tester.tap(find.text('Wifi'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
     expect(find.text('WiFi-Rumah'), findsOneWidget);
     expect(find.text('Tidak ada jaringan terdeteksi'), findsOneWidget);
     expect(find.textContaining('Jaringan di Sekitar (0)'), findsOneWidget);
