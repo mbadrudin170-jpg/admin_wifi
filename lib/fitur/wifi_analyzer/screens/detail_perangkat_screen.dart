@@ -25,7 +25,13 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
   int _packetLossPersen = 100;
   String? _errorPing;
 
+  Timer? _timerMonitor;
+  bool _sedangMonitor = false;
+  int? _latencyMin;
+  int? _latencyMax;
+
   bool _sedangPortScan = false;
+  bool _batalkanPortScan = false;
   final List<int> _portTerbuka = <int>[];
   String? _errorPort;
 
@@ -87,8 +93,12 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
 
       final kehilangan = ((jumlahProbe - diterima) / jumlahProbe * 100).round();
       int? rataRata;
+      int? minLat;
+      int? maxLat;
       if (latensi.isNotEmpty) {
         rataRata = (latensi.reduce((a, b) => a + b) / latensi.length).round();
+        minLat = latensi.reduce((a, b) => a < b ? a : b);
+        maxLat = latensi.reduce((a, b) => a > b ? a : b);
       }
 
       setState(() {
@@ -96,6 +106,14 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
         _pingBerhasil = diterima > 0;
         _latencyMs = rataRata;
         _packetLossPersen = kehilangan;
+        if (minLat != null && maxLat != null) {
+          _latencyMin = _latencyMin == null
+              ? minLat
+              : (_latencyMin! < minLat ? _latencyMin! : minLat);
+          _latencyMax = _latencyMax == null
+              ? maxLat
+              : (_latencyMax! > maxLat ? _latencyMax! : maxLat);
+        }
         if (diterima == 0) {
           _errorPing = 'Perangkat tidak merespons';
         }
@@ -120,10 +138,36 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
     }
   }
 
+  void _mulaiMonitor() {
+    if (_sedangMonitor) return;
+    setState(() {
+      _sedangMonitor = true;
+      _latencyMin = null;
+      _latencyMax = null;
+    });
+    _pingPerangkat();
+    _timerMonitor = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) _pingPerangkat();
+    });
+  }
+
+  void _hentikanMonitor() {
+    _timerMonitor?.cancel();
+    _timerMonitor = null;
+    setState(() => _sedangMonitor = false);
+  }
+
+  @override
+  void dispose() {
+    _timerMonitor?.cancel();
+    super.dispose();
+  }
+
   Future<void> _pindaiPort() async {
     if (_sedangPortScan) return;
     setState(() {
       _sedangPortScan = true;
+      _batalkanPortScan = false;
       _errorPort = null;
       _portTerbuka.clear();
     });
@@ -132,6 +176,7 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
     final ports = _namaLayananPort.keys.toList();
     try {
       for (var i = 0; i < ports.length; i += batasKonkurensi) {
+        if (_batalkanPortScan) break;
         final chunk = ports.sublist(
           i,
           (i + batasKonkurensi).clamp(0, ports.length),
@@ -140,6 +185,7 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
           chunk.map((port) => _cekPort(widget.perangkat.ip, port)),
         );
         if (!mounted) return;
+        if (_batalkanPortScan) break;
         for (var j = 0; j < chunk.length; j++) {
           if (hasil[j]) _portTerbuka.add(chunk[j]);
         }
@@ -156,6 +202,11 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
         _errorPort = 'Gagal pindai port';
       });
     }
+  }
+
+  void _hentikanPortScan() {
+    _batalkanPortScan = true;
+    setState(() => _sedangPortScan = false);
   }
 
   Future<bool> _cekPort(String host, int port) async {
@@ -245,6 +296,14 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
             _latencyMs == null ? 'Tidak tersedia' : '$_latencyMs ms',
           ),
           _barisInfo('Packet Loss', '$_packetLossPersen%'),
+          _barisInfo(
+            'Ping Min',
+            _latencyMin == null ? 'Tidak tersedia' : '$_latencyMin ms',
+          ),
+          _barisInfo(
+            'Ping Max',
+            _latencyMax == null ? 'Tidak tersedia' : '$_latencyMax ms',
+          ),
           _barisInfo('Terakhir Terlihat', _formatTanggal(p.terakhirDilihat)),
           const SizedBox(height: 8),
           FilledButton.icon(
@@ -257,6 +316,12 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
                   )
                 : const Icon(Icons.network_check),
             label: Text(_sedangPing ? 'Memeriksa...' : 'Ping Perangkat'),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.tonalIcon(
+            onPressed: _sedangMonitor ? _hentikanMonitor : _mulaiMonitor,
+            icon: Icon(_sedangMonitor ? Icons.stop : Icons.play_arrow),
+            label: Text(_sedangMonitor ? 'Hentikan Pantau' : 'Mulai Pantau'),
           ),
           if (_errorPing != null)
             Padding(
@@ -274,15 +339,11 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
           ),
           const SizedBox(height: 8),
           FilledButton.icon(
-            onPressed: _sedangPortScan ? null : _pindaiPort,
+            onPressed: _sedangPortScan ? _hentikanPortScan : _pindaiPort,
             icon: _sedangPortScan
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                ? const Icon(Icons.stop)
                 : const Icon(Icons.search),
-            label: Text(_sedangPortScan ? 'Memindai...' : 'Pindai Port'),
+            label: Text(_sedangPortScan ? 'Hentikan' : 'Pindai Port'),
           ),
           if (_errorPort != null)
             Padding(
