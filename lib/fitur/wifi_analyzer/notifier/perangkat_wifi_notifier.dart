@@ -92,6 +92,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         );
         return;
       }
+      L.i('pindai: ip=$ip subnet=$subnet');
 
       final ditemukan = <String, PerangkatWifiModel>{};
 
@@ -118,6 +119,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                 latencyMs: latency,
               );
               ditemukan[host.address] = model;
+              L.i(
+                'host ditemukan: ${host.address} nama=$nama vendor=$vendor latency=$latency',
+              );
               if (!ref.mounted) return;
               final list = ditemukan.values.toList()
                 ..sort((a, b) => a.ip.compareTo(b.ip));
@@ -202,6 +206,12 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       (i) => ipOktet[i]! & maskOktet[i]!,
     );
 
+    final networkAddress =
+        '${networkOktet[0]}.${networkOktet[1]}.${networkOktet[2]}.${networkOktet[3]}';
+    L.i(
+      'deriveSubnet: ip=$ip mask=$maskStr prefix=$prefix network=$networkAddress',
+    );
+
     if (prefix >= 24) {
       return '${networkOktet[0]}.${networkOktet[1]}.${networkOktet[2]}';
     }
@@ -252,6 +262,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                   final service = event.service;
                   final nama = service.name;
                   final addresses = service.hostAddresses;
+                  L.i('bonsoir resolved: ${service.name} addresses=$addresses');
                   for (final addr in addresses) {
                     if (addr.isEmpty) continue;
                     hasil[addr] = (
