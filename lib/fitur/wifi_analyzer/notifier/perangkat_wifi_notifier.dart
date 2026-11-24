@@ -75,6 +75,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     state = state.copyWith(error: null, progress: 0);
 
     final discoveryFuture = _jalankanServiceDiscovery();
+    final ssdpFuture = _jalankanSsdpDiscovery();
 
     try {
       final ip = await _infoJaringan.getWifiIP();
@@ -205,9 +206,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         _gabungkanServiceData(serviceData);
       }
 
-      // SSDP/UPnP discovery (best-effort).
+      // SSDP/UPnP discovery (sudah berjalan paralel).
       if (ref.mounted) {
-        final ssdpData = await _jalankanSsdpDiscovery();
+        final ssdpData = await ssdpFuture;
         if (ref.mounted && ssdpData.isNotEmpty) {
           _gabungkanServiceData(ssdpData);
         }
@@ -471,6 +472,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     final hasil =
         <String, ({String? nama, String? vendor, List<String> services})>{};
     if (kIsWeb) return hasil;
+    if (Platform.environment['FLUTTER_TEST'] == 'true') return hasil;
     RawDatagramSocket? socket;
     try {
       socket = await RawDatagramSocket.bind(
@@ -497,9 +499,11 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
 
       final batas = DateTime.now().add(const Duration(seconds: 3));
       while (DateTime.now().isBefore(batas)) {
+        if (!ref.mounted) break;
         final event = socket.receive();
         if (event == null) {
           await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (!ref.mounted) break;
           continue;
         }
         try {
@@ -573,9 +577,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
 
   Future<int?> _ukurLatensiIcmp(String ip) async {
     try {
-      final ping = Ping(ip, count: 1, timeout: 2);
+      final ping = Ping(ip, count: 1, timeout: 1);
       await for (final event in ping.stream.timeout(
-        const Duration(seconds: 3),
+        const Duration(seconds: 2),
       )) {
         if (event is PingResponse && event.time != null) {
           return event.time!.inMilliseconds;
