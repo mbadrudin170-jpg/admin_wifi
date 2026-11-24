@@ -24,10 +24,21 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     ref.onDispose(() {
       _subscription?.cancel();
     });
-    return const PerangkatWifiState();
+
+    if (kIsWeb) {
+      return const PerangkatWifiState(
+        isLoading: false,
+        error: 'Pemindaian perangkat tidak didukung di Web. Gunakan perangkat Android.',
+      );
+    }
+
+    // Pemindaian berjalan otomatis saat provider mulai di-watch oleh widget.
+    unawaited(_pindai());
+
+    return const PerangkatWifiState(isLoading: true, progress: 0);
   }
 
-  Future<void> pindai() async {
+  Future<void> _pindai() async {
     if (kIsWeb) {
       state = state.copyWith(
         isLoading: false,

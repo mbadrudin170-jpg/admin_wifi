@@ -28,12 +28,6 @@ class ListPerangkatWidget extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Pindai Perangkat',
-                  onPressed: () =>
-                      ref.read(perangkatWifiProvider.notifier).pindai(),
-                ),
               ],
             ),
             if (state.isLoading && state.perangkat.isEmpty)
@@ -49,15 +43,15 @@ class ListPerangkatWidget extends ConsumerWidget {
                 judul: 'Gagal memindai perangkat',
                 deskripsi: state.error!,
                 ctaLabel: 'Coba Lagi',
-                onCta: () => ref.read(perangkatWifiProvider.notifier).pindai(),
+                onCta: () => ref.invalidate(perangkatWifiProvider),
               )
             else if (state.perangkat.isEmpty)
               EmptyStateView(
                 ikon: Icons.devices_other,
                 judul: 'Belum ada perangkat terdeteksi',
-                deskripsi: 'Tekan tombol pindai untuk mencari perangkat di jaringan yang sama.',
+                deskripsi: 'Pemindaian berjalan otomatis saat halaman dibuka.',
                 ctaLabel: 'Pindai',
-                onCta: () => ref.read(perangkatWifiProvider.notifier).pindai(),
+                onCta: () => ref.invalidate(perangkatWifiProvider),
               )
             else
               ...state.perangkat.map((p) => _buildItemPerangkat(context, p)),
