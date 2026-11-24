@@ -7,7 +7,7 @@ part 'voucher_notifier.g.dart';
 @riverpod
 class VoucherNotifier extends _$VoucherNotifier {
   @override
-  VoucherState build() {
+  Future<VoucherState> build() async {
     return VoucherState(listVoucher: VoucherDummy.dummyList);
   }
 

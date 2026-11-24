@@ -1,3 +1,5 @@
+import 'package:admin_wifi/fitur/voucher/model/voucher_model.dart';
+import 'package:admin_wifi/fitur/voucher/notifier/voucher_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,9 +25,22 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final voucherAsync = ref.watch(voucherProvider);
+
+    final voucherState = voucherAsync.requireValue;
     return Scaffold(
       appBar: AppBar(title: const Text('data')),
-      body: Center(child: Text('VoucherScreen')),
+      body: _buildListVocuher(voucherState.listVoucher),
+    );
+  }
+
+  Widget _buildListVocuher(List<VoucherModel> listVoucher) {
+    return ListView.builder(
+      itemCount: listVoucher.length,
+      itemBuilder: (context, index) {
+        final item = listVoucher[index];
+        return Card(child: Text(item.idPaket));
+      },
     );
   }
 }
