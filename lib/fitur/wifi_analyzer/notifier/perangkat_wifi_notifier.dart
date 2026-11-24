@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:bonsoir/bonsoir.dart';
+import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
@@ -133,7 +134,11 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                       ? null
                       : vendorMac;
                   final macAddress = await host.getMacAddress();
-                  final latency = host.responseTime?.inMilliseconds;
+                  var latency = host.responseTime?.inMilliseconds;
+                  // Fallback latensi per perangkat jika TCP sweep tidak menyediakan responseTime.
+                  if (latency == null && !kIsWeb) {
+                    latency = await _ukurLatensiIcmp(host.address);
+                  }
                   final model = PerangkatWifiModel(
                     ip: host.address,
                     nama: (nama.isEmpty || nama == ActiveHost.generic)
@@ -564,6 +569,22 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       caseSensitive: false,
     ).firstMatch(xml);
     return match?.group(1)?.trim();
+  }
+
+  Future<int?> _ukurLatensiIcmp(String ip) async {
+    try {
+      final ping = Ping(ip, count: 1, timeout: 2);
+      await for (final event in ping.stream.timeout(
+        const Duration(seconds: 3),
+      )) {
+        if (event is PingResponse && event.time != null) {
+          return event.time!.inMilliseconds;
+        }
+      }
+    } catch (_) {
+      // Abaikan kegagalan ICMP.
+    }
+    return null;
   }
 
   void _gabungkanServiceData(
