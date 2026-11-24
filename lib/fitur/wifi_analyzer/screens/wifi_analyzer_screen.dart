@@ -307,13 +307,7 @@ class _WifiAnalyzerScreenState extends ConsumerState<WifiAnalyzerScreen> {
                 style: TextStyle(color: _warnaPing(pingState.latencyMs)),
               ),
             ),
-            FittedBox(
-              child: Text(
-                pingState.isLoading
-                    ? 'Menguji...'
-                    : (pingState.jenisPengukuran?.label ?? ''),
-              ),
-            ),
+            FittedBox(child: Text(pingState.jenisPengukuran?.label ?? '-')),
           ],
         ),
       ],
