@@ -68,12 +68,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     await _subscription?.cancel();
     _subscription = null;
 
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      perangkat: <PerangkatWifiModel>[],
-      progress: 0,
-    );
+    state = state.copyWith(error: null, progress: 0);
 
     final discoveryFuture = _jalankanServiceDiscovery();
 
