@@ -4,8 +4,8 @@ import 'dart:async';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:bonsoir/bonsoir.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -218,7 +218,19 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   _jalankanServiceDiscovery() async {
     final hasil = <String, ({String? nama, String? vendor})>{};
     if (kIsWeb) return hasil;
-    const serviceTypes = <String>['_http._tcp', '_workstation._tcp'];
+    const serviceTypes = <String>[
+      '_http._tcp',
+      '_https._tcp',
+      '_workstation._tcp',
+      '_ipp._tcp',
+      '_printer._tcp',
+      '_smb._tcp',
+      '_ssh._tcp',
+      '_googlecast._tcp',
+      '_airplay._tcp',
+      '_hap._tcp',
+      '_matter._tcp',
+    ];
     for (final type in serviceTypes) {
       BonsoirDiscovery? discovery;
       try {
