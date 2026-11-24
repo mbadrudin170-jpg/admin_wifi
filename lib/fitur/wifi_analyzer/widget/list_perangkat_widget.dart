@@ -110,6 +110,19 @@ class ListPerangkatWidget extends ConsumerWidget {
                     : null,
               ),
             ),
+            Text(
+              'MAC: ${p.macAddress ?? 'Tidak tersedia'}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Text(
+              'Tipe: ${p.tipePerangkat ?? 'Unknown'}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (p.layanan != null)
+              Text(
+                'Layanan: ${p.layanan}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ),
       ),

@@ -10,6 +10,10 @@ abstract class PerangkatWifiModel with _$PerangkatWifiModel {
     required String ip,
     String? nama,
     String? vendor,
+    String? macAddress,
+    String? tipePerangkat,
+    String? layanan,
+    DateTime? terakhirDilihat,
     int? latencyMs,
     String? sumberDiscovery,
   }) = _PerangkatWifiModel;

@@ -1,7 +1,6 @@
 // path: lib/fitur/wifi_analyzer/notifier/perangkat_wifi_notifier.dart
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
@@ -121,13 +120,10 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                 if (!ref.mounted) return;
                 final nama = await host.deviceName;
                 final vendorMac = (await host.vendor)?.vendorName;
-                var vendor = (vendorMac == null || vendorMac.isEmpty)
+                final vendor = (vendorMac == null || vendorMac.isEmpty)
                     ? null
                     : vendorMac;
-                // Fallback dinamis: coba baca header Server perangkat via HTTP.
-                if (vendor == null) {
-                  vendor = await _probeManufakturHttp(host.address);
-                }
+                final macAddress = await host.getMacAddress();
                 final latency = host.responseTime?.inMilliseconds;
                 final model = PerangkatWifiModel(
                   ip: host.address,
@@ -135,6 +131,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                       ? null
                       : nama,
                   vendor: vendor,
+                  macAddress: macAddress,
+                  tipePerangkat: 'Unknown',
+                  terakhirDilihat: DateTime.now(),
                   latencyMs: latency,
                   sumberDiscovery: 'icmp',
                 );
@@ -290,9 +289,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     return ids;
   }
 
-  Future<Map<String, ({String? nama, String? vendor})>>
+  Future<Map<String, ({String? nama, String? vendor, String? layanan})>>
   _jalankanServiceDiscovery() async {
-    final hasil = <String, ({String? nama, String? vendor})>{};
+    final hasil = <String, ({String? nama, String? vendor, String? layanan})>{};
     if (kIsWeb) return hasil;
     const serviceTypes = <String>[
       '_http._tcp',
@@ -334,9 +333,10 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                     hasil[addr] = (
                       nama: (nama.isEmpty) ? null : nama,
                       vendor: null,
-                    );
-                  }
-                  break;
+                       layanan: service.type,
+                     );
+                   }
+                   break;
                 default:
                   break;
               }
@@ -361,7 +361,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   }
 
   void _gabungkanServiceData(
-    Map<String, ({String? nama, String? vendor})> serviceData,
+    Map<String, ({String? nama, String? vendor, String? layanan})> serviceData,
   ) {
     final updated = state.perangkat.map((p) {
       final info = serviceData[p.ip];
@@ -369,6 +369,8 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       return p.copyWith(
         nama: p.nama ?? info.nama,
         vendor: p.vendor ?? info.vendor,
+        layanan: p.layanan ?? info.layanan,
+        terakhirDilihat: DateTime.now(),
         sumberDiscovery: p.sumberDiscovery == null
             ? 'gabungan'
             : '${p.sumberDiscovery}+bonsoir',
@@ -383,6 +385,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
           ip: entry.key,
           nama: info.nama,
           vendor: info.vendor,
+          layanan: info.layanan,
+          tipePerangkat: 'Unknown',
+          terakhirDilihat: DateTime.now(),
           sumberDiscovery: 'bonsoir',
         ),
       );
@@ -392,25 +397,4 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     state = state.copyWith(perangkat: updated);
   }
 
-  Future<String?> _probeManufakturHttp(String ip) async {
-    try {
-      final client = HttpClient();
-      client.connectionTimeout = const Duration(seconds: 1);
-      final request = await client
-          .getUrl(Uri.parse('http://$ip/'))
-          .timeout(const Duration(seconds: 1));
-      final response = await request.close().timeout(
-        const Duration(seconds: 1),
-      );
-      final server = response.headers.value('server');
-      await response.drain<void>();
-      client.close();
-      if (server != null && server.trim().isNotEmpty) {
-        return server.trim();
-      }
-    } catch (_) {
-      // Perangkat mungkin tidak membuka HTTP atau menolak koneksi.
-    }
-    return null;
-  }
 }

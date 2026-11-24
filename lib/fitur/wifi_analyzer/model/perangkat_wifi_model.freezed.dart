@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PerangkatWifiModel {
 
- String get ip; String? get nama; String? get vendor; int? get latencyMs; String? get sumberDiscovery;
+ String get ip; String? get nama; String? get vendor; String? get macAddress; String? get tipePerangkat; String? get layanan; DateTime? get terakhirDilihat; int? get latencyMs; String? get sumberDiscovery;
 /// Create a copy of PerangkatWifiModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $PerangkatWifiModelCopyWith<PerangkatWifiModel> get copyWith => _$PerangkatWifiM
 @override
 bool operator ==(Object other) {
   final _this = this as PerangkatWifiModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PerangkatWifiModel&&(identical(other.ip, _this.ip) || other.ip == _this.ip)&&(identical(other.nama, _this.nama) || other.nama == _this.nama)&&(identical(other.vendor, _this.vendor) || other.vendor == _this.vendor)&&(identical(other.latencyMs, _this.latencyMs) || other.latencyMs == _this.latencyMs)&&(identical(other.sumberDiscovery, _this.sumberDiscovery) || other.sumberDiscovery == _this.sumberDiscovery));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PerangkatWifiModel&&(identical(other.ip, _this.ip) || other.ip == _this.ip)&&(identical(other.nama, _this.nama) || other.nama == _this.nama)&&(identical(other.vendor, _this.vendor) || other.vendor == _this.vendor)&&(identical(other.macAddress, _this.macAddress) || other.macAddress == _this.macAddress)&&(identical(other.tipePerangkat, _this.tipePerangkat) || other.tipePerangkat == _this.tipePerangkat)&&(identical(other.layanan, _this.layanan) || other.layanan == _this.layanan)&&(identical(other.terakhirDilihat, _this.terakhirDilihat) || other.terakhirDilihat == _this.terakhirDilihat)&&(identical(other.latencyMs, _this.latencyMs) || other.latencyMs == _this.latencyMs)&&(identical(other.sumberDiscovery, _this.sumberDiscovery) || other.sumberDiscovery == _this.sumberDiscovery));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PerangkatWifiModel;
-  return Object.hash(runtimeType,_this.ip,_this.nama,_this.vendor,_this.latencyMs,_this.sumberDiscovery);
+  return Object.hash(runtimeType,_this.ip,_this.nama,_this.vendor,_this.macAddress,_this.tipePerangkat,_this.layanan,_this.terakhirDilihat,_this.latencyMs,_this.sumberDiscovery);
 }
 
 @override
 String toString() {
   final _this = this as PerangkatWifiModel;
-  return 'PerangkatWifiModel(ip: ${_this.ip}, nama: ${_this.nama}, vendor: ${_this.vendor}, latencyMs: ${_this.latencyMs}, sumberDiscovery: ${_this.sumberDiscovery})';
+  return 'PerangkatWifiModel(ip: ${_this.ip}, nama: ${_this.nama}, vendor: ${_this.vendor}, macAddress: ${_this.macAddress}, tipePerangkat: ${_this.tipePerangkat}, layanan: ${_this.layanan}, terakhirDilihat: ${_this.terakhirDilihat}, latencyMs: ${_this.latencyMs}, sumberDiscovery: ${_this.sumberDiscovery})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $PerangkatWifiModelCopyWith<$Res>  {
   factory $PerangkatWifiModelCopyWith(PerangkatWifiModel value, $Res Function(PerangkatWifiModel) _then) = _$PerangkatWifiModelCopyWithImpl;
 @useResult
 $Res call({
- String ip, String? nama, String? vendor, int? latencyMs, String? sumberDiscovery
+ String ip, String? nama, String? vendor, String? macAddress, String? tipePerangkat, String? layanan, DateTime? terakhirDilihat, int? latencyMs, String? sumberDiscovery
 });
 
 
@@ -68,12 +68,16 @@ class _$PerangkatWifiModelCopyWithImpl<$Res>
 
 /// Create a copy of PerangkatWifiModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? ip = null,Object? nama = freezed,Object? vendor = freezed,Object? latencyMs = freezed,Object? sumberDiscovery = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? ip = null,Object? nama = freezed,Object? vendor = freezed,Object? macAddress = freezed,Object? tipePerangkat = freezed,Object? layanan = freezed,Object? terakhirDilihat = freezed,Object? latencyMs = freezed,Object? sumberDiscovery = freezed,}) {
   return _then(PerangkatWifiModel(
 ip: null == ip ? _self.ip : ip // ignore: cast_nullable_to_non_nullable
 as String,nama: freezed == nama ? _self.nama : nama // ignore: cast_nullable_to_non_nullable
 as String?,vendor: freezed == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
-as String?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // ignore: cast_nullable_to_non_nullable
+as String?,macAddress: freezed == macAddress ? _self.macAddress : macAddress // ignore: cast_nullable_to_non_nullable
+as String?,tipePerangkat: freezed == tipePerangkat ? _self.tipePerangkat : tipePerangkat // ignore: cast_nullable_to_non_nullable
+as String?,layanan: freezed == layanan ? _self.layanan : layanan // ignore: cast_nullable_to_non_nullable
+as String?,terakhirDilihat: freezed == terakhirDilihat ? _self.terakhirDilihat : terakhirDilihat // ignore: cast_nullable_to_non_nullable
+as DateTime?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // ignore: cast_nullable_to_non_nullable
 as int?,sumberDiscovery: freezed == sumberDiscovery ? _self.sumberDiscovery : sumberDiscovery // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -160,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ip,  String? nama,  String? vendor,  int? latencyMs,  String? sumberDiscovery)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ip,  String? nama,  String? vendor,  String? macAddress,  String? tipePerangkat,  String? layanan,  DateTime? terakhirDilihat,  int? latencyMs,  String? sumberDiscovery)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PerangkatWifiModel() when $default != null:
-return $default(_that.ip,_that.nama,_that.vendor,_that.latencyMs,_that.sumberDiscovery);case _:
+return $default(_that.ip,_that.nama,_that.vendor,_that.macAddress,_that.tipePerangkat,_that.layanan,_that.terakhirDilihat,_that.latencyMs,_that.sumberDiscovery);case _:
   return orElse();
 
 }
@@ -181,10 +185,10 @@ return $default(_that.ip,_that.nama,_that.vendor,_that.latencyMs,_that.sumberDis
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ip,  String? nama,  String? vendor,  int? latencyMs,  String? sumberDiscovery)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ip,  String? nama,  String? vendor,  String? macAddress,  String? tipePerangkat,  String? layanan,  DateTime? terakhirDilihat,  int? latencyMs,  String? sumberDiscovery)  $default,) {final _that = this;
 switch (_that) {
 case _PerangkatWifiModel():
-return $default(_that.ip,_that.nama,_that.vendor,_that.latencyMs,_that.sumberDiscovery);case _:
+return $default(_that.ip,_that.nama,_that.vendor,_that.macAddress,_that.tipePerangkat,_that.layanan,_that.terakhirDilihat,_that.latencyMs,_that.sumberDiscovery);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +205,10 @@ return $default(_that.ip,_that.nama,_that.vendor,_that.latencyMs,_that.sumberDis
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ip,  String? nama,  String? vendor,  int? latencyMs,  String? sumberDiscovery)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ip,  String? nama,  String? vendor,  String? macAddress,  String? tipePerangkat,  String? layanan,  DateTime? terakhirDilihat,  int? latencyMs,  String? sumberDiscovery)?  $default,) {final _that = this;
 switch (_that) {
 case _PerangkatWifiModel() when $default != null:
-return $default(_that.ip,_that.nama,_that.vendor,_that.latencyMs,_that.sumberDiscovery);case _:
+return $default(_that.ip,_that.nama,_that.vendor,_that.macAddress,_that.tipePerangkat,_that.layanan,_that.terakhirDilihat,_that.latencyMs,_that.sumberDiscovery);case _:
   return null;
 
 }
@@ -216,12 +220,16 @@ return $default(_that.ip,_that.nama,_that.vendor,_that.latencyMs,_that.sumberDis
 
 
 class _PerangkatWifiModel implements PerangkatWifiModel {
-  const _PerangkatWifiModel({required this.ip, this.nama, this.vendor, this.latencyMs, this.sumberDiscovery});
+  const _PerangkatWifiModel({required this.ip, this.nama, this.vendor, this.macAddress, this.tipePerangkat, this.layanan, this.terakhirDilihat, this.latencyMs, this.sumberDiscovery});
   
 
 @override final  String ip;
 @override final  String? nama;
 @override final  String? vendor;
+@override final  String? macAddress;
+@override final  String? tipePerangkat;
+@override final  String? layanan;
+@override final  DateTime? terakhirDilihat;
 @override final  int? latencyMs;
 @override final  String? sumberDiscovery;
 
@@ -235,18 +243,18 @@ _$PerangkatWifiModelCopyWith<_PerangkatWifiModel> get copyWith => __$PerangkatWi
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PerangkatWifiModel&&(identical(other.ip, ip) || other.ip == ip)&&(identical(other.nama, nama) || other.nama == nama)&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.latencyMs, latencyMs) || other.latencyMs == latencyMs)&&(identical(other.sumberDiscovery, sumberDiscovery) || other.sumberDiscovery == sumberDiscovery));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PerangkatWifiModel&&(identical(other.ip, ip) || other.ip == ip)&&(identical(other.nama, nama) || other.nama == nama)&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.macAddress, macAddress) || other.macAddress == macAddress)&&(identical(other.tipePerangkat, tipePerangkat) || other.tipePerangkat == tipePerangkat)&&(identical(other.layanan, layanan) || other.layanan == layanan)&&(identical(other.terakhirDilihat, terakhirDilihat) || other.terakhirDilihat == terakhirDilihat)&&(identical(other.latencyMs, latencyMs) || other.latencyMs == latencyMs)&&(identical(other.sumberDiscovery, sumberDiscovery) || other.sumberDiscovery == sumberDiscovery));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,ip,nama,vendor,latencyMs,sumberDiscovery);
+    return Object.hash(runtimeType,ip,nama,vendor,macAddress,tipePerangkat,layanan,terakhirDilihat,latencyMs,sumberDiscovery);
 }
 
 @override
 String toString() {
-    return 'PerangkatWifiModel(ip: $ip, nama: $nama, vendor: $vendor, latencyMs: $latencyMs, sumberDiscovery: $sumberDiscovery)';
+    return 'PerangkatWifiModel(ip: $ip, nama: $nama, vendor: $vendor, macAddress: $macAddress, tipePerangkat: $tipePerangkat, layanan: $layanan, terakhirDilihat: $terakhirDilihat, latencyMs: $latencyMs, sumberDiscovery: $sumberDiscovery)';
 }
 
 
@@ -257,7 +265,7 @@ abstract mixin class _$PerangkatWifiModelCopyWith<$Res> implements $PerangkatWif
   factory _$PerangkatWifiModelCopyWith(_PerangkatWifiModel value, $Res Function(_PerangkatWifiModel) _then) = __$PerangkatWifiModelCopyWithImpl;
 @override @useResult
 $Res call({
- String ip, String? nama, String? vendor, int? latencyMs, String? sumberDiscovery
+ String ip, String? nama, String? vendor, String? macAddress, String? tipePerangkat, String? layanan, DateTime? terakhirDilihat, int? latencyMs, String? sumberDiscovery
 });
 
 
@@ -274,12 +282,16 @@ class __$PerangkatWifiModelCopyWithImpl<$Res>
 
 /// Create a copy of PerangkatWifiModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? ip = null,Object? nama = freezed,Object? vendor = freezed,Object? latencyMs = freezed,Object? sumberDiscovery = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? ip = null,Object? nama = freezed,Object? vendor = freezed,Object? macAddress = freezed,Object? tipePerangkat = freezed,Object? layanan = freezed,Object? terakhirDilihat = freezed,Object? latencyMs = freezed,Object? sumberDiscovery = freezed,}) {
   return _then(_PerangkatWifiModel(
 ip: null == ip ? _self.ip : ip // ignore: cast_nullable_to_non_nullable
 as String,nama: freezed == nama ? _self.nama : nama // ignore: cast_nullable_to_non_nullable
 as String?,vendor: freezed == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
-as String?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // ignore: cast_nullable_to_non_nullable
+as String?,macAddress: freezed == macAddress ? _self.macAddress : macAddress // ignore: cast_nullable_to_non_nullable
+as String?,tipePerangkat: freezed == tipePerangkat ? _self.tipePerangkat : tipePerangkat // ignore: cast_nullable_to_non_nullable
+as String?,layanan: freezed == layanan ? _self.layanan : layanan // ignore: cast_nullable_to_non_nullable
+as String?,terakhirDilihat: freezed == terakhirDilihat ? _self.terakhirDilihat : terakhirDilihat // ignore: cast_nullable_to_non_nullable
+as DateTime?,latencyMs: freezed == latencyMs ? _self.latencyMs : latencyMs // ignore: cast_nullable_to_non_nullable
 as int?,sumberDiscovery: freezed == sumberDiscovery ? _self.sumberDiscovery : sumberDiscovery // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
