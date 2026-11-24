@@ -84,7 +84,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       }
       final ipBersih = ip.trim();
 
-      final submask = await _infoJaringan.getWifiSubmask();
+      String? submask;
+      try {
+        submask = await _infoJaringan.getWifiSubmask();
+      } catch (e, s) {
+        L.w('Gagal baca subnet mask: $e $s');
+        submask = null;
+      }
 
       final subnet = _deriveSubnet(ipBersih, submask);
       if (subnet == null) {
@@ -106,64 +112,67 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       final ditemukan = <String, PerangkatWifiModel>{};
 
       if (hostIds.isNotEmpty) {
-        _subscription = HostScannerService.instance
-            .getAllPingableDevicesAsync(
-              subnet,
-              hostIds: hostIds,
-              progressCallback: (progress) {
-                if (!ref.mounted) return;
-                state = state.copyWith(progress: progress.round());
-              },
-            )
-            .listen(
-              (host) async {
-                if (!ref.mounted) return;
-                final nama = await host.deviceName;
-                final vendorMac = (await host.vendor)?.vendorName;
-                final vendor = (vendorMac == null || vendorMac.isEmpty)
-                    ? null
-                    : vendorMac;
-                final macAddress = await host.getMacAddress();
-                final latency = host.responseTime?.inMilliseconds;
-                final model = PerangkatWifiModel(
-                  ip: host.address,
-                  nama: (nama.isEmpty || nama == ActiveHost.generic)
+        try {
+          _subscription = HostScannerService.instance
+              .getAllPingableDevicesAsync(
+                subnet,
+                hostIds: hostIds,
+                progressCallback: (progress) {
+                  if (!ref.mounted) return;
+                  state = state.copyWith(progress: progress.round());
+                },
+              )
+              .listen(
+                (host) async {
+                  if (!ref.mounted) return;
+                  final nama = await host.deviceName;
+                  final vendorMac = (await host.vendor)?.vendorName;
+                  final vendor = (vendorMac == null || vendorMac.isEmpty)
                       ? null
-                      : nama,
-                  vendor: vendor,
-                  macAddress: macAddress,
-                  tipePerangkat: 'Unknown',
-                  terakhirDilihat: DateTime.now(),
-                  latencyMs: latency,
-                  sumberDiscovery: 'icmp',
-                );
-                ditemukan[host.address] = model;
-                L.i(
-                  'host ditemukan: ${host.address} nama=$nama vendor=$vendor latency=$latency',
-                );
-                if (!ref.mounted) return;
-                final list = ditemukan.values.toList()
-                  ..sort((a, b) => a.ip.compareTo(b.ip));
-                state = state.copyWith(perangkat: list);
-              },
-              onError: (Object e, StackTrace s) {
-                L.e('Gagal memindai perangkat: $e $s');
-                if (!ref.mounted) return;
-                state = state.copyWith(error: 'Gagal memindai: $e');
-              },
-              onDone: () {
-                if (!ref.mounted) return;
-                state = state.copyWith(progress: 100);
-              },
-            );
+                      : vendorMac;
+                  final macAddress = await host.getMacAddress();
+                  final latency = host.responseTime?.inMilliseconds;
+                  final model = PerangkatWifiModel(
+                    ip: host.address,
+                    nama: (nama.isEmpty || nama == ActiveHost.generic)
+                        ? null
+                        : nama,
+                    vendor: vendor,
+                    macAddress: macAddress,
+                    tipePerangkat: 'Unknown',
+                    terakhirDilihat: DateTime.now(),
+                    latencyMs: latency,
+                    sumberDiscovery: 'icmp',
+                  );
+                  ditemukan[host.address] = model;
+                  L.i(
+                    'host ditemukan: ${host.address} nama=$nama vendor=$vendor latency=$latency',
+                  );
+                  if (!ref.mounted) return;
+                  final list = ditemukan.values.toList()
+                    ..sort((a, b) => a.ip.compareTo(b.ip));
+                  state = state.copyWith(perangkat: list);
+                },
+                onError: (Object e, StackTrace s) {
+                  L.e('Gagal memindai perangkat: $e $s');
+                  if (!ref.mounted) return;
+                  state = state.copyWith(error: 'Gagal memindai: $e');
+                },
+                onDone: () {
+                  if (!ref.mounted) return;
+                  state = state.copyWith(progress: 100);
+                },
+              );
 
-        // Tunggu hingga stream selesai.
-        await _subscription!.asFuture<void>().catchError((
-          Object e,
-          StackTrace s,
-        ) {
-          L.e('Stream scan perangkat error: $e $s');
-        });
+          await _subscription!.asFuture<void>().catchError((
+            Object e,
+            StackTrace s,
+          ) {
+            L.e('Stream scan perangkat error: $e $s');
+          });
+        } catch (e, s) {
+          L.w('HostScannerService belum siap atau gagal: $e $s');
+        }
       } else {
         L.w('Tidak ada host id valid untuk subnet $subnet; lewati ICMP scan.');
       }
