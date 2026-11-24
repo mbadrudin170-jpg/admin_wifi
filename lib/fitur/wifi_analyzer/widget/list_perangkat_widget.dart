@@ -97,11 +97,6 @@ class ListPerangkatWidget extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-            if (p.mac != null)
-              Text(
-                'MAC: ${p.mac}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
             if (p.vendor != null)
               Text(
                 'Vendor: ${p.vendor}',

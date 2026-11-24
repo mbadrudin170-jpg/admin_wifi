@@ -19,6 +19,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
 
   StreamSubscription<ActiveHost>? _subscription;
   Timer? _timerPemindaian;
+  bool _sedangScan = false;
 
   @override
   PerangkatWifiState build() {
@@ -40,7 +41,12 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     // Auto-refresh tiap 30 detik.
     _timerPemindaian = Timer.periodic(const Duration(seconds: 30), (_) {
       if (ref.mounted) {
-        unawaited(_pindai());
+        unawaited(
+          _pindai().catchError((Object e, StackTrace s) {
+            L.e('Gagal auto-refresh perangkat: $e $s');
+            return null;
+          }),
+        );
       }
     });
 
@@ -55,6 +61,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       );
       return;
     }
+
+    if (_sedangScan) return;
+    _sedangScan = true;
 
     await _subscription?.cancel();
     _subscription = null;
@@ -103,7 +112,6 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
             (host) async {
               if (!ref.mounted) return;
               final nama = await host.deviceName;
-              final mac = await host.getMacAddress();
               final vendor = (await host.vendor)?.vendorName;
               final latency = host.responseTime?.inMilliseconds;
               final model = PerangkatWifiModel(
@@ -111,7 +119,6 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
                 nama: (nama.isEmpty || nama == ActiveHost.generic)
                     ? null
                     : nama,
-                mac: (mac == null || mac.isEmpty) ? null : mac,
                 vendor: (vendor == null || vendor.isEmpty) ? null : vendor,
                 latencyMs: latency,
               );
@@ -154,6 +161,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
         );
       }
     } finally {
+      _sedangScan = false;
       if (ref.mounted) {
         state = state.copyWith(isLoading: false, progress: 100);
       }
@@ -163,6 +171,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   Future<void> batalkan() async {
     await _subscription?.cancel();
     _subscription = null;
+    _sedangScan = false;
     state = state.copyWith(isLoading: false);
   }
 
@@ -210,9 +219,9 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
     return null;
   }
 
-  Future<Map<String, ({String? nama, String? mac, String? vendor})>>
+  Future<Map<String, ({String? nama, String? vendor})>>
   _jalankanServiceDiscovery() async {
-    final hasil = <String, ({String? nama, String? mac, String? vendor})>{};
+    final hasil = <String, ({String? nama, String? vendor})>{};
     if (kIsWeb) return hasil;
     try {
       final discovery = FlutterLocalDeviceDiscovery();
@@ -245,14 +254,12 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
           nama = device.identity.manufacturer;
         }
         final vendor = device.vendor?.name ?? device.identity.manufacturer;
-        final mac = device.identity.macAddress;
 
         for (final addr in device.addresses) {
           final ip = addr.address;
           if (ip.isEmpty) continue;
           hasil[ip] = (
             nama: (nama == null || nama.isEmpty) ? null : nama,
-            mac: (mac == null || mac.isEmpty) ? null : mac,
             vendor: (vendor == null || vendor.isEmpty) ? null : vendor,
           );
         }
@@ -264,14 +271,13 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   }
 
   void _gabungkanServiceData(
-    Map<String, ({String? nama, String? mac, String? vendor})> serviceData,
+    Map<String, ({String? nama, String? vendor})> serviceData,
   ) {
     final updated = state.perangkat.map((p) {
       final info = serviceData[p.ip];
       if (info == null) return p;
       return p.copyWith(
         nama: p.nama ?? info.nama,
-        mac: p.mac ?? info.mac,
         vendor: p.vendor ?? info.vendor,
       );
     }).toList();
@@ -280,12 +286,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
       if (updated.any((p) => p.ip == entry.key)) continue;
       final info = entry.value;
       updated.add(
-        PerangkatWifiModel(
-          ip: entry.key,
-          nama: info.nama,
-          mac: info.mac,
-          vendor: info.vendor,
-        ),
+        PerangkatWifiModel(ip: entry.key, nama: info.nama, vendor: info.vendor),
       );
     }
 

@@ -9,7 +9,6 @@ abstract class PerangkatWifiModel with _$PerangkatWifiModel {
   const factory PerangkatWifiModel({
     required String ip,
     String? nama,
-    String? mac,
     String? vendor,
     int? latencyMs,
   }) = _PerangkatWifiModel;

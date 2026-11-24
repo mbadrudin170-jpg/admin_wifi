@@ -15,7 +15,7 @@ Aplikasi Flutter untuk mengelola pelanggan WiFi: aktivasi dan pemantauan paket l
 - **Aktif** — daftar pelanggan aktif (paket, sisa masa aktif, batas berakhir, status pembayaran). Mendukung pencarian, pengurutan (tanggal berakhir/mulai/diperbarui, nama A–Z/Z–A, status pembayaran lunas/belum lunas, paket aktif/tidak aktif), buka detail, tambah, arsip (satuan, semua, atau khusus yang kedaluwarsa). Sumber data: `penggunaAktifProvider` (Riverpod codegen) dengan satu sumber kebenaran dari SQLite.
 - **Dompet** — daftar dompet, ringkasan saldo/pemasukan/pengeluaran, detail dompet beserta riwayat transaksi per dompet.
 - **Transaksi** — daftar transaksi pemasukan/pengeluaran, detail transaksi (termasuk relasi dompet, kategori, dan pelanggan).
-- **WiFi** — analisis jaringan WiFi: informasi jaringan terhubung (SSID, BSSID, IP, band, frekuensi, channel, sinyal), ping router (ICMP dengan fallback TCP), daftar access point di sekitar (SSID, BSSID, band, frekuensi, channel, sinyal), serta daftar perangkat terhubung ke WiFi yang sama (IP, nama, MAC, vendor, latensi) dengan pemindaian otomatis dan auto-refresh berkala.
+- **WiFi** — analisis jaringan WiFi: informasi jaringan terhubung (SSID, BSSID, IP, band, frekuensi, channel, sinyal), ping router (ICMP dengan fallback TCP), daftar access point di sekitar (SSID, BSSID, band, frekuensi, channel, sinyal), serta daftar perangkat terhubung ke WiFi yang sama (IP, nama, vendor, latensi) dengan pemindaian otomatis dan auto-refresh berkala.
 - **Lainnya** — pintu masuk ke semua pengaturan dan menu sekunder:
   - Daftar Pesanan (filter status, ubah status, hapus pesanan).
   - Kelola Kategori (termasuk sub-kategori).
