@@ -4,14 +4,11 @@ import 'dart:async';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
-import 'package:share_global_saya/src/widget/toast_widget.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 class DetailKritikSaranPage extends ConsumerStatefulWidget {
   final String id;
@@ -180,7 +177,7 @@ class _DetailKritikSaranPageState extends ConsumerState<DetailKritikSaranPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    FormatTanggal.formatTanggalDanJam(kritikSaran.tanggal),
+                    FormatTanggal.formatDasar(kritikSaran.tanggal),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],

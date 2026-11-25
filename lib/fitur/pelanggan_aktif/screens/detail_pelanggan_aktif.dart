@@ -8,14 +8,13 @@ import 'package:admin_wifi/fitur/pelanggan/screens/detail_pelanggan.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/screens/form_pelanggan_aktif.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/utils/perhitungan_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart'
-    hide FormatTanggal, FormatJam;
+   ;
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPelangganAktif extends ConsumerStatefulWidget {
@@ -238,11 +237,11 @@ class _DetailPelangganAktifState extends ConsumerState<DetailPelangganAktif> {
                         ),
                       _buildInfoRow(
                         'Mulai',
-                        '${FormatTanggal.formatTanggalRingkas(pelangganAktifTerkini.tanggalMulai)} - ${FormatJam.formatJamMenit(pelangganAktifTerkini.tanggalMulai)}',
+                        '${FormatTanggal.formatDasar(pelangganAktifTerkini.tanggalMulai)} - ${FormatJam.formatJamMenit(pelangganAktifTerkini.tanggalMulai)}',
                       ),
                       _buildInfoRow(
                         'Berakhir',
-                        '${FormatTanggal.formatTanggalRingkas(pelangganAktifTerkini.tanggalBerakhir)} - ${FormatJam.formatJamMenit(pelangganAktifTerkini.tanggalBerakhir)}',
+                        '${FormatTanggal.formatDasar(pelangganAktifTerkini.tanggalBerakhir)} - ${FormatJam.formatJamMenit(pelangganAktifTerkini.tanggalBerakhir)}',
                       ),
                       const Divider(),
                       const SizedBox(height: 16),

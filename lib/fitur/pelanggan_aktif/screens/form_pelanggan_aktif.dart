@@ -14,13 +14,12 @@ import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dar
 import 'package:admin_wifi/fitur/pelanggan_aktif/notifer/pengguna_aktif_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/whatsapp/info_paket.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/core_shared.dart' hide FormatTanggal;
+import 'package:share_global_saya/core_shared.dart';
 import 'package:uuid/uuid.dart';
 
 DateTime hitungTanggalBerakhir(DateTime startDate, PaketModel paket) {
@@ -632,7 +631,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
               label: Text(
                 _selectedDate == null
                     ? 'Pilih Tanggal'
-                    : FormatTanggal.formatTanggalBasic(_selectedDate!),
+                    : FormatTanggal.formatSingkat(_selectedDate!),
               ),
             ),
             TextButton.icon(
@@ -707,7 +706,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
             Text(
               (_selectedDate == null || _selectedTime == null)
                   ? 'Pilih Tanggal & Jam'
-                  : FormatTanggal.formatTanggalDanJam(
+                  : FormatTanggal.formatDasar(
                       DateTime(
                         _selectedDate!.year,
                         _selectedDate!.month,
@@ -741,7 +740,7 @@ class _FormPelangganAktifState extends ConsumerState<FormPelangganAktif> {
                   startDate,
                   _selectedPaket!,
                 );
-                return FormatTanggal.formatTanggalDanJam(endDate);
+                return FormatTanggal.formatDasar(endDate);
               } else {
                 return 'Pilih paket & tanggal mulai';
               }

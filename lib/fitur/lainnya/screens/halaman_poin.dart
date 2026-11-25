@@ -4,12 +4,10 @@ import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 // Enum untuk mengontrol tab yang aktif
 enum MenuPoin { penukaran, riwayat }
@@ -370,7 +368,7 @@ class _HalamanPoinState extends ConsumerState<HalamanPoin> {
             ),
             title: Text(transaksi.keterangan),
             subtitle: Text(
-              FormatTanggal.formatTanggalBasic(transaksi.tanggal),
+              FormatTanggal.formatDasar(transaksi.tanggal),
               style: const TextStyle(fontSize: 12),
             ),
             trailing: Text(

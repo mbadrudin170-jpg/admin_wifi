@@ -2,6 +2,7 @@ import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/voucher/notifier/voucher_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 class DetailVoucherScreen extends ConsumerWidget {
   final String id;
@@ -18,8 +19,17 @@ class DetailVoucherScreen extends ConsumerWidget {
     if (item == null) return SizedBox();
     final paket = paketState.getById(item.idPaket);
     return Scaffold(
-      appBar: AppBar(title: const Text('data')),
-      body: Card(child: _buildItemCustom('voucher', item.voucher)),
+      appBar: AppBar(title: const Text('Detail voucher')),
+      body: Card(
+        child: Column(
+          children: [
+            _buildItemCustom('voucher', item.voucher),
+            _buildItemCustom('paket', paket?.nama ?? 'Paket tidak ditemukan'),
+            _buildItemCustom('tanggal dibuat', FormatTanggal),
+
+          ],
+        ),
+      ),
     );
   }
 

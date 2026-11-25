@@ -8,12 +8,11 @@ import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:admin_wifi/fitur/kritik_saran/model/kritik_saran_model.dart';
 import 'package:admin_wifi/fitur/kritik_saran/notifier/kritik_saran_notifier.dart';
 import 'package:admin_wifi/fitur/kritik_saran/screens/detail_kritik_saran.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/core_shared.dart' hide FormatTanggal;
+import 'package:share_global_saya/core_shared.dart';
 
 class KritikSaranPage extends ConsumerStatefulWidget {
   const KritikSaranPage({super.key});
@@ -157,7 +156,7 @@ class _KritikSaranPageState extends ConsumerState<KritikSaranPage> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        FormatTanggal.formatTanggalDanJam(item.tanggal),
+                        FormatTanggal.formatDasar(item.tanggal),
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
