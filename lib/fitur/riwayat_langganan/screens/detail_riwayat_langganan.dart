@@ -6,10 +6,9 @@ import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 class DetailLanggananTransaksiPage extends ConsumerStatefulWidget {
   final String idTransaksi;
@@ -95,7 +94,7 @@ class _DetailLanggananTransaksiPageState
                 ),
                 _buildDetailRow(
                   'Harga',
-                  FormatUang.formatMataUang(
+                  FormatUang.formatRupiah(
                     ref
                             .watch(paketProvider)
                             .value
@@ -118,11 +117,11 @@ class _DetailLanggananTransaksiPageState
               _buildInfoCard('Waktu Langganan', [
                 _buildDetailRow(
                   'Tanggal Mulai',
-                  FormatTanggal.formatTanggalDanJam(transaksi.tanggalMulai!),
+                  FormatTanggal.formatDasar(transaksi.tanggalMulai!),
                 ),
                 _buildDetailRow(
                   'Tanggal Berakhir',
-                  FormatTanggal.formatTanggalDanJam(transaksi.tanggalBerakhir!),
+                  FormatTanggal.formatDasar(transaksi.tanggalBerakhir!),
                 ),
               ]),
             const SizedBox(height: 16),

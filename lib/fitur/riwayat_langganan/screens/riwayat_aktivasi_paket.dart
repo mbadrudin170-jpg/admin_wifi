@@ -4,13 +4,11 @@ import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/enum/status_pembayaran_enum.dart';
 import 'package:admin_wifi/fitur/riwayat_langganan/screens/detail_riwayat_langganan.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:admin_wifi/widget/nama_paket.dart';
 import 'package:admin_wifi/widget/nama_pelanggan.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_global_saya/src/utils/l.dart';
-import 'package:share_global_saya/src/utils/navigator_helper.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 enum OpsiUrutkan { berakhirHariIni, terbaru, terlama, lunas, belumLunas }
 
@@ -96,7 +94,7 @@ class _RiwayatAktivasiPaketPageState
       case OpsiUrutkan.berakhirHariIni:
         comparator = (a, b) {
           final sekarang = DateTime.now();
-          final tanggalSekarangStr = FormatTanggal.formatTanggalBasic(sekarang);
+          final tanggalSekarangStr = FormatTanggal.formatDasar(sekarang);
 
           bool isHariIni(DateTime? tanggal) {
             if (tanggal == null) return false;
@@ -122,7 +120,7 @@ class _RiwayatAktivasiPaketPageState
           return result;
         };
         L.i(
-          'Pengurutan: Berakhir Hari Ini (${FormatTanggal.formatTanggalBasic(DateTime.now())}) di atas',
+          'Pengurutan: Berakhir Hari Ini (${FormatTanggal.formatSingkat(DateTime.now())}) di atas',
         );
         break;
     }
@@ -134,7 +132,7 @@ class _RiwayatAktivasiPaketPageState
     for (int i = 0; i < (list.length < 5 ? list.length : 5); i++) {
       final t = list[i];
       L.i(
-        '  ${i + 1}. ID: ${t.id} - Status: ${t.statusPembayaran.name} - Berakhir: ${t.tanggalBerakhir != null ? FormatTanggal.formatTanggalBasic(t.tanggalBerakhir!) : "N/A"}',
+        '  ${i + 1}. ID: ${t.id} - Status: ${t.statusPembayaran.name} - Berakhir: ${t.tanggalBerakhir != null ? FormatTanggal.formatSingkat(t.tanggalBerakhir!) : "N/A"}',
       );
     }
 
@@ -294,7 +292,7 @@ class _RiwayatAktivasiPaketPageState
                         if (transaksi.tanggalMulai != null &&
                             transaksi.tanggalBerakhir != null)
                           Text(
-                            'Aktif: ${FormatTanggal.formatTanggalBasic(transaksi.tanggalMulai!)} - ${FormatTanggal.formatTanggalBasic(transaksi.tanggalBerakhir!)}',
+                            'Aktif: ${FormatTanggal.formatSingkat(transaksi.tanggalMulai!)} - ${FormatTanggal.formatSingkat(transaksi.tanggalBerakhir!)}',
                           ),
                       ],
                     ),

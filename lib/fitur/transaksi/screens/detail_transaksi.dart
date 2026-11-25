@@ -9,11 +9,9 @@ import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_global_saya/core_shared.dart'
-    hide FormatTanggal, FormatUang;
+import 'package:share_global_saya/core_shared.dart';
 
 class DetailTransaksiPage extends ConsumerWidget {
   final TransaksiModel transaksi;
@@ -109,12 +107,12 @@ class DetailTransaksiPage extends ConsumerWidget {
             _buildDetailRow(
               context,
               'Tanggal',
-              FormatTanggal.formatTanggalDanJam(transaksi.tanggal),
+              FormatTanggal.formatDasar(transaksi.tanggal),
             ),
             _buildDetailRow(
               context,
               'Jumlah',
-              FormatUang.formatMataUang(transaksi.jumlah),
+              FormatUang.formatRupiah(transaksi.jumlah),
             ),
             _buildDetailRow(context, 'Tipe', transaksi.tipe.label),
             _buildDetailRowSync(
@@ -176,13 +174,13 @@ class DetailTransaksiPage extends ConsumerWidget {
               _buildDetailRow(
                 context,
                 'Masa Aktif Mulai',
-                FormatTanggal.formatTanggalDanJam(tanggalMulai),
+                FormatTanggal.formatDasar(tanggalMulai),
               ),
             if (tanggalBerakhir != null)
               _buildDetailRow(
                 context,
                 'Masa Aktif Berakhir',
-                FormatTanggal.formatTanggalDanJam(tanggalBerakhir),
+                FormatTanggal.formatDasar(tanggalBerakhir),
               ),
           ],
         ),
@@ -200,9 +198,8 @@ class DetailTransaksiPage extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           Flexible(child: Text(value, textAlign: TextAlign.end)),
         ],

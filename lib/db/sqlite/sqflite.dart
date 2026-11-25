@@ -1,5 +1,7 @@
 // path: lib/db/sqlite/sqflite.dart
 
+import 'package:sqflite/sqflite.dart';
+
 import 'dart:io' if (dart.library.js_interop) 'io_stub.dart';
 
 import 'package:admin_wifi/db/sqlite/oncreate_sqflite.dart';
@@ -59,7 +61,7 @@ class DatabaseHelper {
         );
       }
 
-      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      final documentsDirectory = await getApplicationDocumentsDirectory();
       String path = join(documentsDirectory.path, 'mydatabase.db');
       L.i('Path database: $path');
 

@@ -100,7 +100,7 @@ class PembersihanDataService {
            if (hasil > 0) {
              L.i('[$tabel] Dihapus $hasil baris yang diarsipkan lebih dari $batasHari hari.');
            }
-           totalTerhapus += hasil;
+            totalTerhapus += (hasil as num).toInt();
          } catch (e, s) {
            L.e('Gagal membersihkan tabel $tabel. Error: $e $s');
            continue;

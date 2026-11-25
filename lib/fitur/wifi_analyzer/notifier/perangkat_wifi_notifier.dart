@@ -2,12 +2,13 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' if (dart.library.js_interop) 'io_stub.dart';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
 import 'package:admin_wifi/fitur/wifi_analyzer/state/perangkat_wifi_state.dart';
 import 'package:bonsoir/bonsoir.dart';
-import 'package:dart_ping/dart_ping.dart';
+import 'package:dart_ping/dart_ping.dart'
+    if (dart.library.js_interop) 'ping_stub.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:network_tools/network_tools.dart';
@@ -576,6 +577,7 @@ class PerangkatWifiNotifier extends _$PerangkatWifiNotifier {
   }
 
   Future<int?> _ukurLatensiIcmp(String ip) async {
+    if (kIsWeb) return null;
     try {
       final ping = Ping(ip, count: 1, timeout: 1);
       await for (final event in ping.stream.timeout(

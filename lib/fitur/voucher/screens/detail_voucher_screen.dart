@@ -25,7 +25,7 @@ class DetailVoucherScreen extends ConsumerWidget {
           children: [
             _buildItemCustom('voucher', item.voucher),
             _buildItemCustom('paket', paket?.nama ?? 'Paket tidak ditemukan'),
-            _buildItemCustom('tanggal dibuat', FormatTanggal),
+            _buildItemCustom('tanggal dibuat', FormatTanggal.formatDasar(item.tanggalDibuat)),
 
           ],
         ),

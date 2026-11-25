@@ -4,8 +4,7 @@ import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/pelanggan_aktif/model/pelanggan_aktif_model.dart';
 import 'package:admin_wifi/fitur/pelanggan/notifier/pelanggan_notifier.dart';
 import 'package:admin_wifi/fitur/pelanggan/model/pelanggan_model.dart';
-import 'package:admin_wifi/utils/format_util.dart';
-import 'package:share_global_saya/src/utils/l.dart';
+import 'package:share_global_saya/core_shared.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Kelas utilitas untuk membuat dan mengirim pesan informasi paket.
@@ -79,11 +78,11 @@ class PesanInfoPaket {
   ) {
     final namaPelanggan = pelanggan.nama;
     final namaPaket = paket.nama;
-    final hargaPaket = FormatUang.formatMataUang(paket.harga.toDouble());
-    final tanggalMulai = FormatTanggal.formatTanggalDanJam(
+    final hargaPaket = FormatUang.formatRupiah(paket.harga.toDouble());
+    final tanggalMulai = FormatTanggal.formatDasar(
       pelangganAktif.tanggalMulai,
     );
-    final tanggalBerakhir = FormatTanggal.formatTanggalDanJam(
+    final tanggalBerakhir = FormatTanggal.formatDasar(
       pelangganAktif.tanggalBerakhir,
     );
 
