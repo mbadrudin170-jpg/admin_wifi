@@ -15,8 +15,7 @@ class VoucherScreen extends ConsumerStatefulWidget {
 }
 
 class _VoucherScreenState extends ConsumerState<VoucherScreen> {
-
-    String? idPaket;
+  String? idPaket;
   @override
   void initState() {
     super.initState();
@@ -38,13 +37,33 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
     final paketState = paketAsync.requireValue;
     return Scaffold(
       appBar: AppBar(title: const Text('data')),
-      body: _buildListVocuher(voucherState.listVoucher),
+      body: Column(
+        children: [
+          _buildTombolSort(paketState.listPaket),
+          Expanded(child: _buildListVocuher(voucherState.listVoucher)),
+        ],
+      ),
     );
   }
 
-Widget _buildTombolSort (List<PaketModel> listPaket){
-    return ChoiceChip(label: label, selected: selected)
-}
+  Widget _buildTombolSort(List<PaketModel> listPaket) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        spacing: 8,
+        children: listPaket
+            .map(
+              (paket) => FilterChip(
+                label: Text(paket.nama),
+                selected: idPaket == paket.id,
+                onSelected: (_) => setState(() => idPaket = paket.id),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
   Widget _buildListVocuher(List<VoucherModel> listVoucher) {
     return ListView.builder(
       itemCount: listVoucher.length,
