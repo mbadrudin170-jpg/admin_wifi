@@ -10,11 +10,10 @@ import 'package:admin_wifi/fitur/transaksi/model/transaksi_model.dart';
 import 'package:admin_wifi/fitur/transaksi/notifier/transaksi_notifier.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/detail_transaksi.dart';
 import 'package:admin_wifi/fitur/transaksi/screens/form_transaksi.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart'
-    hide FormatTanggal, FormatUang, FormatJam;
+    hide FormatJam;
 
 Map<DateTime, List<TransaksiModel>> groupTransaksiByDate(
   List<TransaksiModel> transaksi,
@@ -34,13 +33,13 @@ Widget bangunHeaderSeksi(BuildContext context, DateTime tanggal, double total) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          FormatTanggal.formatTanggalBasic(tanggal),
+          FormatTanggal.formatDasar(tanggal),
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         Text(
-          FormatUang.formatMataUang(total),
+          FormatUang.formatRupiah(total),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: total >= 0 ? Colors.green : Colors.red,
@@ -166,10 +165,10 @@ class _TransaksiTileState extends ConsumerState<TransaksiTile> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              FormatUang.formatMataUang(widget.transaksi.jumlah),
+              FormatUang.formatRupiah(widget.transaksi.jumlah),
               style: TextStyle(fontWeight: FontWeight.bold, color: iconColor),
             ),
-            Text(FormatJam.formatJamMenit(widget.transaksi.tanggal)),
+            Text(FormatWaktuLengkap.formatSingkat(widget.transaksi.tanggal)),
           ],
         ),
       ),

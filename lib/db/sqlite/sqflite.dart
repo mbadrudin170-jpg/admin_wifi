@@ -1,5 +1,6 @@
 // path: lib/db/sqlite/sqflite.dart
 
+// ignore: unnecessary_import
 import 'package:sqflite/sqflite.dart';
 
 import 'dart:io' if (dart.library.js_interop) 'io_stub.dart';

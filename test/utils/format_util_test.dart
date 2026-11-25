@@ -1,8 +1,8 @@
 // path: test/utils/format_util_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 void main() {
   // ditambahkan: karena tes format tanggal butuh inisialisasi lokal
@@ -13,7 +13,7 @@ void main() {
 
     test('formatTanggalBasic harus menghasilkan format "d MMM yyyy"', () {
       // diubah: karena butuh lokal 'id_ID' untuk tes
-      final result = FormatTanggal.formatTanggalBasic(sampleDate);
+      final result = FormatTanggal.formatDasar(sampleDate);
       expect(result, '17 Agu 2024');
     });
 
@@ -21,14 +21,14 @@ void main() {
       'formatTanggalDanJam harus menghasilkan format "d MMM yyyy, HH:mm"',
       () {
         // diubah: karena butuh lokal 'id_ID' untuk tes
-        final result = FormatTanggal.formatTanggalDanJam(sampleDate);
+        final result = FormatTanggal.formatDasar(sampleDate);
         expect(result, '17 Agu 2024, 14:30');
       },
     );
 
     test('formatTanggalRingkas harus menghasilkan format "E, d MMM yy"', () {
       // diubah: karena butuh lokal 'id_ID' untuk tes
-      final result = FormatTanggal.formatTanggalRingkas(sampleDate);
+      final result = FormatTanggal.formatDasar(sampleDate);
       expect(result, 'Sab, 17 Agu 24');
     });
   });
@@ -42,14 +42,14 @@ void main() {
     });
 
     test('formatJamLengkap harus menghasilkan format "HH:mm:ss"', () {
-      final result = FormatJam.formatJamLengkap(sampleTime);
+      final result = FormatJam.formatDasar(sampleTime);
       expect(result, '09:05:07');
     });
 
     test(
       'formatTeksKeJam harus mengubah ISO string ke "HH:mm" contoh 24:00',
       () {
-        final result = FormatJam.formatTeksKeJam('2024-08-17T09:05:00');
+        final result = FormatJam.formatJamMenit('2024-08-17T09:05:00');
         expect(result, '09:05');
       },
     );

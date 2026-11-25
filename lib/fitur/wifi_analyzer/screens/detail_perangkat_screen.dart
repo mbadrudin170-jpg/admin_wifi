@@ -1,10 +1,12 @@
 // path: lib/fitur/wifi_analyzer/screens/detail_perangkat_screen.dart
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' if (dart.library.js_interop) 'package:admin_wifi/db/sqlite/io_stub.dart';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/model/perangkat_wifi_model.dart';
-import 'package:dart_ping/dart_ping.dart';
+import 'package:dart_ping/dart_ping.dart'
+    if (dart.library.js_interop)
+        'package:admin_wifi/fitur/wifi_analyzer/notifier/ping_stub.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:share_global_saya/core_shared.dart';
@@ -164,6 +166,10 @@ class _DetailPerangkatScreenState extends State<DetailPerangkatScreen> {
   }
 
   Future<void> _pindaiPort() async {
+    if (kIsWeb) {
+      setState(() => _errorPort = 'Port scan tidak didukung di Web');
+      return;
+    }
     if (_sedangPortScan) return;
     setState(() {
       _sedangPortScan = true;

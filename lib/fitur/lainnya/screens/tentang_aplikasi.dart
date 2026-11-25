@@ -3,8 +3,9 @@
 // File ini bertanggung jawab untuk menampilkan informasi tentang aplikasi,
 // seperti versi, nama, dan deskripsi singkat.
 
-import 'dart:io';
+import 'dart:io' if (dart.library.js_interop) 'package:admin_wifi/db/sqlite/io_stub.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_global_saya/src/utils/l.dart';
@@ -48,9 +49,11 @@ class _TentangAplikasiPageState extends State<TentangAplikasiPage> {
         'PackageInfo berhasil diambil - Nama: ${packageInfo.appName}, Versi: ${packageInfo.version}, Build: ${packageInfo.buildNumber}, Package: ${packageInfo.packageName}',
       );
 
-      String deviceArch = 'Unknown';
+    String deviceArch = 'Unknown';
 
-      if (Platform.isAndroid) {
+    if (kIsWeb) {
+      deviceArch = 'Web';
+    } else if (Platform.isAndroid) {
         L.i('Platform terdeteksi: Android, mengambil DeviceInfo');
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;

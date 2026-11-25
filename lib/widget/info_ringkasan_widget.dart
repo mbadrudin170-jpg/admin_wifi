@@ -1,6 +1,6 @@
 // path: lib/widget/info_ringkasan_widget.dart
-import 'package:admin_wifi/utils/format_util.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:share_global_saya/core_shared.dart';
 
 // diubah: Menambahkan parameter `textKey` opsional.
 Widget bangunInfoRingkasan({
@@ -17,7 +17,7 @@ Widget bangunInfoRingkasan({
     children: [
       Text(label, style: Theme.of(context).textTheme.bodySmall),
       Text(
-        FormatUang.formatMataUang(jumlah),
+        FormatUang.formatRupiah(jumlah),
         // diubah: Menggunakan `textKey` jika tersedia.
         key: textKey ?? ValueKey(label),
         style: TextStyle(
