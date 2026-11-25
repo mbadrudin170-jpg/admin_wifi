@@ -1,8 +1,8 @@
 import 'package:admin_wifi/fitur/paket/model/paket_model.dart';
 import 'package:admin_wifi/fitur/paket/notifier/paket_notifier.dart';
-import 'package:admin_wifi/fitur/voucher/model/voucher_model.dart';
 import 'package:admin_wifi/fitur/voucher/notifier/voucher_notifier.dart';
 import 'package:admin_wifi/fitur/voucher/screens/detail_voucher_screen.dart';
+import 'package:admin_wifi/fitur/voucher/state/voucher_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_global_saya/core_shared.dart';
@@ -40,7 +40,7 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
       body: Column(
         children: [
           _buildTombolSort(paketState.listPaket),
-          Expanded(child: _buildListVocuher(voucherState.listVoucher)),
+          Expanded(child: _buildListVocuher(voucherState)),
         ],
       ),
     );
@@ -64,7 +64,11 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
     );
   }
 
-  Widget _buildListVocuher(List<VoucherModel> listVoucher) {
+  Widget _buildListVocuher(VoucherState state) {
+    final paket = idPaket;
+    final listVoucher = paket == null
+        ? state.listVoucher
+        : state.getListByIdPaket(paket);
     return ListView.builder(
       itemCount: listVoucher.length,
       itemBuilder: (context, index) {
