@@ -1,6 +1,6 @@
 // path: lib/db/sqlite/sqflite.dart
 
-import 'dart:io';
+import 'dart:io' if (dart.library.js_interop) 'io_stub.dart';
 
 import 'package:admin_wifi/db/sqlite/oncreate_sqflite.dart';
 import 'package:admin_wifi/db/sqlite/onupgrade_sqflite.dart';
@@ -8,7 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_global_saya/src/utils/l.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart'
+    if (dart.library.js_interop) 'sqflite_ffi_stub.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -49,7 +50,7 @@ class DatabaseHelper {
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
         return await databaseFactory.openDatabase(
-          inMemoryDatabasePath,
+          ':memory:',
           options: OpenDatabaseOptions(
             version: _databaseVersion,
             onCreate: onCreateSqflite,

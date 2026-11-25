@@ -2,11 +2,13 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
+import 'dart:io'
+    if (dart.library.js_interop) 'io_stub.dart';
 
 import 'package:admin_wifi/fitur/wifi_analyzer/state/ping_state.dart';
 import 'package:collection/collection.dart';
-import 'package:dart_ping/dart_ping.dart';
+import 'package:dart_ping/dart_ping.dart'
+    if (dart.library.js_interop) 'ping_stub.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

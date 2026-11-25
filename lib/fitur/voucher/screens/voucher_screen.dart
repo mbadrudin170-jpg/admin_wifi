@@ -36,7 +36,7 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
     final voucherState = voucherAsync.requireValue;
     final paketState = paketAsync.requireValue;
     return Scaffold(
-      appBar: AppBar(title: const Text('data')),
+      appBar: AppBar(title: const Text('Voucher')),
       body: Column(
         children: [
           _buildTombolSort(paketState.listPaket),
